@@ -18,6 +18,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <vdibind.h>				/* vdi binding structures */
+
+#include "example3.h"
  
 /*------------------------------*/
 /*	Some Defines    	*/
@@ -40,9 +42,9 @@ CHAR *	retry_alert;			/* Holds retry alert message	*/
 /*------------------------------*/
 /*	do_alert		*/
 /*------------------------------*/
-
-do_alert()
-
+static
+void
+do_alert(void)
 {
 
 	WORD	wbutton;		/* Exit button from ALERT	*/
@@ -93,6 +95,11 @@ int main ()
 		form_alert(1, "[3][Unable to load resource][ Abort ]");
 		return(FALSE);		/* unable to load resource	*/
 	}
+
+        rsrc_gaddr(R_STRING, SYSALERT, &sys_alert);
+        rsrc_gaddr(R_STRING, RESALERT, &reset_alert);
+        rsrc_gaddr(R_STRING, IGNALERT, &ignore_alert);
+        rsrc_gaddr(R_STRING, RETALERT, &retry_alert);
 
         do_alert();                             /* Test what we want to test */
 
