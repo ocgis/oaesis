@@ -1,4 +1,4 @@
-SUBDIRS = lib launcher server
+SUBDIRS = lib launcher server startup
 
 all: subdirs
 
