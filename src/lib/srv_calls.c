@@ -124,45 +124,6 @@ WORD mode)          /* What to do.                                          */
   return Srv_put (apid, SRV_APPL_CONTROL, &par);
 }
 
-/****************************************************************************
- * Srv_appl_exit                                                            *
- *  Implementation of appl_exit().                                          *
- ****************************************************************************/
-WORD            /* 0 if error, or 1.                                        */
-Srv_appl_exit(  /*                                                          */
-WORD apid)      /* Application id.                                          */
-/****************************************************************************/
-{
-  C_APPL_EXIT   par;
-  R_APPL_EXIT   ret;
-  /*  SRV_APPL_INFO apinf;*/
-  WORD          code;
-  int           count;
-
-  /*
-  Srv_get_appl_info(apid, &apinf);
-  */
-
-  par.common.call = SRV_APPL_EXIT;
-  par.common.apid = apid;
-  par.common.pid = getpid ();
-
-  count = Client_send_recv (&par,
-                            sizeof (C_APPL_EXIT),
-                            &ret,
-                            sizeof (R_APPL_EXIT));
-  
-  DB_printf ("oaesis: srv_calls.c: Srv_appl_exit: count = %d\n",
-             count);
-  
-  /*
-  Fclose(apinf.msgpipe);
-  Fclose(apinf.eventpipe);
-  Vdi_v_clsvwk(apinf.vid);
-  */
-
-  return ret.common.retval;
-}
 
 /****************************************************************************
  * Srv_appl_find                                                            *
@@ -178,93 +139,6 @@ BYTE *fname)      /* File name of application to seek.                      */
   par.fname = fname;
 
   return Srv_put (0, SRV_APPL_FIND, &par);
-}
-
-/****************************************************************************
- * Srv_appl_init                                                            *
- *  Implementation of appl_init().                                          *
- ****************************************************************************/
-WORD                   /* Application id, or -1.                            */
-Srv_appl_init(         /*                                                   */
-GLOBAL_ARRAY *global)  /* Global array.                                     */
-/****************************************************************************/
-{
-  WORD        pid = Pgetpid();
-  C_APPL_INIT par;
-  R_APPL_INIT ret;
-  LONG        fnr;
-  WORD        work_in[] = {1,7,1,1,1,1,1,1,1,1,2};
-  WORD        work_out[57];
-  int         count;
-
-  /*
-  sprintf(par.msgname,"u:\\pipe\\applmsg.%03d",pid);		
-  sprintf(par.eventname,"u:\\pipe\\applevnt.%03d",pid);		
-
-  par.msghandle = par.eventhandle = 0;
-
-  if((fnr = Fopen(par.msgname,0)) >= 0)
-  {
-    Fclose((WORD)fnr);
-  }
-  else if((par.msghandle = (WORD)Fcreate(par.msgname,0)) < 0)
-  {
-    Fclose(par.msghandle);
-		
-    return -1;
-  }
-	
-  if((fnr = Fopen(par.eventname,0)) >= 0)
-  {
-    Fclose((WORD)fnr);
-  }
-  else if((par.eventhandle = (WORD)Fcreate(par.eventname,0)) < 0)
-  {
-    Fclose(par.msghandle);
-    Fclose(par.eventhandle);
-		
-    return -1;
-  }
-	
-
-  par.global = global;
-
-  par.vid = globals.vid;
-  Vdi_v_opnvwk(work_in, &par.vid, work_out);
-  */
-
-  par.common.call = SRV_APPL_INIT;
-  par.common.pid = getpid ();
-  count = Client_send_recv (&par,
-                            sizeof (C_APPL_INIT),
-                            &ret,
-                            sizeof (R_APPL_INIT));
-
-  DB_printf ("oaesis: srv_calls.c: Srv_appl_init: apid = %d count = %d\n",
-             (int)ret.apid, count);
-  
-  global->apid = ret.apid;	
-  global->version = 0x0410;
-  global->numapps = -1;
-  global->appglobal = 0L;
-  global->rscfile = 0L;
-  global->rshdr = 0L;
-  global->resvd1 = 0;
-  global->resvd2 = 0;
-  global->int_info = 0L;
-  global->maxchar = 0;
-  global->minchar = 0;
-
-  if(global->apid >= 0) {
-    return global->apid;
-  } else {
-  /*
-  Vdi_v_clsvwk(par.vid);
-  Fclose(par.msghandle);
-  Fclose(par.eventhandle);
-  */
-    return -1;
-  }
 }
 
 
@@ -512,45 +386,6 @@ WORD wid)       /* Identification number of window to close.                */
 	
   return Srv_put (0, SRV_WIND_CLOSE, &par);
 }
-
-/****************************************************************************
- * Srv_wind_create                                                          *
- *  Implementation of wind_create().                                        *
- ****************************************************************************/
-WORD             /* 0 if error or 1 if ok.                                  */
-Srv_wind_create( /*                                                         */
-WORD owner,      /* Owner of window.                                        */
-WORD elements,   /* Elements of window.                                     */
-RECT *maxsize,   /* Maximum size allowed.                                   */
-WORD status)     /* Status of window.                                       */
-/****************************************************************************/
-{
-  C_WIND_CREATE par;
-	
-  par.owner = owner;
-  par.elements = elements;
-  par.maxsize = maxsize;
-  par.status = status;
-	
-  return Srv_put (0, SRV_WIND_CREATE, &par);
-}
-
-/****************************************************************************
- * Srv_wind_delete                                                          *
- *  Implementation of wind_delete().                                        *
- ****************************************************************************/
-WORD             /* 0 if error or 1 if ok.                                  */
-Srv_wind_delete( /*                                                         */
-WORD wid)        /* Identification number of window to close.               */
-/****************************************************************************/
-{
-  C_WIND_DELETE par;
-	
-  par.id = wid;
-	
-  return Srv_put (0, SRV_WIND_DELETE, &par);
-}
-
 
 /****************************************************************************
  * Srv_wind_draw                                                            *

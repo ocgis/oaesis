@@ -3211,13 +3211,15 @@ C_WIND_CLOSE *msg)
   }
 }
 
+
 /****************************************************************************
  * srv_wind_create                                                          *
  *  Implementation of wind_create().                                        *
  ****************************************************************************/
-WORD             /* 0 if error or 1 if ok.                                  */
+void
 srv_wind_create( /*                                                         */
-C_WIND_CREATE *msg)
+C_WIND_CREATE * msg,
+R_WIND_CREATE * ret)
 /****************************************************************************/
 {
   WINSTRUCT	*ws;
@@ -3225,9 +3227,9 @@ C_WIND_CREATE *msg)
   ws = winalloc();
   
   ws->status = msg->status;
-  ws->owner = msg->owner; 
+  ws->owner = msg->common.apid; 
 	
-  ws->maxsize = *msg->maxsize;
+  ws->maxsize = msg->maxsize;
 
   ws->rlist = NULL;
   ws->rpos = NULL;
@@ -3236,10 +3238,11 @@ C_WIND_CREATE *msg)
   ws->vslidesize = 1000;
   ws->hslidepos = 1;
   ws->hslidesize = 1000;
-  
+
+  /*
   if((ws->status & WIN_DIALOG) || (ws->status & WIN_MENU)) {
     ws->tree = 0L;
-    ws->totsize = *msg->maxsize;
+    ws->totsize = msg->maxsize;
     ws->worksize = ws->totsize;
   }
   else {
@@ -3250,7 +3253,7 @@ C_WIND_CREATE *msg)
     set_win_elem(ws->tree,msg->elements);
     ws->elements = msg->elements;
 	
-    ai = internal_appl_info(msg->owner);
+    ai = internal_appl_info(msg->common.apid);
 		
     if(ai) {
       ws->tree[WAPP].ob_spec.tedinfo->te_ptext =
@@ -3276,8 +3279,9 @@ C_WIND_CREATE *msg)
     
     ws->own_colour = 0;
   };
-  
-  return ws->id;
+  */
+
+  ret->common.retval = ws->id;
 }
 
 /****************************************************************************
@@ -3286,7 +3290,8 @@ C_WIND_CREATE *msg)
  ****************************************************************************/
 WORD             /* 0 if error or 1 if ok.                                  */
 srv_wind_delete( /*                                                         */
-C_WIND_DELETE *msg)
+C_WIND_DELETE * msg,
+R_WIND_DELETE * ret)
 /****************************************************************************/
 {
   WINLIST	**wl;
@@ -3372,7 +3377,7 @@ C_WIND_DELETE *msg)
     win_free = wt;
   };
   
-  return 1;
+  ret->common.retval = 1;
 }
 
 /****************************************************************************
@@ -3903,9 +3908,10 @@ WORD apid)     /* Application whose windows should be erased.               */
   while(wl) {
     if((wl->win->owner == apid) && !(wl->win->status & WIN_DESKTOP)) {
       C_WIND_DELETE c_wind_delete;
-      
+      R_WIND_DELETE r_wind_delete;
+
       c_wind_delete.id = wl->win->id;
-      srv_wind_delete(&c_wind_delete);
+      srv_wind_delete(&c_wind_delete, &r_wind_delete);
       
       wl = win_vis;
     }
@@ -3919,9 +3925,10 @@ WORD apid)     /* Application whose windows should be erased.               */
   while(wl) {
     if(wl->win->owner == apid) {
       C_WIND_DELETE c_wind_delete;
+      R_WIND_DELETE r_wind_delete;
       
       c_wind_delete.id = wl->win->id;
-      srv_wind_delete(&c_wind_delete);
+      srv_wind_delete(&c_wind_delete, &r_wind_delete);
       
       wl = win_list;
     }
@@ -3987,6 +3994,7 @@ static WORD server(LONG arg) {
   WORD          work_out[57];
   RECT          r;
   C_WIND_CREATE c_wind_create;
+  R_WIND_CREATE r_wind_create;
   C_WIND_GET    c_wind_get;
   C_WIND_OPEN   c_wind_open;
 
@@ -4019,13 +4027,14 @@ static WORD server(LONG arg) {
   r.height = r.y;
   r.y = 0;
   
-  c_wind_create.owner = 0;
+  c_wind_create.common.apid = 0;
   c_wind_create.elements = 0;
-  c_wind_create.maxsize = &r;
+  c_wind_create.maxsize = r;
   c_wind_create.status = WIN_MENU;
 
-  mglob.winbar = srv_wind_create (&c_wind_create);
-  
+  srv_wind_create (&c_wind_create, &r_wind_create);
+  mglob.winbar = r_wind_create.common.retval;
+
   c_wind_open.id = mglob.winbar;
   c_wind_open.size = &r;
   srv_wind_open(&c_wind_open);
@@ -4172,17 +4181,16 @@ static WORD server(LONG arg) {
       break;
       
     case SRV_WIND_CREATE:
-      code = 
-	srv_wind_create(&par.wind_create);
+      srv_wind_create (&par.wind_create, &ret.wind_create);
       
-      Srv_reply (handle, &par, code);
+      Srv_reply (handle, &ret, sizeof (R_WIND_CREATE));
       break;
       
     case SRV_WIND_DELETE:
-      code = 
-	srv_wind_delete (&par.wind_delete);
+      srv_wind_delete (&par.wind_delete,
+                       &ret.wind_delete);
       
-      Srv_reply (handle, &par, code);
+      Srv_reply (handle, &ret, sizeof (R_WIND_DELETE));
       break;
       
     case SRV_WIND_DRAW:

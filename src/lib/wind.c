@@ -60,6 +60,8 @@
 #include	<support.h>
 #endif
 
+#include <unistd.h>
+
 #include "debug.h"
 #include "evnthndl.h"
 #include "gemdefs.h"
@@ -70,6 +72,8 @@
 #include "objc.h"
 #include "resource.h"
 #include "srv_calls.h"
+#include "srv_interface.h"
+#include "srv_put.h"
 #include "types.h"
 #include "vdi.h"
 #include "wind.h"
@@ -147,11 +151,50 @@ static void	calcworksize(WORD elem,RECT *orig,RECT *new,WORD dir) {
  * Public functions                                                         *
  ****************************************************************************/
 
-/*wind_create 0x0064*/
+/****************************************************************************
+ * do_wind_create                                                           *
+ *  Implementation of wind_create().                                        *
+ ****************************************************************************/
+WORD             /* 0 if error or 1 if ok.                                  */
+do_wind_create(  /*                                                         */
+WORD   apid,     /* Owner of window.                                        */
+WORD   elements, /* Elements of window.                                     */
+RECT * maxsize,  /* Maximum size allowed.                                   */
+WORD   status)   /* Status of window.                                       */
+/****************************************************************************/
+{
+  C_WIND_CREATE par;
+  R_WIND_CREATE ret;
+  int           count;
+  
+  par.common.call = SRV_WIND_CREATE;
+  par.common.apid = apid;
+  par.common.pid = getpid ();
+  par.elements = elements;
+  par.maxsize = *maxsize;
+  par.status = status;
+	
+  count = Client_send_recv (&par,
+                            sizeof (C_WIND_CREATE),
+                            &ret,
+                            sizeof (R_WIND_CREATE));
+
+  DB_printf ("wind.c: do_wind_create: count=%d id=%d",
+             count,
+             ret.common.retval);
+  return ret.common.retval;
+}
+
+
+/* wind_create 0x0064 */
 
 void	Wind_create(AES_PB *apb) {	
-	apb->int_out[0] = Srv_wind_create(apb->global->apid
-		,apb->int_in[0],(RECT *)&apb->int_in[1],0);
+  DB_printf ("wind.c: Wind_create entered");
+  apb->int_out[0] = do_wind_create(apb->global->apid
+                                   ,apb->int_in[0],
+                                   (RECT *)&apb->int_in[1],
+                                   0);
+  DB_printf ("wind.c: Wind_create exited");
 }
 
 /*wind_open 0x0065*/
@@ -167,9 +210,38 @@ void	Wind_close(AES_PB *apb) {
 }
 
 
+/****************************************************************************
+ * do_wind_delete                                                           *
+ *  Implementation of wind_delete().                                        *
+ ****************************************************************************/
+WORD             /* 0 if error or 1 if ok.                                  */
+do_wind_delete(  /*                                                         */
+WORD apid,
+WORD wid)        /* Identification number of window to close.               */
+/****************************************************************************/
+{
+  C_WIND_DELETE par;
+  R_WIND_DELETE ret;
+
+  par.common.apid = apid;
+  par.common.pid = getpid ();
+  par.id = wid;
+	
+  Client_send_recv (&par,
+                    sizeof (C_WIND_DELETE),
+                    &ret,
+                    sizeof (R_WIND_DELETE));
+
+  return ret.common.retval;
+}
+
+
 /*wind_delete 0x0067*/
-void	Wind_delete(AES_PB *apb) {
-	apb->int_out[0] = Srv_wind_delete(apb->int_in[0]);
+void Wind_delete(AES_PB *apb) {
+  DB_printf ("wind.c: Wind_delete entered");
+  apb->int_out[0] = do_wind_delete(apb->global->apid,
+                                   apb->int_in[0]);
+  DB_printf ("wind.c: Wind_delete exited");
 }
 
 /*wind_get 0x0068*/

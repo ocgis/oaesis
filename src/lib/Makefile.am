@@ -1,4 +1,4 @@
-CFLAGS = -I../comm -I../common
+CFLAGS = -I../comm -I../common -Wall
 # Make a shared library using libtool
 
 lib_LTLIBRARIES = liboaesis.la

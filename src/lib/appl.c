@@ -63,11 +63,15 @@
 #include <support.h>
 #endif
 
+#include <unistd.h>
+
 #include "appl.h"
 #include "debug.h"
 #include "gemdefs.h"
 #include "lib_global.h"
 #include "srv_calls.h"
+#include "srv_put.h"
+#include "srv_interface.h"
 #include "types.h"
 
 /****************************************************************************
@@ -93,8 +97,96 @@ static WORD do_appl_read(WORD apid,WORD msgpipe,WORD length,void *m) {
 
 /* 0x000a appl_init */
 
+/****************************************************************************
+ * do_appl_init                                                             *
+ *  Implementation of appl_init().                                          *
+ ****************************************************************************/
+WORD                   /* Application id, or -1.                            */
+do_appl_init(          /*                                                   */
+GLOBAL_ARRAY *global)  /* Global array.                                     */
+/****************************************************************************/
+{
+  WORD        pid = Pgetpid();
+  C_APPL_INIT par;
+  R_APPL_INIT ret;
+  LONG        fnr;
+  WORD        work_in[] = {1,7,1,1,1,1,1,1,1,1,2};
+  WORD        work_out[57];
+  int         count;
+
+  /*
+  sprintf(par.msgname,"u:\\pipe\\applmsg.%03d",pid);		
+  sprintf(par.eventname,"u:\\pipe\\applevnt.%03d",pid);		
+
+  par.msghandle = par.eventhandle = 0;
+
+  if((fnr = Fopen(par.msgname,0)) >= 0)
+  {
+    Fclose((WORD)fnr);
+  }
+  else if((par.msghandle = (WORD)Fcreate(par.msgname,0)) < 0)
+  {
+    Fclose(par.msghandle);
+		
+    return -1;
+  }
+	
+  if((fnr = Fopen(par.eventname,0)) >= 0)
+  {
+    Fclose((WORD)fnr);
+  }
+  else if((par.eventhandle = (WORD)Fcreate(par.eventname,0)) < 0)
+  {
+    Fclose(par.msghandle);
+    Fclose(par.eventhandle);
+		
+    return -1;
+  }
+	
+
+  par.global = global;
+
+  par.vid = globals.vid;
+  Vdi_v_opnvwk(work_in, &par.vid, work_out);
+  */
+
+  par.common.call = SRV_APPL_INIT;
+  par.common.pid = getpid ();
+  count = Client_send_recv (&par,
+                            sizeof (C_APPL_INIT),
+                            &ret,
+                            sizeof (R_APPL_INIT));
+
+  DB_printf ("srv_calls.c: Srv_appl_init: apid = %d count = %d\n",
+             (int)ret.apid, count);
+  
+  global->apid = ret.apid;	
+  global->version = 0x0410;
+  global->numapps = -1;
+  global->appglobal = 0L;
+  global->rscfile = 0L;
+  global->rshdr = 0L;
+  global->resvd1 = 0;
+  global->resvd2 = 0;
+  global->int_info = 0L;
+  global->maxchar = 0;
+  global->minchar = 0;
+
+  if(global->apid >= 0) {
+    return global->apid;
+  } else {
+  /*
+  Vdi_v_clsvwk(par.vid);
+  Fclose(par.msghandle);
+  Fclose(par.eventhandle);
+  */
+    return -1;
+  }
+}
+
+
 void	Appl_init(AES_PB *apb) {
-  apb->int_out[0] = Srv_appl_init(apb->global);
+  apb->int_out[0] = do_appl_init(apb->global);
 }
 
 /* 0x000b appl_read */
@@ -153,18 +245,57 @@ Appl_search(      /*                                                        */
 
 /* 0x0013 appl_exit */
 
+/****************************************************************************
+ * do_appl_exit                                                             *
+ *  Implementation of appl_exit().                                          *
+ ****************************************************************************/
+WORD            /* 0 if error, or 1.                                        */
+do_appl_exit(   /*                                                          */
+WORD apid)      /* Application id.                                          */
+/****************************************************************************/
+{
+  C_APPL_EXIT   par;
+  R_APPL_EXIT   ret;
+  /*  SRV_APPL_INFO apinf;*/
+  WORD          code;
+  int           count;
+
+  /*
+  Srv_get_appl_info(apid, &apinf);
+  */
+
+  par.common.call = SRV_APPL_EXIT;
+  par.common.apid = apid;
+  par.common.pid = getpid ();
+
+  count = Client_send_recv (&par,
+                            sizeof (C_APPL_EXIT),
+                            &ret,
+                            sizeof (R_APPL_EXIT));
+  
+  DB_printf ("srv_calls.c: Srv_appl_exit: count = %d\n",
+             count);
+  
+  /*
+  Fclose(apinf.msgpipe);
+  Fclose(apinf.eventpipe);
+  Vdi_v_clsvwk(apinf.vid);
+  */
+
+  return ret.common.retval;
+}
+
 void	Appl_exit(AES_PB *apb) {
-  apb->int_out[0] = Srv_appl_exit(apb->global->apid);
+  apb->int_out[0] = do_appl_exit(apb->global->apid);
 }
 
 /****************************************************************************
  * Appl_getinfo                                                             *
  *  0x0082 appl_getinfo().                                                  *
  ****************************************************************************/
-void              /*                                                        */
-Appl_getinfo(     /*                                                        */
-             AES_PB *apb)      /* AES parameter block.                                   */
-     /****************************************************************************/
+void                      /*                                                */
+Appl_getinfo(AES_PB *apb) /* AES parameter block.                           */
+     /***********************************************************************/
 {
   apb->int_out[0] = 1; /* default: return OK ( ret != 0) */
 

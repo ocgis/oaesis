@@ -46,7 +46,7 @@ WORD DB_printf(BYTE *fmt, ...) {
   va_end(arguments);
 
   /*DEBUG(s);*/
-  fprintf (stderr, "%s\n", s);
+  fprintf (stderr, "oaesis: %s\n", s);
   
   return r;
 }

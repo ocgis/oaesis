@@ -167,14 +167,25 @@ typedef struct {
 }C_WIND_CLOSE;
 
 typedef struct {
-  WORD owner;
-  WORD elements;
-  RECT *maxsize;
-  WORD status;
-  WORD retval;
+  C_ALL  common;
+  WORD   elements;
+  RECT   maxsize;
+  WORD   status;
+  WORD   retval;
 }C_WIND_CREATE;
 
-typedef C_WIND_CLOSE C_WIND_DELETE;
+typedef struct {
+  R_ALL common;
+}R_WIND_CREATE;
+
+typedef struct {
+  C_ALL common;
+  WORD id;
+}C_WIND_DELETE;
+
+typedef struct {
+  R_ALL common;
+}R_WIND_DELETE;
 
 typedef struct {
   WORD handle;
@@ -242,9 +253,11 @@ typedef union {
 
 
 typedef union {
-  R_ALL       common;
-  R_APPL_EXIT appl_exit;
-  R_APPL_INIT appl_init;
+  R_ALL         common;
+  R_APPL_EXIT   appl_exit;
+  R_APPL_INIT   appl_init;
+  R_WIND_CREATE wind_create;
+  R_WIND_DELETE wind_delete;
 }R_SRV;
 
 #endif /* _SRV_INTERFACE_H_ */

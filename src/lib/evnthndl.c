@@ -83,6 +83,7 @@ v   Fixed mover grabbing bug; if the mouse was moved during click on
 #include "srv_calls.h"
 #include "types.h"
 #include "vdi.h"
+#include "wind.h"
 /*#include "wm/wm.h"*/
 
 #ifdef HAVE_SYSVARS_H
@@ -1296,6 +1297,7 @@ static WORD handle_drop_down(HM_BUFFER *hm_buffer,WORD menubox,WORD title) {
 }
 
 static WORD handle_selected_title(HM_BUFFER *hm_buffer) {
+  WORD    apid; /* Make this a parameter */
   EVNTREC er;
   WORD    box;
   WORD    title;
@@ -1336,7 +1338,7 @@ static WORD handle_selected_title(HM_BUFFER *hm_buffer) {
 	(globals.pmenutad[1].ob_height << 1) + 2;
     };
 
-    menu.dropwin = Srv_wind_create(0,0,&area,WIN_MENU);
+    menu.dropwin = do_wind_create(0,0,&area,WIN_MENU);
     Srv_wind_open(menu.dropwin,&area);
 
     menu.tree[box].ob_flags &= ~HIDETREE;
@@ -1390,7 +1392,7 @@ static WORD handle_selected_title(HM_BUFFER *hm_buffer) {
 	    Objc_do_draw(menu.tree,0,9,&titlearea);
 	    
 	    Srv_wind_close(menu.dropwin);
-	    Srv_wind_delete(menu.dropwin);
+	    do_wind_delete(apid, menu.dropwin);
 	    
 	    menu.tree[box].ob_flags |= HIDETREE;
 	    
