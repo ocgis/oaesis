@@ -319,7 +319,6 @@ Rsrc_do_rcfix(int      vid,
     swap_endian = TRUE;
   }
 
-  DEBUG3 ("Rsrc_do_rcfix: 1");
   /* Swap words if necessary */
   if(swap_endian)
   {
@@ -329,7 +328,28 @@ Rsrc_do_rcfix(int      vid,
     }
   }
 
-  DEBUG3 ("Rsrc_do_rcfix: 2");
+  DEBUG3("Resource header:");
+  DEBUG3("=====================");
+  DEBUG3("rsh_vrsn     = 0x%04x", CW_TO_HW(rsc->rsh_vrsn));
+  DEBUG3("rsh_object   = 0x%04x", CW_TO_HW(rsc->rsh_object));
+  DEBUG3("rsh_tedinfo  = 0x%04x", CW_TO_HW(rsc->rsh_tedinfo));
+  DEBUG3("rsh_iconblk  = 0x%04x", CW_TO_HW(rsc->rsh_iconblk));
+  DEBUG3("rsh_bitblk   = 0x%04x", CW_TO_HW(rsc->rsh_bitblk));
+  DEBUG3("rsh_frstr    = 0x%04x", CW_TO_HW(rsc->rsh_frstr));
+  DEBUG3("rsh_string   = 0x%04x", CW_TO_HW(rsc->rsh_string));
+  DEBUG3("rsh_imdata   = 0x%04x", CW_TO_HW(rsc->rsh_imdata));
+  DEBUG3("rsh_frimg    = 0x%04x", CW_TO_HW(rsc->rsh_frimg));
+  DEBUG3("rsh_trindex  = 0x%04x", CW_TO_HW(rsc->rsh_trindex));
+  DEBUG3("rsh_nobs     = 0x%04x", CW_TO_HW(rsc->rsh_nobs));
+  DEBUG3("rsh_ntree    = 0x%04x", CW_TO_HW(rsc->rsh_ntree));
+  DEBUG3("rsh_nted     = 0x%04x", CW_TO_HW(rsc->rsh_nted));
+  DEBUG3("rsh_nib      = 0x%04x", CW_TO_HW(rsc->rsh_nib));
+  DEBUG3("rsh_nbb      = 0x%04x", CW_TO_HW(rsc->rsh_nbb));
+  DEBUG3("rsh_nstring  = 0x%04x", CW_TO_HW(rsc->rsh_nstring));
+  DEBUG3("rsh_nimages  = 0x%04x", CW_TO_HW(rsc->rsh_nimages));
+  DEBUG3("rsh_rssize   = 0x%04x", CW_TO_HW(rsc->rsh_rssize));
+  DEBUG3("=====================");
+
   /* Initialize pointers */
   owalk = (OBJECT *)((LONG)CW_TO_HW(rsc->rsh_object) + (LONG)rsc); 
   tiwalk = (TEDINFO *)((LONG)CW_TO_HW(rsc->rsh_tedinfo) + (LONG)rsc);
@@ -338,7 +358,6 @@ Rsrc_do_rcfix(int      vid,
   treewalk = (LARRAY *)((LONG)CW_TO_HW(rsc->rsh_trindex) + (LONG)rsc);
   frstrwalk = (LARRAY *)((LONG)CW_TO_HW(rsc->rsh_frstr) + (LONG)rsc);
   frimgwalk = (LARRAY *)((LONG)CW_TO_HW(rsc->rsh_frimg) + (LONG)rsc);
-  DEBUG3 ("Rsrc_do_rcfix: 3");
 
   if(CW_TO_HW(rsc->rsh_vrsn) & 0x4)
   {
@@ -359,20 +378,29 @@ Rsrc_do_rcfix(int      vid,
       extension->terminator = SWAP_LONG(extension->terminator);
     }
 
-    DEBUG3 ("Rsrc_do_rcfix: 4: extension = %p rsc = %p", extension, rsc);
+    DEBUG3("Extension header:");
+    DEBUG3("=====================");
+    DEBUG3("filesize     = 0x%04x", CL_TO_HL(extension->filesize));
+    DEBUG3("cicon_offset = 0x%04x", CL_TO_HL(extension->cicon_offset));
+    DEBUG3("terminator   = 0x%04x", CL_TO_HL(extension->terminator));
+    DEBUG3("=====================");
+
     /*
     ** FIXME:
     ** What if there are no colour icons? Check for cicon_offset == -1!
     */
     cicons =
       (CICONBLK **)(CL_TO_HL(extension->cicon_offset) + (LONG)rsc);
-    DEBUG3 ("Rsrc_do_rcfix: 4.1: cicons = %p cicon_offset = 0x%x",
-            cicons, CL_TO_HL(extension->cicon_offset));
+    DEBUG3 ("Cicons:");
+    DEBUG3("=====================");
     
     while((cicons[i] =
            (CICONBLK *)SWAP_LONG((LONG)cicons[i])) != (CICONBLK *)-1)
     {
-      DEBUG3("cicons[%d]@0x%x", i, (LONG)&cicons[i] - (LONG)rsc);
+      DEBUG3("cicons[%d]@0x%04x = 0x%08x",
+             i,
+             (LONG)&cicons[i] - (LONG)rsc,
+             CL_TO_HL(cicons[i]));
       i++;
     }
     
@@ -380,17 +408,22 @@ Rsrc_do_rcfix(int      vid,
 
     cwalk = (CICONBLK *)&cicons[i + 1];
 
+    DEBUG3("=====================");
     DEBUG3("cwalk = 0x%x, cwalk->monoblk = 0x%x",
            (LONG)cwalk - (LONG)rsc,
            (LONG)&cwalk->monoblk - (LONG)rsc);
+    DEBUG3("=====================");
 
-    for(i = 0; i < nr_cicon; i++) {
-      LONG monosize;
-      CICON *cicwalk;
-      WORD last_res = FALSE;
+    for(i = 0; i < nr_cicon; i++)
+    {
+      LONG    monosize;
+      CICON * cicwalk;
+      WORD    last_res;
 
-      DEBUG3 ("Rsrc_do_rcfix: 6");
+      last_res = FALSE;
+
       cicons[i] = (CICONBLK *)HL_TO_CL(cwalk);
+      DEBUG3("cicons[%d] = 0x%x", i, (LONG)cicons[i] - (LONG)rsc);
       
       /* Swap endianess if necessary */
       if(swap_endian)
@@ -402,9 +435,9 @@ Rsrc_do_rcfix(int      vid,
             word_ptr++)
         {
           *word_ptr = SWAP_WORD(*word_ptr);
-          DEBUG3("iconblk... 0x%4x@%p", *word_ptr, word_ptr);
         }
       }
+
 
       monosize =
         (((CW_TO_HW(cwalk->monoblk.ib_wicon) + 15) >> 4) << 1) *
@@ -414,14 +447,32 @@ Rsrc_do_rcfix(int      vid,
       cwalk->monoblk.ib_pdata =
         (WORD *)HL_TO_CL((LONG)cwalk + sizeof(ICONBLK) + sizeof(LONG));
       cwalk->monoblk.ib_pmask =
-        (WORD *)HL_TO_CL((LONG)CL_TO_HL(cwalk->monoblk.ib_pdata) + monosize);
+              (WORD *)HL_TO_CL(CL_TO_HL(cwalk->monoblk.ib_pdata) + monosize);
       cwalk->monoblk.ib_ptext =
         (BYTE *)HL_TO_CL((LONG)CL_TO_HL(cwalk->monoblk.ib_pmask) + monosize);
       cicwalk = (CICON *)((LONG)CL_TO_HL(cwalk->monoblk.ib_ptext) + 12);
       cwalk->mainlist = (CICON *)HL_TO_CL(cicwalk);
       
-      DEBUG3 ("Rsrc_do_rcfix: 7: cicwalk = %p 0x%x", cicwalk,
-              (LONG)cicwalk - (LONG)rsc);
+      DEBUG3("ib_pmask     = 0x%08x",
+             CL_TO_HL(cwalk->monoblk.ib_pmask) - (LONG)rsc);
+      DEBUG3("ib_pdata     = 0x%08x",
+             CL_TO_HL(cwalk->monoblk.ib_pdata) - (LONG)rsc);
+      DEBUG3("ib_ptext     = 0x%08x",
+             CL_TO_HL(cwalk->monoblk.ib_ptext) - (LONG)rsc);
+      DEBUG3("ib_char      = 0x%04x", CW_TO_HW(cwalk->monoblk.ib_char));
+      DEBUG3("ib_xchar     = 0x%04x", CW_TO_HW(cwalk->monoblk.ib_xchar));
+      DEBUG3("ib_ychar     = 0x%04x", CW_TO_HW(cwalk->monoblk.ib_ychar));
+      DEBUG3("ib_xicon     = 0x%04x", CW_TO_HW(cwalk->monoblk.ib_xicon));
+      DEBUG3("ib_yicon     = 0x%04x", CW_TO_HW(cwalk->monoblk.ib_yicon));
+      DEBUG3("ib_wicon     = 0x%04x", CW_TO_HW(cwalk->monoblk.ib_wicon));
+      DEBUG3("ib_hicon     = 0x%04x", CW_TO_HW(cwalk->monoblk.ib_hicon));
+      DEBUG3("ib_xtext     = 0x%04x", CW_TO_HW(cwalk->monoblk.ib_xtext));
+      DEBUG3("ib_ytext     = 0x%04x", CW_TO_HW(cwalk->monoblk.ib_ytext));
+      DEBUG3("ib_wtext     = 0x%04x", CW_TO_HW(cwalk->monoblk.ib_wtext));
+      DEBUG3("ib_htext     = 0x%04x", CW_TO_HW(cwalk->monoblk.ib_htext));
+      DEBUG3("mainlist     = 0x%08x", CL_TO_HL(cwalk->mainlist) - (LONG)rsc);
+
+      DEBUG3 ("cicwalk = 0x%08x", (LONG)cicwalk - (LONG)rsc);
       /* Go through all of the resolutions for this colour icon */
       while(!last_res)
       {
@@ -434,6 +485,9 @@ Rsrc_do_rcfix(int      vid,
           cicwalk->num_planes = SWAP_WORD(cicwalk->num_planes);
           (LONG)cicwalk->next_res = SWAP_LONG((LONG)cicwalk->next_res);
         }
+
+        DEBUG3("num_planes   = 0x%04x", CW_TO_HW(cicwalk->num_planes));
+        DEBUG3("next_res     = 0x%04x", CL_TO_HL(cicwalk->next_res));
 
         DEBUG3 ("Rsrc_do_rcfix: 8: cicwalk = %p cicwalk->num_planes = 0x%x",
                 cicwalk, CW_TO_HW(cicwalk->num_planes));
@@ -518,6 +572,8 @@ Rsrc_do_rcfix(int      vid,
     }
   }
   
+  DEBUG3("=====================");
+
   DEBUG2 ("rsrc.c: Rsrc_do_rcfix: rsh_nobs = %d (0x%x) swap_endian = %d",
 	  CW_TO_HW(rsc->rsh_nobs),
 	  CW_TO_HW(rsc->rsh_nobs),
@@ -788,59 +844,65 @@ Rsrc_rcfix (AES_PB *apb) /*0x0073*/ {
                 FALSE,
                 is_internal);
 
-  globals->rscfile =
+  apb->global->rscfile =
     (OBJECT **)HL_TO_CL(CW_TO_HW(rsc->rsh_trindex) + (LONG)rsc);
+  apb->global->rshdr = (RSHDR *)HL_TO_CL(rsc);
   globals->rshdr = rsc;
 
   /* Return OK */
   apb->int_out[0] = 1;
 }
 
-/****************************************************************************
- *  Rsrc_duplicate                                                          *
- *   Create copy of resource tree. When the copy isn't needed anymore it    *
- *   should be freed using Rsrc_free_tree().                                *
- ****************************************************************************/
-OBJECT *          /* New resource tree, or NULL.                            */
-Rsrc_duplicate(   /*                                                        */
-OBJECT *src)      /* Original resource tree.                                */
-/****************************************************************************/
+
+/*
+** Description
+** Create copy of resource tree. When the copy isn't needed anymore it
+** should be freed using Rsrc_free_tree()
+*/
+OBJECT *
+Rsrc_duplicate(OBJECT * src)
 {
-  OBJECT *twalk = src,*newrsc;
-  TEDINFO *ti;
-  WORD    num_obj = 0;
-  WORD    num_ti = 0;
-        
+  OBJECT *  twalk;
+  OBJECT *  newrsc;
+  TEDINFO * ti;
+  int       num_obj;
+  int       num_ti;
+  
+  twalk   = src;
+  num_obj = 0;
+  num_ti  = 0;
+
   do
   {
     num_obj++;
                 
-    switch(twalk->ob_type)
+    if(OB_TYPE(twalk) == G_TEXT)
     {
-    case G_TEXT:
       num_ti++;
     }
-  }while(!(OB_FLAGS(twalk++) & LASTOB));
+  } while(!(OB_FLAGS(twalk++) & LASTOB));
 
   newrsc =
     (OBJECT *)malloc(sizeof(OBJECT) * num_obj + sizeof(TEDINFO) * num_ti);
   ti = (TEDINFO *)(((LONG)newrsc) + sizeof(OBJECT) * num_obj);
 
-  memcpy(newrsc,src,sizeof(OBJECT) * num_obj);
+  memcpy(newrsc, src, sizeof(OBJECT) * num_obj);
 
   twalk = newrsc;
 
-  do {
-    switch(twalk->ob_type) {
-    case G_TEXT:
-      memcpy(ti,twalk->ob_spec.tedinfo,sizeof(TEDINFO));
-      twalk->ob_spec.tedinfo = ti;
+  do
+  {
+    if(OB_TYPE(twalk) == G_TEXT)
+    {
+      memcpy(ti, twalk->ob_spec.tedinfo, sizeof(TEDINFO));
+      OB_SPEC_PUT(twalk, ti);
       ti++;
-    };
-  }while(!(OB_FLAGS(twalk++) & LASTOB));
+    }
+  } while(!(OB_FLAGS(twalk++) & LASTOB));
 
   return newrsc;
 }
+
 
 /****************************************************************************
  *  Rsrc_free_tree                                                          *
