@@ -151,6 +151,7 @@ copy_mfdb (MFDB * dst,
 ** 1999-05-16 CG
 ** 1999-05-22 CG
 ** 1999-05-23 CG
+** 1999-05-26 CG
 */
 static
 void
@@ -179,7 +180,8 @@ vdi_tunnel (VDIPB * vpb) {
 
   /* Copy MFDBs when available */
   if ((vpb->contrl[0] == 109) ||  /* vro_cpyfm */
-      (vpb->contrl[0] == 110)) {  /* vr_trnfm  */
+      (vpb->contrl[0] == 110) ||  /* vr_trnfm  */
+      (vpb->contrl[0] == 121)) {  /* vrt_cpyfm */
     copy_mfdb ((MFDB *)&par.inpar[j],
                (MFDB *)(((long)vpb->contrl[7] << 16) + vpb->contrl[8]));
     j += sizeof (MFDB) / 2;

@@ -3696,6 +3696,7 @@ srv_copy_mfdb (MFDB * dst,
 ** Do a vdi call requested by a client
 **
 ** 1999-05-23 CG
+** 1999-05-26 CG
 */
 static
 void
@@ -3710,12 +3711,14 @@ srv_vdi_call (COMM_HANDLE  handle,
   MFDB             mfdb_dst;
   int              i;
   int              j;
-  
+
   /* Copy contrl array */
   for (i = 0; i < 15; i++) {
     vpb.contrl[i] = ntohs (par->contrl[i]);
   }
   
+  DEBUG2 ("srv_vdi_call: Call no %d", vpb.contrl[0]);
+
   /* Copy ptsin array */
   for (i = 0, j = 0; i < (vpb.contrl[1] * 2); i++, j++) {
     vpb.ptsin[i] = ntohs (par->inpar[j]);
@@ -3728,7 +3731,8 @@ srv_vdi_call (COMM_HANDLE  handle,
 
   /* Copy MFDBs when available */
   if ((vpb.contrl[0] == 109)  ||  /* vro_cpyfm */
-      (vpb.contrl[0] == 110)) {   /* vr_trnfm  */
+      (vpb.contrl[0] == 110)  ||  /* vr_trnfm  */
+      (vpb.contrl[0] == 121)) {   /* vrt_cpyfm */
     srv_copy_mfdb (&mfdb_src, (MFDB *)&par->inpar[j]);
     j += sizeof (MFDB) / 2;
     srv_copy_mfdb (&mfdb_dst, (MFDB *)&par->inpar[j]);
@@ -3886,6 +3890,7 @@ server (LONG arg) {
       DEBUG3 ("srv.c: calling srv_handle_events");
       srv_handle_events ();
     } else {
+      DEBUG3 ("srv.c: Call no %d\n", par.common.call);
       switch (par.common.call) {
       case SRV_SHAKE:
         DB_printf ("I'm fine application %d (process %d)!", apid, client_pid);

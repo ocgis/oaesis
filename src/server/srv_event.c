@@ -83,7 +83,7 @@ static WORD key_buffer_tail = 0;
 #define MAX_TIMER_COUNT 0xffffffff
 static ULONG timer_counter = 0;
 static ULONG next_timer_event = MAX_TIMER_COUNT;
-static WORD  timer_tick_ms; /* Number of milliseconds per tick */
+static int   timer_tick_ms; /* Number of milliseconds per tick */
 
 /*
 ** Description
