@@ -216,23 +216,6 @@ WORD id)          /* Window handle.                                         */
 
 
 /****************************************************************************
- * Srv_menu_register                                                        *
- *  Implementation of menu_register().                                      *
- ****************************************************************************/
-WORD               /* Menu identification, or -1.                           */
-Srv_menu_register( /*                                                       */
-WORD apid,         /* Application id, or -1.                                */
-BYTE *title)       /* Title to register application under.                  */
-/****************************************************************************/
-{
-  C_MENU_REGISTER par;
-	
-  par.title = title;
-	
-  return Srv_put (apid, SRV_MENU_REGISTER, &par);
-}
-
-/****************************************************************************
  * Srv_shel_envrn                                                           *
  *  Implementation of shel_envrn().                                         *
  ****************************************************************************/

@@ -345,6 +345,7 @@ Wind_set_slider (WORD        apid,
 ** 1999-01-01 CG
 ** 1999-01-10 CG
 ** 1999-04-10 CG
+** 1999-04-11 CG
 */
 static
 WORD
@@ -357,12 +358,67 @@ Wind_set_size (WORD   apid,
   if (ws != NULL) {
     ws->lastsize = ws->totsize;
     
-    ws->totsize = *size;
-    
     dx = size->x - ws->lastsize.x;
     dy = size->y - ws->lastsize.y;
     dw = size->width - ws->lastsize.width;
     dh = size->height - ws->lastsize.height;
+
+    /* Update areas where widget elements were placed */
+    if (dw > 0) {
+      REDRAWSTRUCT m;
+
+      m.type = WM_REDRAW;
+      m.sid = apid;
+      m.length = sizeof (REDRAWSTRUCT);
+      m.wid = id;
+
+      m.area.x = ws->worksize.x + ws->worksize.width + dx;
+      m.area.y = ws->worksize.y + dy;
+      m.area.width = ws->totsize.x + ws->totsize.width - m.area.x;
+
+      if (dw < m.area.width) {
+        m.area.width = dw;
+      }
+
+      m.area.height = ws->totsize.y + ws->totsize.height - ws->worksize.y;
+
+      if (dh < 0) {
+        m.area.height += dh;
+      }
+
+      if ((m.area.width > 0) && (m.area.height > 0)) {
+        Appl_do_write (apid, apid, m.length, m);
+      }
+    }
+
+    if (dh > 0) {
+      REDRAWSTRUCT m;
+
+      m.type = WM_REDRAW;
+      m.sid = apid;
+      m.length = sizeof (REDRAWSTRUCT);
+      m.wid = id;
+
+      m.area.x = ws->worksize.x + dx;
+      m.area.y = ws->worksize.y + ws->worksize.height + dy;
+      m.area.width = ws->totsize.x + ws->totsize.width - ws->worksize.x;
+
+      if (dw < 0) {
+        m.area.width += dw;
+      }
+
+      m.area.height = ws->totsize.y + ws->totsize.height - m.area.y;
+
+      if (dh < m.area.height) {
+        m.area.height = dh;
+      }
+
+      if ((m.area.width > 0) && (m.area.height > 0)) {
+        Appl_do_write (apid, apid, m.length, m);
+      }
+    }
+
+    ws->totsize = *size;
     
     ws->worksize.x += dx;
     ws->worksize.y += dy;

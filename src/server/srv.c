@@ -1119,63 +1119,62 @@ srv_menu_bar (C_MENU_BAR * msg,
 }
 
 
-/****************************************************************************
- * srv_menu_register                                                        *
- *  Implementation of menu_register().                                      *
- ****************************************************************************/
-WORD               /* Menu identification, or -1.                           */
-srv_menu_register( /*                                                       */
-WORD apid,         /* Application id, or -1.                                */
-BYTE *title)       /* Title to register application under.                  */
-/****************************************************************************/
-{
+/*
+** Description
+** Implementation of menu_register ()
+**
+** 1999-04-11 CG
+*/
+void
+srv_menu_register (C_MENU_REGISTER * par,
+                   R_MENU_REGISTER * ret) {
   AP_LIST **mwalk;
   AP_LIST *ap;
-  WORD    n_menu = apid;	
+  WORD    n_menu = par->common.apid;
   
-  ap = search_apid(apid);
+  ap = search_apid (par->common.apid);
   
-  if(!ap) {
-    return -1;
-  };
-  
-  /* if the menu have been registered then unlink it again */
-  if(ap->ai->type & APP_ACCESSORY) {
-    mwalk = &globals.accmenu;
+  if (ap == AP_LIST_REF_NIL) {
+    ret->common.retval = -1;
+  } else {
+    /* if the menu have been registered then unlink it again */
+    if (ap->ai->type & APP_ACCESSORY) {
+      mwalk = &globals.accmenu;
+    } else {
+      mwalk = &globals.applmenu;
+    }
+    
+    while(*mwalk) {
+      if(*mwalk == ap) {
+        *mwalk = (*mwalk)->mn_next;
+        break;
+      }
+      mwalk = &(*mwalk)->mn_next;
+    }
+
+    /* now find a new position to enter the menu */	
+    if (ap->ai->type & APP_ACCESSORY) {
+      mwalk = &globals.accmenu;
+    } else {
+      mwalk = &globals.applmenu;
+    }
+    
+    while (*mwalk) {	
+      if (strcasecmp((*mwalk)->ai->name, par->title) > 0) {
+        break;
+      }
+      mwalk = &(*mwalk)->mn_next;
+    }
+
+    /* insert the menu */	
+    ap->mn_next = *mwalk;
+    *mwalk = ap;
+    strncpy (ap->ai->name, par->title, 20);	
+    
+    ret->common.retval = n_menu;
   }
-  else {
-    mwalk = &globals.applmenu;
-  };
-  
-  while(*mwalk) {
-    if(*mwalk == ap) {
-      *mwalk = (*mwalk)->mn_next;
-      break;
-    };
-    mwalk = &(*mwalk)->mn_next;
-  }
-  /* now find a new position to enter the menu */	
-  if(ap->ai->type & APP_ACCESSORY) {
-    mwalk = &globals.accmenu;
-  }
-  else {
-    mwalk = &globals.applmenu;
-  }
-  
-  while(*mwalk) {	
-    if(strcasecmp((*mwalk)->ai->name, title) > 0) {
-      break;
-    };
-    mwalk = &(*mwalk)->mn_next;
-  };
-  /* insert the menu */	
-  ap->mn_next = *mwalk;
-  *mwalk = ap;
-  strncpy(ap->ai->name,title,20);	
-  update_appl_menu();
-  
-  return n_menu;
 }
+
 
 /****************************************************************************
  * srv_appl_control                                                         *
@@ -1354,6 +1353,7 @@ BYTE *fname)      /* File name of application to seek.                      */
 ** 1998-09-26 CG
 ** 1998-11-15 CG
 ** 1999-01-09 CG
+** 1999-04-10 CG
 */
 static void
 srv_appl_init(C_APPL_INIT * par,
@@ -1365,7 +1365,7 @@ srv_appl_init(C_APPL_INIT * par,
 
   al = search_mpid(par->common.pid);
   
-  if(!al) {     
+  if (al == AP_LIST_REF_NIL) {     
     /* Has an info structure already been reserved? */
     
     AP_LIST **awalk = &ap_resvd;
@@ -1376,7 +1376,7 @@ srv_appl_init(C_APPL_INIT * par,
       };
       
       awalk = &(*awalk)->next;
-    };
+    }
     
     if(*awalk) {
       al = *awalk;
@@ -1386,14 +1386,12 @@ srv_appl_init(C_APPL_INIT * par,
       ap_pri = al;
       
       ai = al->ai;
+    } else {
+      ai = srv_info_alloc (par->common.pid, APP_APPLICATION, 0);
     }
-    else {
-      ai = srv_info_alloc(par->common.pid,APP_APPLICATION,0);
-    };
-  }
-  else {
+  } else {
     ai = al->ai;
-  };
+  }
   
   if(ai) {
     ret->apid = ai->id;
@@ -1406,30 +1404,18 @@ srv_appl_init(C_APPL_INIT * par,
   }
 
   ret->physical_vdi_id = globals.vid;
-  /*
-  if(ret->apid >= 0) {
-    BYTE fname[128],cmdlin[128],menuentry[21],*tmp;
+
+  if ((ret->apid >= 0) && (ai->type & APP_APPLICATION)) {
+    char            menuentry [strlen (par->appl_name) + 3];
+    C_MENU_REGISTER c_menu_register;
+    R_MENU_REGISTER r_menu_register;
+
+    c_menu_register.common = par->common;
+    c_menu_register.common.apid = ai->id;
+    sprintf (c_menu_register.title, "  %s", par->appl_name);
     
-    Misc_get_loadinfo(pid,128,cmdlin,fname);
-    
-    strcpy(menuentry,"  ");
-    
-    tmp = strrchr(fname,'\\');
-    
-    if(tmp) {
-      tmp++;
-    }
-    else {
-      tmp = fname;
-    };
-    
-    strncat(menuentry,tmp,20);
-    
-    if(ai->type & APP_APPLICATION) {
-      srv_menu_register(ai->id, menuentry);
-    };
-  };
-  */
+    srv_menu_register (&c_menu_register, &r_menu_register);
+  }
 }
 
 
@@ -3722,7 +3708,6 @@ server (LONG arg) {
   /* These variables are passed from clients */
   WORD          client_pid;
   WORD          apid;
-  WORD          call;
   C_SRV         par;
   R_SRV         ret;
   COMM_HANDLE   handle;
@@ -3914,10 +3899,9 @@ server (LONG arg) {
         break;
         
       case SRV_MENU_REGISTER:
-        code = 
-          srv_menu_register (apid, &par.menu_register);
+        srv_menu_register (&par.menu_register, &ret.menu_register);
         
-        Srv_reply (handle, &par, code);
+        Srv_reply (handle, &par, sizeof (R_MENU_REGISTER));
         break;
         
       case SRV_PUT_EVENT:

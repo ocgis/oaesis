@@ -20,6 +20,8 @@ void                    /*                                                  */
 Menu_exit_module(void); /*                                                  */
 /****************************************************************************/
 
+/* FIXME: Remove in the future */
+#if 0
 /****************************************************************************
  *  Menu_handler                                                            *
  *   Handle main menu events.                                               *
@@ -29,6 +31,7 @@ Menu_handler(          /*                                                   */
 WORD   apid,
 BYTE * envp[]);        /* Environment string.                               */
 /****************************************************************************/
+#endif
 
 /*
 ** Description

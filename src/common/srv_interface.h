@@ -9,23 +9,21 @@ enum {
   SRV_SHAKE,
   SRV_SHUTDOWN,
   SRV_APPL_CONTROL,
-  SRV_APPL_EXIT,
-  SRV_APPL_FIND,
-  SRV_APPL_INIT,
-  SRV_APPL_SEARCH,
-  SRV_APPL_WRITE,
+  SRV_APPL_INIT     =  10,
+  SRV_APPL_WRITE    =  12,
+  SRV_APPL_FIND     =  13,
+  SRV_APPL_SEARCH   =  18,
+  SRV_APPL_EXIT     =  19,
   SRV_CLICK_OWNER,
-  SRV_EVNT_MULTI,
+  SRV_EVNT_MULTI    =  25,
   SRV_GET_TOP_MENU,
   SRV_GET_WM_INFO,
   SRV_GET_VDI_ID,
-  SRV_GRAF_MKSTATE,
-  SRV_GRAF_MOUSE    = 78,
-  SRV_MENU_BAR,
-  SRV_MENU_REGISTER,
+  SRV_MENU_BAR      =  30,
+  SRV_MENU_REGISTER =  35,
+  SRV_GRAF_MOUSE    =  78,
+  SRV_GRAF_MKSTATE  =  79,
   SRV_PUT_EVENT,
-  SRV_SHEL_ENVRN,
-  SRV_SHEL_WRITE,
   SRV_WIND_DRAW,
   SRV_WIND_CREATE   = 100,
   SRV_WIND_OPEN     = 101,
@@ -35,7 +33,9 @@ enum {
   SRV_WIND_SET      = 105,
   SRV_WIND_FIND     = 106,
   SRV_WIND_UPDATE   = 107,
-  SRV_WIND_NEW      = 109
+  SRV_WIND_NEW      = 109,
+  SRV_SHEL_WRITE    = 121,
+  SRV_SHEL_ENVRN    = 125
 };
 
 
@@ -73,12 +73,7 @@ typedef struct {
 
 typedef struct {
   C_ALL          common;
-  /*  WORD           vid;
-  BYTE           msgname[20];
-  WORD           msghandle;
-  BYTE           eventname[20];
-  WORD           eventhandle;*/
-  GLOBAL_ARRAY * global;
+  BYTE           appl_name[10];
 }C_APPL_INIT;
 
 typedef struct {
@@ -187,9 +182,13 @@ typedef struct {
 } R_MENU_BAR;
 
 typedef struct {
-  BYTE *title;
-  WORD retval;
-}C_MENU_REGISTER;
+  C_ALL common;
+  BYTE  title[10];
+} C_MENU_REGISTER;
+
+typedef struct {
+  R_ALL common;
+} R_MENU_REGISTER;
 
 typedef struct {
   WORD    apid;
@@ -352,23 +351,24 @@ typedef union {
 
 
 typedef union {
-  R_ALL          common;
-  R_APPL_EXIT    appl_exit;
-  R_APPL_INIT    appl_init;
-  R_APPL_WRITE   appl_write;
-  R_EVNT_MULTI   evnt_multi;
-  R_GET_VDI_ID   get_vdi_id;
-  R_GRAF_MKSTATE graf_mkstate;
-  R_GRAF_MOUSE   graf_mouse;
-  R_MENU_BAR     menu_bar;
-  R_WIND_CLOSE   wind_close;
-  R_WIND_CREATE  wind_create;
-  R_WIND_DELETE  wind_delete;
-  R_WIND_FIND    wind_find;
-  R_WIND_GET     wind_get;
-  R_WIND_OPEN    wind_open;
-  R_WIND_SET     wind_set;
-  R_WIND_UPDATE  wind_update;
+  R_ALL           common;
+  R_APPL_EXIT     appl_exit;
+  R_APPL_INIT     appl_init;
+  R_APPL_WRITE    appl_write;
+  R_EVNT_MULTI    evnt_multi;
+  R_GET_VDI_ID    get_vdi_id;
+  R_GRAF_MKSTATE  graf_mkstate;
+  R_GRAF_MOUSE    graf_mouse;
+  R_MENU_BAR      menu_bar;
+  R_MENU_REGISTER menu_register;
+  R_WIND_CLOSE    wind_close;
+  R_WIND_CREATE   wind_create;
+  R_WIND_DELETE   wind_delete;
+  R_WIND_FIND     wind_find;
+  R_WIND_GET      wind_get;
+  R_WIND_OPEN     wind_open;
+  R_WIND_SET      wind_set;
+  R_WIND_UPDATE   wind_update;
 } R_SRV;
 
 /*

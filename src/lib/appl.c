@@ -34,6 +34,8 @@
  
  ****************************************************************************/
 
+#define DEBUGLEVEL 0
+
 /****************************************************************************
  * Used interfaces                                                          *
  ****************************************************************************/
@@ -74,6 +76,9 @@
 #include "srv_interface.h"
 #include "types.h"
 #include "vdi.h"
+
+
+extern char * program_invocation_short_name;
 
 /****************************************************************************
  * Local functions (use static!)                                            *
@@ -118,6 +123,7 @@ Appl_do_read (WORD   apid,
 ** Exported
 **
 ** 1998-12-28 CG
+** 1999-04-10 CG
 */
 WORD
 Appl_do_init (GLOBAL_ARRAY * global) {
@@ -131,6 +137,14 @@ Appl_do_init (GLOBAL_ARRAY * global) {
 
   par.common.call = SRV_APPL_INIT;
   par.common.pid = getpid ();
+
+  DEBUG3 ("appl.c: Appl_do_init: program_invocation_short_name %s",
+          program_invocation_short_name);
+  strncpy (par.appl_name,
+           program_invocation_short_name,
+           sizeof (par.appl_name) - 1);
+  par.appl_name[sizeof (par.appl_name) - 1] = 0;
+
   Client_send_recv (&par,
                     sizeof (C_APPL_INIT),
                     &ret,

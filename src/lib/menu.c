@@ -147,6 +147,8 @@ Menu_exit_module(void) /*                                                   */
 }
 
 
+/* FIXME: Menu_handler should be removed */
+#if 0
 /*
 ** Description
 ** Handle main menu events.
@@ -297,6 +299,7 @@ Menu_handler (WORD   apid,
 
   fprintf (stderr, "oaesis: menu.c: Leaving Menu_handler\n");
 }
+#endif
 
 
 /*
@@ -522,16 +525,42 @@ AES_PB *apb)      /* Pointer to AES parameter block.                        */
 	apb->int_out[0] = 1;
 }
 
-/****************************************************************************
- * Menu_register                                                            *
- *  0x0023 menu_register().                                                 *
- ****************************************************************************/
-void              /*                                                        */
-Menu_register(    /*                                                        */
-AES_PB *apb)      /* Pointer to AES parameter block.                        */
-/****************************************************************************/
-{
-	apb->int_out[0] = Srv_menu_register(apb->int_in[0],
-													(BYTE *)apb->addr_in[0]);
+/*
+** Description
+** Implementation of menu_register ()
+**
+** 1999-04-11 CG
+*/
+static
+WORD
+Menu_do_register (WORD   apid,
+                  BYTE * title) {
+  C_MENU_REGISTER par;
+  R_MENU_REGISTER ret;
+ 
+  par.common.call = SRV_MENU_REGISTER;
+  par.common.apid = apid;
+  par.common.pid = getpid ();
+  strncpy (par.title, title, sizeof (par.title) - 1);
+  par.title[sizeof (par.title) - 1] = 0;
+
+  Client_send_recv (&par,
+                    sizeof (C_MENU_REGISTER),
+                    &ret,
+                    sizeof (R_MENU_REGISTER));
+
+  return ret.common.retval;
+}
+
+/*
+** Exported
+** 0x0023 menu_register ()
+**
+** 1999-04-11 CG
+*/
+void
+Menu_register (AES_PB * apb) {
+  apb->int_out[0] = Menu_do_register (apb->int_in[0],
+                                      (BYTE *)apb->addr_in[0]);
 }
 
