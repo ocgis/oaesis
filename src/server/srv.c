@@ -1202,6 +1202,7 @@ srv_appl_control (C_APPL_CONTROL * msg,
 **
 ** 1999-01-09 CG
 ** 1999-05-20 CG
+** 1999-05-25 CG
 */
 static
 void
@@ -1224,7 +1225,7 @@ srv_appl_exit (C_APPL_EXIT * par,
   apinfofree(par->common.apid);
   
   /* Exit server if it's the shell application (id 0) */
-  if (par->common.apid) {
+  if (par->common.apid == 0) {
     DEBUG3 ("srv.c: Application 0 exited. Will shutdown server.");
     Srv_exit_module ();
 

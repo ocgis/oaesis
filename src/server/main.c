@@ -70,8 +70,6 @@ init_aes (WORD nocnf) {
 void
 exit_aes (void) {
   DEBUG3 ("main.c: exit_aes: Enter");
-
-  Srv_exit_module ();
   
 #ifdef MINT_TARGET
   DEBUG3 ("main.c: exit_aes: Mouse device");
