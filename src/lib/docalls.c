@@ -1,33 +1,18 @@
-/****************************************************************************
-
- Module
-  docalls.c
-  
- Description
-  AES routine identification and distribution in oAESis.
-  
- Author(s)
- 	cg (Christer Gustavsson <d2cg@dtek.chalmers.se>)
-
- Revision history
- 
-  960103 cg
-   Added standard header.
-   Fsel_exinput() added.
-
-  960420 cg
-   Changed h_aes_call to use a call table instead of switch.
- 
- Copyright notice
-  The copyright to the program code herein belongs to the authors. It may
-  be freely duplicated and distributed without fee, but not charged for.
- 
- ****************************************************************************/
+/*
+** docalls.c
+**
+** Copyright 1996 - 2000 Christer Gustavsson <cg@nocrew.org>
+**
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+**  
+** Read the file COPYING for more information.
+**
+*/
 
 #define DEBUGLEVEL 0
-/****************************************************************************
- * Used interfaces                                                          *
- ****************************************************************************/
 
 #include <netinet/in.h>
 #include <stdio.h>
@@ -49,9 +34,6 @@
 #include "types.h"
 #include "wind.h"
 
-/****************************************************************************
- * Typedefs of module global interest                                       *
- ****************************************************************************/
 
 typedef void   (*AESCALL)(AES_PB *);
 
@@ -60,9 +42,6 @@ typedef struct {
 	AESCALL func;
 }AESCB;
  
-/****************************************************************************
- * Module global variables                                                  *
- ****************************************************************************/
 
 static AESCB aescalls[] = {
   /* 0x0000 */
@@ -174,7 +153,7 @@ static AESCB aescalls[] = {
   {"menu_register", Menu_register},
   
   /* 0x0024 */
-  {"menu_popup", NULL},
+  {"menu_popup", Menu_popup},
   
   /* 0x0025 */
   {"menu_attach", NULL},
