@@ -29,8 +29,8 @@
 #include "srv_get.h"
 #include "srv_menu.h"
 #include "srv_misc.h"
+#include "srv_trace.h"
 #include "srv_wind.h"
-
 
 /* MOUSE_EVENT is used for storing mouse events */
 typedef struct mouse_event {
@@ -76,6 +76,8 @@ static WORD  y_new = 0;
 static WORD  y_last = 0;
 static WORD  buttons_new = 0;
 static WORD  buttons_last = 0;
+static int   keys_new[10];
+static int   n_o_keys_new = 0;
 
 /*
 ** Timer wraparound is not yet handled, but will only be a problem if someone
@@ -562,45 +564,55 @@ handle_mouse_buttons (void) {
 
 /*
 ** Description
+** Get new keys for the kernel to process
+*/
+void
+srv_update_keys(WORD vdi_workstation_id)
+{
+  static int echoxy[] = {0,0};
+
+  n_o_keys_new = vsm_string_raw (vdi_workstation_id,
+                                 10,
+                                 0,
+                                 echoxy,
+                                 keys_new);
+}
+
+
+/*
+** Description
 ** Check if a key has been pressed or released and report it to
 ** the right application
 */
 static
 void
-handle_keys (WORD vdi_workstation_id) {
-  static int echoxy[] = {0,0};
-  int        str[10];
-  int        n_o_keys;
-
-  n_o_keys = vsm_string_raw (vdi_workstation_id,
-			     10,
-			     0,
-			     echoxy,
-			     str);
-
+handle_keys(void)
+{
   /* Has any key events occurred? */
-  if (n_o_keys > 0) {
+  if (n_o_keys_new > 0) {
     WORD topped_appl = get_top_appl ();
     int  i;
     
     DEBUG2 ("srv_event.c: handle_keys: %d keys pressed", n_o_keys);
     
-    for (i = 0; i < n_o_keys; i++) {
+    for (i = 0; i < n_o_keys_new; i++)
+    {
       WORD index = (appl_list [topped_appl].key_head +
 		    appl_list [topped_appl].key_size) % KEY_BUFFER_SIZE;
 
       DEBUG2 ("srv_event.c: handle_keys: key 0x%x => apid %d",
 	      str[i],
 	      topped_appl);
-      appl_list [topped_appl].key_buffer [index].ascii = str[i] & 0xff;
-      appl_list [topped_appl].key_buffer [index].scan = (str[i] >> 8) & 0xff;
-      appl_list [topped_appl].key_buffer [index].state = 0; /* FIXME */
+      appl_list[topped_appl].key_buffer[index].ascii = keys_new[i] & 0xff;
+      appl_list[topped_appl].key_buffer[index].scan =
+        (keys_new[i] >> 8) & 0xff;
+      appl_list[topped_appl].key_buffer[index].state = 0; /* FIXME */
       
-      if(str[i] == 0x5d00) /* F20 */
+      if(keys_new[i] == 0x5d00) /* F20 */
       {
 	Srv_stop ();
       }
-      else if(str[i] == 0x5c00) /* F19 */
+      else if(keys_new[i] == 0x5c00) /* F19 */
       {
         /* Output debugging information */
         srv_wind_debug(x_last, y_last);
@@ -714,18 +726,13 @@ handle_timer (void) {
 
 /*
 ** Exported
-**
-** 1998-12-07 CG
-** 1998-12-13 CG
-** 1999-01-29 CG
-** 1999-03-08 CG
-** 1999-08-05 CG
 */
 void
-srv_handle_events (WORD vdi_workstation_id) {
+srv_handle_events(void)
+{
   handle_mouse_motion ();
   handle_mouse_buttons ();
-  handle_keys (vdi_workstation_id);
+  handle_keys ();
   handle_timer ();
 }
 
