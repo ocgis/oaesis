@@ -46,7 +46,9 @@
 #include <alloc.h>
 #endif
 
+#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
+#endif
 
 #ifdef HAVE_MINTBIND_H
 #include <mintbind.h>

@@ -47,7 +47,10 @@ v   Fixed mover grabbing bug; if the mouse was moved during click on
 #endif
 
 #include <errno.h>
+
+#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
+#endif
 
 #ifdef HAVE_IOCTL_H
 #include <ioctl.h>
