@@ -29,7 +29,7 @@ AC_ARG_ENABLE(oaesistest, [  --disable-oaesistest       Do not try to compile an
   fi
 
   AC_PATH_PROG(OAESIS_CONFIG, oaesis-config, no)
-  min_oaesis_version=ifelse([$1], ,0.0.6,$1)
+  min_oaesis_version=ifelse([$1], ,@VERSION@,$1)
   AC_MSG_CHECKING(for oAESis - version >= $min_oaesis_version)
   no_oaesis=""
   if test "$OAESIS_CONFIG" = "no" ; then

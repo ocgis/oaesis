@@ -403,7 +403,7 @@ AC_ARG_ENABLE(ovdisistest, [  --disable-ovdisistest       Do not try to compile 
   fi
 
   AC_PATH_PROG(OVDISIS_CONFIG, ovdisis-config, no)
-  min_ovdisis_version=ifelse([$1], ,0.0.6,$1)
+  min_ovdisis_version=ifelse([$1], ,0.0.1,$1)
   AC_MSG_CHECKING(for oVDIsis - version >= $min_ovdisis_version)
   no_ovdisis=""
   if test "$OVDISIS_CONFIG" = "no" ; then

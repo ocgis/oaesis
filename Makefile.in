@@ -88,7 +88,7 @@ m4data_DATA = oaesis.m4
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = config.h
-CONFIG_CLEAN_FILES =  oaesis-config
+CONFIG_CLEAN_FILES =  oaesis.m4 oaesis-config
 SCRIPTS =  $(bin_SCRIPTS)
 
 DATA =  $(m4data_DATA)
@@ -96,7 +96,7 @@ DATA =  $(m4data_DATA)
 DIST_COMMON =  README AUTHORS COPYING ChangeLog INSTALL Makefile.am \
 Makefile.in NEWS aclocal.m4 config.guess config.h.in config.sub \
 configure configure.in install-sh ltconfig ltmain.sh missing \
-mkinstalldirs oaesis-config.in stamp-h.in
+mkinstalldirs oaesis-config.in oaesis.m4.in stamp-h.in
 
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
@@ -141,6 +141,8 @@ distclean-hdr:
 	-rm -f config.h
 
 maintainer-clean-hdr:
+oaesis.m4: $(top_builddir)/config.status oaesis.m4.in
+	cd $(top_builddir) && CONFIG_FILES=$@ CONFIG_HEADERS= ./config.status
 oaesis-config: $(top_builddir)/config.status oaesis-config.in
 	cd $(top_builddir) && CONFIG_FILES=$@ CONFIG_HEADERS= ./config.status
 
