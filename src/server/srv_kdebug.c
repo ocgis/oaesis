@@ -11,10 +11,15 @@
 ** Read the file COPYING for more information.
 */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdarg.h>
 #include <stdio.h>
 
 #include "srv_kdebug.h"
+#include "srv_trace.h"
 
 /*
 ** Description
