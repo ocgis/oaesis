@@ -1,7 +1,7 @@
 /*
 ** aesbind.h
 **
-** Copyright 1998 Christer Gustavsson <cg@nocrew.org>
+** Copyright 1998 - 2000 Christer Gustavsson <cg@nocrew.org>
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -226,15 +226,16 @@ evnt_multi (int           Type,
 
 
 short
-evnt_timer (unsigned long interval) {
+evnt_timer(unsigned long interval)
+{
   OPCODE = 24;
   NO_INTIN = 2;
   NO_ADDRIN = 0;
   NO_INTOUT = 1;
   NO_ADDROUT = 0;
 
-  aespb.intin[0] = ((short *)&interval)[1];
-  aespb.intin[1] = ((short *)&interval)[0];
+  aespb.intin[0] = interval & 0x0000ffff;
+  aespb.intin[1] = (interval >> 16) & 0x0000ffff;
   
   aes_call (&aespb);
 
