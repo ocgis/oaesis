@@ -77,7 +77,7 @@ else
 
   dnl This is needed for AC_CHECK_HEADERS to find the otosis 
   dnl and the oVDIsis headers
-  INCLUDES="$INCLUDES $OVDISIS_CFLAGS"
+  CPPFLAGS="$CPPFLAGS $OVDISIS_CFLAGS"
 fi
 
 if test x$target_os = xmint ; then
@@ -138,7 +138,7 @@ else
 
   dnl This is needed for AC_CHECK_HEADERS to find the otosis 
   dnl and the oVDIsis headers
-  INCLUDES="$INCLUDES $OTOSIS_CFLAGS"
+  CPPFLAGS="$CPPFLAGS $OTOSIS_CFLAGS"
 fi
 
 dnl Use libtool to create liboaesis, but not for MiNT
