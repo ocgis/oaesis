@@ -12,41 +12,43 @@
 /*	Standard includes	*/
 /*------------------------------*/
 
-#include "portab.h"				/* portable coding macros */
-#include "machine.h"				/* machine dependencies   */
-#include "obdefs.h"				/* object definitions	  */
+#include <aesbind.h>
+#include <vdibind.h>
+
 #include "treeaddr.h"				/* tree address macros    */
-#include "vdibind.h"				/* vdi binding structures */
-#include "gembind.h"				/* gem binding structures */
 #include "example4.h"				/* resource file offsets  */
 
 /*------------------------------*/
 /*	Global GEM arrays	*/
 /*------------------------------*/
 
-GLOBAL WORD	contrl[11];		/* control inputs		*/
-GLOBAL WORD	intin[80];		/* max string length		*/
-GLOBAL WORD	ptsin[256];		/* polygon fill points		*/
-GLOBAL WORD	intout[45];		/* open workstation output	*/
-GLOBAL WORD	ptsout[12];		/* points out array		*/
+WORD	contrl[11];		/* control inputs		*/
+WORD	intin[80];		/* max string length		*/
+WORD	ptsin[256];		/* polygon fill points		*/
+WORD	intout[45];		/* open workstation output	*/
+WORD	ptsout[12];		/* points out array		*/
 
 /*------------------------------*/
 /*	Local defines		*/
 /*------------------------------*/
 
 #define	ARROW	0			/* Arrow cursor form for MOUSE	*/
+#define BYTE    char
+#define LONG    long
+#define TRUE    1
+#define FALSE   0
 
 /*------------------------------*/
 /*	Local variables		*/
 /*------------------------------*/
 
-WORD	gl_apid;			/* ID returned by appl_init 	*/
-WORD	gl_rmsg[8];			/* message buffer		*/
-LONG	ad_rmsg;			/* LONG pointer to message buff */
-LONG	main_menu;			/* Holds menu tree for MAINMENU	*/
-LONG	about_alert;			/* Holds ABOUT alert message    */
-LONG	open_alert;			/* Holds OPEN alert message	*/
-LONG	quit_alert;			/* Holds QUIT alert message	*/
+WORD     gl_apid;			/* ID returned by appl_init 	*/
+WORD     gl_rmsg[8];			/* message buffer		*/
+WORD *   ad_rmsg;			/* LONG pointer to message buff */
+OBJECT * main_menu;			/* Holds menu tree for MAINMENU	*/
+BYTE *   about_alert;			/* Holds ABOUT alert message    */
+BYTE *   open_alert;			/* Holds OPEN alert message	*/
+BYTE *   quit_alert;			/* Holds QUIT alert message	*/
 
 /*------------------------------*/
 /*	application code	*/
@@ -56,8 +58,9 @@ LONG	quit_alert;			/* Holds QUIT alert message	*/
 /*	do_menu			*/
 /*------------------------------*/
 
-WORD	do_menu()
-
+static
+WORD
+do_menu(void)
 {
 
 	WORD	menu_title;		/* Holds menu title number	*/
@@ -124,17 +127,18 @@ WORD	do_menu()
 		
 	}
 
+        return FALSE;
 }
 
 /*------------------------------*/
 /*	initialise		*/
 /*------------------------------*/
-
-WORD	initialise()
-
+static
+WORD
+initialise(void)
 {
 
-	ad_rmsg = ADDR((BYTE *) &gl_rmsg[0]);
+	ad_rmsg = &gl_rmsg[0];
 	
 	gl_apid = appl_init();		/* return application ID	*/
 	
@@ -142,10 +146,10 @@ WORD	initialise()
 
 		return(FALSE);		/* unable to use AES		*/
 
-	if (!rsrc_load(ADDR("EXAMPLE4.RSC")))
+	if (!rsrc_load("example4.rsc"))
 	{
 	
-		form_alert(1, ADDR("[3][Unable to load resource][ Abort ]"));
+		form_alert(1, "[3][Unable to load resource][ Abort ]");
 
 		return(FALSE);		/* unable to load resource	*/
 		
@@ -158,9 +162,8 @@ WORD	initialise()
 /*------------------------------*/
 /*	GEMAIN			*/
 /*------------------------------*/
-
-GEMAIN()
-
+int
+main(void)
 {
 
 	if (!initialise())
@@ -176,4 +179,5 @@ GEMAIN()
 
 	appl_exit();			/* exit AES tidily		*/
 
+        return 0;
 }
