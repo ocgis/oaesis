@@ -25,6 +25,7 @@
 #include "srv_put.h"
 #include "srv_sockets.h"
 
+static int level = 0;
 static int sockfd;
 
 LONG
@@ -32,28 +33,33 @@ Client_open (void) {
   struct hostent * he;
   struct sockaddr_in their_addr; /* connector's address information */
 
-  if ((he = gethostbyname ("localhost")) == NULL) {  /* get the host info */
-    perror("oaesis: srv_put_sockets.c: Client_open: gethostbyname");
-    exit (-1);
-    return -1;
+  if(level == 0)
+  {
+    if ((he = gethostbyname ("localhost")) == NULL) {  /* get the host info */
+      perror("oaesis: srv_put_sockets.c: Client_open: gethostbyname");
+      exit (-1);
+      return -1;
+    }
+    
+    if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+      perror("oaesis: srv_put_sockets.c: Client_open: socket");
+      return -1;
+    }
+    
+    their_addr.sin_family = AF_INET;         /* host byte order */
+    their_addr.sin_port = htons(MYPORT);     /* short, network byte order */
+    their_addr.sin_addr = *((struct in_addr *)he->h_addr);
+    bzero(&(their_addr.sin_zero), 8);        /* zero the rest of the struct */
+    
+    if (connect(sockfd, (struct sockaddr *)&their_addr, sizeof(struct sockaddr))
+        == -1) {
+      perror("oaesis: srv_put_sockets.c: Client_open: connect");
+      exit (-1);
+      return -1;
+    }
   }
-  
-  if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-    perror("oaesis: srv_put_sockets.c: Client_open: socket");
-    return -1;
-  }
-  
-  their_addr.sin_family = AF_INET;         /* host byte order */
-  their_addr.sin_port = htons(MYPORT);     /* short, network byte order */
-  their_addr.sin_addr = *((struct in_addr *)he->h_addr);
-  bzero(&(their_addr.sin_zero), 8);        /* zero the rest of the struct */
-  
-  if (connect(sockfd, (struct sockaddr *)&their_addr, sizeof(struct sockaddr))
-      == -1) {
-    perror("oaesis: srv_put_sockets.c: Client_open: connect");
-    exit (-1);
-    return -1;
-  }  
+
+  level++;
 
   return 0;
 }
@@ -80,16 +86,17 @@ Client_send_recv (void * in,
              bytes_in, count++);
   */
 
-  if ((numbytes = send (sockfd, in, bytes_in, 0)) == -1) {
+  if ((numbytes = send (sockfd, in, bytes_in, 0)) == -1)
+  {
     perror("send");
-    return -1;
+    exit(-1);
   }
 
   DEBUG3("srv_put_sockets.c: sent numbytes = %d", numbytes);
   
   if ((numbytes = recv (sockfd, out, max_bytes_out, 0)) == -1) {
     perror("oaesis: srv_put_sockets.c: Client_send_recv: recv");
-    return -1;
+    exit(-1);
   }
 
   /*
