@@ -186,7 +186,6 @@ main (int     argc,
   Misc_setpath ("u:\\");
   */
 
-  sleep (2);
   DB_printf ("main.c: Starting launcher.prg");
   for (i = 0; i < 1; i++) {
     system ("launcher.prg");
