@@ -89,6 +89,36 @@ Start server
 \layout Enumerate
 
 Start launcher application
+\layout Subsubsection
+
+Server
+\layout Enumerate
+
+Parse configuration file and look for server commands
+\layout Enumerate
+
+Open VDI workstation
+\layout Enumerate
+
+Go into server loop
+\layout Subsubsection
+
+Launcher
+\layout Enumerate
+
+Parse configuration file and look for launcher commands
+\layout Enumerate
+
+Start shell
+\layout Enumerate
+
+Start accessories
+\layout Enumerate
+
+Start programs
+\layout Enumerate
+
+Go into launcher loop
 \layout Subsection
 
 Interface between the server and the client library
@@ -1692,7 +1722,12 @@ Configuration file
 
 There is a configuration file called oaesis.cnf that may contain the commands
  below.
+ Three parts of oAESis share the file: the server, the launcher and the
+ window manager.
 \layout Subsubsection
+
+General
+\layout Paragraph*
 
 #
 \layout Standard
@@ -1700,88 +1735,82 @@ There is a configuration file called oaesis.cnf that may contain the commands
 Used for comments.
 \layout Subsubsection
 
-AE_DEBUG
-\layout Subsubsection
+Server
+\layout Paragraph
 
-AE_VMODE
-\layout Subsubsection
-
-AE_VMODECODE
-\layout Subsubsection
-
-AE_REALMOVE
+videomode <mode>
 \layout Standard
 
-Enable or disable realtime moving of windows.
-\layout Subsubsection
+Set video mode.
+\layout Paragraph
 
-AE_REALSIZE
-\layout Standard
-
-Enable or disable realtime sizing of windows.
-\layout Subsubsection
-
-AE_REALSLIDE
-\layout Standard
-
-Enable or disable realtime sliders for windows.
-\layout Subsubsection
-
-AE_FONTID
+font <id>
 \layout Standard
 
 Set standard font id.
-\layout Subsubsection
+\layout Paragraph
 
-AE_PNTSIZE
+fontsize <size>
 \layout Standard
 
 Set standard font size.
-\layout Subsubsection
+\layout Paragraph
 
-AE_WIND_APPL
-\layout Subsubsection
-
-AE_TRACE
-\layout Subsubsection
-
-AE_GRAF_GROWBOX
+growbox enabled | disabled
 \layout Standard
 
 Enable or disable graphical output for graf_growbox().
-\layout Subsubsection
+\layout Paragraph
 
-AE_GRAF_SHRINKBOX
+shrinkbox enabled | disabled
 \layout Standard
 
 Enable or disable graphical output for graf_shrinkbox().
 \layout Subsubsection
 
-AE_FSEL_SORTED
+Window manager
+\layout Paragraph
+
+realmove enabled | disabled
+\layout Standard
+
+Enable or disable realtime moving of windows.
+\layout Paragraph
+
+realsize enabled | disabled
+\layout Standard
+
+Enable or disable realtime sizing of windows.
+\layout Paragraph*
+
+realslide enabled | disabled
+\layout Standard
+
+Enable or disable realtime sliders for windows.
 \layout Subsubsection
 
-AE_FSEL_EXTERN
-\layout Subsubsection
+Launcher
+\layout Paragraph
 
-AE_ACC_PATH
+accpath <accessories path>
 \layout Standard
 
 Set path to accessories.
-\layout Subsubsection
+\layout Paragraph
 
-run
+run <program path>
 \layout Standard
 
 Start program at oAESis' startup time.
-\layout Subsubsection
+\layout Paragraph
 
-shell
+shell <shell path>
 \layout Standard
 
 Start shell at oAESis' startup time.
-\layout Subsubsection
+\layout Paragraph
 
-setenv
+setenv <variable name> <variable content>
 \layout Standard
 
 Set environment variable at oAESis' startup time.
