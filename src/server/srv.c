@@ -68,7 +68,8 @@
 #define D3DSIZE       2
 
 #define INTS2LONG(a,b) (((((LONG)a)<<16)&0xffff0000L)|(((LONG)b)&0xffff))
-
+#define MSW(a) ((unsigned short)((unsigned long)(a) >> 16))
+#define LSW(a) ((unsigned short)((unsigned long)(a) & 0xffffUL))
 
 /****************************************************************************
  * Module global variables                                                  *
@@ -240,7 +241,8 @@ WORD alloc_only)    /* Should the structure only be allocated?              */
 /****************************************************************************/
 {
   AP_LIST	*al;
-  
+   
+  DEBUG2 ("srv.c: srv_info_alloc: Allocation memory");
   al = (AP_LIST *)Mxalloc(sizeof(AP_LIST),GLOBALMEM);
   
   if(!al) {
@@ -501,6 +503,7 @@ static OBJECT *alloc_win_elem(void) {
 	
 	size = sizeof(OBJECT) * elemnumber + sizeof(TEDINFO) * tednumber;
 	
+        DEBUG2 ("srv.c: alloc_win_element: Allocation memory");
 	t = (OBJECT *)Mxalloc(size,GLOBALMEM);
 	
 	if(t != NULL) {
@@ -1688,11 +1691,13 @@ static WORD srv_putenv(const BYTE *strng) {
   BYTE **e;
   del_env(strng);
   if(!environ) {
+    DEBUG2 ("srv.c: srv_putenv: Allocation memory");
     e = (BYTE **)Mxalloc(2*sizeof(BYTE *),GLOBALMEM);
   }
   else {
     while(environ[i]) 
       i++;
+    DEBUG2 ("srv.c: srv_putenv: Allocation memory 2");
     e = (BYTE **)Mxalloc((i+2)*sizeof(BYTE *),GLOBALMEM);
     if (!e) {
       return -1;
@@ -1708,6 +1713,7 @@ static WORD srv_putenv(const BYTE *strng) {
   };
   
   environ = e;
+  DEBUG2 ("srv.c: srv_putenv: Allocation memory 3");
   environ[i] = (BYTE *)Mxalloc(strlen(strng) + 1,GLOBALMEM);
   strcpy(environ[i],strng);
   environ[i+1] = 0;
@@ -2252,6 +2258,7 @@ static WINSTRUCT	*winalloc(void) {
 		win_free = win_free->next;
 	}
 	else {
+          DEBUG2 ("srv.c: winalloc: Allocation memory");
 		wl = (WINLIST *)Mxalloc(sizeof(WINLIST),GLOBALMEM);
 		wl->win = (WINSTRUCT *)Mxalloc(sizeof(WINSTRUCT),GLOBALMEM);
 		wl->win->id = win_next;
@@ -3327,6 +3334,7 @@ srv_wind_open (C_WIND_OPEN * msg,
   
   if(ws) {
     if(!(ws->status & WIN_OPEN)) {
+      DEBUG2 ("srv.c: srv_wind_open: Allocation memory");
       wl = (WINLIST *)Mxalloc(sizeof(WINLIST),GLOBALMEM);
       
       wl->win = ws;
@@ -3660,6 +3668,99 @@ C_PUT_EVENT *msg)
 }
 
 
+
+/* Description
+** Copy MFDB with network order conversion
+**
+** 1999-05-23 CG
+*/
+static
+void
+srv_copy_mfdb (MFDB * dst,
+               MFDB * src) {
+  dst->fd_addr = (void *)ntohl ((long)src->fd_addr);
+  dst->fd_w = ntohs (src->fd_w);
+  dst->fd_h = ntohs (src->fd_h);
+  dst->fd_wdwidth = ntohs (src->fd_wdwidth);
+  dst->fd_stand = ntohs (src->fd_stand);
+  dst->fd_nplanes = ntohs (src->fd_nplanes);
+  dst->fd_r1 = ntohs (src->fd_r1);
+  dst->fd_r2 = ntohs (src->fd_r2);
+  dst->fd_r3 = ntohs (src->fd_r3);
+}
+
+
+/*
+** Description
+** Do a vdi call requested by a client
+**
+** 1999-05-23 CG
+*/
+static
+void
+srv_vdi_call (COMM_HANDLE  handle,
+              C_VDI_CALL * par) {
+  R_VDI_CALL       ret;
+  static VDIPARBLK e_vdiparblk;
+  static VDIPB     vpb = { e_vdiparblk.contrl,
+                           e_vdiparblk.intin, e_vdiparblk.ptsin,
+                           e_vdiparblk.intout, e_vdiparblk.ptsout };
+  MFDB             mfdb_src;
+  MFDB             mfdb_dst;
+  int              i;
+  int              j;
+  
+  /* Copy contrl array */
+  for (i = 0; i < 15; i++) {
+    vpb.contrl[i] = ntohs (par->contrl[i]);
+  }
+  
+  /* Copy ptsin array */
+  for (i = 0, j = 0; i < (vpb.contrl[1] * 2); i++, j++) {
+    vpb.ptsin[i] = ntohs (par->inpar[j]);
+  }
+  
+  /* Copy intin array */
+  for (i = 0; i < vpb.contrl[3]; i++, j++) {
+    vpb.intin[i] = ntohs (par->inpar[j]);
+  }
+
+  /* Copy MFDBs when available */
+  if ((vpb.contrl[0] == 109)  ||  /* vro_cpyfm */
+      (vpb.contrl[0] == 110)) {   /* vr_trnfm  */
+    srv_copy_mfdb (&mfdb_src, (MFDB *)&par->inpar[j]);
+    j += sizeof (MFDB) / 2;
+    srv_copy_mfdb (&mfdb_dst, (MFDB *)&par->inpar[j]);
+    vpb.contrl[7] = MSW(&mfdb_src);
+    vpb.contrl[8] = LSW(&mfdb_src);
+    vpb.contrl[9] = MSW(&mfdb_dst);
+    vpb.contrl[10] = LSW(&mfdb_dst);
+  }
+
+  vdi_call (&vpb);
+  
+  /* Copy contrl array */
+  for (i = 0; i < 15; i++) {
+    ret.contrl[i] = htons (vpb.contrl[i]);
+  }
+  
+  /* Copy ptsout array */
+  for (i = 0, j = 0; i < (vpb.contrl[2] * 2); i++, j++) {
+    ret.outpar[j] = htons (vpb.ptsout[i]);
+  }
+  
+  /* Copy intout array */
+  for (i = 0; i < vpb.contrl[4]; i++, j++) {
+    ret.outpar[j] = htons (vpb.intout[i]);
+  }
+  
+  Srv_reply (handle,
+             &ret,
+             sizeof (R_ALL) +
+             sizeof (WORD) * (15 + j));
+}
+
+
 /*
 ** Description
 ** This is the server itself
@@ -3678,6 +3779,7 @@ C_PUT_EVENT *msg)
 ** 1999-04-12 CG
 ** 1999-04-18 CG
 ** 1999-05-20 CG
+** 1999-05-23 CG
 */
 static
 WORD
@@ -3959,52 +4061,9 @@ server (LONG arg) {
         break;
 
       case SRV_VDI_CALL:
-      {
-        static VDIPARBLK e_vdiparblk;
-        static VDIPB     vpb = { e_vdiparblk.contrl,
-                                 e_vdiparblk.intin, e_vdiparblk.ptsin,
-                                 e_vdiparblk.intout, e_vdiparblk.ptsout };
-        int i;
-        int j;
-
-        /* Copy contrl array */
-        for (i = 0; i < 15; i++) {
-          vpb.contrl[i] = ntohs (par.vdi_call.contrl[i]);
-        }
-
-        /* Copy ptsin array */
-        for (i = 0, j = 0; i < (vpb.contrl[1] * 2); i++, j++) {
-          vpb.ptsin[i] = ntohs (par.vdi_call.inpar[j]);
-        }
-
-        /* Copy intin array */
-        for (i = 0; i < vpb.contrl[3]; i++, j++) {
-          vpb.intin[i] = ntohs (par.vdi_call.inpar[j]);
-        }
-
-        vdi_call (&vpb);
-
-        /* Copy contrl array */
-        for (i = 0; i < 15; i++) {
-          ret.vdi_call.contrl[i] = htons (vpb.contrl[i]);
-        }
-
-        /* Copy ptsout array */
-        for (i = 0, j = 0; i < (vpb.contrl[2] * 2); i++, j++) {
-          ret.vdi_call.outpar[j] = htons (vpb.ptsout[i]);
-        }
-
-        /* Copy intout array */
-        for (i = 0; i < vpb.contrl[4]; i++, j++) {
-          ret.vdi_call.outpar[j] = htons (vpb.intout[i]);
-        }
-
-        Srv_reply (handle,
-                   &ret,
-                   sizeof (R_ALL) +
-                   sizeof (WORD) * (15 + 2 * vpb.contrl[2] + vpb.contrl[4]));
-      }
-      break;
+        srv_vdi_call (handle,
+                      &par.vdi_call);
+        break;
 
       default:
         DB_printf("%s: Line %d:\r\n"

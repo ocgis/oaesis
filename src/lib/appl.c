@@ -122,12 +122,35 @@ Appl_do_read (WORD   apid,
  ****************************************************************************/
 
 #ifdef TUNNEL_VDI_CALLS
+
+/* Description
+** Copy MFDB with network order conversion
+**
+** 1999-05-23 CG
+*/
+static
+void
+copy_mfdb (MFDB * dst,
+           MFDB * src) {
+  dst->fd_addr = (void *)htonl ((long)src->fd_addr);
+  dst->fd_w = htons (src->fd_w);
+  dst->fd_h = htons (src->fd_h);
+  dst->fd_wdwidth = htons (src->fd_wdwidth);
+  dst->fd_stand = htons (src->fd_stand);
+  dst->fd_nplanes = htons (src->fd_nplanes);
+  dst->fd_r1 = htons (src->fd_r1);
+  dst->fd_r2 = htons (src->fd_r2);
+  dst->fd_r3 = htons (src->fd_r3);
+}
+
+
 /*
 ** Description
 ** Tunnel a vdi call to the oaesis server
 **
 ** 1999-05-16 CG
 ** 1999-05-22 CG
+** 1999-05-23 CG
 */
 static
 void
@@ -154,10 +177,21 @@ vdi_tunnel (VDIPB * vpb) {
     par.inpar[j] = htons (vpb->intin[i]);
   }
 
+  /* Copy MFDBs when available */
+  if ((vpb->contrl[0] == 109) ||  /* vro_cpyfm */
+      (vpb->contrl[0] == 110)) {  /* vr_trnfm  */
+    copy_mfdb ((MFDB *)&par.inpar[j],
+               (MFDB *)(((long)vpb->contrl[7] << 16) + vpb->contrl[8]));
+    j += sizeof (MFDB) / 2;
+    copy_mfdb ((MFDB *)&par.inpar[j],
+               (MFDB *)(((long)vpb->contrl[9] << 16) + vpb->contrl[10]));
+    j += sizeof (MFDB) / 2;
+  }
+
+  /* Pass the call to the server */
   Client_send_recv (&par,
                     sizeof (C_ALL) +
-                    sizeof (WORD) *
-                    (15 + (vpb->contrl[1] * 2) + vpb->contrl[3]),
+                    sizeof (WORD) * (15 + j),
                     &ret,
                     sizeof (R_VDI_CALL));
 
