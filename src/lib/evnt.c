@@ -264,8 +264,14 @@ void	Evnt_mesag(AES_PB *apb) {
   if((e.type == WM_REDRAW) && (e.sid == -1)) {
     RECT totsize;
 		
-    Wind_do_get (apb->global->apid, ((WORD *)apb->addr_in[0])[3],WF_CURRXYWH,
-                 &totsize.x,&totsize.y,&totsize.width,&totsize.height);
+    Wind_do_get (apb->global->apid,
+                 ((WORD *)apb->addr_in[0])[3],
+                 WF_CURRXYWH,
+                 &totsize.x,
+                 &totsize.y,
+                 &totsize.width,
+                 &totsize.height,
+                 TRUE);
 	
     ((WORD *)apb->addr_in)[4] += totsize.x;
     ((WORD *)apb->addr_in)[5] += totsize.y;
@@ -516,8 +522,14 @@ WORD     level)      /* Number of times the function has been called by     */
         if((buf->type == WM_REDRAW) && (buf->sid == -1)) {	
           RECT totsize;
 			
-          Wind_do_get (apid, ((WORD *)buf)[3],WF_CURRXYWH,
-                       &totsize.x,&totsize.y,&totsize.width,&totsize.height);
+          Wind_do_get (apid,
+                       ((WORD *)buf)[3],
+                       WF_CURRXYWH,
+                       &totsize.x,
+                       &totsize.y,
+                       &totsize.width,
+                       &totsize.height,
+                       TRUE);
 	
           buf->msg1 += totsize.x;
           buf->msg2 += totsize.y;
@@ -551,6 +563,7 @@ WORD     level)      /* Number of times the function has been called by     */
 ** Implementation of evnt_multi
 **
 ** 1998-10-04 CG
+** 1998-10-11 CG
 */
 void
 Evnt_do_multi (WORD       apid,
@@ -574,12 +587,23 @@ Evnt_do_multi (WORD       apid,
                     &ret,
                     sizeof (R_EVNT_MULTI));
 
+  /* Handle messages */
+  if (ret.eventout.events & MU_MESAG) {
+    if (ret.msg.type == WM_REDRAW) {
+      /* Redraw window borders */
+
+      Wind_redraw_elements (apid, ret.msg.msg0, (RECT *)&ret.msg.msg1, 0);
+    }
+  }
+
   *msg = ret.msg;
   *eventout = ret.eventout;
 }
 
 
-void Evnt_multi(AES_PB *apb) {
+void
+Evnt_multi (AES_PB *apb)
+{
   SRV_APPL_INFO appl_info;
   
   Srv_get_appl_info(apb->global->apid,&appl_info);

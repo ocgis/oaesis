@@ -183,7 +183,8 @@ BYTE * envp[])         /* Environment string.                               */
                &globals->common->deskbgtad[0].ob_x,
                &globals->common->deskbgtad[0].ob_y,
                &globals->common->deskbgtad[0].ob_width,
-               &globals->common->deskbgtad[0].ob_height);
+               &globals->common->deskbgtad[0].ob_height,
+               TRUE);
   
   Srv_wind_set(mglob.menu_handl_apid,0,WF_NEWDESK,
 	       (WORD)(((LONG)globals->common->deskbgtad) >> 16),

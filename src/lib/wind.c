@@ -95,6 +95,7 @@ typedef struct window_struct {
   RECT     maxsize;
   RECT     totsize;
   RECT     worksize;
+  RECT     lastsize;
   OBJECT * tree;
 
   WORD hslidepos;     /*position of the horizontal slider*/
@@ -115,10 +116,6 @@ typedef struct window_list {
 static WORD	elemnumber = -1;
 static WORD	tednumber;
 
-/****************************************************************************
- * Local functions (use static!)                                            *
- ****************************************************************************/
-
 /*calcworksize calculates the worksize or the total size of
 a window. If dir == WC_WORK the worksize will be calculated and 
 otherwise the total size will be calculated.*/
@@ -135,24 +132,24 @@ calcworksize (WORD apid,
   WORD	leftsize = 1;
   WORD	rightsize = 1;
   WORD	topsize;
-  GLOBAL_COMMON * global_common = get_global_common ();
+  GLOBAL_COMMON * globals_common = get_global_common ();
 	
   if((HSLIDE | LFARROW | RTARROW) & elem) {
-    bottomsize = global_common->windowtad[WLEFT].ob_height + (D3DSIZE << 1);
+    bottomsize = globals_common->windowtad[WLEFT].ob_height + (D3DSIZE << 1);
   };
 	
   if((CLOSER | MOVER | FULLER | NAME) & elem) {
-    topsize = global_common->windowtad[WMOVER].ob_height + (D3DSIZE << 1);
+    topsize = globals_common->windowtad[WMOVER].ob_height + (D3DSIZE << 1);
   }
   else if(IMOVER & elem) {
-    topsize = global_common->csheight + 2 + D3DSIZE * 2;
+    topsize = globals_common->csheight + 2 + D3DSIZE * 2;
   }
   else {
     topsize = 0;
   };
 	
   if(INFO & elem) {
-    headsize = topsize + global_common->windowtad[WINFO].ob_height + 2 * D3DSIZE;
+    headsize = topsize + globals_common->windowtad[WINFO].ob_height + 2 * D3DSIZE;
   }
   else {
     if(topsize)
@@ -162,14 +159,14 @@ calcworksize (WORD apid,
   };
 	
   if((LFARROW | HSLIDE | RTARROW) & elem) {
-    bottomsize = global_common->windowtad[WLEFT].ob_height + (D3DSIZE << 1);
+    bottomsize = globals_common->windowtad[WLEFT].ob_height + (D3DSIZE << 1);
   };
 	
-  if(((bottomsize < global_common->windowtad[WLEFT].ob_height) && (SIZER & elem))
+  if(((bottomsize < globals_common->windowtad[WLEFT].ob_height) && (SIZER & elem))
      || ((VSLIDE | UPARROW | DNARROW) & elem))
   {
-    rightsize = global_common->windowtad[WSIZER].ob_width + (D3DSIZE << 1);
-  };
+    rightsize = globals_common->windowtad[WSIZER].ob_width + (D3DSIZE << 1);
+  }
 
   if(dir == WC_WORK) {
     new->x = orig->x + leftsize;
@@ -185,9 +182,98 @@ calcworksize (WORD apid,
   }
 }
 
-/****************************************************************************
- * Public functions                                                         *
- ****************************************************************************/
+/*
+** Description
+** Wind_set_size sets the size and position of window <win> to <size>
+**
+** 1998-10-11 CG
+*/
+static
+void
+Wind_set_size (WORD   apid,
+               WORD   id,
+               RECT * size) {
+  WORD	dx,dy,dw,dh;
+  GLOBAL_APPL * globals = get_globals (apid);
+  WINDOW_LIST * wl;
+
+  wl = globals->windows;
+
+  /* Find the window structure for our window */
+  while (wl) {
+    if (wl->ws.id == id) {
+      break;
+    }
+  }
+
+  if (wl != NULL) {
+    wl->ws.lastsize = wl->ws.totsize;
+    
+    wl->ws.totsize = * size;
+    
+    dx = size->x - wl->ws.lastsize.x;
+    dy = size->y - wl->ws.lastsize.y;
+    dw = size->width - wl->ws.lastsize.width;
+    dh = size->height - wl->ws.lastsize.height;
+    
+    wl->ws.worksize.x += dx;
+    wl->ws.worksize.y += dy;
+    wl->ws.worksize.width += dw;
+    wl->ws.worksize.height += dh;
+    
+    if(wl->ws.tree) {
+      wl->ws.tree[0].ob_x = wl->ws.totsize.x;
+      wl->ws.tree[0].ob_y = wl->ws.totsize.y;
+      wl->ws.tree[0].ob_width = wl->ws.totsize.width;
+      wl->ws.tree[0].ob_height = wl->ws.totsize.height;
+      
+      wl->ws.tree[WMOVER].ob_width += dw;
+      
+      wl->ws.tree[WFULLER].ob_x += dw;
+      
+      wl->ws.tree[WSMALLER].ob_x += dw;
+      
+      wl->ws.tree[WDOWN].ob_x += dw;
+      wl->ws.tree[WDOWN].ob_y += dh;	
+      
+      wl->ws.tree[WSIZER].ob_x += dw;
+      wl->ws.tree[WSIZER].ob_y += dh;	
+      
+      wl->ws.tree[WRIGHT].ob_x += dw;
+      wl->ws.tree[WRIGHT].ob_y += dh;	
+      
+      wl->ws.tree[WLEFT].ob_y += dh;	
+      
+      wl->ws.tree[WVSB].ob_x += dw;
+      wl->ws.tree[WVSB].ob_height += dh;	
+      
+      wl->ws.tree[WHSB].ob_y += dh;
+      wl->ws.tree[WHSB].ob_width += dw;	
+      
+      wl->ws.tree[WINFO].ob_width += dw;
+      
+      wl->ws.tree[WUP].ob_x += dw;
+      
+      wl->ws.tree[TFILLOUT].ob_width += dw;
+      
+      wl->ws.tree[RFILLOUT].ob_height += dh;
+      wl->ws.tree[RFILLOUT].ob_x += dw;
+      
+      wl->ws.tree[BFILLOUT].ob_width += dw;
+      wl->ws.tree[BFILLOUT].ob_y += dy;
+      
+      wl->ws.tree[SFILLOUT].ob_x += dw;
+      wl->ws.tree[SFILLOUT].ob_y += dh;
+      
+      wl->ws.tree[WAPP].ob_width = wl->ws.tree[WMOVER].ob_width;
+      
+      /*
+      changeslider(win,0,HSLIDE | VSLIDE,-1,-1);
+      */
+    }
+  }
+}
+
 
 /*winalloc creates/fetches a free window structure/id*/
 
@@ -633,6 +719,101 @@ create_new_window_struct (WORD apid,
   };
 }
 
+
+/*
+** Description
+** Find the window struct of window <id>. The window must belong to
+** application <apid>
+**
+** 1998-10-11 CG
+*/
+WINDOW_STRUCT *
+find_window_struct (WORD apid,
+                    WORD id)
+{
+  GLOBAL_APPL * globals = get_globals (apid);
+  WINDOW_LIST * wl = globals->windows;
+
+  while (wl != NULL) {
+    if (wl->ws.id == id) {
+      return &wl->ws;
+    }
+  }
+
+  return NULL;
+}
+
+
+/*
+** Description
+** Draw window elements of window <id> with a clipping rectangle <clip>.
+** If <id> is REDRAW_ALL all windows of the application will be redrawn.
+**
+** 1998-10-11 CG
+*/
+void
+Wind_redraw_elements (
+WORD   apid,
+WORD   id,
+RECT * clip,
+WORD   start)
+{
+  GLOBAL_APPL * globals = get_globals (apid);
+  WINDOW_LIST * wl = globals->windows;
+  
+  DB_printf ("wind.c: Wind_redraw_elements: id=%d", id);
+
+  while (wl) {
+    if (wl->ws.id == id) {
+      if(wl->ws.tree != NULL) {
+        RECT r;
+
+        Wind_do_get (apid,
+                     wl->ws.id,
+                     WF_FIRSTXYWH,
+                     &r.x,
+                     &r.y,
+                     &r.width,
+                     &r.height,
+                     FALSE);
+
+        /* Loop while there are more rectangles to redraw */
+        while (!((r.width == 0) && (r.height == 0))) {
+          RECT	r2;
+          
+          DB_printf ("wind.c: Wind_redraw_elements: x=%d y=%d w=%d h=%d",
+                     r.x, r.y, r.width, r.height);
+
+          if(Misc_intersect(&r, clip, &r2)) {
+            Objc_do_draw (globals->vid, wl->ws.tree, start, 3, &r2);
+          }
+          
+          if (Wind_do_get (apid,
+                           wl->ws.id,
+                           WF_NEXTXYWH,
+                           &r.x,
+                           &r.y,
+                           &r.width,
+                           &r.height,
+                           FALSE) == 0) {
+            /* An error occurred in Wind_do_get */
+            break;
+          }
+        }
+      }
+      
+      /* Get out of the loop if only one window was supposed to be redrawn */
+      if (!(id == REDRAW_ALL)) {
+        break;
+      }
+    }
+
+    /* Continue with the next window */
+    wl = wl->next;
+  }
+}
+
+
 /****************************************************************************
  * Wind_do_create                                                           *
  *  Implementation of wind_create().                                        *
@@ -724,9 +905,6 @@ WORD   status)   /* Status of window.                                       */
     }
     
     ws->own_colour = 0;
-
-    DB_printf ("wind.c: Wind_do_create: Calling Objc_do_draw");
-    Objc_do_draw (globals->vid, ws->tree, 0, 16, &ws->maxsize);
   }
 
   return ret.common.retval;
@@ -735,13 +913,13 @@ WORD   status)   /* Status of window.                                       */
 
 /* wind_create 0x0064 */
 
-void	Wind_create(AES_PB *apb) {	
-  DB_printf ("wind.c: Wind_create entered");
-  apb->int_out[0] = Wind_do_create(apb->global->apid
-                                   ,apb->int_in[0],
+void
+Wind_create (AES_PB *apb)
+{	
+  apb->int_out[0] = Wind_do_create(apb->global->apid,
+                                   apb->int_in[0],
                                    (RECT *)&apb->int_in[1],
                                    0);
-  DB_printf ("wind.c: Wind_create exited");
 }
 
 /*wind_open 0x0065*/
@@ -772,6 +950,9 @@ RECT * size)   /* Initial size of window.                                   */
                     sizeof (C_WIND_OPEN),
                     &ret,
                     sizeof (R_WIND_DELETE));
+
+  /* Set the size of the window elements */
+  Wind_set_size (apid, id, size);
 
   DB_printf ("Wind_do_open returned");
 
@@ -843,11 +1024,43 @@ Wind_do_get (WORD   apid,
              WORD * parm1,
              WORD * parm2,
              WORD * parm3,
-             WORD * parm4)
+             WORD * parm4,
+             WORD   in_workarea)
 {
   C_WIND_GET par;
   R_WIND_GET ret;
-  WORD       code;
+  RECT       workarea;
+
+  /* We can handle some calls without calling the server */
+  if (mode == WF_WORKXYWH) {
+    WINDOW_STRUCT * ws = find_window_struct (apid, handle);
+
+    if (ws == NULL) {
+      /* An error occurred */
+      return 0;
+    } else {
+      *parm1 = ws->worksize.x;
+      *parm2 = ws->worksize.y;
+      *parm3 = ws->worksize.width;
+      *parm4 = ws->worksize.height;
+      return 1;
+    }
+  }
+
+  if (in_workarea && ((mode == WF_FIRSTXYWH) || (mode == WF_NEXTXYWH))) {
+    /* Get work area of window for later use */
+    if (Wind_do_get (apid,
+                     handle,
+                     WF_WORKXYWH,
+                     &workarea.x,
+                     &workarea.y,
+                     &workarea.width,
+                     &workarea.height,
+                     TRUE) == 0) {
+      /* An error occurred */
+      return 0;
+    }
+  }
 
   par.common.call = SRV_WIND_GET;
   par.common.apid = apid;
@@ -855,11 +1068,38 @@ Wind_do_get (WORD   apid,
   par.handle = handle;
   par.mode = mode;
 	
-  Client_send_recv (&par,
-                    sizeof (C_WIND_GET),
-                    &ret,
-                    sizeof (R_WIND_GET));
 
+  /* Loop until we get the data we need (needed for WF_{FIRST,NEXT}XYWH */
+  while (TRUE) {
+    Client_send_recv (&par,
+                      sizeof (C_WIND_GET),
+                      &ret,
+                      sizeof (R_WIND_GET));
+    
+    if (in_workarea && ((mode == WF_FIRSTXYWH) || (mode == WF_NEXTXYWH))) {
+      RECT r;
+
+      /* If the rectangle is empty anyhow just exit the loop */
+      if ((ret.parm3 == 0) && (ret.parm4 == 0)) {
+        break;
+      }
+      
+      if (Misc_intersect ((RECT *)&ret.parm1, &workarea, &r) > 0) {
+        /* Rectangles do intersect. Now return the intersecting area */
+        *(RECT *)&ret.parm1 = r;
+        break;
+      }
+
+      par.mode = WF_NEXTXYWH;
+    } else {
+      /*
+      ** Get out of the loop. It is only needed for WF_{FIRST,NEXT}XYWH 
+      ** when getting rectangles within workarea
+      */
+      break;
+    }
+  } /* while (TRUE) */
+    
   *parm1 = ret.parm1;
   *parm2 = ret.parm2;
   *parm3 = ret.parm3;
@@ -878,7 +1118,8 @@ Wind_get (AES_PB *apb)
                                  &apb->int_out[1],
                                  &apb->int_out[2],
                                  &apb->int_out[3],
-                                 &apb->int_out[4]);
+                                 &apb->int_out[4],
+                                 TRUE);
 }
 
 

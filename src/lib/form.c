@@ -192,12 +192,26 @@ Form_do_dial (WORD   apid,
       WORD id;
       WORD top_window,owner,dummy;
 				
-      Wind_do_get (apid, 0,WF_TOP,&top_window,&owner,&dummy,&dummy);
+      Wind_do_get (apid,
+                   0,
+                   WF_TOP,
+                   &top_window,
+                   &owner,
+                   &dummy,
+                   &dummy,
+                   TRUE);
 				
       if(owner == apid) {
         WORD status;
 					
-        Wind_do_get (apid, top_window,WF_OWNER,&owner,&status,&dummy,&dummy);
+        Wind_do_get (apid,
+                     top_window,
+                     WF_OWNER,
+                     &owner,
+                     &status,
+                     &dummy,
+                     &dummy,
+                     TRUE);
 					
         if(status & WIN_DIALOG) {
           Srv_wind_close(top_window);
@@ -231,12 +245,26 @@ Form_do_dial (WORD   apid,
   {
     WORD top_window,owner,dummy;
 				
-    Wind_do_get (apid, 0,WF_TOP,&top_window,&owner,&dummy,&dummy);
+    Wind_do_get (apid,
+                 0,
+                 WF_TOP,
+                 &top_window,
+                 &owner,
+                 &dummy,
+                 &dummy,
+                 TRUE);
 				
     if(owner == apid) {
       WORD status;
 					
-      Wind_do_get (apid, top_window,WF_OWNER,&owner,&status,&dummy,&dummy);
+      Wind_do_get (apid,
+                   top_window,
+                   WF_OWNER,
+                   &owner,
+                   &status,
+                   &dummy,
+                   &dummy,
+                   TRUE);
 					
       if(status & WIN_DIALOG) {
         Srv_wind_close(top_window);
@@ -546,7 +574,14 @@ Form_do_center (WORD     apid,
                 RECT   * clip) {
     WORD pw1, pw2, pw3, pw4;
 
-    Wind_do_get (apid, 0, WF_WORKXYWH, &pw1, &pw2, &pw3, &pw4);
+    Wind_do_get (apid,
+                 0,
+                 WF_WORKXYWH,
+                 &pw1,
+                 &pw2,
+                 &pw3,
+                 &pw4,
+                 TRUE);
     tree[0].ob_x = pw1 + ((pw3 - tree[0].ob_width) >> 1);
     tree[0].ob_y = pw2 + ((pw4 - tree[0].ob_height) >> 1);
 	

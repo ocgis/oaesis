@@ -168,7 +168,7 @@ static WORD iconify_x = 0;
 
 
 static WORD time_message(EVNTREC *er) {
-  ULONG	newtime;
+  ULONG newtime;
   
   newtime = 0 /*globals.time*/;
   
@@ -217,7 +217,7 @@ static LONG get_evntpacket(EVNTREC *er,WORD maxwait) {
   
   if(rhndl & mrfds)  {
     Fread(evntglbl.mousefd, sizeof(EVNTREC), 
-	  &evntglbl.last_evntrec);
+          &evntglbl.last_evntrec);
   };
   
   if(time_message(er)) {
@@ -225,18 +225,18 @@ static LONG get_evntpacket(EVNTREC *er,WORD maxwait) {
   }
   else {
     *er = evntglbl.last_evntrec;
-  };	
+  };    
   
   return 1;
 }
 
-static void	update_local_mousevalues(EVNTREC *er) {
+static void     update_local_mousevalues(EVNTREC *er) {
   switch((WORD)er->ap_event) {
-  case	APPEVNT_BUTTON	:
+  case  APPEVNT_BUTTON  :
     mouse_button = ((WORD *)&er->ap_value)[1];
-    break;	
+    break;      
     
-  case	APPEVNT_MOUSE	:
+  case  APPEVNT_MOUSE   :
     mouse_x = ((WORD *)&er->ap_value)[1];
     mouse_y = ((WORD *)&er->ap_value)[0];
     break;
@@ -264,7 +264,7 @@ static void handle_arrow_click (WORD apid, WORD win_id,WORD object,WORD msg) {
   EVNTREC   er;
   WORD      owner;
   WORD      dummy;
-	
+        
   Evhd_wind_update(EVHD_APID,BEG_MCTRL);
   
   mesag.type = WM_ARROWED;
@@ -277,7 +277,14 @@ static void handle_arrow_click (WORD apid, WORD win_id,WORD object,WORD msg) {
     Srv_wind_change(win_id,object,SELECTED);
   };
   
-  Wind_do_get (apid, win_id,WF_OWNER,&owner,&dummy,&dummy,&dummy);
+  Wind_do_get (apid,
+               win_id,
+               WF_OWNER,
+               &owner,
+               &dummy,
+               &dummy,
+               &dummy,
+               TRUE);
   
   do {
     if(get_evntpacket(&er,0 /*globals.arrowrepeat*/) == 0) {
@@ -286,7 +293,7 @@ static void handle_arrow_click (WORD apid, WORD win_id,WORD object,WORD msg) {
     
     update_local_mousevalues(&er);
   }while(!((er.ap_event == APPEVNT_BUTTON) &&
-	   !(er.ap_value & LEFT_BUTTON)));
+           !(er.ap_value & LEFT_BUTTON)));
   
   if(object) {
     Srv_wind_change(win_id,object,0);
@@ -307,7 +314,14 @@ static void handle_mover_click(WORD apid, WORD win_id) {
   EVNTREC   er;
   COMMSG    mesag;
   
-  Wind_do_get (apid, win_id,WF_OWNER,&owner,&dummy,&top,&dummy);
+  Wind_do_get (apid,
+               win_id,
+               WF_OWNER,
+               &owner,
+               &dummy,
+               &top,
+               &dummy,
+               TRUE);
   
   Srv_wind_change(win_id,W_NAME,SELECTED); 
   
@@ -335,7 +349,7 @@ static void handle_mover_click(WORD apid, WORD win_id) {
   };
   
   if(timeleft) {
-    static COMMSG	m;
+    static COMMSG       m;
   
     if(top == -1) {
       m.type = WM_BOTTOM;
@@ -352,21 +366,27 @@ static void handle_mover_click(WORD apid, WORD win_id) {
   }
   else {
     Graf_do_mouse(FLAT_HAND,NULL);
-  	
+        
     if(0 /*globals.realmove*/) {
       mesag.type = WM_MOVED;
       mesag.sid = 0;
       mesag.length = 0;
       mesag.msg0 = win_id;
       
-      Wind_do_get (apid, win_id,WF_CURRXYWH,
-		   &mesag.msg1,&mesag.msg2,&mesag.msg3,&mesag.msg4);
+      Wind_do_get (apid,
+                   win_id,
+                   WF_CURRXYWH,
+                   &mesag.msg1,
+                   &mesag.msg2,
+                   &mesag.msg3,
+                   &mesag.msg4,
+                   TRUE);
       
       do {
-        WORD	waittime = EVHD_WAITTIME;
+        WORD    waittime = EVHD_WAITTIME;
         
         if((last_x != mouse_x) || (last_y != mouse_y)) {
-	  WORD tmpy;
+          WORD tmpy;
         
           mesag.msg1 += mouse_x - last_x;
           mesag.msg2 += mouse_y - last_y;
@@ -377,7 +397,7 @@ static void handle_mover_click(WORD apid, WORD win_id) {
           tmpy = mesag.msg2;
 
           if(mesag.msg2 < (0/*globals.clheight*/ + 3)) {
-	    mesag.msg2 = 0 /*globals.clheight*/ + 3;
+            mesag.msg2 = 0 /*globals.clheight*/ + 3;
           }
   
           Srv_appl_write(owner,16,&mesag);
@@ -387,7 +407,7 @@ static void handle_mover_click(WORD apid, WORD win_id) {
         
         while(1) {
           if(get_evntpacket(&er,(WORD)waittime) == 0) {
-	    er.ap_event = -1;
+            er.ap_event = -1;
             break;
           };
           
@@ -419,18 +439,24 @@ static void handle_mover_click(WORD apid, WORD win_id) {
       
       Evhd_wind_update(Pgetpid(),BEG_UPDATE);
 
-      Wind_do_get (apid, win_id,WF_CURRXYWH,
-		   &winsize.x,&winsize.y,&winsize.width,&winsize.height);
-		
+      Wind_do_get (apid,
+                   win_id,
+                   WF_CURRXYWH,
+                   &winsize.x,
+                   &winsize.y,
+                   &winsize.width,
+                   &winsize.height,
+                   TRUE);
+                
       /*
       globals.mouse_button = mouse_button;
       */
 
       Graf_do_dragbox(evntglbl.mousefd,
-		      winsize.width,winsize.height,
-		      winsize.x,winsize.y,
-		      &bound,
-		      &mesag.msg1,&mesag.msg2);
+                      winsize.width,winsize.height,
+                      winsize.x,winsize.y,
+                      &bound,
+                      &mesag.msg1,&mesag.msg2);
       
       /*
       Vdi_vq_mouse(globals.vid,&mouse_button,&mouse_x,&mouse_y);
@@ -443,7 +469,7 @@ static void handle_mover_click(WORD apid, WORD win_id) {
 
       /*
       if(mesag.msg2 < (globals.clheight + 3)) {
-       	mesag.msg2 = globals.clheight + 3;
+        mesag.msg2 = globals.clheight + 3;
       }
       */
 
@@ -451,20 +477,20 @@ static void handle_mover_click(WORD apid, WORD win_id) {
       mesag.msg4 = winsize.height;
       
       Srv_appl_write(owner,MSG_LENGTH,&mesag);
-			
+                        
       Evhd_wind_update(Pgetpid(),END_UPDATE);
     };
     
     Graf_do_mouse(M_RESTORE,NULL);
   };
-	
+        
   Srv_wind_change(win_id,W_NAME,0);
 
   globalize_mousevalues();
 }
 
 static void handle_slider_click(WORD win_id, WORD elem,WORD owner,
-				OBJECT *tree) {
+                                OBJECT *tree) {
   WORD last_x = mouse_x, last_y = mouse_y, new_x = last_x, new_y = last_y;
   WORD waittime = EVHD_WAITTIME;
   WORD bg = (elem == WVSLIDER)? WVSB : WHSB;
@@ -506,56 +532,56 @@ static void handle_slider_click(WORD win_id, WORD elem,WORD owner,
       update_local_mousevalues(&er);
 
       if((er.ap_event == APPEVNT_BUTTON) &&
-	 !(er.ap_value & LEFT_BUTTON)) {
-	break;
+         !(er.ap_value & LEFT_BUTTON)) {
+        break;
       }
       
       if((*p_mousexy - *p_dxy + *p_elemrectwh) > (*p_bgrectxy + *p_bgrectwh)) {
-	*p_newxy = *p_bgrectxy + *p_bgrectwh - *p_elemrectwh + *p_dxy;
+        *p_newxy = *p_bgrectxy + *p_bgrectwh - *p_elemrectwh + *p_dxy;
       }
       else {
-	if((*p_mousexy - *p_dxy) < *p_bgrectxy) {
-	  *p_newxy = *p_bgrectxy + *p_dxy;
-	}
-	else {
-	  *p_newxy = *p_mousexy;
-	}
+        if((*p_mousexy - *p_dxy) < *p_bgrectxy) {
+          *p_newxy = *p_bgrectxy + *p_dxy;
+        }
+        else {
+          *p_newxy = *p_mousexy;
+        }
       }
 
       if(*p_newxy != *p_lastxy) {
-	mesag.type = (elem == WHSLIDER)? WM_HSLID : WM_VSLID;	      
-	mesag.sid = 0;
-	mesag.length = 0;
-	mesag.msg0 = win_id;
-	mesag.msg1 = (*p_bgrectwh == *p_elemrectwh) ? 0 :
-	  (WORD)((((LONG)*p_newxy - (LONG)*p_dxy -
-		   (LONG)*p_bgrectxy) * (LONG)1000L) / 
-		 ((LONG)*p_bgrectwh - (LONG)*p_elemrectwh));
-	
-	Srv_appl_write(owner,16,&mesag);
+        mesag.type = (elem == WHSLIDER)? WM_HSLID : WM_VSLID;         
+        mesag.sid = 0;
+        mesag.length = 0;
+        mesag.msg0 = win_id;
+        mesag.msg1 = (*p_bgrectwh == *p_elemrectwh) ? 0 :
+          (WORD)((((LONG)*p_newxy - (LONG)*p_dxy -
+                   (LONG)*p_bgrectxy) * (LONG)1000L) / 
+                 ((LONG)*p_bgrectwh - (LONG)*p_elemrectwh));
+        
+        Srv_appl_write(owner,16,&mesag);
 
-	while(1) {
-	  if(get_evntpacket(&er, waittime) == 0) {
-	    er.ap_event = -1;
-	    break;
-	  }
-	  
-	  if(er.ap_event == APPEVNT_TIMER) {
-	    if((waittime -= (WORD)er.ap_value) <= 0) {
-	      break;
-	    }
-	  }
-	  else {
-	    update_local_mousevalues(&er);
-	  }
+        while(1) {
+          if(get_evntpacket(&er, waittime) == 0) {
+            er.ap_event = -1;
+            break;
+          }
+          
+          if(er.ap_event == APPEVNT_TIMER) {
+            if((waittime -= (WORD)er.ap_value) <= 0) {
+              break;
+            }
+          }
+          else {
+            update_local_mousevalues(&er);
+          }
 
-	  if((er.ap_event == APPEVNT_BUTTON) &&
-	     !(er.ap_value & LEFT_BUTTON)) {
-	    break;
-	  }
+          if((er.ap_event == APPEVNT_BUTTON) &&
+             !(er.ap_value & LEFT_BUTTON)) {
+            break;
+          }
 
-	  *p_lastxy = *p_newxy;
-	}
+          *p_lastxy = *p_newxy;
+        }
       }
     }
   }
@@ -585,43 +611,43 @@ static void handle_slider_click(WORD win_id, WORD elem,WORD owner,
       update_local_mousevalues(&er);
 
       if((er.ap_event == APPEVNT_BUTTON) &&
-	 !(er.ap_value & LEFT_BUTTON)) {
-	break;
+         !(er.ap_value & LEFT_BUTTON)) {
+        break;
       }
 
       if((*p_mousexy - *p_dxy + *p_elemrectwh) > (*p_bgrectxy + *p_bgrectwh)) {
-	*p_newxy = *p_bgrectxy + *p_bgrectwh - *p_elemrectwh + *p_dxy;
+        *p_newxy = *p_bgrectxy + *p_bgrectwh - *p_elemrectwh + *p_dxy;
       }
       else {
-	if((*p_mousexy - *p_dxy) < *p_bgrectxy) {
-	  *p_newxy = *p_bgrectxy + *p_dxy;
-	}
-	else {
-	  *p_newxy = *p_mousexy;
-	}
+        if((*p_mousexy - *p_dxy) < *p_bgrectxy) {
+          *p_newxy = *p_bgrectxy + *p_dxy;
+        }
+        else {
+          *p_newxy = *p_mousexy;
+        }
       }
       
       if(*p_newxy != *p_lastxy) {
-	Vdi_v_hide_c(evntglbl.evid);
-	Vdi_v_pline(evntglbl.evid,5,xyarray);
-	Vdi_v_show_c(evntglbl.evid,1);
-	
-	xyarray[0] += new_x - last_x;
-	xyarray[1] += new_y - last_y;
-	xyarray[2] += new_x - last_x;
-	xyarray[3] = xyarray[1];
-	xyarray[4] = xyarray[2];
-	xyarray[5] += new_y - last_y;
-	xyarray[6] = xyarray[0];
-	xyarray[7] = xyarray[5];
-	xyarray[8] = xyarray[0];
-	xyarray[9] = xyarray[1];
+        Vdi_v_hide_c(evntglbl.evid);
+        Vdi_v_pline(evntglbl.evid,5,xyarray);
+        Vdi_v_show_c(evntglbl.evid,1);
+        
+        xyarray[0] += new_x - last_x;
+        xyarray[1] += new_y - last_y;
+        xyarray[2] += new_x - last_x;
+        xyarray[3] = xyarray[1];
+        xyarray[4] = xyarray[2];
+        xyarray[5] += new_y - last_y;
+        xyarray[6] = xyarray[0];
+        xyarray[7] = xyarray[5];
+        xyarray[8] = xyarray[0];
+        xyarray[9] = xyarray[1];
 
-	Vdi_v_hide_c(evntglbl.evid);
-	Vdi_v_pline(evntglbl.evid,5,xyarray);
-	Vdi_v_show_c(evntglbl.evid,1);
-	
-	*p_lastxy = *p_newxy;
+        Vdi_v_hide_c(evntglbl.evid);
+        Vdi_v_pline(evntglbl.evid,5,xyarray);
+        Vdi_v_show_c(evntglbl.evid,1);
+        
+        *p_lastxy = *p_newxy;
       }
     }
     
@@ -635,8 +661,8 @@ static void handle_slider_click(WORD win_id, WORD elem,WORD owner,
     mesag.msg0 = win_id;
     mesag.msg1 = (*p_bgrectwh == *p_elemrectwh)? 0 :
       (WORD)((((LONG)*p_newxy - (LONG)*p_dxy -
-	       (LONG)*p_bgrectxy) * (LONG)1000L) / 
-	     ((LONG)*p_bgrectwh - (LONG)*p_elemrectwh));
+               (LONG)*p_bgrectxy) * (LONG)1000L) / 
+             ((LONG)*p_bgrectwh - (LONG)*p_elemrectwh));
     
     Srv_appl_write(owner,16,&mesag);
 
@@ -658,8 +684,8 @@ static void handle_button (WORD apid, WORD newbutton) {
   mouse_button = newbutton;
   
   if(0 /*globals.mouse_owner*/ >= 0) {
-    EVNTREC	e;
-	  	      
+    EVNTREC     e;
+                      
     e.ap_event = APPEVNT_BUTTON;
     e.ap_value = mouse_button | (1L << 16);
     
@@ -677,346 +703,371 @@ static void handle_button (WORD apid, WORD newbutton) {
       
       win_id = Srv_wind_find(mouse_x,mouse_y);
       tree = Srv_get_wm_info(win_id);
-      Wind_do_get (apid, win_id,WF_OWNER,&owner,&status,&top,&dummy);      
-      Wind_do_get (apid, win_id,WF_WORKXYWH,
-		   &worksize.x,&worksize.y,&worksize.width,&worksize.height);
+      Wind_do_get (apid,
+                   win_id,
+                   WF_OWNER,
+                   &owner,
+                   &status,
+                   &top,
+                   &dummy,
+                   TRUE);      
+      Wind_do_get (apid,
+                   win_id,
+                   WF_WORKXYWH,
+                   &worksize.x,
+                   &worksize.y,
+                   &worksize.width,
+                   &worksize.height,
+                   TRUE);
       
       if(status & WIN_DESKTOP) {
-      	EVNTREC	e;
+        EVNTREC e;
 
-      	e.ap_event = APPEVNT_BUTTON;
-      	e.ap_value = mouse_button | (1L << 16);
-      	Srv_put_event(DESK_OWNER,&e,sizeof(EVNTREC));
+        e.ap_event = APPEVNT_BUTTON;
+        e.ap_value = mouse_button | (1L << 16);
+        Srv_put_event(DESK_OWNER,&e,sizeof(EVNTREC));
       }
       else if((status & WIN_DIALOG)
-	      || (status & WIN_MENU)) {
-      	EVNTREC	e;
+              || (status & WIN_MENU)) {
+        EVNTREC e;
       
-      	e.ap_event = APPEVNT_BUTTON;
-      	e.ap_value = mouse_button | (1L << 16);
-      	Srv_put_event(owner,&e,sizeof(EVNTREC));
-    	}
-    	else if(Misc_inside(&worksize,mouse_x,mouse_y)) {
-	  if((status & (WIN_UNTOPPABLE | WIN_ICONIFIED)) == WIN_UNTOPPABLE) {
-	    EVNTREC	e;
-	    
-	    e.ap_event = APPEVNT_BUTTON;
-	    e.ap_value = mouse_button | (1L << 16);
-	    Srv_put_event(owner,&e,sizeof(EVNTREC));
-	  }
-	  else {
-	    COMMSG	m;
-	    
-	    if((status & WIN_ICONIFIED) &&
-	       (Evnt_waitclicks(evntglbl.mousefd,LEFT_BUTTON,LEFT_BUTTON,1,
-				LEFT_BUTTON) >= 1)) {
-	      m.type = WM_UNICONIFY;
-	      m.sid = 0;
-	      m.length = 0;
-	      m.msg0 = win_id;
-	      Wind_do_get (apid, win_id,WF_UNICONIFY,&m.msg1,&m.msg2,
-			   &m.msg3,&m.msg4);
+        e.ap_event = APPEVNT_BUTTON;
+        e.ap_value = mouse_button | (1L << 16);
+        Srv_put_event(owner,&e,sizeof(EVNTREC));
+        }
+        else if(Misc_inside(&worksize,mouse_x,mouse_y)) {
+          if((status & (WIN_UNTOPPABLE | WIN_ICONIFIED)) == WIN_UNTOPPABLE) {
+            EVNTREC     e;
+            
+            e.ap_event = APPEVNT_BUTTON;
+            e.ap_value = mouse_button | (1L << 16);
+            Srv_put_event(owner,&e,sizeof(EVNTREC));
+          }
+          else {
+            COMMSG      m;
+            
+            if((status & WIN_ICONIFIED) &&
+               (Evnt_waitclicks(evntglbl.mousefd,LEFT_BUTTON,LEFT_BUTTON,1,
+                                LEFT_BUTTON) >= 1)) {
+              m.type = WM_UNICONIFY;
+              m.sid = 0;
+              m.length = 0;
+              m.msg0 = win_id;
+              Wind_do_get (apid,
+                           win_id,
+                           WF_UNICONIFY,
+                           &m.msg1,
+                           &m.msg2,
+                           &m.msg3,
+                           &m.msg4,
+                           TRUE);
 
-	      Srv_appl_write(owner,(WORD)sizeof(COMMSG),&m);
+              Srv_appl_write(owner,(WORD)sizeof(COMMSG),&m);
 
-	      /*
-	      Vdi_vq_mouse(globals.vid,&mouse_button,&mouse_x,&mouse_y);
-              */
-	    }
-	    else if(top != -1) {
-	      /*
-              Vdi_vq_mouse(globals.vid,&mouse_button,&mouse_x,&mouse_y);
-	      */
-
-	      if(mouse_button & LEFT_BUTTON) {
-		do {
-		  get_evntpacket(&er,0);
-		  update_local_mousevalues(&er);
-		}while(!((er.ap_event == APPEVNT_BUTTON) &&
-			 !(er.ap_value & LEFT_BUTTON)));
-    	      };
-	        
-	      m.type = WM_TOPPED;
-	      m.sid = 0;
-	      m.length = 0;
-	      m.msg0 = win_id;
-
-	      Srv_appl_write(owner,16,&m);
-	    }
-	    else {
-	      er.ap_event = APPEVNT_BUTTON;
-	      er.ap_value = (LONG)mouse_button | (1L << 16);
-	      Srv_put_event(owner,&er,sizeof(EVNTREC));
-	    };
-	  };
-    	}
-    	else {
-	  WORD   obj = Objc_do_find(tree,0,9,mouse_x,mouse_y,0);
-	  COMMSG mesag;				
-
-	  switch(obj) {		
-	  case	WCLOSER	:
-	    Srv_wind_change(win_id,W_CLOSER,SELECTED);
-	    
-	    do {
-	      get_evntpacket(&er,0);
-	      update_local_mousevalues(&er);
-	    }while(!((er.ap_event == APPEVNT_BUTTON) &&
-		     !(er.ap_value & LEFT_BUTTON)));
-	    
-	    
-	    Srv_wind_change(win_id,W_CLOSER,0);
-	    
-	    mesag.type = WM_CLOSED;
-	    mesag.sid = 0;
-	    mesag.length = 0;
-	    mesag.msg0 = win_id;
-	    Srv_appl_write(owner,16,&mesag);
-	    break;
-	    
-	  case WSMALLER:
-	    {
-	      WORD skeys;
-	      
-	      Srv_wind_change(win_id,W_SMALLER,SELECTED);
-
-	      do {
-		get_evntpacket(&er,0);
-		update_local_mousevalues(&er);
-	      }while(!((er.ap_event == APPEVNT_BUTTON) &&
-		       !(er.ap_value & LEFT_BUTTON)));
-	      
-	      Srv_wind_change(win_id,W_SMALLER,0);
-	      
-	      Vdi_vq_key_s(evntglbl.evid,&skeys);
-						
-	      if(skeys & K_CTRL) {
-		mesag.type = WM_ALLICONIFY;
-	      }
-	      else {
-		mesag.type = WM_ICONIFY;
-	      };
-	      
-	      mesag.sid = 0;
-	      mesag.length = 0;
-	      mesag.msg0 = win_id;
               /*
-	      mesag.msg3 = globals.icon_width;
-	      mesag.msg4 = globals.icon_height;
-	      mesag.msg1 = iconify_x;
-	      mesag.msg2 = globals.screen.height - mesag.msg4;
-
-	      iconify_x += mesag.msg3;
-	      if(iconify_x + mesag.msg3 > globals.screen.width) {
-		iconify_x = 0;
-	      };
+              Vdi_vq_mouse(globals.vid,&mouse_button,&mouse_x,&mouse_y);
+              */
+            }
+            else if(top != -1) {
+              /*
+              Vdi_vq_mouse(globals.vid,&mouse_button,&mouse_x,&mouse_y);
               */
 
-	      Srv_appl_write(owner,16,&mesag);
-	    };
-	    break;
-	    
-	  case WFULLER:
-	    Srv_wind_change(win_id,W_FULLER,SELECTED);
-	    
-	    do {
-	      get_evntpacket(&er,0);
-	      update_local_mousevalues(&er);
-	    }while(!((er.ap_event == APPEVNT_BUTTON) &&
-		     !(er.ap_value & LEFT_BUTTON)));
-	    
-	    Srv_wind_change(win_id,W_FULLER,0);
-	    
-	    mesag.type = WM_FULLED;
-	    mesag.sid = 0;
-	    mesag.length = 0;
-	    mesag.msg0 = win_id;
-	    Srv_appl_write(owner,16,&mesag);
-	    
-	    break;
-		
-	  case	WSIZER	:
-	    {
-	      RECT totsize;
-	      
-	      Srv_wind_change(win_id,W_SIZER,SELECTED);
-	      Wind_do_get (apid, win_id,WF_CURRXYWH,&totsize.x,&totsize.y,
-			   &totsize.width,&totsize.height);
-	      
-	      if(0 /*globals.realsize*/) {
-		WORD	last_x;
-		WORD	last_y;
-		WORD	offsx = mouse_x - totsize.x - totsize.width;
-		WORD	offsy = mouse_y - totsize.y - totsize.height;
-		
-		mesag.type = WM_SIZED;
-		mesag.sid = 0;
-		mesag.length = 0;
-		mesag.msg0 = win_id;
-		mesag.msg1 = totsize.x;
-		mesag.msg2 = totsize.y;
+              if(mouse_button & LEFT_BUTTON) {
+                do {
+                  get_evntpacket(&er,0);
+                  update_local_mousevalues(&er);
+                }while(!((er.ap_event == APPEVNT_BUTTON) &&
+                         !(er.ap_value & LEFT_BUTTON)));
+              };
+                
+              m.type = WM_TOPPED;
+              m.sid = 0;
+              m.length = 0;
+              m.msg0 = win_id;
 
-		last_x = mouse_x;
-		last_y = mouse_y;
-		  
-		do {
-		  LONG	waittime = 200;
-		  
-		  if((last_x != mouse_x) || (last_y != mouse_y)) {
-		    mesag.msg3 = mouse_x - totsize.x - offsx;
-		    mesag.msg4 = mouse_y - totsize.y - offsy;
-		    
-		    last_x = mouse_x;
-		    last_y = mouse_y;
-		    
-		    Srv_appl_write(owner,16,&mesag);
-		  };
-		  
-		  while(1) {
-		    if(get_evntpacket(&er,(WORD)waittime) == 0) {
-		      er.ap_event = -1;
-		      break;
-		    };
-		    
-		    if(er.ap_event == APPEVNT_TIMER) {
-		      if((waittime -= er.ap_value) <= 0) {
-			break;
-		      };
-		    }
-		    else {
-		      update_local_mousevalues(&er);
-		    };
-		    
-		    if((er.ap_event == APPEVNT_BUTTON) &&
-		       !(er.ap_value & LEFT_BUTTON)) {
-		      break;
-		    };
-		  };
-		}while(!((er.ap_event == APPEVNT_BUTTON) &&
-			 !(er.ap_value & LEFT_BUTTON)));
-	      }
-	      else {
+              Srv_appl_write(owner,16,&m);
+            }
+            else {
+              er.ap_event = APPEVNT_BUTTON;
+              er.ap_value = (LONG)mouse_button | (1L << 16);
+              Srv_put_event(owner,&er,sizeof(EVNTREC));
+            };
+          };
+        }
+        else {
+          WORD   obj = Objc_do_find(tree,0,9,mouse_x,mouse_y,0);
+          COMMSG mesag;                         
+
+          switch(obj) {         
+          case  WCLOSER :
+            Srv_wind_change(win_id,W_CLOSER,SELECTED);
+            
+            do {
+              get_evntpacket(&er,0);
+              update_local_mousevalues(&er);
+            }while(!((er.ap_event == APPEVNT_BUTTON) &&
+                     !(er.ap_value & LEFT_BUTTON)));
+            
+            
+            Srv_wind_change(win_id,W_CLOSER,0);
+            
+            mesag.type = WM_CLOSED;
+            mesag.sid = 0;
+            mesag.length = 0;
+            mesag.msg0 = win_id;
+            Srv_appl_write(owner,16,&mesag);
+            break;
+            
+          case WSMALLER:
+            {
+              WORD skeys;
+              
+              Srv_wind_change(win_id,W_SMALLER,SELECTED);
+
+              do {
+                get_evntpacket(&er,0);
+                update_local_mousevalues(&er);
+              }while(!((er.ap_event == APPEVNT_BUTTON) &&
+                       !(er.ap_value & LEFT_BUTTON)));
+              
+              Srv_wind_change(win_id,W_SMALLER,0);
+              
+              Vdi_vq_key_s(evntglbl.evid,&skeys);
+                                                
+              if(skeys & K_CTRL) {
+                mesag.type = WM_ALLICONIFY;
+              }
+              else {
+                mesag.type = WM_ICONIFY;
+              };
+              
+              mesag.sid = 0;
+              mesag.length = 0;
+              mesag.msg0 = win_id;
+              /*
+              mesag.msg3 = globals.icon_width;
+              mesag.msg4 = globals.icon_height;
+              mesag.msg1 = iconify_x;
+              mesag.msg2 = globals.screen.height - mesag.msg4;
+
+              iconify_x += mesag.msg3;
+              if(iconify_x + mesag.msg3 > globals.screen.width) {
+                iconify_x = 0;
+              };
+              */
+
+              Srv_appl_write(owner,16,&mesag);
+            };
+            break;
+            
+          case WFULLER:
+            Srv_wind_change(win_id,W_FULLER,SELECTED);
+            
+            do {
+              get_evntpacket(&er,0);
+              update_local_mousevalues(&er);
+            }while(!((er.ap_event == APPEVNT_BUTTON) &&
+                     !(er.ap_value & LEFT_BUTTON)));
+            
+            Srv_wind_change(win_id,W_FULLER,0);
+            
+            mesag.type = WM_FULLED;
+            mesag.sid = 0;
+            mesag.length = 0;
+            mesag.msg0 = win_id;
+            Srv_appl_write(owner,16,&mesag);
+            
+            break;
+                
+          case  WSIZER  :
+            {
+              RECT totsize;
+              
+              Srv_wind_change(win_id,W_SIZER,SELECTED);
+              Wind_do_get (apid,
+                           win_id,
+                           WF_CURRXYWH,
+                           &totsize.x,
+                           &totsize.y,
+                           &totsize.width,
+                           &totsize.height,
+                           TRUE);
+              
+              if(0 /*globals.realsize*/) {
+                WORD    last_x;
+                WORD    last_y;
+                WORD    offsx = mouse_x - totsize.x - totsize.width;
+                WORD    offsy = mouse_y - totsize.y - totsize.height;
+                
+                mesag.type = WM_SIZED;
+                mesag.sid = 0;
+                mesag.length = 0;
+                mesag.msg0 = win_id;
+                mesag.msg1 = totsize.x;
+                mesag.msg2 = totsize.y;
+
+                last_x = mouse_x;
+                last_y = mouse_y;
+                  
+                do {
+                  LONG  waittime = 200;
+                  
+                  if((last_x != mouse_x) || (last_y != mouse_y)) {
+                    mesag.msg3 = mouse_x - totsize.x - offsx;
+                    mesag.msg4 = mouse_y - totsize.y - offsy;
+                    
+                    last_x = mouse_x;
+                    last_y = mouse_y;
+                    
+                    Srv_appl_write(owner,16,&mesag);
+                  };
+                  
+                  while(1) {
+                    if(get_evntpacket(&er,(WORD)waittime) == 0) {
+                      er.ap_event = -1;
+                      break;
+                    };
+                    
+                    if(er.ap_event == APPEVNT_TIMER) {
+                      if((waittime -= er.ap_value) <= 0) {
+                        break;
+                      };
+                    }
+                    else {
+                      update_local_mousevalues(&er);
+                    };
+                    
+                    if((er.ap_event == APPEVNT_BUTTON) &&
+                       !(er.ap_value & LEFT_BUTTON)) {
+                      break;
+                    };
+                  };
+                }while(!((er.ap_event == APPEVNT_BUTTON) &&
+                         !(er.ap_value & LEFT_BUTTON)));
+              }
+              else {
                 /*
                   globals.mouse_button = mouse_button;
                   */
-		
-		Graf_do_rubberbox(evntglbl.mousefd,
-				  totsize.x,totsize.y,100,100,
-				  &mesag.msg3,&mesag.msg4);
-		
+                
+                Graf_do_rubberbox(evntglbl.mousefd,
+                                  totsize.x,totsize.y,100,100,
+                                  &mesag.msg3,&mesag.msg4);
+                
                 /*
-		Vdi_vq_mouse(globals.vid,&mouse_button,&mouse_x,&mouse_y);
-		*/
-
-		mesag.type = WM_SIZED;
-		mesag.sid = 0;
-		mesag.length = 0;
-		mesag.msg0 = win_id;
-		mesag.msg1 = totsize.x;
-		mesag.msg2 = totsize.y;
-		mouse_x = mesag.msg3 + totsize.x - 1;
-		mouse_y = mesag.msg4 + totsize.y - 1;
-
-		Srv_appl_write(owner,16,&mesag);
-	      };
-
-	      Evhd_wind_update(Pgetpid(),BEG_UPDATE);
-					
-	      Srv_wind_change(win_id,W_SIZER,0);
-	      Evhd_wind_update(Pgetpid(),END_UPDATE);
-	      break;
-	    };
-				
-	  case WAPP:	        
-	  case WMOVER:
-	    handle_mover_click (apid, win_id);
-	    break;
-	        
-	  case WLEFT:
-	    handle_arrow_click (apid, win_id,W_LFARROW,WA_LFLINE);
-	    break;
-		
-	  case WRIGHT:
-	    handle_arrow_click (apid, win_id,W_RTARROW,WA_RTLINE);
-	    break;
-		
-	  case WUP:
-	    handle_arrow_click (apid, win_id,W_UPARROW,WA_UPLINE);
-	    break;
-		
-	  case WDOWN:
-	    handle_arrow_click (apid, win_id,W_DNARROW,WA_DNLINE);
-	    break;
-	    
-	  case WHSB:
-	    {
-	      WORD      xy[2];
-	      
-	      if(tree) {
-		Objc_do_offset(tree,WHSLIDER,xy);
-	      };
-	
-	      if(mouse_x > xy[0]) {
-		handle_arrow_click (apid, win_id,0,WA_RTPAGE);
-	      }
-	      else {
-		handle_arrow_click (apid, win_id,0,WA_LFPAGE);
-	      };
-	    };
-	    break;
-	    
-	  case WVSB:
-	    {
-	      WORD xy[2];
-	      
-	      if(tree) {
-		Objc_do_offset(tree,WVSLIDER,xy);
-	      };
-	      
-	      if(mouse_y > xy[1]) {
-		handle_arrow_click (apid, win_id,0,WA_DNPAGE);
-	      }
-	      else {
-		handle_arrow_click (apid, win_id,0,WA_UPPAGE);
-	      };
-	    };
-	    break;
-	    
-	  case WHSLIDER:
-	    handle_slider_click(win_id,WHSLIDER,owner,tree);
-	    break;
-	        
-	  case WVSLIDER:
-	    handle_slider_click(win_id,WVSLIDER,owner,tree);
-	    break;
-	        
-	  default:
-	    if(win_id > 0) {
-	      COMMSG	m;
-	          
-	      if(top != -1) {
-                /*
-		Vdi_vq_mouse(globals.vid,&mouse_button,&mouse_x,&mouse_y);
+                Vdi_vq_mouse(globals.vid,&mouse_button,&mouse_x,&mouse_y);
                 */
 
-		if(mouse_button & LEFT_BUTTON) {
-		  do {
-		    get_evntpacket(&er,0);
-		    update_local_mousevalues(&er);
-		  }while(!((er.ap_event == APPEVNT_BUTTON) &&
-			   !(er.ap_value & LEFT_BUTTON)));
-		  
-		  m.type = WM_TOPPED;
-		  m.sid = 0;
-		  m.length = 0;
-		  m.msg0 = win_id;
+                mesag.type = WM_SIZED;
+                mesag.sid = 0;
+                mesag.length = 0;
+                mesag.msg0 = win_id;
+                mesag.msg1 = totsize.x;
+                mesag.msg2 = totsize.y;
+                mouse_x = mesag.msg3 + totsize.x - 1;
+                mouse_y = mesag.msg4 + totsize.y - 1;
 
-		  Srv_appl_write(owner,16,&m);
-		};
-	      };
-	    };
-	  };
-	};
+                Srv_appl_write(owner,16,&mesag);
+              };
+
+              Evhd_wind_update(Pgetpid(),BEG_UPDATE);
+                                        
+              Srv_wind_change(win_id,W_SIZER,0);
+              Evhd_wind_update(Pgetpid(),END_UPDATE);
+              break;
+            };
+                                
+          case WAPP:            
+          case WMOVER:
+            handle_mover_click (apid, win_id);
+            break;
+                
+          case WLEFT:
+            handle_arrow_click (apid, win_id,W_LFARROW,WA_LFLINE);
+            break;
+                
+          case WRIGHT:
+            handle_arrow_click (apid, win_id,W_RTARROW,WA_RTLINE);
+            break;
+                
+          case WUP:
+            handle_arrow_click (apid, win_id,W_UPARROW,WA_UPLINE);
+            break;
+                
+          case WDOWN:
+            handle_arrow_click (apid, win_id,W_DNARROW,WA_DNLINE);
+            break;
+            
+          case WHSB:
+            {
+              WORD      xy[2];
+              
+              if(tree) {
+                Objc_do_offset(tree,WHSLIDER,xy);
+              };
+        
+              if(mouse_x > xy[0]) {
+                handle_arrow_click (apid, win_id,0,WA_RTPAGE);
+              }
+              else {
+                handle_arrow_click (apid, win_id,0,WA_LFPAGE);
+              };
+            };
+            break;
+            
+          case WVSB:
+            {
+              WORD xy[2];
+              
+              if(tree) {
+                Objc_do_offset(tree,WVSLIDER,xy);
+              };
+              
+              if(mouse_y > xy[1]) {
+                handle_arrow_click (apid, win_id,0,WA_DNPAGE);
+              }
+              else {
+                handle_arrow_click (apid, win_id,0,WA_UPPAGE);
+              };
+            };
+            break;
+            
+          case WHSLIDER:
+            handle_slider_click(win_id,WHSLIDER,owner,tree);
+            break;
+                
+          case WVSLIDER:
+            handle_slider_click(win_id,WVSLIDER,owner,tree);
+            break;
+                
+          default:
+            if(win_id > 0) {
+              COMMSG    m;
+                  
+              if(top != -1) {
+                /*
+                Vdi_vq_mouse(globals.vid,&mouse_button,&mouse_x,&mouse_y);
+                */
+
+                if(mouse_button & LEFT_BUTTON) {
+                  do {
+                    get_evntpacket(&er,0);
+                    update_local_mousevalues(&er);
+                  }while(!((er.ap_event == APPEVNT_BUTTON) &&
+                           !(er.ap_value & LEFT_BUTTON)));
+                  
+                  m.type = WM_TOPPED;
+                  m.sid = 0;
+                  m.length = 0;
+                  m.msg0 = win_id;
+
+                  Srv_appl_write(owner,16,&m);
+                };
+              };
+            };
+          };
+        };
     }
     else {
       WORD wid;
@@ -1024,26 +1075,39 @@ static void handle_button (WORD apid, WORD newbutton) {
       WORD status;
       WORD dummy;
       RECT worksize;
-	    
+            
       wid = Srv_wind_find(mouse_x,mouse_y);
-      Wind_do_get (apid, wid,WF_OWNER,&owner,&status,&dummy,&dummy);
-      Wind_do_get (apid, wid,WF_WORKXYWH,
-		   &worksize.x,&worksize.y,&worksize.width,&worksize.height);
+      Wind_do_get (apid,
+                   wid,
+                   WF_OWNER,
+                   &owner,
+                   &status,
+                   &dummy,
+                   &dummy,
+                   TRUE);
+      Wind_do_get (apid,
+                   wid,
+                   WF_WORKXYWH,
+                   &worksize.x,
+                   &worksize.y,
+                   &worksize.width,
+                   &worksize.height,
+                   TRUE);
  
  
       if(status & WIN_DESKTOP) {
-	EVNTREC	e;
-	      
-	e.ap_event = APPEVNT_BUTTON;
-	e.ap_value = mouse_button | (1L << 16);
-	Srv_put_event(DESK_OWNER,&e,sizeof(EVNTREC));
+        EVNTREC e;
+              
+        e.ap_event = APPEVNT_BUTTON;
+        e.ap_value = mouse_button | (1L << 16);
+        Srv_put_event(DESK_OWNER,&e,sizeof(EVNTREC));
       }
       else if(Misc_inside(&worksize,mouse_x,mouse_y)) {
-	EVNTREC	e;
-	      
-	e.ap_event = APPEVNT_BUTTON;
-	e.ap_value = mouse_button | (1L << 16);
-	Srv_put_event(owner,&e,sizeof(EVNTREC));
+        EVNTREC e;
+              
+        e.ap_event = APPEVNT_BUTTON;
+        e.ap_value = mouse_button | (1L << 16);
+        Srv_put_event(owner,&e,sizeof(EVNTREC));
       };
     };
   };
@@ -1052,7 +1116,7 @@ static void handle_button (WORD apid, WORD newbutton) {
 }
 
 static void check_rectevents(WORD x,WORD y) {
-  REVENTLIST	**rl;
+  REVENTLIST    **rl;
   
   struct {
     EVNTREC       head;
@@ -1074,114 +1138,114 @@ static void check_rectevents(WORD x,WORD y) {
       WORD    sendflag = 0;
       
       if((*rl)->event.flag1 != -1) {
-	WORD insideflag = Misc_inside(&(*rl)->event.r1,x,y);
-	    	
-	if((insideflag && ((*rl)->event.flag1 == MO_ENTER)) ||
-	   ((!insideflag) && ((*rl)->event.flag1 == MO_LEAVE))) {	
-	  m.head.ap_event = MO_RECT1;
-	  m.head.ap_value = (*rl)->event.apid;
-	  m.tail.mx = x;
-	  m.tail.my = y;
-	  m.tail.buttons = 0 /*globals.mouse_button*/;
-	  /*m.tail.kstate = TODO <--*/
-	  
-	  sendflag = 1;	
-	};
+        WORD insideflag = Misc_inside(&(*rl)->event.r1,x,y);
+                
+        if((insideflag && ((*rl)->event.flag1 == MO_ENTER)) ||
+           ((!insideflag) && ((*rl)->event.flag1 == MO_LEAVE))) {       
+          m.head.ap_event = MO_RECT1;
+          m.head.ap_value = (*rl)->event.apid;
+          m.tail.mx = x;
+          m.tail.my = y;
+          m.tail.buttons = 0 /*globals.mouse_button*/;
+          /*m.tail.kstate = TODO <--*/
+          
+          sendflag = 1; 
+        };
       }
       else if((*rl)->event.flag2 != -1) {
-	WORD insideflag = Misc_inside(&(*rl)->event.r2,x,y);
-	
-	if((insideflag && ((*rl)->event.flag2 == MO_ENTER)) ||
-	   ((!insideflag) && ((*rl)->event.flag2 == MO_LEAVE))) {
-	  m.head.ap_event = MO_RECT2;
-	  m.head.ap_value = (*rl)->event.apid;
-	  m.tail.mx = x;
-	  m.tail.my = y;
-	  m.tail.buttons = 0 /*globals.mouse_button*/;
-	  /*m.tail.kstate = TODO <--*/
-	  
-	  sendflag = 1;
-	};
+        WORD insideflag = Misc_inside(&(*rl)->event.r2,x,y);
+        
+        if((insideflag && ((*rl)->event.flag2 == MO_ENTER)) ||
+           ((!insideflag) && ((*rl)->event.flag2 == MO_LEAVE))) {
+          m.head.ap_event = MO_RECT2;
+          m.head.ap_value = (*rl)->event.apid;
+          m.tail.mx = x;
+          m.tail.my = y;
+          m.tail.buttons = 0 /*globals.mouse_button*/;
+          /*m.tail.kstate = TODO <--*/
+          
+          sendflag = 1;
+        };
       };
 
       if(sendflag) {
-	REVENTLIST *tmp = *rl;
+        REVENTLIST *tmp = *rl;
 
-	Srv_put_event(tmp->event.apid,&m,sizeof(EVNTREC) +
-		      sizeof(EVNTREC_MOUSE));
-	
-	/* Make sure that we only send one message => remove the entry*/
-	
-	*rl = (*rl)->next;
+        Srv_put_event(tmp->event.apid,&m,sizeof(EVNTREC) +
+                      sizeof(EVNTREC_MOUSE));
+        
+        /* Make sure that we only send one message => remove the entry*/
+        
+        *rl = (*rl)->next;
 
-	Mfree(tmp);
+        Mfree(tmp);
       };
-				    
+                                    
       if(!(*rl)) {
-	break;
+        break;
       };
     };
-	  
+          
     rl = &(*rl)->next;
   };
   
   Psemaphore(SEM_UNLOCK,MOUSE_SEM,-1);
 }
 
-static void	getmenuxpos(WORD *x,WORD *width) {
-  OBJECT	*t;
-	
+static void     getmenuxpos(WORD *x,WORD *width) {
+  OBJECT        *t;
+        
   WORD start;
-	
+        
   *width = 0;
 
   t = Srv_get_top_menu();
-	
+        
   if(t) {
     start = t[t[0].ob_head].ob_head;
-	
+        
     *x = t[0].ob_x + t[t[0].ob_head].ob_x + t[start].ob_x;
     *width = t[t[start].ob_tail].ob_x + t[t[start].ob_tail].ob_width;
   }
   else {
     DB_printf("%s: Line %d: getmenuxpos:\r\n"
-	      "Couldn't find top menu.\r\n",__FILE__,__LINE__);
+              "Couldn't find top menu.\r\n",__FILE__,__LINE__);
   };
 }
 
-static WORD	get_matching_menu(OBJECT *t,WORD n) {
+static WORD     get_matching_menu(OBJECT *t,WORD n) {
   WORD parent,start,i = 0;
-	
+        
   /*first we need to know which in order our title is*/
-	
+        
   parent = t[t[0].ob_head].ob_head;
   start = t[parent].ob_head;
-	
+        
   while(start != n) {
     /* we have failed to find the object! */
-		
+                
     if(start == parent)
       return -1;
 
     start = t[start].ob_next;
     i++;
   };
-	
+        
   /* now we shall find the i:th menubox! */
-	
+        
   parent = t[t[0].ob_head].ob_next;
-	
+        
   start = t[parent].ob_head;
-	
+        
   while(i) {
     start = t[start].ob_next;
 
     if(start == parent)
       return -1;
-			
+                        
     i--;
   };
-	
+        
   return start;
 }
 
@@ -1218,109 +1282,109 @@ static WORD handle_drop_down(WORD apid,
 
     while(TRUE) {
       EVNTREC er;
-			
+                        
       get_evntpacket(&er,0);
-	
-      switch((WORD)er.ap_event) {		
+        
+      switch((WORD)er.ap_event) {               
       case APPEVNT_KEYBOARD :
       case APPEVNT_TIMER :
-	break;	
-	      
-      case APPEVNT_MOUSE	:
-	mouse_y = (WORD)(er.ap_value >> 16);
-	mouse_x = (WORD)er.ap_value;
+        break;  
+              
+      case APPEVNT_MOUSE        :
+        mouse_y = (WORD)(er.ap_value >> 16);
+        mouse_x = (WORD)er.ap_value;
 
-	if(!Misc_inside(&entryarea,mouse_x,mouse_y)) {
-	  if(!(nmenu[entry].ob_state & DISABLED)) {
-	    nmenu[entry].ob_state &= ~SELECTED;
-	    
-	    Objc_do_draw (apid, nmenu,0,9,&entryarea);
-	  };
-					
-	  return 0;
-	};
-	break;
-	    
-      case APPEVNT_BUTTON	:
-	{
-	  WORD changebut = (WORD)(mouse_button ^ er.ap_value);
+        if(!Misc_inside(&entryarea,mouse_x,mouse_y)) {
+          if(!(nmenu[entry].ob_state & DISABLED)) {
+            nmenu[entry].ob_state &= ~SELECTED;
+            
+            Objc_do_draw (apid, nmenu,0,9,&entryarea);
+          };
+                                        
+          return 0;
+        };
+        break;
+            
+      case APPEVNT_BUTTON       :
+        {
+          WORD changebut = (WORD)(mouse_button ^ er.ap_value);
 
-	  mouse_button = (WORD)er.ap_value;
+          mouse_button = (WORD)er.ap_value;
 
-	  if(changebut & LEFT_BUTTON & (!mouse_button)) {
-	    nmenu[entry].ob_state &= ~SELECTED;
-		
-	    if(nmenu == 0 /*globals.pmenutad*/) {
-	      AP_LIST *mr;
-	      WORD    walk = entry - PMENU_FIRST;
-			
+          if(changebut & LEFT_BUTTON & (!mouse_button)) {
+            nmenu[entry].ob_state &= ~SELECTED;
+                
+            if(nmenu == 0 /*globals.pmenutad*/) {
+              AP_LIST *mr;
+              WORD    walk = entry - PMENU_FIRST;
+                        
               /*
-	      mr = globals.applmenu;
+              mr = globals.applmenu;
               */
-				
-	      while(walk && mr) {
-		mr = mr->mn_next;
-		walk--;
-	      };
-							
-	      if(walk) {
-		walk--;
+                                
+              while(walk && mr) {
+                mr = mr->mn_next;
+                walk--;
+              };
+                                                        
+              if(walk) {
+                walk--;
                 /*
-		mr = globals.accmenu;
-		*/
-		while(walk && mr) {
-		  mr = mr->mn_next;
-		  walk--;
-		};
-	      };
-							
-						
-	      if(mr) {
-		WORD skeys;
-		
-		Vdi_vq_key_s(evntglbl.evid,&skeys);
+                mr = globals.accmenu;
+                */
+                while(walk && mr) {
+                  mr = mr->mn_next;
+                  walk--;
+                };
+              };
+                                                        
+                                                
+              if(mr) {
+                WORD skeys;
+                
+                Vdi_vq_key_s(evntglbl.evid,&skeys);
 
-		if(skeys & K_CTRL) {
-		  hm_buffer->action = HM_KILL;
-		  hm_buffer->apid = mr->ai->id;
-		}
-		else {
-		  if(mr->ai->type & APP_APPLICATION) {
-		    hm_buffer->action = HM_TOP_APPL;
-		    hm_buffer->apid = mr->ai->id;
-		  }
-		  else { /* Accessory */
-		    hm_buffer->action = HM_OPEN_ACC;
-		    hm_buffer->apid = mr->ai->id;
-		  };
-		};
-	      }
-	      else {
-		DB_printf("%s: Line %d: handle_drop_down:\r\n"
-			  "Couldn't find application to top!\r\n",
-			  __FILE__,__LINE__);
-	      };
-	    }
-	    else {
-	      hm_buffer->action = HM_MENU_MSG;
-	      hm_buffer->title = title;
-	      hm_buffer->item = entry;
-	      hm_buffer->tree = nmenu;
-	      hm_buffer->parent = menubox;
-	    };
-	    
-	    return 1;
-	  };
-	};
-	break;
-	
+                if(skeys & K_CTRL) {
+                  hm_buffer->action = HM_KILL;
+                  hm_buffer->apid = mr->ai->id;
+                }
+                else {
+                  if(mr->ai->type & APP_APPLICATION) {
+                    hm_buffer->action = HM_TOP_APPL;
+                    hm_buffer->apid = mr->ai->id;
+                  }
+                  else { /* Accessory */
+                    hm_buffer->action = HM_OPEN_ACC;
+                    hm_buffer->apid = mr->ai->id;
+                  };
+                };
+              }
+              else {
+                DB_printf("%s: Line %d: handle_drop_down:\r\n"
+                          "Couldn't find application to top!\r\n",
+                          __FILE__,__LINE__);
+              };
+            }
+            else {
+              hm_buffer->action = HM_MENU_MSG;
+              hm_buffer->title = title;
+              hm_buffer->item = entry;
+              hm_buffer->tree = nmenu;
+              hm_buffer->parent = menubox;
+            };
+            
+            return 1;
+          };
+        };
+        break;
+        
       default:
-	DB_printf("%s: Line %d: handle_drop_down:\r\n"
-		  "Unknown message.\r\n",__FILE__,__LINE__);
+        DB_printf("%s: Line %d: handle_drop_down:\r\n"
+                  "Unknown message.\r\n",__FILE__,__LINE__);
       };
-    };	
+    };  
   };
-	
+        
   return 0;
 }
 
@@ -1330,18 +1394,18 @@ static WORD handle_selected_title(HM_BUFFER *hm_buffer) {
   WORD    box;
   WORD    title;
   WORD    deskbox;
-  	
+        
   title = Objc_do_find(menu.tree, 0, 9, mouse_x, mouse_y, 0);
   box = get_matching_menu(menu.tree, title);
   
   deskbox = menu.tree[menu.tree[0].ob_tail].ob_head;
-	  
+          
   if(box >= 0) {
     RECT area;
     RECT titlearea;
-	    
+            
     /* select the title and update it */
-	    
+            
     menu.tree[title].ob_state |= SELECTED;
 
     Objc_area_needed(menu.tree,title,&titlearea);
@@ -1356,15 +1420,15 @@ static WORD handle_selected_title(HM_BUFFER *hm_buffer) {
       Objc_do_offset(menu.tree,box,&globals.pmenutad[0].ob_x);
      
       globals.pmenutad[0].ob_y +=
-	(menu.tree[menu.tree[box].ob_head].ob_height << 1);
+        (menu.tree[menu.tree[box].ob_head].ob_height << 1);
       globals.pmenutad[0].ob_width = menu.tree[box].ob_width;
 
       for(i = PMENU_FIRST; i <= PMENU_LAST; i++) {
-	globals.pmenutad[i].ob_width = globals.pmenutad[0].ob_width;
+        globals.pmenutad[i].ob_width = globals.pmenutad[0].ob_width;
       }
-		
+                
       area.height = globals.pmenutad[0].ob_height + 
-	(globals.pmenutad[1].ob_height << 1) + 2;
+        (globals.pmenutad[1].ob_height << 1) + 2;
         */
     };
 
@@ -1394,53 +1458,53 @@ static WORD handle_selected_title(HM_BUFFER *hm_buffer) {
     /* Start to wait for messages and rect 1 */
     while(TRUE) {
       get_evntpacket(&er,0);
-	
-      switch((WORD)er.ap_event) {		
-      case APPEVNT_BUTTON	:
+        
+      switch((WORD)er.ap_event) {               
+      case APPEVNT_BUTTON       :
       case APPEVNT_KEYBOARD :
       case APPEVNT_TIMER :
-	break;	
-	
-      case APPEVNT_MOUSE	:
-	mouse_x = (WORD)er.ap_value;
-	mouse_y = (WORD)(er.ap_value >> 16);
-	
-	if(!Misc_inside(&titlearea,mouse_x,mouse_y)) {
-	  WORD closebox = 0;
+        break;  
+        
+      case APPEVNT_MOUSE        :
+        mouse_x = (WORD)er.ap_value;
+        mouse_y = (WORD)(er.ap_value >> 16);
+        
+        if(!Misc_inside(&titlearea,mouse_x,mouse_y)) {
+          WORD closebox = 0;
 
           /*
-	  if((deskbox == box) && (mouse_y >= globals.pmenutad[0].ob_y)) {
-	    if(!Misc_inside((RECT *)&globals.pmenutad[0].ob_x,
-			    mouse_x,mouse_y) ||
-	       (Objc_do_find(globals.pmenutad,0,9,mouse_x,mouse_y,0) < 0) ||
-	       handle_drop_down(hm_buffer,box,title)) {
-	      closebox = 1;
-	    };
-	  }
-	  else if((Objc_do_find(menu.tree, box, 9, mouse_x, mouse_y,0)
-		   < 0) || handle_drop_down(hm_buffer,box,title)) {
-	    closebox = 1;
-	  };
-	  */
-	  if(closebox) {
-	    menu.tree[title].ob_state &= ~SELECTED;
-	    Objc_do_draw (apid, menu.tree,0,9,&titlearea);
-	    
-	    Srv_wind_close(menu.dropwin);
-	    Wind_do_delete(apid, menu.dropwin);
-	    
-	    menu.tree[box].ob_flags |= HIDETREE;
-	    
-	    return 0;
-	  };
-	};
-	break;
-	    
+          if((deskbox == box) && (mouse_y >= globals.pmenutad[0].ob_y)) {
+            if(!Misc_inside((RECT *)&globals.pmenutad[0].ob_x,
+                            mouse_x,mouse_y) ||
+               (Objc_do_find(globals.pmenutad,0,9,mouse_x,mouse_y,0) < 0) ||
+               handle_drop_down(hm_buffer,box,title)) {
+              closebox = 1;
+            };
+          }
+          else if((Objc_do_find(menu.tree, box, 9, mouse_x, mouse_y,0)
+                   < 0) || handle_drop_down(hm_buffer,box,title)) {
+            closebox = 1;
+          };
+          */
+          if(closebox) {
+            menu.tree[title].ob_state &= ~SELECTED;
+            Objc_do_draw (apid, menu.tree,0,9,&titlearea);
+            
+            Srv_wind_close(menu.dropwin);
+            Wind_do_delete(apid, menu.dropwin);
+            
+            menu.tree[box].ob_flags |= HIDETREE;
+            
+            return 0;
+          };
+        };
+        break;
+            
       default:
-	DB_printf("%s: Line %d: handle_selected_title:\r\n"
-		  "Unknown message.\r\n",__FILE__,__LINE__);
+        DB_printf("%s: Line %d: handle_selected_title:\r\n"
+                  "Unknown message.\r\n",__FILE__,__LINE__);
       };
-    };	
+    };  
   };
   
   return 0;
@@ -1460,30 +1524,30 @@ static void handle_menu(void) {
   while(!menu_handled) {
     get_evntpacket(&er,0);
 
-    switch((WORD)er.ap_event) {		
-    case APPEVNT_BUTTON	:
+    switch((WORD)er.ap_event) {         
+    case APPEVNT_BUTTON :
     case APPEVNT_KEYBOARD :
     case APPEVNT_TIMER :
-      break;	
+      break;    
       
-    case APPEVNT_MOUSE	:
+    case APPEVNT_MOUSE  :
       mouse_x = ((WORD *)&er.ap_value)[1];
       mouse_y = ((WORD *)&er.ap_value)[0];
 
       if(Misc_inside(&menu.area,mouse_x,mouse_y)) {
-	handle_selected_title(&hm_buffer);
+        handle_selected_title(&hm_buffer);
       };
       
       if(mouse_y > menu.area.height) {
-	globalize_mousevalues();
-	
-	menu_handled = 1;
+        globalize_mousevalues();
+        
+        menu_handled = 1;
       };
       break;
       
     default:
       DB_printf("%s: Line %d: handle_menu:\r\n"
-		"Unknown message.\r\n",__FILE__,__LINE__);
+                "Unknown message.\r\n",__FILE__,__LINE__);
     };
   };
 
@@ -1535,8 +1599,8 @@ static void handle_menu(void) {
 }
 
 static WORD evnt_handler(LONG arg) {
-  WORD	  work_in[] = {1,7,1,1,1,1,1,1,1,1,2};
-  WORD	  work_out[57];
+  WORD    work_in[] = {1,7,1,1,1,1,1,1,1,1,2};
+  WORD    work_out[57];
   EVNTREC er;
   WORD    evhd_pipe;
   WORD    apid = -1;
@@ -1572,64 +1636,64 @@ static WORD evnt_handler(LONG arg) {
 
     switch((WORD)er.ap_event) {
     case APPEVNT_TIMER:
-    	break;
-    			
-    case APPEVNT_BUTTON	:
+        break;
+                        
+    case APPEVNT_BUTTON :
       handle_button (apid, (WORD)er.ap_value);
-      break;	
+      break;    
       
-    case APPEVNT_MOUSE	:
+    case APPEVNT_MOUSE  :
       /*
       globals.mouse_x = (WORD)(er.ap_value & 0xffff);
       globals.mouse_y = (WORD)(er.ap_value >> 16);
 
-	if(globals.mouse_owner >= 0) {
-	  check_rectevents(globals.mouse_x,globals.mouse_y);
+        if(globals.mouse_owner >= 0) {
+          check_rectevents(globals.mouse_x,globals.mouse_y);
 
-	  if(globals.mouse_mode) {
-	    Srv_put_event((WORD)globals.mouse_owner,&er,sizeof(EVNTREC));
-	  };
-	}
-	else {
-	  if(globals.mouse_y < menu.area.height) {
-	    handle_menu();
-	  }
-	  else {
-	    check_rectevents(globals.mouse_x,globals.mouse_y);
-	  };
-	};
+          if(globals.mouse_mode) {
+            Srv_put_event((WORD)globals.mouse_owner,&er,sizeof(EVNTREC));
+          };
+        }
+        else {
+          if(globals.mouse_y < menu.area.height) {
+            handle_menu();
+          }
+          else {
+            check_rectevents(globals.mouse_x,globals.mouse_y);
+          };
+        };
         */
-	break;
+        break;
       
       case APPEVNT_KEYBOARD :
-    	if((((er.ap_value & 0x00ff0000L) >> 16) == 0x09) &&
-	   (er.ap_value & K_CTRL) && (er.ap_value & K_ALT)) {
-	  Srv_appl_control(-1,APC_TOPNEXT);    		
-    	}
-    	else if(er.ap_value == 0x4a1f000cL) {
-	  DB_printf("Killing oAESis");
+        if((((er.ap_value & 0x00ff0000L) >> 16) == 0x09) &&
+           (er.ap_value & K_CTRL) && (er.ap_value & K_ALT)) {
+          Srv_appl_control(-1,APC_TOPNEXT);             
+        }
+        else if(er.ap_value == 0x4a1f000cL) {
+          DB_printf("Killing oAESis");
 
           /*
-	  (void)Pkill(globals.srvpid,SIGQUIT);
-	  (void)Pkill(globals.applpid,SIGQUIT);
-	  (void)Pkill(globals.evntpid,SIGQUIT);
+          (void)Pkill(globals.srvpid,SIGQUIT);
+          (void)Pkill(globals.applpid,SIGQUIT);
+          (void)Pkill(globals.evntpid,SIGQUIT);
           */
-    	}
-    	else if(er.ap_value == 0x1910000cL) {
-	  DB_printf("Event handler OK.");
-	  Srv_shake();
-    	}
-    	else if((er.ap_value & 0xc) == 0xc) {
-	  DB_printf("Unknown command %lx",er.ap_value);
-    	}
-    	else {
-	  Srv_put_event(TOP_APPL,&er,sizeof(EVNTREC));
-	};
-	break;
+        }
+        else if(er.ap_value == 0x1910000cL) {
+          DB_printf("Event handler OK.");
+          Srv_shake();
+        }
+        else if((er.ap_value & 0xc) == 0xc) {
+          DB_printf("Unknown command %lx",er.ap_value);
+        }
+        else {
+          Srv_put_event(TOP_APPL,&er,sizeof(EVNTREC));
+        };
+        break;
       
       default:
-    	DB_printf("%s: Line %d:\r\nUnknown mouse event %ld!",
-		  __FILE__,__LINE__,er.ap_event);
+        DB_printf("%s: Line %d:\r\nUnknown mouse event %ld!",
+                  __FILE__,__LINE__,er.ap_event);
       };
   };
 }
@@ -1645,12 +1709,12 @@ static WORD evnt_handler(LONG arg) {
 void                   /*                                                   */
 Evhd_init_module(void) /*                                                   */
 /****************************************************************************/
-{	
+{       
   /* Initialize internal mouse variables */
 
   /*
   Vdi_vq_mouse(globals.vid,&globals.mouse_button,
-	       &globals.mouse_x,&globals.mouse_y);
+               &globals.mouse_x,&globals.mouse_y);
                */
 
   /*  globals.evntpid = (WORD)Misc_fork(evnt_handler,0,"EvntHndl");*/
@@ -1713,7 +1777,7 @@ Evhd_kill_rectevent(   /*                                                   */
 WORD apid)             /* Application id to end reporting to.               */
 /****************************************************************************/
 {
-  REVENTLIST	**rl;
+  REVENTLIST    **rl;
   
   Psemaphore(SEM_LOCK,MOUSE_SEM,-1);
   
@@ -1721,7 +1785,7 @@ WORD apid)             /* Application id to end reporting to.               */
   
   while(*rl) {
     if((*rl)->event.apid == apid) {
-      REVENTLIST	*tmp = *rl;
+      REVENTLIST        *tmp = *rl;
       
       *rl = tmp->next;
       
@@ -1753,7 +1817,7 @@ WORD mode)             /* Mode.                                             */
   long timeout = (mode & 0x100) ? 0L : -1L; /* test for check-and-set mode */
   
   switch(mode & 0xff) {
-  case BEG_UPDATE:	/* Grab the update lock */
+  case BEG_UPDATE:      /* Grab the update lock */
   case BEG_UPDATE|0x100:
     if (update_lock==clnt_pid) {
       update_cnt++ ;
@@ -1761,7 +1825,7 @@ WORD mode)             /* Mode.                                             */
     }
 
     if(Psemaphore(2,UPDATE_LOCK,timeout) == -EACCESS) {
-      return 0;	/* screen locked by different process */
+      return 0; /* screen locked by different process */
     }
 
     update_lock=clnt_pid;
@@ -1775,7 +1839,7 @@ WORD mode)             /* Mode.                                             */
     }
     break;
   
-  case BEG_MCTRL:		/* Grab the mouse lock */
+  case BEG_MCTRL:               /* Grab the mouse lock */
   case BEG_MCTRL|0x100:
     if (mouse_lock==clnt_pid) {
       mouse_cnt++ ;
@@ -1783,7 +1847,7 @@ WORD mode)             /* Mode.                                             */
     }
      
     if (Psemaphore(2,MOUSE_LOCK,timeout) == -EACCESS) {
-      return 0;	/* mouse locked by different process */
+      return 0; /* mouse locked by different process */
     }
     
     mouse_lock=clnt_pid;
@@ -1799,4 +1863,3 @@ WORD mode)             /* Mode.                                             */
 
   return 1;
 }
-

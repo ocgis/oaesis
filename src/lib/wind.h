@@ -4,6 +4,22 @@
 /*#include "rlist.h"*/
 #include "types.h"
 
+# define REDRAW_ALL (-1)
+
+/*
+** Description
+** Draw window elements of window <id> with a clipping rectangle <clip>.
+** If <id> is REDRAW_ALL all windows of the application will be redrawn.
+**
+** 1998-10-11 CG
+*/
+void
+Wind_redraw_elements (
+WORD   apid,
+WORD   id,
+RECT * clip,
+WORD   start);
+
 /****************************************************************************
  * Wind_do_create                                                           *
  *  Implementation of wind_create().                                        *
@@ -57,7 +73,8 @@ Wind_do_get (WORD   apid,
              WORD * parm1,
              WORD * parm2,
              WORD * parm3,
-             WORD * parm4);
+             WORD * parm4,
+             WORD   in_workarea);
 
 void Wind_get(AES_PB *apb);    /*0x0068*/
 void Wind_set(AES_PB *apb);    /*0x0069*/
