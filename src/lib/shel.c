@@ -149,12 +149,12 @@ Shel_read(AES_PB *apb)
 */
 static
 WORD
-start_gem_program(WORD   apid,
-                  WORD   type,
-                  BYTE * envir,
-                  BYTE * ddir,
-                  BYTE * cmd,
-                  BYTE * tail)
+start_gem_program_mint(WORD   apid,
+                       WORD   type,
+                       BYTE * envir,
+                       BYTE * ddir,
+                       BYTE * cmd,
+                       BYTE * tail)
 {
   BYTE *     tmp;
   BYTE       oldpath[128];
@@ -239,6 +239,124 @@ start_gem_program(WORD   apid,
 #endif
 
   return ap_id;
+}
+
+
+/*
+** Description
+** Start a GEM program under Unix
+*/
+static
+WORD
+start_gem_program_unix(WORD   apid,
+                       WORD   type,
+                       BYTE * envir,
+                       BYTE * ddir,
+                       BYTE * cmd,
+                       BYTE * tail)
+{
+  BYTE *     tmp;
+  BYTE       oldpath[128];
+  BYTE       exepath[128];
+  WORD       pid = -1;
+  WORD       ap_id;
+
+
+  getcwd(oldpath, 128);
+  
+  strcpy(exepath, cmd);
+  
+  if(ddir)
+  {
+    chdir(ddir);
+    tmp = exepath;
+  }
+  else
+  {
+    tmp = strrchr(exepath, '/');
+    if(tmp != NULL)
+    {
+      char c = tmp[1];
+
+      tmp[1] = 0;
+      chdir(exepath);
+      tmp[1] = c;
+      tmp++;
+    }
+    else
+    {
+      tmp = exepath;
+    }
+  }
+
+  /* Get semaphore */
+  /* FIXME: Psemaphore(SEM_LOCK, SHEL_WRITE_LOCK, -1); */
+
+  pid = fork();
+
+  if(pid == 0)
+  {
+    /* Child */
+
+    if(execl(tmp, tmp, NULL) == -1)
+    {
+      perror("execl failed");
+    }
+
+    exit(-1);
+  }
+
+  chdir(oldpath);
+  
+  if(pid < 0)
+  {
+    ap_id = 0;
+  }
+  else
+  {
+    ap_id = Appl_do_reserve(apid, type, pid);
+  }
+
+  /* Release the semaphore now that the application id is reserved */
+  /* FIXME: Psemaphore(SEM_UNLOCK, SHEL_WRITE_LOCK, 0); */
+
+  return ap_id;
+}
+
+
+/*
+** Description
+** Start a GEM program or accessory
+*/
+static
+WORD
+start_gem_program(WORD   apid,
+                  WORD   type,
+                  BYTE * envir,
+                  BYTE * ddir,
+                  BYTE * cmd,
+                  BYTE * tail)
+{
+  GLOBAL_APPL * globals = get_globals (apid);
+
+  if(globals->path_mode == OAESIS_PATH_MODE_MINT)
+  {
+    return start_gem_program_mint(apid,
+                                  type,
+                                  envir,
+                                  ddir,
+                                  cmd,
+                                  tail);
+  }
+  else
+  {
+    return start_gem_program_unix(apid,
+                                  type,
+                                  envir,
+                                  ddir,
+                                  cmd,
+                                  tail);
+  }
 }
 
 
