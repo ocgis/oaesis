@@ -83,10 +83,10 @@ typedef struct pEvntrec {
                 
 
 typedef struct graphic_rectangle {
-  short g_x;
-  short g_y;
-  short g_w;
-  short g_h;
+  int g_x;
+  int g_y;
+  int g_w;
+  int g_h;
 } GRECT;
 
                 /* evnt_button flags */
@@ -760,20 +760,22 @@ extern short _global[];
 
 extern void  aes_call (AESPB * aespb);
 
-extern short appl_exit (void);
-short
+int
+appl_exit (void);
+int
 appl_find (char * fname);
 int     appl_getinfo (int type, int *out1, int *out2,
                                     int *out3, int *out4);
-extern short appl_init (void);
+int
+appl_init (void);
 int     appl_read (int ApId, int Length, void *ApPbuff);
 int     appl_search (int mode, char *fname, int *type,
                                    int *ap_id);
 int     appl_tplay (void *Mem, int Num, int Scale);
 int     appl_trecord (void *Mem, int Count);
-short
-appl_write (short  ap_id,
-            short  length,
+int
+appl_write (int    ap_id,
+            int    length,
             void * msg);
 
 int
@@ -788,7 +790,7 @@ int
 evnt_dclick (int new,
              int flag);
 int     evnt_keybd (void);
-short
+int
 evnt_mesag (short MesagBuf[]);
 int     evnt_mouse (int EnterExit, int InX, int InY,
                                   int InW, int InH, int *OutX, int *OutY, 
@@ -816,11 +818,11 @@ evnt_multi (int           Type,
             int *         KeyState,
             int *         Key,
             int *         ReturnCount);
-short
+int
 evnt_timer (unsigned long interval);
 
-short
-form_alert (short  DefButton,
+int
+form_alert (int    DefButton,
             char * Str);
 int
 form_button(OBJECT * tree,
@@ -833,21 +835,21 @@ form_center (OBJECT * tree,
              int *    cy,
              int *    cw,
              int *    ch);
-short
-form_dial (short flag,
-           short sx,
-           short sy,
-           short sw,
-           short sh,
-           short bx,
-           short by,
-           short bw,
-           short bh);
-short
+int
+form_dial (int flag,
+           int sx,
+           int sy,
+           int sw,
+           int sh,
+           int bx,
+           int by,
+           int bw,
+           int bh);
+int
 form_do (void * tree,
-         short  startobj);
-short
-form_error (short code);
+         int    startobj);
+int
+form_error (int code);
 int form_keybd (void *Ktree, int Kobject, int Kobnext,
                                  int Kchar, int *Knxtobject, int *Knxtchar);
 
@@ -872,15 +874,15 @@ graf_dragbox (int   w,
               int   bh,
               int * endx,
               int * endy); 
-short
-graf_growbox (short x1,
-              short y1,
-              short w1,
-              short h1,
-              short x2,
-              short y2,
-              short w2,
-              short h2); 
+int
+graf_growbox (int x1,
+              int y1,
+              int w1,
+              int h1,
+              int x2,
+              int y2,
+              int w2,
+              int h2); 
 
 int
 graf_handle (int * Wchar,
@@ -892,7 +894,7 @@ graf_mkstate (int * mx,
               int * my,
               int * mb,
               int * ks); 
-short
+int
 graf_mouse (int    Form,
             void * FormAddress);
 int
@@ -909,86 +911,86 @@ graf_rubberbox (int   bx,
                 int   minh,
                 int * endw,
                 int * endh);
-short
-graf_shrinkbox (short x1,
-                short y1,
-                short w1,
-                short h1,
-                short x2,
-                short y2,
-                short w2,
-                short h2); 
-short
+int
+graf_shrinkbox (int x1,
+                int y1,
+                int w1,
+                int h1,
+                int x2,
+                int y2,
+                int w2,
+                int h2); 
+int
 graf_slidebox (OBJECT * tree,
-               short    parent,
-               short    object,
-               short    orient); 
+               int      parent,
+               int      object,
+               int      orient); 
 int graf_watchbox (void *Tree, int Object, int InState,
                                     int OutState);
 
 int menu_attach (int me_flag, OBJECT *me_tree, int me_item,
                                   MENU_T *me_mdata);
-short
+int
 menu_bar (void * tree,
-          short  mode);
-short
+          int    mode);
+int
 menu_icheck (OBJECT * tree,
-             short    obj,
-             short    flag);
-short
+             int      obj,
+             int      flag);
+int
 menu_ienable (OBJECT * tree,
-              short    obj,
-              short    flag);
+              int      obj,
+              int      flag);
 int menu_istart (int me_flag, OBJECT *me_tree,
                                   int me_imenu, int me_item);
 int menu_popup (MENU_T *me_menu, int me_xpos, int me_ypos,
                                  MENU_T *me_mdata);
-short
-menu_register (short  ap_id,
+int
+menu_register (int    ap_id,
                char * title);
 int menu_settings (int me_flag, MN_SET *me_values);
 int
 menu_text (OBJECT * tree,
            int      obj,
            char *   text);
-short
+int
 menu_tnormal (OBJECT * tree,
-              short    obj,
-              short    flag);
+              int      obj,
+              int      flag);
 
 int
 objc_add (OBJECT * tree,
           int      parent,
           int      child);
-short
+int
 objc_change (OBJECT * Tree,
-             short    Object,
-             short    Res,
-             short    Cx,
-             short    Cy,
-             short    Cw,
-             short    Ch,
-             short    NewState,
-             short    Redraw);
+             int      Object,
+             int      Res,
+             int      Cx,
+             int      Cy,
+             int      Cw,
+             int      Ch,
+             int      NewState,
+             int      Redraw);
 int
 objc_delete (OBJECT * tree,
              int      obj);
-short
+int
 objc_draw (OBJECT * tree,
-           short    start,
-           short    depth,
-           short    cx,
-           short    cy,
-           short    cw,
-           short    ch);
+           int      start,
+           int      depth,
+           int      cx,
+           int      cy,
+           int      cw,
+           int      ch);
 int     objc_edit (void *Tree, int Object, int Char, int Index,
                                    int Kind, int *NewIndex); 
-short
+int
 objc_find (OBJECT * tree,
-           short    obj,
-           short    depth,
-           short    ox,
-           short    oy);
+           int      obj,
+           int      depth,
+           int      ox,
+           int      oy);
 int
 objc_offset (OBJECT * Tree,
              int      Object,
@@ -1006,24 +1008,24 @@ int
 rsrc_gaddr (int     type,
             int     index,
             void *  addr);
-short
+int
 rsrc_load (char * fname);
-short
+int
 rsrc_obfix (OBJECT * tree, int obj);
-short
+int
 rsrc_rcfix (void * rc_header);
 int     rsrc_saddr (int Type, int Index, void *Address);
 
 int     scrp_clear (void);
-short
+int
 scrp_read (char * cpath);
-short
+int
 scrp_write (char * cpath);
 
 int
 shel_envrn (char ** value,
             char *  name);
-short
+int
 shel_find (char * buf);
 int
 shel_get (char * buf,
@@ -1052,14 +1054,15 @@ wind_calc (int   request,
            int * y2,
            int * w2,
            int * h2);  
-extern short wind_close (short WindowHandle);
-extern short wind_create (short Parts,
-                          short Wx,
-                          short Wy,
-                          short Ww,
-                          short Wh); 
-short
-wind_delete (short handle);
+int
+wind_close (int WindowHandle);
+int wind_create (int Parts,
+                 int Wx,
+                 int Wy,
+                 int Ww,
+                 int Wh); 
+int
+wind_delete (int handle);
 int
 wind_find (int x,
            int y);
@@ -1071,18 +1074,21 @@ wind_get (int   WindowHandle,
           int * W3,
           int * W4); 
 void    wind_new (void);
-extern short wind_open (short WindowHandle,
-                        short Wx,
-                        short Wy,
-                        short Ww,
-                        short Wh);
-extern short wind_set (short WindowHandle,
-                       short What,
-                       short parm1,
-                       short parm2,
-                       short parm3,
-                       short parm4);
-extern short wind_update (short Code);
+int
+wind_open (int WindowHandle,
+           int Wx,
+           int Wy,
+           int Ww,
+           int Wh);
+int
+wind_set (int WindowHandle,
+          int What,
+          int parm1,
+          int parm2,
+          int parm3,
+          int parm4);
+int
+wind_update (int Code);
 
 void
 r_get (GRECT * r,
@@ -1102,7 +1108,7 @@ rc_copy (GRECT * src,
 int
 rc_equal (GRECT * src,
           GRECT * dest);
-short
+int
 rc_intersect (GRECT * r1,
               GRECT * r2);
 #endif /* _AESBIND_H_ */

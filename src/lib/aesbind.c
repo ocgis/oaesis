@@ -1,5 +1,5 @@
 /*
-** aesbind.h
+** aesbind.c
 **
 ** Copyright 1998 - 2000 Christer Gustavsson <cg@nocrew.org>
 **
@@ -31,7 +31,7 @@ static AESPB aespb = {contrl, _global, intin, intout, addrin, addrout};
 #define NO_INTOUT  aespb.contrl[3]
 #define NO_ADDROUT aespb.contrl[4]
 
-short
+int
 appl_exit (void)
 {
   OPCODE = 19;
@@ -45,7 +45,7 @@ appl_exit (void)
 }
 
 
-short
+int
 appl_find (char * fname) {
   OPCODE = 13;
   NO_INTIN = 0;
@@ -61,7 +61,7 @@ appl_find (char * fname) {
 }
 
 
-short
+int
 appl_init (void)
 {
   OPCODE = 10;
@@ -76,9 +76,9 @@ appl_init (void)
 }
 
 
-short
-appl_write (short  ap_id,
-            short  length,
+int
+appl_write (int    ap_id,
+            int    length,
             void * msg) {
   OPCODE = 12;
   NO_INTIN = 2;
@@ -144,7 +144,7 @@ evnt_dclick (int new,
 }
 
 
-short
+int
 evnt_mesag (short msg[])
 {
   OPCODE = 23;
@@ -225,7 +225,7 @@ evnt_multi (int           Type,
 }
 
 
-short
+int
 evnt_timer(unsigned long interval)
 {
   OPCODE = 24;
@@ -243,8 +243,8 @@ evnt_timer(unsigned long interval)
 }
 
 
-short
-form_alert (short  default_button,
+int
+form_alert (int    default_button,
             char * alertstr) {
   OPCODE = 52;
   NO_INTIN = 1;
@@ -310,16 +310,17 @@ form_center (OBJECT * tree,
 }
 
 
-short
-form_dial (short flag,
-           short sx,
-           short sy,
-           short sw,
-           short sh,
-           short bx,
-           short by,
-           short bw,
-           short bh) {
+int
+form_dial (int flag,
+           int sx,
+           int sy,
+           int sw,
+           int sh,
+           int bx,
+           int by,
+           int bw,
+           int bh)
+{
   OPCODE = 51;
   NO_INTIN = 9;
   NO_ADDRIN = 0;
@@ -344,9 +345,10 @@ form_dial (short flag,
 }
 
 
-short
+int
 form_do (void * tree,
-         short  startobj) {
+         int    startobj)
+{
   OPCODE     = 50;
   NO_INTIN   = 1;
   NO_ADDRIN  = 1;
@@ -363,8 +365,9 @@ form_do (void * tree,
 }
 
 
-short
-form_error (short code) {
+int
+form_error (int code)
+{
   OPCODE     = 53;
   NO_INTIN   = 1;
   NO_ADDRIN  = 0;
@@ -457,15 +460,16 @@ graf_dragbox (int   w,
 }
 
 
-short
-graf_growbox (short x1,
-              short y1,
-              short w1,
-              short h1,
-              short x2,
-              short y2,
-              short w2,
-              short h2) {
+int
+graf_growbox (int x1,
+              int y1,
+              int w1,
+              int h1,
+              int x2,
+              int y2,
+              int w2,
+              int h2)
+{
   OPCODE = 73;
   NO_INTIN = 8;
   NO_ADDRIN = 0;
@@ -529,7 +533,7 @@ graf_mkstate (int * mx,
 }
 
 
-short
+int
 graf_mouse (int    Form,
             void * FormAddress) {
   OPCODE = 78;
@@ -600,15 +604,16 @@ graf_rubberbox (int   bx,
 }
 
 
-short
-graf_shrinkbox (short x1,
-                short y1,
-                short w1,
-                short h1,
-                short x2,
-                short y2,
-                short w2,
-                short h2) {
+int
+graf_shrinkbox (int x1,
+                int y1,
+                int w1,
+                int h1,
+                int x2,
+                int y2,
+                int w2,
+                int h2)
+{
   OPCODE = 74;
   NO_INTIN = 8;
   NO_ADDRIN = 0;
@@ -629,11 +634,12 @@ graf_shrinkbox (short x1,
 }
 
 
-short
+int
 graf_slidebox (OBJECT * tree,
-               short    parent,
-               short    obj,
-               short    orient) {
+               int      parent,
+               int      obj,
+               int      orient)
+{
   OPCODE = 76;
   NO_INTIN = 3;
   NO_ADDRIN = 1;
@@ -652,9 +658,10 @@ graf_slidebox (OBJECT * tree,
 }
 
 
-short
+int
 menu_bar (void * tree,
-          short  mode) {
+          int    mode)
+{
   OPCODE = 30;
   NO_INTIN = 1;
   NO_ADDRIN = 1;
@@ -670,10 +677,11 @@ menu_bar (void * tree,
 }
 
 
-short
+int
 menu_icheck (OBJECT * tree,
-             short    obj,
-             short    flag) {
+             int      obj,
+             int      flag)
+{
   OPCODE = 31;
   NO_INTIN = 2;
   NO_ADDRIN = 1;
@@ -691,10 +699,11 @@ menu_icheck (OBJECT * tree,
 }
 
 
-short
+int
 menu_ienable (OBJECT * tree,
-              short    obj,
-              short    flag) {
+              int      obj,
+              int    flag)
+{
   OPCODE = 32;
   NO_INTIN = 2;
   NO_ADDRIN = 1;
@@ -712,9 +721,10 @@ menu_ienable (OBJECT * tree,
 }
 
 
-short
-menu_register (short  ap_id,
-               char * title) {
+int
+menu_register (int  ap_id,
+               char * title)
+{
   OPCODE = 35;
   NO_INTIN = 1;
   NO_ADDRIN = 1;
@@ -752,10 +762,11 @@ menu_text (OBJECT * tree,
 }
 
 
-short
+int
 menu_tnormal (OBJECT * tree,
-              short    obj,
-              short    flag) {
+              int      obj,
+              int      flag)
+{
   OPCODE = 33;
   NO_INTIN = 2;
   NO_ADDRIN = 1;
@@ -794,16 +805,17 @@ objc_add (OBJECT * tree,
 }
 
 
-short
+int
 objc_change (OBJECT * tree,
-             short    obj,
-             short    rsvd,
-             short    ox,
-             short    oy,
-             short    ow,
-             short    oh,
-             short    newstate,
-             short    drawflag) {
+             int      obj,
+             int      rsvd,
+             int      ox,
+             int      oy,
+             int      ow,
+             int      oh,
+             int      newstate,
+             int      drawflag)
+{
   OPCODE = 47;
   NO_INTIN = 8;
   NO_ADDRIN = 1;
@@ -847,14 +859,15 @@ objc_delete(OBJECT * tree,
 }
 
 
-short
+int
 objc_draw (OBJECT * tree,
-           short    start,
-           short    depth,
-           short    cx,
-           short    cy,
-           short    cw,
-           short    ch) {
+           int      start,
+           int      depth,
+           int      cx,
+           int      cy,
+           int      cw,
+           int      ch)
+{
   OPCODE = 42;
   NO_INTIN = 6;
   NO_ADDRIN = 1;
@@ -876,12 +889,13 @@ objc_draw (OBJECT * tree,
 }
 
 
-short
+int
 objc_find (OBJECT * tree,
-           short    obj,
-           short    depth,
-           short    ox,
-           short    oy) {
+           int      obj,
+           int      depth,
+           int      ox,
+           int      oy)
+{
   OPCODE = 43;
   NO_INTIN = 4;
   NO_ADDRIN = 1;
@@ -982,7 +996,7 @@ rsrc_gaddr (int     type,
 }
 
 
-short
+int
 rsrc_load (char * fname) {
   OPCODE     = 110;
   NO_INTIN   = 0;
@@ -998,7 +1012,7 @@ rsrc_load (char * fname) {
 }
 
 
-short
+int
 rsrc_obfix (OBJECT * tree,
             int      obj) {
   OPCODE     = 114;
@@ -1017,7 +1031,7 @@ rsrc_obfix (OBJECT * tree,
 }
 
 
-short
+int
 rsrc_rcfix (void * rc_header) {
   OPCODE = 115;
   NO_INTIN = 0;
@@ -1032,7 +1046,7 @@ rsrc_rcfix (void * rc_header) {
 }
 
 
-short
+int
 scrp_read (char * cpath) {
   OPCODE = 80;
   NO_INTIN = 0;
@@ -1048,7 +1062,7 @@ scrp_read (char * cpath) {
 }
 
 
-short
+int
 scrp_write (char * cpath) {
   OPCODE = 81;
   NO_INTIN = 0;
@@ -1082,7 +1096,7 @@ shel_envrn (char ** value,
 }
 
 
-short
+int
 shel_find (char * buf) {
   OPCODE = 124;
   NO_INTIN = 0;
@@ -1214,8 +1228,8 @@ wind_calc (int   request,
 }
 
 
-short
-wind_close (short WindowHandle)
+int
+wind_close (int WindowHandle)
 {
   OPCODE = 102;
   NO_INTIN = 1;
@@ -1230,12 +1244,12 @@ wind_close (short WindowHandle)
 }
 
 
-short
-wind_create (short Parts,
-             short Wx,
-             short Wy,
-             short Ww,
-             short Wh)
+int
+wind_create (int Parts,
+             int Wx,
+             int Wy,
+             int Ww,
+             int Wh)
 {
   OPCODE = 100;
   NO_INTIN = 5;
@@ -1254,8 +1268,8 @@ wind_create (short Parts,
 }
 
 
-short
-wind_delete (short handle)
+int
+wind_delete (int handle)
 {
   OPCODE = 103;
   NO_INTIN = 1;
@@ -1315,12 +1329,12 @@ wind_get (int   WindowHandle,
 }
 
 
-short
-wind_open (short WindowHandle,
-           short Wx,
-           short Wy,
-           short Ww,
-           short Wh)
+int
+wind_open (int WindowHandle,
+           int Wx,
+           int Wy,
+           int Ww,
+           int Wh)
 {
   OPCODE = 101;
   NO_INTIN = 5;
@@ -1339,13 +1353,13 @@ wind_open (short WindowHandle,
 }
 
 
-short
-wind_set (short WindowHandle,
-          short What,
-          short parm1,
-          short parm2,
-          short parm3,
-          short parm4)
+int
+wind_set (int WindowHandle,
+          int What,
+          int parm1,
+          int parm2,
+          int parm3,
+          int parm4)
 {
   OPCODE = 105;
   NO_INTIN = 6;
@@ -1367,8 +1381,8 @@ wind_set (short WindowHandle,
 }
 
 
-short
-wind_update (short Code)
+int
+wind_update (int Code)
 {
   OPCODE = 107;
   NO_INTIN = 1;
@@ -1426,7 +1440,7 @@ rc_equal (GRECT * src,
 }
 
 
-short
+int
 rc_intersect (GRECT * r1,
               GRECT * r2) {
 #define max(a,b) ((a) > (b) ? a : b)
