@@ -83,23 +83,21 @@ typedef struct {
  * Local functions (use static!)                                            *
  ****************************************************************************/
 
+#define CONVCOORD(value, chsize) \
+            (((value >> 8) && 0xff) + ((value & 0xff) * chsize))
 /*
 ** Description
 ** Fix the coordinates of an object
-**
-** 1998-10-01 CG
 */
 static
 WORD
 fix_object_coordinates (OBJECT *ob) {
   GLOBAL_COMMON * globals = get_global_common ();
 
-  UBYTE *dumchar = (UBYTE *)&ob->ob_x;
-        
-  ob->ob_x = dumchar[0] + ((WORD)dumchar[1]) * globals->clwidth;
-  ob->ob_y = dumchar[2] + ((WORD)dumchar[3]) * globals->clheight;
-  ob->ob_width = dumchar[4] + ((WORD)dumchar[5]) * globals->clwidth;
-  ob->ob_height = dumchar[6] + ((WORD)dumchar[7]) * globals->clheight;
+  ob->ob_x      = CONVCOORD(ob->ob_x,  globals->clwidth);
+  ob->ob_y      = CONVCOORD(ob->ob_y,  globals->clheight);
+  ob->ob_width  = CONVCOORD(ob->ob_width,  globals->clwidth);
+  ob->ob_height = CONVCOORD(ob->ob_height,  globals->clheight);
 
   return  0;
 }
