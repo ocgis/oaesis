@@ -73,3 +73,5 @@
 #define OAESIS_VERSION "0.92.0"
 
 #define strcasecmp stricmp
+
+#define SERVER_AS_DEVICE 1
