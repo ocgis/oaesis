@@ -509,6 +509,107 @@ handle_mover_click (WORD apid,
 
 /*
 ** Description
+** Handle window sizer click
+**
+** 1998-12-25 CG
+*/
+static
+void
+handle_sizer_click (WORD apid,
+                    WORD win_id,
+                    WORD owner) {
+  EVNTREC er;
+  RECT    totsize;
+  COMMSG  mesag;
+  
+  Wind_change (apid, win_id, W_SIZER, SELECTED);
+  Wind_do_get (apid,
+               win_id,
+               WF_CURRXYWH,
+               &totsize.x,
+               &totsize.y,
+               &totsize.width,
+               &totsize.height,
+               TRUE);
+  
+  if (FALSE /*globals.realsize*/) { /* FIXME */
+    WORD    last_x;
+    WORD    last_y;
+    WORD    offsx = mouse_x - totsize.x - totsize.width;
+    WORD    offsy = mouse_y - totsize.y - totsize.height;
+    
+    mesag.type = WM_SIZED;
+    mesag.sid = 0;
+    mesag.length = 0;
+    mesag.msg0 = win_id;
+    mesag.msg1 = totsize.x;
+    mesag.msg2 = totsize.y;
+    
+    last_x = mouse_x;
+    last_y = mouse_y;
+    
+    do {
+      LONG  waittime = 200;
+      
+      if((last_x != mouse_x) || (last_y != mouse_y)) {
+        mesag.msg3 = mouse_x - totsize.x - offsx;
+        mesag.msg4 = mouse_y - totsize.y - offsy;
+        
+        last_x = mouse_x;
+        last_y = mouse_y;
+        
+        Appl_do_write (apid, owner,16,&mesag);
+      }
+      
+      while (TRUE) {
+        if(get_evntpacket(&er,(WORD)waittime) == 0) {
+          er.ap_event = -1;
+          break;
+        }
+        
+        if(er.ap_event == APPEVNT_TIMER) {
+          if((waittime -= er.ap_value) <= 0) {
+            break;
+          }
+        } else {
+          update_local_mousevalues(&er);
+        }
+        
+        if((er.ap_event == APPEVNT_BUTTON) &&
+           !(er.ap_value & LEFT_BUTTON)) {
+          break;
+        }
+      }
+    }while(!((er.ap_event == APPEVNT_BUTTON) &&
+             !(er.ap_value & LEFT_BUTTON)));
+  } else {
+    Graf_do_rubberbox (apid,
+                       totsize.x,
+                       totsize.y,
+                       100,
+                       100,
+                       &mesag.msg3,
+                       &mesag.msg4);
+    
+    mesag.type = WM_SIZED;
+    mesag.sid = 0;
+    mesag.length = 0;
+    mesag.msg0 = win_id;
+    mesag.msg1 = totsize.x;
+    mesag.msg2 = totsize.y;
+    mouse_x = mesag.msg3 + totsize.x - 1;
+    mouse_y = mesag.msg4 + totsize.y - 1;
+    
+    Appl_do_write (apid, owner, 16, &mesag);
+  }
+  
+  Wind_do_update (apid, BEG_UPDATE);
+  Wind_change (apid, win_id, W_SIZER, 0);
+  Wind_do_update (apid, END_UPDATE);
+}
+
+/*
+** Description
 ** Handle mouse button click on window slider
 **
 ** 1998-12-20 CG
@@ -875,106 +976,9 @@ Evhd_handle_button (WORD apid,
         }
         break;
         
-      case  WSIZER  :
-      {
-        RECT totsize;
-        
-        Wind_change (apid, win_id, W_SIZER, SELECTED);
-        Wind_do_get (apid,
-                     win_id,
-                     WF_CURRXYWH,
-                     &totsize.x,
-                     &totsize.y,
-                     &totsize.width,
-                     &totsize.height,
-                     TRUE);
-        
-        if(0 /*globals.realsize*/) {
-          WORD    last_x;
-          WORD    last_y;
-          WORD    offsx = mouse_x - totsize.x - totsize.width;
-          WORD    offsy = mouse_y - totsize.y - totsize.height;
-          
-          mesag.type = WM_SIZED;
-          mesag.sid = 0;
-          mesag.length = 0;
-          mesag.msg0 = win_id;
-          mesag.msg1 = totsize.x;
-          mesag.msg2 = totsize.y;
-
-          last_x = mouse_x;
-          last_y = mouse_y;
-          
-          do {
-            LONG  waittime = 200;
-            
-            if((last_x != mouse_x) || (last_y != mouse_y)) {
-              mesag.msg3 = mouse_x - totsize.x - offsx;
-              mesag.msg4 = mouse_y - totsize.y - offsy;
-              
-              last_x = mouse_x;
-              last_y = mouse_y;
-              
-              Appl_do_write (apid, owner,16,&mesag);
-            };
-            
-            while(1) {
-              if(get_evntpacket(&er,(WORD)waittime) == 0) {
-                er.ap_event = -1;
-                break;
-              };
-              
-              if(er.ap_event == APPEVNT_TIMER) {
-                if((waittime -= er.ap_value) <= 0) {
-                  break;
-                };
-              }
-              else {
-                update_local_mousevalues(&er);
-              };
-              
-              if((er.ap_event == APPEVNT_BUTTON) &&
-                 !(er.ap_value & LEFT_BUTTON)) {
-                break;
-              };
-            };
-          }while(!((er.ap_event == APPEVNT_BUTTON) &&
-                   !(er.ap_value & LEFT_BUTTON)));
-        }
-        else {
-          /*
-            globals.mouse_button = mouse_button;
-          */
-          
-          Graf_do_rubberbox (totsize.x,
-                             totsize.y,
-                             100,
-                             100,
-                             &mesag.msg3,
-                             &mesag.msg4);
-          
-          /*
-            Vdi_vq_mouse(globals.vid,&mouse_button,&mouse_x,&mouse_y);
-          */
-          
-          mesag.type = WM_SIZED;
-          mesag.sid = 0;
-          mesag.length = 0;
-          mesag.msg0 = win_id;
-          mesag.msg1 = totsize.x;
-          mesag.msg2 = totsize.y;
-          mouse_x = mesag.msg3 + totsize.x - 1;
-          mouse_y = mesag.msg4 + totsize.y - 1;
-          
-          Appl_do_write (apid, owner,16,&mesag);
-        };
-        
-        Evhd_wind_update(Pgetpid(),BEG_UPDATE);
-        
-        Wind_change (apid, win_id, W_SIZER, 0);
-        Evhd_wind_update(Pgetpid(),END_UPDATE);
+      case WSIZER:
+        handle_sizer_click (apid, win_id, owner);
         break;
-      }
       
       case WAPP:            
       case WMOVER:

@@ -22,9 +22,11 @@ Graf_do_dragbox (WORD     apid,
 ** Implementation of graf_rubberbox()
 **
 ** 1998-12-20 CG
+** 1998-12-25 CG
 */
 WORD
-Graf_do_rubberbox (WORD   bx,
+Graf_do_rubberbox (WORD   apid,
+                   WORD   bx,
                    WORD   by,
                    WORD   minw,
                    WORD   minh,

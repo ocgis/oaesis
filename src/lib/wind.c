@@ -196,6 +196,7 @@ calcworksize (WORD apid,
 ** Wind_set_size sets the size and position of window <win> to <size>
 **
 ** 1998-10-11 CG
+** 1998-12-25 CG
 */
 static
 void
@@ -279,6 +280,11 @@ Wind_set_size (WORD   apid,
       /*
       changeslider(win,0,HSLIDE | VSLIDE,-1,-1);
       */
+    }
+
+    /* If the window changed size we need to redraw the elements */
+    if ((dw != 0) || (dh != 0)) {
+      Wind_redraw_elements (apid, id, size, 0);
     }
   }
 }

@@ -151,40 +151,66 @@ void Graf_exit_module(void) {
 ** Exported
 **
 ** 1998-12-20 CG
+** 1998-12-25 CG
 */
 WORD
-Graf_do_rubberbox (WORD   bx,
+Graf_do_rubberbox (WORD   apid,
+                   WORD   bx,
                    WORD   by,
                    WORD   minw,
                    WORD   minh,
                    WORD * endw,
                    WORD * endh) {
-  /* FIXME
-  ** Rewrite with evnt_multi ()
-  EVNTREC er;
-  WORD    xyarray[10];
-  WORD    lastw = globals->common->mouse_x - bx;
-  WORD    lasth = globals->common->mouse_y - by;
-  WORD    neww,newh;
+  EVENTIN ei = {
+    MU_BUTTON | MU_M1,
+    0,
+    LEFT_BUTTON,
+    0,
+    MO_LEAVE,
+    {0,0,1,1},
+    0,
+    {0,0,0,0},
+    0,
+    0
+  };
+  COMMSG        buffer;
+  EVENTOUT      eo;
+  WORD          xyarray[10];
+  WORD          lastw;
+  WORD          lasth;
+  WORD          neww;
+  WORD          newh;
+  WORD          mx;
+  WORD          my;
+  WORD          mb;
+  WORD          ks;
+  GLOBAL_APPL * globals = get_globals (apid);
 
-  if(!(globals->common->mouse_button & LEFT_BUTTON)) {     
-    *endw = globals->common->mouse_x - bx;
-    *endh = globals->common->mouse_y - by;
+  /* Get the initial mouse state */
+  Graf_do_mkstate (apid, &mx, &my, &mb, &ks);
+
+  /* Calculate initial width and height */
+  lastw = mx - bx;
+  lasth = my - by;
+
+  /* If the mouse button has been released return directly */
+  if(!(mb & LEFT_BUTTON)) {     
+    *endw = lastw;
+    *endh = lasth;
+
     if(*endw < minw) {
       *endw = minw;
-    };
+    }
 
     if(*endh < minh) {
       *endh = minh;
-    };
+    }
         
     return 1;
-  };
+  }
 
-  Psemaphore(SEM_LOCK,GRAFSEM,-1);
-
-  Vdi_vswr_mode(grafvid,MD_XOR);
-  Vdi_vsl_type(grafvid,DOTTED);
+  Vdi_vswr_mode (globals->vid, MD_XOR);
+  Vdi_vsl_type (globals->vid, DOTTED);
 
   xyarray[0] = bx;
   xyarray[1] = by;
@@ -196,27 +222,32 @@ Graf_do_rubberbox (WORD   bx,
   xyarray[7] = xyarray[5];
   xyarray[8] = xyarray[0];
   xyarray[9] = xyarray[1];
-         
-  Vdi_v_hide_c(grafvid);
-  Vdi_v_pline(grafvid,5,xyarray);
-  Vdi_v_show_c(grafvid,1);
-        
-  while(Fread(eventpipe,sizeof(EVNTREC),&er)) {
-    if(er.ap_event == APPEVNT_MOUSE) {
-      neww = (WORD)((er.ap_value & 0xffff) - bx);
-      newh = (WORD)((er.ap_value >> 16) - by);
+  
+  Vdi_v_hide_c (globals->vid);
+  Vdi_v_pline (globals->vid, 5, xyarray);
+  Vdi_v_show_c (globals->vid, 1);
+  
+  ei.m1r.x = mx;
+  ei.m1r.y = my;
+
+  while (TRUE) {
+    Evnt_do_multi (apid, &ei, &buffer, &eo, 0);
+
+    if (eo.events & MU_M1) {
+      neww = eo.mx - bx;
+      newh = eo.my - by;
 
       if(neww < minw) {
         neww = minw;
-      };
+      }
 
       if(newh < minh) {
         newh = minh;
-      };
+      }
 
-      if((lastw != neww) || (lasth != newh)) {
-        Vdi_v_hide_c(grafvid);
-        Vdi_v_pline(grafvid,5,xyarray);
+      if ((lastw != neww) || (lasth != newh)) {
+        Vdi_v_hide_c (globals->vid);
+        Vdi_v_pline (globals->vid, 5, xyarray);
 
         lastw = neww;
         lasth = newh;
@@ -232,30 +263,25 @@ Graf_do_rubberbox (WORD   bx,
         xyarray[8] = xyarray[0];
         xyarray[9] = xyarray[1];
          
-        Vdi_v_pline(grafvid,5,xyarray);
-        Vdi_v_show_c(grafvid,1);
-      };
-    };
+        Vdi_v_pline (globals->vid, 5, xyarray);
+        Vdi_v_show_c (globals->vid, 1);
+      }
+    }
                 
-    if(er.ap_event == APPEVNT_BUTTON) {
-      if(!(er.ap_value & LEFT_BUTTON)) {
+    if(eo.events & MU_BUTTON) {
+      if (!(eo.mb & LEFT_BUTTON)) {
         break;
-      };
-    };
-  };
+      }
+    }
+  }
 
-  Vdi_v_hide_c(grafvid);
-  Vdi_v_pline(grafvid,5,xyarray);
-  Vdi_v_show_c(grafvid,1);
+  Vdi_v_hide_c (globals->vid);
+  Vdi_v_pline (globals->vid, 5, xyarray);
+  Vdi_v_show_c (globals->vid, 1);
 
   *endw = lastw;
   *endh = lasth;
         
-  Psemaphore(SEM_UNLOCK,GRAFSEM,-1);
-  */
-
-  DB_printf ("!!Implement Graf_do_rubberbox in graf.c");
-
   return 1;
 }
 
@@ -264,19 +290,21 @@ Graf_do_rubberbox (WORD   bx,
 ** Exported
 **
 ** 1998-12-20 CG
+** 1998-12-25 CG
 */
 void
 Graf_rubberbox (AES_PB *apb) {
-  Evhd_wind_update(apb->global->apid,BEG_MCTRL | SRV_COMPLETE_MCTRL);
+  Wind_do_update (apb->global->apid, BEG_MCTRL);
   
-  apb->int_out[0] = Graf_do_rubberbox (apb->int_in[0],
+  apb->int_out[0] = Graf_do_rubberbox (apb->global->apid,
+                                       apb->int_in[0],
                                        apb->int_in[1],
                                        apb->int_in[2],
                                        apb->int_in[3],
                                        &apb->int_out[1],
                                        &apb->int_out[2]);
 
-  Evhd_wind_update(apb->global->apid,END_MCTRL);
+  Wind_do_update (apb->global->apid, END_MCTRL);
 }
 
 
@@ -362,7 +390,6 @@ Graf_do_dragbox (WORD   apid,
   ei.m1r.y = my;
   
   while (TRUE) {
-
     Evnt_do_multi (apid, &ei, &buffer, &eo, 0);
 
     if (eo.events & MU_M1) {
