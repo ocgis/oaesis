@@ -84,7 +84,7 @@ typedef struct {
  ****************************************************************************/
 
 #define CONVCOORD(value, chsize) \
-            (((value >> 8) && 0xff) + ((value & 0xff) * chsize))
+            (((value >> 8) & 0xff) + ((value & 0xff) * chsize))
 /*
 ** Description
 ** Fix the coordinates of an object
@@ -730,7 +730,8 @@ OBJECT *src)      /* Original resource tree.                                */
     };
   }while(!((twalk++)->ob_flags & LASTOB));
 
-  newrsc = (OBJECT *)Mxalloc(sizeof(OBJECT) * num_obj + sizeof(TEDINFO) * num_ti,PRIVATEMEM);
+  newrsc =
+    (OBJECT *)malloc(sizeof(OBJECT) * num_obj + sizeof(TEDINFO) * num_ti);
   ti = (TEDINFO *)(((LONG)newrsc) + sizeof(OBJECT) * num_obj);
 
   memcpy(newrsc,src,sizeof(OBJECT) * num_obj);
@@ -758,5 +759,5 @@ Rsrc_free_tree(   /*                                                        */
 OBJECT *src)      /* Tree to erase.                                         */
 /****************************************************************************/
 {
-  Mfree(src);
+  free(src);
 }
