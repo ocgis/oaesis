@@ -128,7 +128,11 @@ comm_read(FILEPTR * f,
   {
     TRACE("Put in IO_Q");
     FH(f)->queued = 1;
-    SLEEP(IO_Q, (LONG)f);
+    do
+    {
+      SLEEP(IO_Q, (LONG)f);
+    } while(FH(f)->bytes_out == 0);
+
     FH(f)->queued = 0;
   }
 
