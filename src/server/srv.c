@@ -165,13 +165,19 @@ srv_vdi_call (COMM_HANDLE  handle,
     vpb.contrl[10] = LSW(&mfdb_dst);
   }
 
+  /* Reset INTOUT and PTSOUT count in case the call fails */
+  vpb.contrl[2] = 0;
+  vpb.contrl[4] = 0;
+
+  DEBUG2("srv.c: vdi_call %d", vpb.contrl[0]);
   vdi_call (&vpb);
+  DEBUG2("srv.c: vdi_call %d finished", vpb.contrl[0]);
   
   /* Copy contrl array */
   for (i = 0; i < 15; i++) {
     ret.contrl[i] = vpb.contrl[i];
   }
-  
+
   /* Copy ptsout array */
   for (i = 0, j = 0; i < (vpb.contrl[2] * 2); i++, j++) {
     ret.outpar[j] = vpb.ptsout[i];
@@ -202,7 +208,7 @@ srv_call(COMM_HANDLE handle,
 {
   R_SRV ret;
 
-  DEBUG3 ("srv.c: Call no %d 0x%x", par->common.call, par->common.call);
+  DEBUG2 ("srv.c: Call no %d 0x%x", par->common.call, par->common.call);
   switch (par->common.call) {
   case SRV_APPL_CONTROL:
     srv_appl_control (&par->appl_control, &ret.appl_control);
@@ -411,9 +417,9 @@ server (LONG arg)
 
   while (run_server) {
     /* Wait for another call from a client */
-    DEBUG3 ("srv.c: Waiting for message from client");
+    DEBUG2("srv.c: Waiting for message from client");
     SRV_GET(&par, sizeof (C_SRV), handle);
-    DEBUG3 ("srv.c: Got message from client (%p)", handle);
+    DEBUG2("srv.c: Got message from client (%p)", handle);
 
     if (handle != NULL) {
       NTOH(&par);
