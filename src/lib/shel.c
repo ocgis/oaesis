@@ -45,6 +45,7 @@
 #include <string.h>
 
 #include "aesbind.h"
+#include "appl.h"
 #include "debug.h"
 /*#include "lxgemdos.h"*/
 #include "lib_global.h"
@@ -59,49 +60,62 @@
 extern void accstart(); /* In gcc.s or purec.s FIXME: make .h-file */
 #endif
 
-WORD Shel_do_read(BYTE *name,BYTE *tail) {
-	BYTE pname[30];
-	_DTA *olddta,newdta;
-	WORD retval;
-	
-	olddta = Fgetdta();
-	Fsetdta(&newdta);
-	
-	sprintf(pname,"u:\\proc\\*.%03d",Pgetpid());
-	if(Fsfirst(pname,0) == 0) {
-		LONG fd;
-		
-		sprintf(pname,"u:\\proc\\%s",newdta.dta_name);
-		
-		if((fd = Fopen(pname,O_RDONLY)) >= 0) {
-			struct __ploadinfo li;
-			
-			li.fnamelen = 128;
-			li.cmdlin = tail;
-			li.fname = name;
-			
-			Fcntl((WORD)fd,&li,PLOADINFO);
-			Fclose((WORD)fd);
-			retval = 1;
-		}
-		else {
-			retval = 0;
-		};
-		
-	}
-	else {
-		retval = 0;
-	};
 
-	Fsetdta(olddta);
-	
-	return retval;
+/*
+** Description
+** Implementation of shel_read
+*/
+static
+WORD
+Shel_do_read(BYTE * name,
+             BYTE * tail)
+{
+  BYTE pname[30];
+  _DTA *olddta,newdta;
+  WORD retval;
+  
+  olddta = Fgetdta();
+  Fsetdta(&newdta);
+  
+  sprintf(pname,"u:\\proc\\*.%03d",Pgetpid());
+  if(Fsfirst(pname,0) == 0) {
+    LONG fd;
+    
+    sprintf(pname,"u:\\proc\\%s",newdta.dta_name);
+    
+    if((fd = Fopen(pname,O_RDONLY)) >= 0) {
+      struct __ploadinfo li;
+      
+      li.fnamelen = 128;
+      li.cmdlin = tail;
+      li.fname = name;
+      
+      Fcntl((WORD)fd, (LONG)&li, PLOADINFO);
+      Fclose((WORD)fd);
+      retval = 1;
+    }
+    else
+    {
+      retval = 0;
+    }
+  }
+  else
+  {
+    retval = 0;
+  }
+  
+  Fsetdta(olddta);
+  
+  return retval;
 }
 
-/*0x0078 shel_read*/
 
-void	Shel_read(AES_PB *apb) {
-	apb->int_out[0] = Shel_do_read((BYTE *)apb->addr_in[0],(BYTE *)apb->addr_in[1]);
+/*0x0078 shel_read*/
+void
+Shel_read(AES_PB *apb)
+{
+  apb->int_out[0] = Shel_do_read((BYTE *)apb->addr_in[0],
+                                 (BYTE *)apb->addr_in[1]);
 }
 
 
@@ -111,33 +125,38 @@ void	Shel_read(AES_PB *apb) {
 */
 static
 WORD
-start_gem_program(WORD   type,
+start_gem_program(WORD   apid,
+                  WORD   type,
                   BYTE * envir,
                   BYTE * ddir,
                   BYTE * cmd,
                   BYTE * tail)
 {
-  BYTE *   tmp;
-  BYTE     oldpath[128];
-  BYTE     exepath[128];
-  WORD     r;
+  BYTE * tmp;
+  BYTE   oldpath[128];
+  BYTE   exepath[128];
+  WORD   pid = -1;
+  WORD   ap_id;
 
   Dgetpath(oldpath,0);
   
   strcpy(exepath, cmd);
-  tmp = exepath;
   
   if(ddir)
   {
     Misc_setpath(ddir);
+    tmp = exepath;
   }
   else
   {
     tmp = strrchr(exepath,'\\');
-    if(tmp)
+    if(tmp != NULL)
     {
-      *tmp = 0;
+      char c = tmp[1];
+
+      tmp[1] = 0;
       Misc_setpath(exepath);
+      tmp[1] = c;
       tmp++;
     }
     else
@@ -145,10 +164,10 @@ start_gem_program(WORD   type,
       tmp = exepath;
     }
   }
-  
+
   if(type == APP_APPLICATION)
   {
-    r = (WORD)Pexec(100, tmp, tail, envir);
+    pid = (WORD)Pexec(100, tmp, tail, envir);
   }
   else if(type == APP_ACCESSORY)
   {
@@ -164,31 +183,29 @@ start_gem_program(WORD   type,
 #ifdef MINT_TARGET      
       b->p_dbase = b->p_tbase;
       b->p_tbase = (BYTE *)accstart;
+#endif
       
       /* Start accessory */
-      r = (WORD)Pexec(104,tmp,b,NULL);
-#endif
+      pid = (WORD)Pexec(104, tmp, (BYTE *)b, NULL);
     }
     else
     {
       DEBUG1("Pexec failed: code %ld",(LONG)b);
-      r = -1;
     }
   }
   
   Misc_setpath(oldpath);
   
-  if(r < 0) {
-    r = 0;
-    /* FIXME: How can this be solved?
-       } else if((ai = srv_info_alloc(r,type,1))) {
-       r = ai->id;
-    */
-  } else {
-    r = 0;
+  if(pid < 0)
+  {
+    ap_id = 0;
+  }
+  else
+  {
+    ap_id = Appl_do_reserve(apid, type, pid);
   }
 
-  return r;
+  return ap_id;
 }
 
 
@@ -196,13 +213,15 @@ start_gem_program(WORD   type,
 ** Description
 ** Implementation of shel_write ()
 */
+static
+inline
 WORD
-Shel_do_write (WORD   apid,
-               WORD   mode,
-               WORD   wisgr,
-               WORD   wiscr,
-               BYTE * cmd,
-               BYTE * tail)
+Shel_do_write(WORD   apid,
+              WORD   mode,
+              WORD   wisgr,
+              WORD   wiscr,
+              BYTE * cmd,
+              BYTE * tail)
 {
   WORD    r = 0;
   BYTE *  tmp;
@@ -269,7 +288,7 @@ Shel_do_write (WORD   apid,
   case SWM_LAUNCHNOW: /* - run another application in GEM or TOS mode */
     if (wisgr == GEMAPP)
     {
-      r = start_gem_program(APP_APPLICATION, envir, ddir, cmd, tail);
+      r = start_gem_program(apid, APP_APPLICATION, envir, ddir, cmd, tail);
     }
     else if (wisgr == TOSAPP)
     {
@@ -300,7 +319,7 @@ Shel_do_write (WORD   apid,
     break;
     
   case SWM_LAUNCHACC: /* - run an accessory */
-    r = start_gem_program(APP_ACCESSORY, envir, ddir, cmd, tail);
+    r = start_gem_program(apid, APP_ACCESSORY, envir, ddir, cmd, tail);
     break;
     
   case SWM_SHUTDOWN: /* - set shutdown mode */
@@ -345,19 +364,16 @@ Shel_do_write (WORD   apid,
 
 /*
 ** Exported
-**
-** 1999-06-13 CG
 */
 void
 Shel_write (AES_PB *apb)
 {
-  apb->int_out[0] = 
-    Shel_do_write (apb->global->apid,
-                   apb->int_in[0],
-                   apb->int_in[1],
-                   apb->int_in[2],
-                   (BYTE *)apb->addr_in[0],
-                   (BYTE *)apb->addr_in[1]);
+  apb->int_out[0] =  Shel_do_write (apb->global->apid,
+                                    apb->int_in[0],
+                                    apb->int_in[1],
+                                    apb->int_in[2],
+                                    (BYTE *)apb->addr_in[0],
+                                    (BYTE *)apb->addr_in[1]);
 }
 
 
@@ -526,9 +542,9 @@ Shel_find (AES_PB * apb) {
 /*
 ** Description
 ** Implementation of shel_envrn ()
-**
-** 1999-06-13 CG
 */
+static
+inline
 WORD
 Shel_do_envrn (BYTE ** value,
                BYTE *  name)

@@ -52,6 +52,14 @@ srv_appl_init(C_APPL_INIT * par,
 
 /*
 ** Description
+** Reserve an application id
+*/
+void
+srv_appl_reserve(C_APPL_RESERVE * par,
+                 R_APPL_RESERVE * ret);
+
+/*
+** Description
 ** Implementation of appl_search ()
 */
 void

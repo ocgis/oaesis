@@ -333,6 +333,34 @@ srv_info_alloc(WORD pid,
 
 /*
 ** Description
+** Reserve an application id
+*/
+void
+srv_appl_reserve(C_APPL_RESERVE * par,
+                 R_APPL_RESERVE * ret)
+{
+  AP_INFO_REF ai;
+  WORD        ap_id;
+
+  ai = srv_info_alloc(par->pid,
+                      par->type,
+                      TRUE);
+
+  if(ai == AP_INFO_REF_NIL)
+  {
+    ap_id = 0;
+  }
+  else
+  {
+    ap_id = ai->id;
+  }
+  
+  PUT_R_ALL(APPL_RESERVE, ret, ap_id);
+}
+
+
+/*
+** Description
 ** appl_init help call
 */
 void
@@ -352,14 +380,16 @@ srv_appl_init(C_APPL_INIT * par,
     AP_LIST **awalk = &ap_resvd;
     
     while(*awalk) {
-      if((*awalk)->ai->pid == par->common.pid) {
+      if((*awalk)->ai->pid == par->common.pid)
+      {
 	break;
-      };
+      }
       
       awalk = &(*awalk)->next;
     }
     
-    if(*awalk) {
+    if(*awalk)
+    {
       al = *awalk;
       *awalk = al->next;
       
@@ -367,25 +397,33 @@ srv_appl_init(C_APPL_INIT * par,
       ap_pri = al;
       
       ai = al->ai;
-    } else {
+    }
+    else
+    {
       ai = srv_info_alloc (par->common.pid, APP_APPLICATION, 0);
     }
-  } else {
+  }
+  else
+  {
     ai = al->ai;
   }
   
-  if(ai) {
+  if(ai)
+  {
     ret->apid = ai->id;
 
     DEBUG2 ("oaesis: srv.c: srv_appl_init: apid=%d",
 	    (int)ret->apid);
-  } else {
+  }
+  else
+  {
     ret->apid = -1;
   }
 
   ret->physical_vdi_id = globals.vid;
 
-  if ((ret->apid >= 0) && (ai->type & APP_APPLICATION)) {
+  if ((ret->apid >= 0) && (ai->type & APP_APPLICATION))
+  {
     C_MENU_REGISTER c_menu_register;
     R_MENU_REGISTER r_menu_register;
 

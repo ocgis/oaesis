@@ -225,6 +225,12 @@ srv_call(COMM_HANDLE handle,
     SRV_REPLY(handle, &ret, sizeof (R_APPL_INIT));
     break;
         
+  case SRV_APPL_RESERVE:
+    srv_appl_reserve(&par->appl_reserve, &ret.appl_reserve);
+    
+    SRV_REPLY(handle, &ret, sizeof (R_APPL_RESERVE));
+    break;
+    
   case SRV_APPL_SEARCH:
     srv_appl_search (&par->appl_search, &ret.appl_search);
     

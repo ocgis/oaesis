@@ -299,6 +299,31 @@ get_process_name (int    pid,
 ** Exported
 */
 WORD
+Appl_do_reserve(WORD apid,
+                WORD type,
+                WORD pid)
+{
+  C_APPL_RESERVE par;
+  R_APPL_RESERVE ret;
+
+  PUT_C_ALL(APPL_RESERVE, &par);
+
+  par.type = type;
+  par.pid  = pid;
+
+  CLIENT_SEND_RECV(&par,
+                   sizeof (C_APPL_RESERVE),
+                   &ret,
+                   sizeof (R_APPL_RESERVE));
+
+  return ret.common.retval; /* The allocated ap_id or 0 */
+}
+
+
+/*
+** Exported
+*/
+WORD
 Appl_do_init (GLOBAL_ARRAY * global) {
   C_APPL_INIT   par;
   R_APPL_INIT   ret;
@@ -431,9 +456,12 @@ Appl_write (AES_PB *apb) {
 ** Description
 ** Implementation of appl_find ()
 */
+static
+inline
 WORD
-Appl_do_find (WORD   apid,
-              BYTE * fname) {
+Appl_do_find(WORD   apid,
+             BYTE * fname)
+{
   C_APPL_FIND par;
   R_APPL_FIND ret;
 

@@ -380,6 +380,8 @@ start_programs(void)
   bootpath[0] = (get_sysvar(_bootdev) >> 16) + 'a';
 #endif
   
+  misc_setpath(bootpath);
+
   fp = fopen("oaesis.cnf", "r");
   
   while((fp == NULL) && filelist[i])
@@ -391,7 +393,7 @@ start_programs(void)
     i++;
   }
   
-  if(!fp)
+  if(fp == NULL)
   {
     return;
   }

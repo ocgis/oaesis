@@ -1,3 +1,16 @@
+/*
+** appl.h
+**
+** Copyright 1999 Christer Gustavsson <cg@nocrew.org>
+**
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+**  
+** Read the file COPYING for more information.
+*/
+
 #ifndef	__APPL__
 #define	__APPL__
 
@@ -23,6 +36,16 @@ GLOBAL_ARRAY * global); /* Global array.                                    */
 
 void	Appl_init(AES_PB *apb);		/*0x000a*/
 void	Appl_read(AES_PB *apb);		/*0x000b*/
+
+/*
+** Description
+** Allocate and application id for process pid. The type is either
+** APP_ACCESSORY or APP_APPLICATION
+*/
+WORD
+Appl_do_reserve(WORD apid,
+                WORD type,
+                WORD pid);
 
 /*
 ** Description

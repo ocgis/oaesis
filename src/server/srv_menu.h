@@ -41,3 +41,10 @@ srv_menu_bar(C_MENU_BAR * msg,
 void
 srv_menu_register (C_MENU_REGISTER * par,
                    R_MENU_REGISTER * ret);
+
+/*
+** Description
+** Remove menu entry of application
+*/
+void
+unregister_menu(WORD apid);
