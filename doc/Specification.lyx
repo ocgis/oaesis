@@ -1796,6 +1796,12 @@ realslide enabled | disabled
 \layout Standard
 
 Enable or disable realtime sliders for windows.
+\layout Paragraph
+
+applname enabled | disabled
+\layout Standard
+
+Enable or disable application name in window mover.
 \layout Subsubsection
 
 Launcher
