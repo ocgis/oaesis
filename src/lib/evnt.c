@@ -618,9 +618,7 @@ Evnt_do_multi (WORD       apid,
     if (ret.msg.type == WM_REDRAW) {
       /* Redraw window borders */
       Wind_do_update (apid, BEG_UPDATE);
-      DB_printf ("will redraw elements for apid %d", apid);
       Wind_redraw_elements (apid, ret.msg.msg0, (RECT *)&ret.msg.msg1, 0);
-      DB_printf ("have redrawn elements for apid %d", apid);
       Wind_do_update (apid, END_UPDATE);
     }
   }

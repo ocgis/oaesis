@@ -373,6 +373,34 @@ void **old_motv)                 /* Old handler.                            */
 }
 
 /****************************************************************************
+ * Vdi_vex_keyv                                                             *
+ *  Set keyboard interrupt handler.                                         *
+ ****************************************************************************/
+void                             /*                                         */
+Vdi_vex_keyv(                    /*                                         */
+WORD handle,                     /* Workstation handle.                     */
+void *keyv,                      /* New handler.                            */
+void **old_keyv)                 /* Old handler.                            */
+/****************************************************************************/
+{
+	WORD  contrl[11];
+	VDIPB vdipb;
+	
+	contrl[0] = 132;
+	contrl[1] = 0;
+	contrl[3] = 0;
+	contrl[6] = handle;
+	contrl[7] = (WORD)((LONG)keyv >> 16);
+	contrl[8] = (WORD)((LONG)keyv);
+
+	vdipb.contrl = contrl;
+	
+	vdicall(&vdipb);
+	
+	*(LONG *)old_keyv = INTS2LONG(contrl[9],contrl[10]);
+}
+
+/****************************************************************************
  * Vdi_vex_timv                                                             *
  *  Set timer tick interrupt handler.                                       *
  ****************************************************************************/

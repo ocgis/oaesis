@@ -3344,14 +3344,14 @@ srv_wind_open (C_WIND_OPEN * msg,
       
       wp = wl->next;
       
-      while(wp != 0L) {
+      while (wp != NULL) {
 	RLIST	*rd = 0L;
 	
 	Rlist_rectinter(&rl,&wl->win->totsize,&wp->win->rlist);
 	
 	Rlist_insert(&rd,&wp->win->rlist);
 	
-	wp->win->rlist = rd;
+        wp->win->rlist = rd;
 	wp = wp->next;
       }
       

@@ -989,7 +989,7 @@ Wind_do_open (WORD   apid,
   par.common.pid = getpid ();
   par.id = id;
   par.size = *size;
-        
+
   Client_send_recv (&par,
                     sizeof (C_WIND_OPEN),
                     &ret,

@@ -14,4 +14,7 @@
 /* Size of the mouse event buffer */
 #define MOUSE_BUFFER_SIZE 100
 
+/* Size of the key event buffer */
+#define KEY_BUFFER_SIZE 100
+
 #endif

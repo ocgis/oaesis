@@ -18,7 +18,7 @@
 #include "aesbind.h"
 
 static short contrl[5];
-static short global[15];
+short global[15];
 static short intin[16];
 static short intout[7];
 static long  addrin[3];

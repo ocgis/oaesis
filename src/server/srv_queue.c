@@ -109,6 +109,7 @@ efree (QUEUE   q,
 ** Exported
 **
 ** 1999-02-06 CG
+** 1999-02-13 CG
 */
 void
 insert_last (QUEUE    q,
@@ -123,6 +124,7 @@ insert_last (QUEUE    q,
     q->first = q->last = e;
   } else {
     q->last->next = e;
+    q->last = e;
   }
 }
 

@@ -65,7 +65,7 @@ GLOBAL_COMMON global_common;
 GLOBAL_APPL   global_appl;
 
 char *p_fsel_extern = (char *)&global_common.fsel_extern;
-WORD global[15];
+static WORD global[15];
 
 /****************************************************************************
  * Module global variables                                                  *

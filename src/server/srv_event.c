@@ -33,6 +33,13 @@ typedef struct mouse_event {
   WORD change;
 } MOUSE_EVENT;
 
+/* KEY_EVENT is used for storing keyboard events */
+typedef struct key_event {
+  WORD state;
+  WORD ascii;
+  WORD scan;
+} KEY_EVENT;
+
 /* APPL_LIST is used for queueing applications that wait for better times */
 typedef struct appl_list * APPL_LIST_REF;
 #define APPL_LIST_REF_NIL ((APPL_LIST_REF)NULL)
@@ -45,6 +52,9 @@ typedef struct appl_list {
   MOUSE_EVENT   mouse_buffer [MOUSE_BUFFER_SIZE];
   WORD          mouse_head;
   WORD          mouse_size;
+  KEY_EVENT     key_buffer [KEY_BUFFER_SIZE];
+  WORD          key_head;
+  WORD          key_size;
   ULONG         timer_event;
   APPL_LIST_REF prev;
   APPL_LIST_REF next;
@@ -60,6 +70,10 @@ static WORD  y_last = 0;
 static WORD  buttons_new = 0;
 static WORD  buttons_last = 0;
 
+static KEY_EVENT key_buffer[KEY_BUFFER_SIZE];
+static WORD key_buffer_head = 0;
+static WORD key_buffer_tail = 0;
+
 /*
 ** Timer wraparound is not yet handled, but will only be a problem if someone
 ** has a long uptime.
@@ -68,6 +82,29 @@ static WORD  buttons_last = 0;
 static ULONG timer_counter = 0;
 static ULONG next_timer_event = MAX_TIMER_COUNT;
 static WORD  timer_tick_ms; /* Number of milliseconds per tick */
+
+/*
+** Description
+** This procedure is installed with vex_keyv to handle key presses.
+**
+** 1999-03-07 CG
+** 1999-03-08 CG
+*/
+static
+void
+catch_keys (int state,
+            int ascii,
+            int scan) {
+  /* Queue the keypress */
+  key_buffer[key_buffer_tail].state = state;
+  key_buffer[key_buffer_tail].ascii = ascii;
+  key_buffer[key_buffer_tail].scan = scan;
+  key_buffer_tail++;
+
+  /* Wake up the server so that it will be able to distribute the event */
+  Srv_wake ();
+}
+
 
 /*
 ** Description
@@ -133,9 +170,12 @@ catch_timer_click (void) {
 ** 1998-12-07 CG
 ** 1998-12-13 CG
 ** 1999-01-29 CG
+** 1999-03-07 CG
+** 1999-03-08 CG
 */
 void
 srv_init_event_handler (WORD vdi_workstation_id) {
+  void * old_key_vector;
   void * old_button_vector;
   void * old_motion_vector;
   void * old_timer_vector;
@@ -146,7 +186,12 @@ srv_init_event_handler (WORD vdi_workstation_id) {
     apps [i].is_waiting = FALSE;
     apps [i].mouse_head = 0;
     apps [i].mouse_size = 0;
+    apps [i].key_head = 0;
+    apps [i].key_size = 0;
   }
+
+  /* Setup keyboard handler */
+  Vdi_vex_keyv (vdi_workstation_id, catch_keys, &old_key_vector);
 
   /* Setup mouse button handler */
   Vdi_vex_butv (vdi_workstation_id, catch_mouse_buttons, &old_button_vector);
@@ -360,6 +405,43 @@ check_mouse_motion (WORD           x,
 
 /*
 ** Description
+** Check for waiting key events
+**
+** 1999-03-08 CG
+*/
+static
+WORD
+check_keys (C_EVNT_MULTI * par,
+            R_EVNT_MULTI * ret) {
+#define KEY_BUFFER_HEAD \
+        apps[par->common.apid].key_buffer[apps [par->common.apid].key_head]
+
+  WORD retval = 0;
+
+  if (par->eventin.events & MU_KEYBD) {
+    if (apps [par->common.apid].key_size > 0) {
+      if (KEY_BUFFER_HEAD.scan & 0x80) {
+        ret->eventout.ks = KEY_BUFFER_HEAD.state;
+        ret->eventout.kc = KEY_BUFFER_HEAD.ascii;
+        
+        retval = MU_KEYBD;
+      }
+
+      /* Update key buffer head */
+      apps [par->common.apid].key_head =
+        (apps [par->common.apid].key_head + 1) % KEY_BUFFER_SIZE;
+      apps [par->common.apid].key_size--;
+    }
+  }
+  
+  return retval;
+  
+#undef KEY_BUFFER_HEAD
+}
+
+
+/*
+** Description
 ** Check for timer event
 **
 ** 1999-01-29 CG
@@ -388,6 +470,7 @@ check_timer (C_EVNT_MULTI * par,
 ** 1998-12-23 CG
 ** 1999-01-29 CG
 ** 1999-01-30 CG
+** 1999-03-09 CG
 */
 void
 srv_wait_for_event (COMM_HANDLE    handle,
@@ -400,6 +483,9 @@ srv_wait_for_event (COMM_HANDLE    handle,
   /* Look for waiting mouse events */
   ret.eventout.mc = 0;
   ret.eventout.events |= check_mouse_buttons (par, &ret);
+
+  /* Look for waiting key events */
+  ret.eventout.events |= check_keys (par, &ret);
 
   /* Check if inside or outside area */
   ret.eventout.events |= check_mouse_motion (x_new,
@@ -448,7 +534,6 @@ handle_mouse_buttons (void) {
     WORD index = (apps [click_owner].mouse_head +
                   apps [click_owner].mouse_size) % MOUSE_BUFFER_SIZE;
     
-    DB_printf ("srv_event.c: handle_mouse_buttons: click_owner = %d", click_owner);
     apps [click_owner].mouse_buffer [index].x = x_last;
     apps [click_owner].mouse_buffer [index].y = y_last;
     apps [click_owner].mouse_buffer [index].buttons = buttons_new;
@@ -470,6 +555,46 @@ handle_mouse_buttons (void) {
 
         /* The application is not waiting anymore */
         dequeue_appl (&apps [click_owner]);
+      }
+    }
+  }
+}
+
+
+/*
+** Description
+** Check if a key has been pressed or released and report it to
+** the right application
+**
+** 1999-03-08 CG
+*/
+static
+void
+handle_keys (void) {
+  /* Has any key events occurred? */
+  if (key_buffer_head != key_buffer_tail) {
+    WORD topped_appl = get_top_appl ();
+    WORD index = (apps [topped_appl].key_head +
+                  apps [topped_appl].key_size) % KEY_BUFFER_SIZE;
+    
+    while (key_buffer_head != key_buffer_tail) {
+      apps [topped_appl].key_buffer [index] = key_buffer [key_buffer_head];
+      apps [topped_appl].key_size++;
+      key_buffer_head = (key_buffer_head + 1) % KEY_BUFFER_SIZE;
+    }
+
+    /* Wake the application if it's waiting */
+    if (apps [topped_appl].is_waiting) {
+      R_EVNT_MULTI ret;
+      
+      ret.eventout.events = check_keys (&apps [topped_appl].par,
+                                        &ret);
+
+      if (ret.eventout.events != 0) {
+        Srv_reply (apps [topped_appl].handle, &ret, sizeof (R_EVNT_MULTI));
+
+        /* The application is not waiting anymore */
+        dequeue_appl (&apps [topped_appl]);
       }
     }
   }
@@ -561,11 +686,13 @@ handle_timer (void) {
 ** 1998-12-07 CG
 ** 1998-12-13 CG
 ** 1999-01-29 CG
+** 1999-03-08 CG
 */
 void
 srv_handle_events (void) {
   handle_mouse_motion ();
   handle_mouse_buttons ();
+  handle_keys ();
   handle_timer ();
 }
 

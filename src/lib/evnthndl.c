@@ -325,6 +325,7 @@ handle_arrow_click (WORD apid,
 ** 1998-12-25 CG
 ** 1999-01-01 CG
 ** 1999-01-09 CG
+** 1999-02-08 CG
 */
 static
 void
@@ -339,6 +340,8 @@ handle_mover_click (WORD apid,
   EVNTREC   er;
   COMMSG    mesag;
   GLOBAL_COMMON * globals = get_global_common ();
+
+  Wind_do_update (apid, BEG_MCTRL);
 
   Wind_do_get (apid,
                win_id,
@@ -506,6 +509,8 @@ handle_mover_click (WORD apid,
   }
         
   Wind_change (apid, win_id, W_NAME, 0);
+
+  Wind_do_update (apid, END_MCTRL);
 }
 
 
