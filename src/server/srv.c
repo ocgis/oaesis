@@ -169,9 +169,9 @@ srv_vdi_call (COMM_HANDLE  handle,
   vpb.contrl[2] = 0;
   vpb.contrl[4] = 0;
 
-  DEBUG2("srv.c: vdi_call %d", vpb.contrl[0]);
+  DEBUG3("srv.c: vdi_call %d", vpb.contrl[0]);
   vdi_call (&vpb);
-  DEBUG2("srv.c: vdi_call %d finished", vpb.contrl[0]);
+  DEBUG3("srv.c: vdi_call %d finished", vpb.contrl[0]);
   
   /* Copy contrl array */
   for (i = 0; i < 15; i++) {
@@ -344,20 +344,20 @@ srv_call(COMM_HANDLE handle,
     break;
     
   case SRV_MEMORY_ALLOC:
-    ret.memory_alloc.address = (ULONG)malloc(par->memory_alloc.amount);
+    ret.memory_alloc.address = htonl((ULONG)malloc(ntohl(par->memory_alloc.amount)));
     PUT_R_ALL(MEMORY_ALLOC, &ret, 0);
     SRV_REPLY(handle, &ret, sizeof (R_MEMORY_ALLOC));
     break;
     
   case SRV_MEMORY_FREE:
-    free((void *)par->memory_free.address);
+    free((void *)ntohl(par->memory_free.address));
     
     PUT_R_ALL(MEMORY_FREE, &ret, 0);
     SRV_REPLY(handle, &ret, sizeof (R_MEMORY_FREE));
     break;
     
   case SRV_MEMORY_SET:
-    memcpy((void *)par->memory_set.address,
+    memcpy((void *)ntohl(par->memory_set.address),
            &par->memory_set.data,
            par->memory_set.amount);
     PUT_R_ALL(MEMORY_SET, &ret, 0);
@@ -366,7 +366,7 @@ srv_call(COMM_HANDLE handle,
 
   case SRV_MEMORY_GET:
     memcpy(&ret.memory_get.data,
-           (void *)par->memory_get.address,
+           (void *)ntohl(par->memory_get.address),
            par->memory_get.amount);
     PUT_R_ALL(MEMORY_GET, &ret, 0);
     SRV_REPLY(handle, &ret, sizeof(R_MEMORY_GET));
@@ -417,9 +417,9 @@ server (LONG arg)
 
   while (run_server) {
     /* Wait for another call from a client */
-    DEBUG2("srv.c: Waiting for message from client");
+    DEBUG3("srv.c: Waiting for message from client");
     SRV_GET(&par, sizeof (C_SRV), handle);
-    DEBUG2("srv.c: Got message from client (%p)", handle);
+    DEBUG3("srv.c: Got message from client (%p)", handle);
 
     if (handle != NULL) {
       NTOH(&par);
