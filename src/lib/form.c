@@ -44,7 +44,6 @@
 #include "evnt.h"
 #include "evnthndl.h"
 #include "form.h"
-#include "gemdefs.h"
 #include "lib_global.h"
 #include "graf.h"
 #include "mintdefs.h"

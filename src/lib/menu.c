@@ -62,7 +62,6 @@
 #include "evnt.h"
 #include "form.h"
 #include "fsel.h"
-#include "gemdefs.h"
 #include "graf.h"
 #include "lib_global.h"
 #include "lib_misc.h"

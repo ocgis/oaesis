@@ -50,7 +50,6 @@
 
 #include "boot.h"
 #include "debug.h"
-#include "gemdefs.h"
 #include "srv_global.h"
 #include "lxgemdos.h"
 /*#include "resource.h"*/

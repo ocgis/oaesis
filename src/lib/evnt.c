@@ -64,7 +64,6 @@
 #include "debug.h"
 #include "evnt.h"
 #include "evnthndl.h"
-#include "gemdefs.h"
 #include "lib_global.h"
 #include "mintdefs.h"
 #include "mesagdef.h"

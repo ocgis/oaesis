@@ -35,6 +35,9 @@
 #define AES_MENU        9
 #define AES_SHELL      10
 #define AES_WINDOW     11
+#define AES_MESSAGES   12
+#define AES_OBJECTS    13
+#define AES_FORM       14
 
                 /* appl_getinfo return values */
 #define SYSTEM_FONT     0
@@ -242,6 +245,9 @@ typedef struct _mn_set {
 #define SW_PRENICE   0x0200
 #define SW_DEFDIR    0x0400
 #define SW_ENVIRON   0x0800
+
+#define TOSAPP 0
+#define GEMAPP 1
 
 #define SD_ABORT    0
 #define SD_PARTIAL  1

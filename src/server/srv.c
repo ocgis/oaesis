@@ -39,7 +39,6 @@
 #include "aesbind.h"
 #include "oconfig.h"
 #include "debug.h"
-#include "gemdefs.h"
 #include "lxgemdos.h"
 #include "mesagdef.h"
 #include "mintdefs.h"

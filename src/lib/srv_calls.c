@@ -48,7 +48,6 @@
 #include "aesbind.h"
 #include "oconfig.h"
 #include "debug.h"
-#include "gemdefs.h"
 #include "lib_global.h"
 /*#include "lxgemdos.h"*/
 #include "mesagdef.h"

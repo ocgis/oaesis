@@ -17,7 +17,6 @@
 #include <vdibind.h>
 
 #include "debug.h"
-#include "gemdefs.h"
 #include "mesagdef.h"
 #include "oconfig.h"
 #include "srv_appl_info.h"

@@ -53,7 +53,6 @@
 #include "aesbind.h"
 /*#include "boot.h"*/
 #include "debug.h"
-#include "gemdefs.h"
 #include "lib_global.h"
 /*#include "lxgemdos.h"*/
 #include "resource.h"

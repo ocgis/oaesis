@@ -46,7 +46,6 @@
 
 #include "aesbind.h"
 #include "debug.h"
-#include "gemdefs.h"
 /*#include "lxgemdos.h"*/
 #include "lib_global.h"
 #include "lib_misc.h"

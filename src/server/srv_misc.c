@@ -50,7 +50,6 @@
 #include <unistd.h>
 #include <vdibind.h>
 
-#include "gemdefs.h"
 #include "srv_global.h"
 #include "lxgemdos.h"
 #include "srv_misc.h"

@@ -11,13 +11,12 @@
 ** Read the file COPYING for more information.
 */
 
-#define DEBUGLEVEL 3
+#define DEBUGLEVEL 0
 
 #include <stdlib.h>
 
 #include "aesbind.h"
 #include "debug.h"
-#include "gemdefs.h"
 #include "srv_global.h"
 #include "srv_misc.h"
 #include "srv_queue.h"

@@ -53,7 +53,6 @@
 #include "debug.h"
 #include "evnt.h"
 #include "evnthndl.h"
-#include "gemdefs.h"
 #include "graf.h"
 #include "lib_global.h"
 #include "lib_misc.h"

@@ -59,7 +59,6 @@
 
 #include "aesbind.h"
 #include "debug.h"
-#include "gemdefs.h"
 #include "srv_global.h"
 #include "mintdefs.h"
 #include "srv_misc.h"

@@ -76,7 +76,6 @@ v   Fixed mover grabbing bug; if the mouse was moved during click on
 #include "debug.h"
 #include "evnt.h"
 #include "evnthndl.h"
-#include "gemdefs.h"
 #include "lib_global.h"
 #include "graf.h"
 #include "mintdefs.h"

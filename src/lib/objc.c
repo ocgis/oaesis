@@ -59,7 +59,6 @@
 
 #include "aesbind.h"
 #include "debug.h"
-#include "gemdefs.h"
 #include "lib_global.h"
 #include "mintdefs.h"
 #include "lib_misc.h"
