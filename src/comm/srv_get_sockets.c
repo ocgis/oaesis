@@ -1,7 +1,7 @@
 /*
 ** srv_get_sockets.c
 **
-** Copyright 1999 Christer Gustavsson <cg@nocrew.org>
+** Copyright 1999 - 2000 Christer Gustavsson <cg@nocrew.org>
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@
 
 #include "debug.h"
 #include "srv_get.h"
+#include "srv_interface.h"
 #include "srv_sockets.h"
 
 #define BACKLOG 256
@@ -168,10 +169,13 @@ Srv_get (void * in,
 
   FD_ZERO (&handle_set);
 
-  if (QUEUE_EMPTY) {
+  if (QUEUE_EMPTY)
+  {
     /* Timeout after 50 ms */
     timeout.tv_usec = 50000;
-  } else {
+  }
+  else
+  {
     timeout.tv_usec = 0;
   }
 
@@ -180,20 +184,14 @@ Srv_get (void * in,
   highest_fd = sockfd;
 
   handle_walk = selectable_handles;
-  while (handle_walk) {
-    /*DB_printf ("srv_get_sockets.c: Waiting for handle %d (%p)",
-      handle_walk->fd, handle_walk);*/
-
+  while (handle_walk)
+  {
     FD_SET (handle_walk->fd, &handle_set);
     if (handle_walk->fd > highest_fd) {
       highest_fd = handle_walk->fd;
     }
     handle_walk = handle_walk->next;
   }
-
-  /*
-  DB_printf ("highest_fd = %d", highest_fd);
-  */
 
   /* Wait for input */
   err = select (highest_fd + 1,
@@ -208,11 +206,13 @@ Srv_get (void * in,
   }
 
   /* We got a timeout */
-  if (QUEUE_EMPTY && (err == 0)) {
+  if (QUEUE_EMPTY && (err == 0))
+  {
     return NULL;
   }
 
-  if (FD_ISSET (sockfd, &handle_set)) {
+  if (FD_ISSET (sockfd, &handle_set))
+  {
     COMM_HANDLE new_handle;
 
     /* A new application has called the server*/
@@ -231,7 +231,8 @@ Srv_get (void * in,
   /* Check for applications that have sent data and queue them */
   handle_ref_walk = &selectable_handles;
   
-  while (*handle_ref_walk != NULL) {
+  while (*handle_ref_walk != NULL)
+  {
     if (FD_ISSET ((*handle_ref_walk)->fd, &handle_set)) {
       COMM_HANDLE data_handle;
 
@@ -254,9 +255,14 @@ Srv_get (void * in,
   }
 
   /* Receive data */
-  if ((err = recv (handle_walk->fd, in, max_bytes_in, 0)) == -1) {
-    DEBUG1 ("oaesis: Srv_get: recv: %s", strerror (errno));
-    return NULL;
+  if ((err = recv (handle_walk->fd, in, max_bytes_in, 0)) == -1)
+  {
+    /* The application died */
+    ((C_ALL *)in)->words = 1;
+    ((C_ALL *)in)->longs = 0;
+    ((C_ALL *)in)->call  = SRV_CONN_LOST;
+
+    return handle_walk;
   }
   
   DEBUG3("srv_get_sockets.c: length = %d", err);
