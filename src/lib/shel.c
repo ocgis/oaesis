@@ -53,6 +53,10 @@
 #include "shel.h"
 #include "types.h"
 
+#ifdef MINT_TARGET
+#include "mintdefs.h"
+#endif
+
 #define TOSAPP 0
 #define GEMAPP 1
 
@@ -165,6 +169,9 @@ start_gem_program(WORD   apid,
     }
   }
 
+  /* Get semaphore */
+  Psemaphore(SEM_LOCK, SHEL_WRITE_LOCK, -1);
+
   if(type == APP_APPLICATION)
   {
     pid = (WORD)Pexec(100, tmp, tail, envir);
@@ -204,6 +211,9 @@ start_gem_program(WORD   apid,
   {
     ap_id = Appl_do_reserve(apid, type, pid);
   }
+
+  /* Release the semaphore now that the application id is reserved */
+  Psemaphore(SEM_UNLOCK, SHEL_WRITE_LOCK, 0);
 
   return ap_id;
 }

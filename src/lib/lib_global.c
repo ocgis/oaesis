@@ -60,6 +60,10 @@
 #include "types.h"
 #include "version.h"
 
+#ifdef MINT_TARGET
+#include "mintdefs.h"
+#endif
+
 /****************************************************************************
  * Global variables                                                         *
  ****************************************************************************/
@@ -324,6 +328,12 @@ init_global (WORD physical_vdi_id) {
                 WINDOW,
                 &global_common.windowtad);
   global_common.elemnumber = -1;
+
+#ifdef MINT_TARGET
+  /* Initialize semaphore used by Shel_do_write */
+  Psemaphore(SEM_CREATE, SHEL_WRITE_LOCK, 0);
+  Psemaphore(SEM_UNLOCK, SHEL_WRITE_LOCK, 0);
+#endif
 }
 
 
@@ -384,7 +394,15 @@ init_global_appl (int    apid,
   DEBUG3 ("lib_global.c: Leaving global_init");
 }
 
-void	exit_global(void) {
+void
+exit_global(void)
+{
+#ifdef MINT_TARGET
+  /* Destroy semaphore used by Shel_do_write */
+  Psemaphore(SEM_LOCK, SHEL_WRITE_LOCK, -1);
+  Psemaphore(SEM_DESTROY, SHEL_WRITE_LOCK, 0);
+#endif
+
 #if 0 /* FIXME def MINT_TARGET */
   if(open_physical_ws) {
     if(global_common.video == 0x00030000L) {

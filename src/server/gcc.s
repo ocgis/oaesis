@@ -105,13 +105,27 @@ _vdicall:
 	rts
 	
 _accstart:
-	movel sp@(4),a0   | Get pointer to basepage
-	movel a0@(16),a1  | Get data segment base
-	movel a1,a0@(8)   | Put data segment base in text base segment
-	addl  a0@(12),a1  | Add text length to data segment base
-	movel a1,a0@(16)  | Make result data segment base
-	movel a0@(8),a1   | Get text segment base
-	jmp a1@           | Jump to start of accessory
+	movel sp@(4),a0        | Get pointer to basepage
+	movel a0@(16),a1       | Get data segment base
+	movel a1,a0@(8)        | Put data segment base in text base segment
+	addl  a0@(12),a1       | Add text length to data segment base
+	movel a1,a0@(16)       | Make result data segment base
+	movel a0@(8),a1        | Get text segment base
+	movel a1,sp@-          | Save basepage address
+	movel #-1,sp@-         | Timeout
+	movel #0x6f415357,sp@- | oASW
+	movew #2,sp@-          | SEM_LOCK
+	movew #0x134,sp@-      | Psemaphore
+	trap #1                | Call Gemdos
+	lea   sp@(12),sp       | Restore stack pointer
+	movel #0,sp@-          | Timeout
+	movel #0x6f415357,sp@- | oASW
+	movew #3,sp@-          | SEM_UNLOCK
+	movew #0x134,sp@-      | Psemaphore
+	trap #1                | Call Gemdos
+	lea   sp@(12),sp       | Restore stack pointer
+	movel sp@+,a1          | Restore basepage address
+	jmp a1@                | Jump to start of accessory
 
 _VsetScreen:
 	link  a6,#0

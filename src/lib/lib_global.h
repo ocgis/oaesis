@@ -5,6 +5,8 @@
 
 #define	STKSIZE	4096
 
+/* Semaphore used in Shel_do_write under MiNT */
+#define SHEL_WRITE_LOCK 0x6f415357L /* oASW */
 
 /*
 ** global_common contains variables that are global across applications.

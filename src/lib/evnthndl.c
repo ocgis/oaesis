@@ -1422,36 +1422,56 @@ handle_drop_down (WORD        apid,
 
         nmenu[entry].ob_state &= ~SELECTED;
                 
-        if (nmenu == globals->common->pmenutad) {
+        if (nmenu == globals->common->pmenutad)
+	{
           APPL_ENTRY * appl_entry;
           WORD         new_entry = entry - PMENU_FIRST;
 
-          if (new_entry < globals->appl_menu.count) {
+	  DEBUG2("new_entry = %d appl %d acc %d",
+		 new_entry,
+		 globals->appl_menu.count,
+		 globals->acc_menu.count);
+          if(new_entry < globals->appl_menu.count)
+	  {
             appl_entry = &globals->appl_menu.entries[new_entry];
-          } else {
+          }
+	  else
+	  {
             new_entry -= globals->appl_menu.count + 1;
-            if (new_entry < globals->acc_menu.count) {
+            if(new_entry < globals->acc_menu.count)
+	    {
               appl_entry = &globals->acc_menu.entries[new_entry];
-            } else {
+            }
+	    else
+	    {
               appl_entry = NULL;
             }
           }
                                                 
-          if (appl_entry != NULL) {
-            /* FIXME 
-               WORD skeys;
+          if(appl_entry != NULL)
+	  {
+#if 0 /* FIXME */
+	    int skeys;
                
-               Vdi_vq_key_s(evntglbl.evid,&skeys);
-               
-               if(skeys & K_CTRL) {
-               hm_buffer->action = HM_KILL;
-               hm_buffer->apid = mr->ai->id;
-               } else */
-            {
-              if (appl_entry->type & APP_APPLICATION) {
+	    Vdi_vq_key_s(evntglbl.evid,&skeys);
+	    
+	    if(skeys & K_CTRL)
+	    {
+	      hm_buffer->action = HM_KILL;
+	      hm_buffer->apid = appl_entry->ap_id;
+	    }
+	    else
+#endif
+	    {
+              if(appl_entry->type & APP_APPLICATION)
+	      {
+		DEBUG2("APPL top");
                 hm_buffer->action = HM_TOP_APPL;
                 hm_buffer->apid = appl_entry->ap_id;
-              } else {
+              }
+	      else
+	      {
+		DEBUG2("ACC open");
                 hm_buffer->action = HM_OPEN_ACC;
                 hm_buffer->apid = appl_entry->ap_id;
               }
@@ -1461,7 +1481,10 @@ handle_drop_down (WORD        apid,
                       "Couldn't find application to top!\r\n",
                       __FILE__,__LINE__);
           }
-        } else {
+        }
+	else
+	{
+	  DEBUG2("HN_MENU_MSG");
           hm_buffer->action = HM_MENU_MSG;
           hm_buffer->title = title;
           hm_buffer->item = entry;
@@ -1742,7 +1765,7 @@ Evhd_handle_menu (WORD apid,
       m.msg1 = hm_buffer.apid;
       m.type = AC_OPEN;
     
-      Appl_do_write (apid, m.msg0, 16, &m);
+      Appl_do_write(hm_buffer.apid, m.msg0, 16, &m);
     }
     break;
 
