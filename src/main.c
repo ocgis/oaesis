@@ -105,7 +105,7 @@ int main(int argc,BYTE *argv[],BYTE *envp[]) {
 #endif
   
 #ifdef __GNUC__
-  fprintf(stderr,"Gnu C %x.%x\r\n",__GNUC__,__GNUC_MINOR__);
+  fprintf(stderr,"Gnu C %s.\r\n",__VERSION__);
 #endif
   
   

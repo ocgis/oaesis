@@ -614,41 +614,42 @@ WORD type,          /* Type of application (appl, acc, desktop etc)         */
 WORD alloc_only)    /* Should the structure only be allocated?              */
 /****************************************************************************/
 {
-	AP_LIST	*al;
-	
-	al = (AP_LIST *)Mxalloc(sizeof(AP_LIST),GLOBALMEM);
-
-	if(!al) {
-		DB_printf("%s: Line %d: srv_info_alloc:\r\n"
-										"out of memory!\r\n",__FILE__,__LINE__);
-		return NULL;
-	};
-
-	while(apps[next_ap].id != -1) {
-		next_ap = ((next_ap + 1) % MAX_NUM_APPS);
-	};
-	
-	al->ai = &apps[next_ap];
-		
-	al->ai->id = next_ap;
-	al->ai->pid = pid;
-	al->ai->deskbg = NULL;
-	al->ai->menu = NULL;
-	al->ai->type = type;
-	al->ai->newmsg = 0;
-	
-	al->ai->rshdr = 0L;
-	
-	if(!alloc_only) {
-		al->next = ap_pri;
-		ap_pri = al;
-	}
-	else {
-		al->next = ap_resvd;
-		ap_resvd = al;
-	};
-	
-	return al->ai;
+  AP_LIST	*al;
+  
+  al = (AP_LIST *)Mxalloc(sizeof(AP_LIST),GLOBALMEM);
+  
+  if(!al) {
+    DB_printf("%s: Line %d: srv_info_alloc:\r\n"
+	      "out of memory!\r\n",__FILE__,__LINE__);
+    return NULL;
+  };
+  
+  while(apps[next_ap].id != -1) {
+    next_ap = ((next_ap + 1) % MAX_NUM_APPS);
+  };
+  
+  al->ai = &apps[next_ap];
+  
+  al->ai->id = next_ap;
+  al->ai->pid = pid;
+  al->ai->deskbg = NULL;
+  al->ai->menu = NULL;
+  al->ai->type = type;
+  al->ai->newmsg = 0;
+  al->ai->killtries = 0;
+ 
+  al->ai->rshdr = 0L;
+  
+  if(!alloc_only) {
+    al->next = ap_pri;
+    ap_pri = al;
+  }
+  else {
+    al->next = ap_resvd;
+    ap_resvd = al;
+  };
+  
+  return al->ai;
 }
 
 static void apinfofree(WORD id) {
@@ -1558,29 +1559,26 @@ WORD mode)          /* What to do.                                          */
     {
       AP_INFO *ai = internal_appl_info(apid);
       
-      /* This will not work <--
-	 if(ai->newmsg & 0x1) {
-	 COMMSG m;
-	 
-	 DB_printf("Sending AP_TERM to %d",apid);
-	 
-	 m.type = AP_TERM;
-	 m.sid = 0;
-	 m.length = 0;
-	 m.msg2 = AP_TERM;
-	 
-	 srv_appl_write(apid,sizeof(COMMSG),&m);
-	 }
-	 else 
-	 */
-      {
+      if((ai->newmsg & 0x1) && (ai->killtries < 20)) {
+	COMMSG m;
+	
+	ai->killtries++;
+
+	DB_printf("Sending AP_TERM to %d",apid);
+	
+	m.type = AP_TERM;
+	m.sid = 0;
+	m.length = 0;
+	m.msg2 = AP_TERM;
+	
+	srv_appl_write(apid,sizeof(COMMSG),&m);
+      }
+      else {
 	DB_printf("Killing apid %d",apid);
 	
 	(void)Pkill(ai->pid,SIGKILL);
 	
 	srv_appl_exit(apid);
-
-	DB_printf("Exited apid %d",apid);
       };
       
       return 1;
@@ -4259,13 +4257,6 @@ static WORD server(LONG arg) {
 		  
 		case SRV_SHUTDOWN:
 		  DB_printf("OK! Nice chatting with you! Bye!");
-		  DB_printf("Killing off alive processes");
-		  
-		  while(ap_pri) {
-		    srv_appl_control(ap_pri->ai->id,APC_KILL);
-		  };
-		  
-		  DB_printf("Killed all processes\r\n");
 
 		  Pmsg(MSG_WRITE,0xffff0000L | msg.pid,&msg);
 		  Vdi_v_clsvwk(svid);
@@ -4572,6 +4563,14 @@ Srv_exit_module(void)  /*                                                   */
 {
   PMSG msg;
   
+  DB_printf("Killing off alive processes");
+  
+  while(ap_pri) {
+    srv_appl_control(ap_pri->ai->id,APC_KILL);
+  };
+  
+  DB_printf("Killed all processes\r\n");
+
   DB_printf("Server we have to quit now! Bye!");
   
   msg.call = SRV_SHUTDOWN;

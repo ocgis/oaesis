@@ -65,204 +65,204 @@ typedef struct {
  ****************************************************************************/
 
 static AESCB aescalls[] = {
-	/* 0x0000 */
-	NULL, NULL,
-	
-	/* 0x0001 */
-	
-	NULL, NULL,
-	
-	/* 0x0002 */
-	NULL, NULL,
-	
-	/* 0x0003 */
-	NULL, NULL,
-	
-	/* 0x0004 */
-	NULL, NULL,
-	
-	/* 0x0005 */
-	NULL, NULL,
-	
-	/* 0x0006 */
-	NULL, NULL,
-	
-	/* 0x0007 */
-	NULL, NULL,
-	
-	/* 0x0008 */
-	NULL, NULL,
-	
-	/* 0x0009 */
-	NULL, NULL,
-	
-	/* 0x000a */
-	"appl_init", Appl_init,
-
-	/* 0x000b */
-	"appl_read", Appl_read,
-
-	/* 0x000c */
-	"appl_write", Appl_write,
-
-	/* 0x000d*/
-	"appl_find",Appl_find,
-
-	/* 0x000e */
-	"appl_tplay", NULL,
-
-	/* 0x000f */
-	"appl_trecord", NULL,
-
-	/* 0x0010 */
-	NULL, NULL,
+  /* 0x0000 */
+  NULL, NULL,
+  
+  /* 0x0001 */
+  
+  NULL, NULL,
+  
+  /* 0x0002 */
+  NULL, NULL,
+  
+  /* 0x0003 */
+  NULL, NULL,
+  
+  /* 0x0004 */
+  NULL, NULL,
+  
+  /* 0x0005 */
+  NULL, NULL,
+  
+  /* 0x0006 */
+  NULL, NULL,
+  
+  /* 0x0007 */
+  NULL, NULL,
+  
+  /* 0x0008 */
+  NULL, NULL,
+  
+  /* 0x0009 */
+  NULL, NULL,
+  
+  /* 0x000a */
+  "appl_init", Appl_init,
+  
+  /* 0x000b */
+  "appl_read", Appl_read,
+  
+  /* 0x000c */
+  "appl_write", Appl_write,
+  
+  /* 0x000d*/
+  "appl_find",Appl_find,
+  
+  /* 0x000e */
+  "appl_tplay", NULL,
+  
+  /* 0x000f */
+  "appl_trecord", NULL,
+  
+  /* 0x0010 */
+  NULL, NULL,
+  
+  /* 0x0011 */
+  NULL, NULL,
+  
+  /* 0x0012*/
+  "appl_search", Appl_search,
+  
+  /* 0x0013*/
+  "appl_exit", Appl_exit,
+  
+  /* 0x0014 */
+  "evnt_keybd", Evnt_keybd,
 			
-	/* 0x0011 */
-	NULL, NULL,
-
-	/* 0x0012*/
-	"appl_search", Appl_search,
-			
-	/* 0x0013*/
-	"appl_exit", Appl_exit,
-			
-	/* 0x0014 */
-	"evnt_keybd", Evnt_keybd,
-			
-	/* 0x0015 */
-	"evnt_button", Evnt_button,
-
-	/* 0x0016 */
-	"evnt_mouse", Evnt_mouse,
-			
-	/* 0x0017 */
-	"evnt_mesag", Evnt_mesag,
-			
+  /* 0x0015 */
+  "evnt_button", Evnt_button,
+  
+  /* 0x0016 */
+  "evnt_mouse", Evnt_mouse,
+  
+  /* 0x0017 */
+  "evnt_mesag", Evnt_mesag,
+  
 	/* 0x0018 */
-	"evnt_timer", Evnt_timer,
+  "evnt_timer", Evnt_timer,
+  
+  /* 0x0019 */
+  "evnt_multi", Evnt_multi,
+  
+  /* 0x001a */
+  "evnt_dclick", Evnt_dclick,
+  
+  /* 0x001b */
+  NULL, NULL,
+  
+  /* 0x001c */
+  NULL, NULL,
+  
+  /* 0x001d */
+  NULL, NULL,
+  
+  /* 0x001e */
+  "menu_bar", Menu_bar,
+  
+  /* 0x001f */
+  "menu_icheck", Menu_icheck,
+  
+  /* 0x0020 */
+  "menu_ienable", Menu_ienable,
 			
-	/* 0x0019 */
-	"evnt_multi", Evnt_multi,
-			
-	/* 0x001a */
-	"evnt_dclick", Evnt_dclick,
+  /* 0x0021 */
+  "menu_tnormal", Menu_tnormal,
+  
+  /* 0x0022 */
+  "menu_text", Menu_text,
+  
+  /* 0x0023 */
+  "menu_register", Menu_register,
+  
+  /* 0x0024 */
+  "menu_popup", NULL,
+  
+  /* 0x0025 */
+  "menu_attach", NULL,
+  
+  /* 0x0026 */
+  "menu_istart", NULL,
 
-	/* 0x001b */
-	NULL, NULL,
-			
-	/* 0x001c */
-	NULL, NULL,
+  /* 0x0027 */
+  "menu_settings", NULL,
+  
+  /* 0x0028 */
+  "objc_add", Objc_add,
+  
+  /* 0x0029 */
+  "objc_delete", Objc_delete,
+  
+  /* 0x002a */
+  "objc_draw", Objc_draw,
+  
+  /* 0x002b */
+  "objc_find", Objc_find,
+  
+  /* 0x002c */
+  "objc_offset", Objc_offset,
+  
+  /* 0x002d */
+  "objc_order", NULL,
+  
+  /* 0x002e */
+  "objc_edit", Objc_edit,
+  
+  /* 0x002f */
+  "objc_change", Objc_change,
+  
+  /* 0x0030 */
+  "objc_sysvar", Objc_sysvar,
+  
+  /* 0x0031 */
+  NULL, NULL,
+  
+  /* 0x0032 */
+  "form_do", Form_do,
+  
+  /* 0x0033 */
+  "form_dial", Form_dial,
+  
+  /* 0x0034 */
+  "form_alert", Form_alert,
+  
+  /* 0x0035 */
+  "form_error", Form_error,
+  
+  /* 0x0036 */
+  "form_center", Form_center,
+  
+  /* 0x0037 */
+  "form_keybd", Form_keybd,
+  
+  /* 0x0038 */
+  "form_button", Form_button,
+  
+  /* 0x0039 */
+  NULL, NULL,
 	
-	/* 0x001d */
-	NULL, NULL,
+  /* 0x003a */
+  NULL, NULL,
 	
-	/* 0x001e */
-	"menu_bar", Menu_bar,
-			
-	/* 0x001f */
-	"menu_icheck", Menu_icheck,
-			
-	/* 0x0020 */
-	"menu_ienable", Menu_ienable,
-			
-	/* 0x0021 */
-	"menu_tnormal", Menu_tnormal,
-			
-	/* 0x0022 */
-	"menu_text", Menu_text,
-			
-	/* 0x0023 */
-	"menu_register", Menu_register,
-
-	/* 0x0024 */
-	"menu_popup", NULL,
-
-	/* 0x0025 */
-	"menu_attach", NULL,
-
-	/* 0x0026 */
-	"menu_istart", NULL,
-
-	/* 0x0027 */
-	"menu_settings", NULL,
-
-	/* 0x0028 */
-	"objc_add", Objc_add,
-			
-	/* 0x0029 */
-	"objc_delete", Objc_delete,
-			
-	/* 0x002a */
-	"objc_draw", Objc_draw,
-			
-	/* 0x002b */
-	"objc_find", Objc_find,
-			
-	/* 0x002c */
-	"objc_offset", Objc_offset,
-			
-	/* 0x002d */
-	"objc_order", NULL,
-
-	/* 0x002e */
-	"objc_edit", Objc_edit,
-			
-	/* 0x002f */
-	"objc_change", Objc_change,
-			
-	/* 0x0030 */
-	"objc_sysvar", Objc_sysvar,
-			
-	/* 0x0031 */
-	NULL, NULL,
+  /* 0x003b */
+  NULL, NULL,
 	
-	/* 0x0032 */
-	"form_do", Form_do,
-			
-	/* 0x0033 */
-	"form_dial", Form_dial,
-			
-	/* 0x0034 */
-	"form_alert", Form_alert,
-			
-	/* 0x0035 */
-	"form_error", Form_error,
-			
-	/* 0x0036 */
-	"form_center", Form_center,
-			
-	/* 0x0037 */
-	"form_keybd", Form_keybd,
-			
-	/* 0x0038 */
-	"form_button", Form_button,
-
-	/* 0x0039 */
-	NULL, NULL,
+  /* 0x003c */
+  NULL, NULL,
 	
-	/* 0x003a */
-	NULL, NULL,
+  /* 0x003d */
+  NULL, NULL,
 	
-	/* 0x003b */
-	NULL, NULL,
+  /* 0x003e */
+  NULL, NULL,
 	
-	/* 0x003c */
-	NULL, NULL,
+  /* 0x003f */
+  NULL, NULL,
 	
-	/* 0x003d */
-	NULL, NULL,
+  /* 0x0040 */
+  NULL, NULL,
 	
-	/* 0x003e */
-	NULL, NULL,
-	
-	/* 0x003f */
-	NULL, NULL,
-	
-	/* 0x0040 */
-	NULL, NULL,
-	
-	/* 0x0041 */
-	NULL, NULL,
+  /* 0x0041 */
+  NULL, NULL,
 	
 	/* 0x0042 */
 	NULL, NULL,

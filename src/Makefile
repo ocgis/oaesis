@@ -12,7 +12,7 @@ LDLIBS = -lgem16 -lc16
 DEFS = -D__MINT__ 
 
 MDEFS = -bm68k-atari-mint
-CFLAGS = -Wall -fomit-frame-pointer $(MODEL) $(DEFS) $(MDEFS) -O2
+CFLAGS = -Wall -fomit-frame-pointer $(MODEL) $(DEFS) $(MDEFS)
 ASFLAGS = $(MODEL)
 
 CFILES = appl.c boot.c debug.c docalls.c evnt.c evnthndl.c form.c fsel.c \

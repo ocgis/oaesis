@@ -507,94 +507,100 @@ struct kerinfo {
 #define DEV_INSTALL 0xde02
 
 struct dev_descr {
-	DEVDRV *driver;
-	WORD   dinfo;
-	WORD   flags;
-	void   *tty;
-	LONG   drvsize;		/* size of DEVDRV struct */
-	LONG   reserved[3];
+  DEVDRV *driver;
+  WORD   dinfo;
+  WORD   flags;
+  void   *tty;
+  LONG   drvsize;	 /* size of DEVDRV struct */
+  LONG   reserved[3];
 };
 
 
 
 typedef struct ap_info {
-	WORD   id;             /*application id                                   */
-	WORD   pid;            /*process id of the head process of the application*/
-	WORD   vid;            /*VDI workstation id of application                */
-	BYTE   msgname[30];    /*name of message pipe of application              */
-	WORD   msgpipe;        /*handle of the message pipe                       */
-	BYTE   eventname[30];  /*name of event pipe                               */
-	WORD   eventpipe;      /*handle of event pipe                             */
-	RSHDR  *rshdr;         /*pointer to memory allocated for resources or 0L  */
-	OBJECT *deskbg;        /*pointer to object tree of desktop, or 0L         */
-	OBJECT *menu;          /*pointer to object tree of menu, or 0L            */
-	WORD   deskmenu;       /*index of desk menu box                           */
-	WORD   newmsg;         /*indicates which messages that are understood     */
-	WORD   type;           /*application type (acc or app etc)                */	struct ap_list  *ap_search_next; /* appl_search() pointer to next app */
-	BYTE   name[21];   /* pretty name of process, init. filename          */}AP_INFO;
+  WORD   id;             /*application id                                   */
+  WORD   pid;            /*process id of the head process of the application*/
+  WORD   vid;            /*VDI workstation id of application                */
+  BYTE   msgname[30];    /*name of message pipe of application              */
+  WORD   msgpipe;        /*handle of the message pipe                       */
+  BYTE   eventname[30];  /*name of event pipe                               */
+  WORD   eventpipe;      /*handle of event pipe                             */
+  RSHDR  *rshdr;         /*pointer to memory allocated for resources or 0L  */
+  OBJECT *deskbg;        /*pointer to object tree of desktop, or 0L         */
+  OBJECT *menu;          /*pointer to object tree of menu, or 0L            */
+  WORD   deskmenu;       /*index of desk menu box                           */
+  WORD   newmsg;         /*indicates which messages that are understood     */
+  WORD   killtries;      /*number of times someone has tried to kill the    */
+                         /*application.                                     */
+  WORD   type;           /*application type (acc or app etc)                */
+  struct ap_list  *ap_search_next; /* appl_search() pointer to next app */
+  
+  BYTE   name[21];   /* pretty name of process, init. filename          */
+}AP_INFO;
 
 typedef struct ap_list {
-	AP_INFO        *ai;
-	struct ap_list *next;
-	struct ap_list *mn_next; /* menu link */}AP_LIST;
+  AP_INFO        *ai;
+  struct ap_list *next;
+  struct ap_list *mn_next; /* menu link */
+}AP_LIST;
 
 typedef struct global_array {
-	WORD    version;
-	WORD    numapps;
-	WORD    apid;
-	LONG    appglobal;
-	OBJECT  **rscfile;
-	RSHDR   *rshdr;
-	WORD    resvd1;
-	WORD    resvd2;
-	AP_INFO *int_info;
-	WORD    maxchar;
-	WORD    minchar;
+  WORD    version;
+  WORD    numapps;
+  WORD    apid;
+  LONG    appglobal;
+  OBJECT  **rscfile;
+  RSHDR   *rshdr;
+  WORD    resvd1;
+  WORD    resvd2;
+  AP_INFO *int_info;
+  WORD    maxchar;
+  WORD    minchar;
 }GLOBAL_ARRAY;
 
 typedef struct aes_pb {
-	WORD         *control;
-	GLOBAL_ARRAY *global;
-	WORD         *int_in;
-	WORD         *int_out;
-	LONG         *addr_in;
-	LONG         *addr_out;
+  WORD         *control;
+  GLOBAL_ARRAY *global;
+  WORD         *int_in;
+  WORD         *int_out;
+  LONG         *addr_in;
+  LONG         *addr_out;
 }AES_PB;
 
 typedef struct rlist {
-	RECT	r;
-	
-	struct rlist *next;
+  RECT	r;
+  
+  struct rlist *next;
 }RLIST;
 
 typedef struct winstruct {
-	WORD   id;       /*window id*/
-	
-	WORD   status;   /*window status*/
-	WORD   elements; /*window elements*/
-	
-	OBJECT *tree;	/*object tree of the window elements*/
-
-	RECT   worksize; /*current worksize*/
-	RECT   totsize;  /*current total size*/
-	RECT   lastsize; /*previous total size*/
-	RECT   maxsize;  /*maximal total size*/
-	RECT   origsize; /*original, uniconified, size*/
-	
-	WORD hslidepos;     /*position of the horizontal slider*/
-	WORD vslidepos;     /*position of the vertical slider*/
-	WORD hslidesize;    /*size of the horizontal slider*/
-	WORD vslidesize;   /*size of the vertical slider*/
-	
-	RLIST	*rlist;		/*rectangle list of the window*/
-	RLIST	*rpos;		/*pointer to help wind_get to traverse the
-										rectangle list*/
-	
-	WORD	owner;		/*application id of the owner*/
-
-	OBJC_COLORWORD top_colour[20];
-	OBJC_COLORWORD untop_colour[20];
-	WORD own_colour;
+  WORD   id;       /*window id*/
+  
+  WORD   status;   /*window status*/
+  WORD   elements; /*window elements*/
+  
+  OBJECT *tree;	/*object tree of the window elements*/
+  
+  RECT   worksize; /*current worksize*/
+  RECT   totsize;  /*current total size*/
+  RECT   lastsize; /*previous total size*/
+  RECT   maxsize;  /*maximal total size*/
+  RECT   origsize; /*original, uniconified, size*/
+  
+  WORD hslidepos;     /*position of the horizontal slider*/
+  WORD vslidepos;     /*position of the vertical slider*/
+  WORD hslidesize;    /*size of the horizontal slider*/
+  WORD vslidesize;   /*size of the vertical slider*/
+  
+  RLIST	*rlist;		/*rectangle list of the window*/
+  RLIST	*rpos;		/*pointer to help wind_get to traverse the
+			  rectangle list*/
+  
+  WORD	owner;		/*application id of the owner*/
+  
+  OBJC_COLORWORD top_colour[20];
+  OBJC_COLORWORD untop_colour[20];
+  WORD own_colour;
 }WINSTRUCT;
 
 typedef struct winlist
