@@ -2,3 +2,4 @@ Makefile
 *.prg
 *.pdb
 .libs
+Makefile.in

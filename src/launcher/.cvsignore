@@ -4,3 +4,4 @@ Makefile
 *.prg
 launch.h
 launch.c
+Makefile.in

@@ -5,3 +5,4 @@ structtest
 *.prg
 *.ttp
 *.pdb
+Makefile.in

@@ -252,6 +252,7 @@ typedef struct {
 **
 ** 1998-10-01 CG
 ** 1999-04-24 CG
+** 1999-06-26 CG
 */
 static
 void *
@@ -296,6 +297,7 @@ typedef struct {
 ** Exported
 **
 ** 1999-04-24 CG
+** 1999-06-26 CG
 */
 WORD
 Rsrc_do_rcfix(WORD     vid,

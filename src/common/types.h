@@ -1,18 +1,15 @@
 #ifndef __TYPES__
 #define __TYPES__
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <fcntl.h>
 #include <sys/types.h>
 
 #include "aesbind.h" /* FIXME */
 
-/* FIXME */
-typedef signed char    int8_t;
-typedef unsigned char  u_int8_t;
-typedef signed short   int16_t;
-typedef unsigned short u_int16_t;
-typedef signed long    int32_t;
-typedef unsigned long  u_int32_t;
 
 /* Use POSIX types */
 #ifndef BYTE

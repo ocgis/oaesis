@@ -1,2 +1,3 @@
 Makefile
 *.lo
+Makefile.in

@@ -8,3 +8,4 @@ cursors.c
 resource.h
 resource.c
 .libs
+Makefile.in

@@ -2,3 +2,4 @@ Makefile
 .deps
 .libs
 oaesis
+Makefile.in

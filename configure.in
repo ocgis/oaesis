@@ -167,6 +167,14 @@ AC_CHECK_HEADERS(ioctl.h)
 AC_CHECK_HEADERS(osbind.h)
 AC_CHECK_HEADERS(sysvars.h)
 
+dnl Check for POSIX types
+AC_CHECK_TYPE(int8_t, signed char)
+AC_CHECK_TYPE(u_int8_t, unsigned char)
+AC_CHECK_TYPE(int16_t, signed short)
+AC_CHECK_TYPE(u_int16_t, unsigned short)
+AC_CHECK_TYPE(int32_t, signed long)
+AC_CHECK_TYPE(u_int32_t, unsigned long)
+
 dnl Check for SIGSTKFLT
 OAESIS_CHECK_SIGNAL(SIGSTKFLT) 
 

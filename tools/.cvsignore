@@ -4,3 +4,4 @@ switchvt
 .deps
 .libs
 *.ttp
+Makefile.in
