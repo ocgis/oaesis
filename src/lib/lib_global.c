@@ -157,7 +157,15 @@ WORD own_graf_handle(void) {
  * Public functions                                                         *
  ****************************************************************************/
 
-void init_global(WORD nocnf) {
+/*
+** Description
+** Initialize global variables, open vdi workstation etc
+**
+** 1998-11-15 CG
+*/
+void
+init_global (WORD nocnf,
+             WORD physical_vdi_id) {
   WORD work_in[] = {1,1,1,1,1,1,1,1,1,1,2};
   WORD work_out[57];
   WORD dum;
@@ -223,10 +231,14 @@ void init_global(WORD nocnf) {
   }
 #else  /* ! MINT_TARGET */
   work_in[0] = 5;
-  Vdi_v_opnwk(work_in, &global_appl.vid, work_out);
+  DB_printf ("lib_global.c: init_global: physical_vdi_id = %d",
+             physical_vdi_id);
+  global_appl.vid = physical_vdi_id;
+  Vdi_v_opnvwk (work_in, &global_appl.vid, work_out);
   global_common.vid = global_appl.vid; /* Remove global_common.vid */
   DB_printf ("lib_global.c: init_global: vid=%d", global_appl.vid);
 #endif /* MINT_TARGET */
+  DB_printf ("lib_global.c: init_global: calling vq_extnd");
   Vdi_vq_extnd(global_common.vid,0,work_out);
 
   
@@ -261,7 +273,9 @@ void init_global(WORD nocnf) {
   global_common.fnt_small_id = global_common.fnt_regul_id;
   global_common.fnt_small_sz = global_common.fnt_regul_sz / 2;
   
+  DB_printf ("lib_global.c: init_global: calling vst_font");
   Vdi_vst_font(global_common.vid, global_common.fnt_regul_id);
+  DB_printf ("lib_global.c: init_global: calling vst_point");
   Vdi_vst_point(global_common.vid,global_common.fnt_regul_sz,&dum,&dum,&dum,&dum);
   
   global_common.applmenu = NULL;
@@ -273,6 +287,7 @@ void init_global(WORD nocnf) {
   
   global_common.arrowrepeat = 100;
   
+  DB_printf ("lib_global.c: init_global: calling vqt_attributes");
   Vdi_vqt_attributes(global_common.vid,work_out);
   
   global_common.blwidth = work_out[8] + 3;
@@ -338,7 +353,7 @@ void	exit_global(void) {
       VsetScreen((void *)-1, (void *)-1, oldmode, oldmodecode);
     };
     
-    Vdi_v_clswk(global_common.vid);
+    Vdi_v_clsvwk(global_common.vid);
     own_appl_exit();
   };
 #endif

@@ -67,6 +67,7 @@ CC = @CC@
 LD = @LD@
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
+LT_VERSION_INFO = @LT_VERSION_INFO@
 MAKEINFO = @MAKEINFO@
 NM = @NM@
 OSISINCLUDE = @OSISINCLUDE@
@@ -94,6 +95,8 @@ EXTRA_liboaesis_la_SOURCES = \
         resource.hrd resource.rsc
 
 noinst_HEADERS = appl.h evnt.h evnthndl.h form.h fsel.h graf.h lib_global.h lib_misc.h menu.h objc.h resource.h rsrc.h scrp.h shel.h srv_calls.h wind.h
+
+liboaesis_la_LDFLAGS = @LT_VERSION_INFO@
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../../config.h
 CONFIG_CLEAN_FILES = 
@@ -104,7 +107,6 @@ DEFS = @DEFS@ -I. -I$(srcdir) -I../..
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
-liboaesis_la_LDFLAGS = 
 liboaesis_la_LIBADD = 
 liboaesis_la_OBJECTS =  aesbind.lo appl.lo debug.lo docalls.lo evnt.lo \
 evnthndl.lo form.lo fsel.lo graf.lo lib_global.lo lib_misc.lo menu.lo \

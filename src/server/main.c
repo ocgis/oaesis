@@ -209,9 +209,9 @@ int main(int argc,BYTE *argv[],BYTE *envp[]) {
   Misc_setpath ("u:\\");
   */
 
-  fprintf (stderr,"oaesis: sleeping for 60 seconds\n");
-  getchar ();
-  fprintf (stderr,"oaesis: slept for 60 seconds\n");
+  fprintf (stderr,"oaesis: starting lines.prg\n");
+  system ("lines.prg");
+  fprintf (stderr,"oaesis: lines.prg finished\n");
   /*  Menu_handler(envp); */
   
   exit_aes ();

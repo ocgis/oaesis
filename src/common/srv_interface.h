@@ -17,6 +17,7 @@ enum {
   SRV_GET_APPL_INFO,
   SRV_GET_TOP_MENU,
   SRV_GET_WM_INFO,
+  SRV_GET_VDI_ID,
   SRV_MENU_BAR,
   SRV_MENU_REGISTER,
   SRV_PUT_EVENT,
@@ -81,6 +82,7 @@ typedef struct {
 typedef struct {
   R_ALL common;
   WORD  apid;
+  WORD  physical_vdi_id;
 }R_APPL_INIT;
 
 typedef struct {
@@ -139,6 +141,15 @@ typedef struct {
 typedef struct {
   void *retval;
 }C_GET_TOP_MENU;
+
+typedef struct {
+  C_ALL common;
+} C_GET_VDI_ID;
+
+typedef struct {
+  R_ALL common;
+  WORD  vid;
+} R_GET_VDI_ID;
 
 typedef struct {
   WORD id;
@@ -293,6 +304,7 @@ typedef union {
   C_EVNT_MULTI    evnt_multi;
   C_GET_APPL_INFO get_appl_info;
   C_GET_TOP_MENU  get_top_menu;
+  C_GET_VDI_ID    get_vdi_id;
   C_GET_WM_INFO   get_wm_info;
   C_MENU_BAR      menu_bar;
   C_MENU_REGISTER menu_register;
@@ -320,6 +332,7 @@ typedef union {
   R_APPL_INIT   appl_init;
   R_APPL_WRITE  appl_write;
   R_EVNT_MULTI  evnt_multi;
+  R_GET_VDI_ID  get_vdi_id;
   R_WIND_CREATE wind_create;
   R_WIND_DELETE wind_delete;
   R_WIND_GET    wind_get;

@@ -98,7 +98,16 @@ typedef struct global_appl {
   void          * windows;
 }GLOBAL_APPL;
 
-void	init_global(WORD physical);
+/*
+** Description
+** Initialize global variables, open vdi workstation etc
+**
+** 1998-11-15 CG
+*/
+void
+init_global (WORD nocnf,
+             WORD physical_vdi_id);
+
 void	exit_global(void);
 
 #ifdef MINT_TARGET

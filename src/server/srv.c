@@ -179,6 +179,7 @@ static WORD widgetmap[] = {
 	WLEFT,WRIGHT,WHSB,WHSLIDER,WSMALLER
 };
 
+/* Physical VDI workstation id */
 static WORD svid;
 
 static BYTE **environ;
@@ -1030,6 +1031,21 @@ SRV_APPL_INFO *appl_info)  /* Returned info.                                */
   return retval;
 }
 
+
+/*
+** Description
+** Get physical vdi handle of oaesis
+**
+** 1998-11-15 CG
+*/
+static
+void
+srv_get_vdi_id (C_GET_VDI_ID * par,
+            R_GET_VDI_ID * ret) {
+  ret->vid = svid;
+}
+
+
 /****************************************************************************
  * srv_get_wm_info                                                          *
  *  Get window manager info on window.                                      *
@@ -1490,6 +1506,7 @@ BYTE *fname)      /* File name of application to seek.                      */
 ** appl_init help call
 **
 ** 1998-09-26 CG
+** 1998-11-15 CG
 */
 static void
 srv_appl_init(C_APPL_INIT * par,
@@ -1558,7 +1575,8 @@ srv_appl_init(C_APPL_INIT * par,
     */
     ret->apid = -1;
   };
-  
+
+  ret->physical_vdi_id = svid;
   /*
   if(ret->apid >= 0) {
     BYTE fname[128],cmdlin[128],menuentry[21],*tmp;
@@ -4168,12 +4186,14 @@ server (LONG arg) {
   NOT_USED(arg);
   
   /* Initialize message handling */
-  fprintf (stderr, "oaesis: srv.c: Initializing message handling\n");
+  DB_printf ("srv.c: Initializing message handling");
   Srv_open ();
-  fprintf (stderr, "oaesis: srv.c: Initialized message handling\n");
+  DB_printf ("srv.c: Initialized message handling");
 
   svid = globals.vid;
-  Vdi_v_opnvwk(work_in,&svid,work_out);
+  DB_printf ("srv.c: Opening vdi workstation");
+  Vdi_v_opnwk(work_in, &svid, work_out);
+  DB_printf ("srv.c: Opened vdi workstation: svdi = %d", svid);
 
   /* Initialize desktop background */
   ws = winalloc();
@@ -4232,10 +4252,13 @@ server (LONG arg) {
 #endif
 
     /* Wait for another call from a client */
-    /* DB_printf ("srv.c: Waiting for message from client");*/
+    /*
+    DB_printf ("srv.c: Waiting for message from client");
+    */
     handle = Srv_get (&par, sizeof (C_SRV));
-    /* DB_printf ("srv.c: Got message from client");*/
-    
+    /*
+    DB_printf ("srv.c: Got message from client");
+    */
 #ifdef SRV_DEBUG
     DB_printf("Call: %d pid: %d",msg.cr.call,msg.pid);
 #endif		
@@ -4251,7 +4274,7 @@ server (LONG arg) {
       DB_printf("OK! Nice chatting with you! Bye!");
       
       Srv_reply (handle, &par, 0);
-      Vdi_v_clsvwk(svid);
+      Vdi_v_clswk(svid);
       return 0;
       
     case SRV_APPL_CONTROL:
@@ -4317,6 +4340,12 @@ server (LONG arg) {
       Srv_reply (handle, &par, code);
       break;
       
+    case SRV_GET_VDI_ID :
+      srv_get_vdi_id (&par.appl_exit, &ret.get_vdi_id);
+      
+      Srv_reply (handle, &ret, sizeof (R_GET_VDI_ID));
+      break;
+
     case SRV_GET_WM_INFO:
       code = 
 	srv_get_wm_info (&par.get_wm_info);

@@ -154,10 +154,6 @@ GLOBAL_ARRAY * global) /* Global array.                                     */
   }
 	
 
-  par.global = global;
-
-  par.vid = globals.vid;
-  Vdi_v_opnvwk(work_in, &par.vid, work_out);
   */
 
   /* Open connection */
@@ -189,7 +185,8 @@ GLOBAL_ARRAY * global) /* Global array.                                     */
 
   if(global->apid >= 0) {
     DB_printf ("appl.c: Appl_do_init: Calling init_global");
-    init_global (1);
+
+    init_global (1, ret.physical_vdi_id);
 
     return global->apid;
   } else {

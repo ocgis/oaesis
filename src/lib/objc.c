@@ -1702,11 +1702,17 @@ RECT   * clip)    /* Clipping rectangle.                                    */
 }
 
 
+/*
+** Description
+** objc_draw ()
+**
+** 1998-11-15 CG
+*/
 void
 Objc_draw (AES_PB *apb) {
-  GLOBAL_APPL * global_appl = get_globals (apb->global->apid);
+  GLOBAL_APPL * globals = get_globals (apb->global->apid);
 
-  apb->int_out[0] = Objc_do_draw (global_appl->vid,
+  apb->int_out[0] = Objc_do_draw (globals->vid,
                                   (OBJECT *)apb->addr_in[0],
                                   apb->int_in[0],
                                   apb->int_in[1],
@@ -1921,18 +1927,17 @@ WORD     drawflag)  /* Drawing flag.                                        */
   return 1;
 }
 
-/****************************************************************************
- * Objc_change                                                              *
- *   0x002f objc_change().                                                  *
- ****************************************************************************/
-void              /*                                                        */
-Objc_change(      /*                                                        */
-AES_PB * apb)     /* AES parameter block.                                   */
-/****************************************************************************/
-{
-  GLOBAL_APPL * global_appl = get_globals (apb->global->apid);
+/*
+** Description
+**   0x002f objc_change().
+**
+** 1998-11-15 CG
+*/
+void
+Objc_change (AES_PB * apb) {
+  GLOBAL_APPL * globals = get_globals (apb->global->apid);
 
-  apb->int_out[0] = Objc_do_change (global_appl->vid,
+  apb->int_out[0] = Objc_do_change (globals->vid,
                                     (OBJECT *)apb->addr_in[0],
                                     apb->int_in[0],
                                     (RECT *)&apb->int_in[2],

@@ -13,3 +13,5 @@ EXTRA_liboaesis_la_SOURCES = \
         resource.hrd resource.rsc
 
 noinst_HEADERS = appl.h evnt.h evnthndl.h form.h fsel.h graf.h lib_global.h lib_misc.h menu.h objc.h resource.h rsrc.h scrp.h shel.h srv_calls.h wind.h
+
+liboaesis_la_LDFLAGS = @LT_VERSION_INFO@
