@@ -192,7 +192,10 @@ srv_init_global (WORD nocnf) {
   signal (SIGTRAP, handle_signal);
   signal (SIGBUS, handle_signal);
   signal (SIGFPE, handle_signal);
+  /* Sparc Linux doesn't have SIGSTKFLT */
+#ifdef HAVE_SIGNAL_SIGSTKFLT
   signal (SIGSTKFLT, handle_signal);
+#endif /* HAVE_SIGNAL_SIGSTKFLT */
   signal (SIGPIPE, handle_signal);
   signal (SIGQUIT, handle_signal);
   signal (SIGTERM, handle_signal);

@@ -154,6 +154,9 @@ AC_CHECK_HEADERS(vdi.h)
 AC_CHECK_HEADERS(vdibind.h)
 AC_CHECK_HEADERS(sysvars.h)
 
+dnl Check for SIGSTKFLT
+OAESIS_CHECK_SIGNAL(SIGSTKFLT) 
+
 dnl Specify which variables that should be exchanged
 AC_SUBST(PACKAGE)
 AC_SUBST(VERSION)
