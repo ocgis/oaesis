@@ -26,24 +26,9 @@
 #include <aesbind.h>
 #include <vdibind.h>
 
+#include "boot.h"
 #include "launch.h"
-
-#define WORD short
-#define LONG long
-
-#ifndef TRUE
-#define TRUE  1
-#define FALSE 0
-#endif /* TRUE */
-
-#define HI_WORD(l) ((WORD)((LONG)l >> 16))
-#define LO_WORD(l) ((WORD)((LONG)l & 0xffff))
-
-#ifdef MINT_TARGET
-#define PATH_SEPARATOR '\\'
-#else
-#define PATH_SEPARATOR '/'
-#endif
+#include "misc.h"
 
 static int  vid;
 static WORD num_colors;
@@ -79,48 +64,11 @@ static char progpath[500] = "/usr/local/src/osis/ppc-linux/*";
 
 static char progfile[70] = "toswin_w.prg";
 
-#ifdef MINT_TARGET
-/*
-** Description
-** Set current working directory
-**
-** 1999-08-14 CG
-*/
-int
-setpath (char * dir) {
-  int    drv, old;
-  char * d;
-  
-  d = dir;
-  old = Dgetdrv();
-  if(*d && (*(d+1) == ':')) {
-    drv = toupper(*d) - 'A';
-    d += 2;
-    (void)Dsetdrv(drv);
-  }
-  
-  if(!*d) {		/* empty path means root directory */
-    *d = '\\';
-    *(d + 1) = '\0';
-  }
-  
-  if(Dsetpath(d) < 0) {
-    (void)Dsetdrv(old);
-    return -1;
-  }
-  
-  return 0;
-}
-#endif /* MINT_TARGET */
 
 
 /*
 ** Description
 ** Let the user select an application and start it
-**
-** 1999-01-11 CG
-** 1999-03-11 CG
-** 1999-03-21 CG
 */
 static
 void
@@ -151,12 +99,13 @@ launch_application (void) {
 
 
 #ifdef MINT_TARGET
-    Dgetpath (oldpath, 0);
-    setpath (newpath);
+    /* FIXME: Use shel_write instead */
+    Dgetpath(oldpath, 0);
+    misc_setpath(newpath);
 
-    err = Pexec (100, execpath, 0L, 0L);
+    err = Pexec(100, execpath, 0L, 0L);
 
-    setpath (oldpath);
+    misc_setpath(oldpath);
 #else
     getcwd (oldpath, 128);
     chdir (newpath);
@@ -595,6 +544,8 @@ main ()
   /*
   fsel_exinput (path, file, &exit_button, "Hulabopp");
   */
+
+  Boot_start_programs();
 
   testwin();
 

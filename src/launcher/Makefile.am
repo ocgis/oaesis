@@ -4,7 +4,7 @@ INCLUDES = -I../lib
 bin_PROGRAMS = launcher.prg
 
 launcher_prg_SOURCES = \
-        launch.c launcher.c
+        boot.c boot.h launch.c launcher.c misc.c misc.h
 
 EXTRA_launcher_prg_SOURCES = \
 	launch.rsc launch.hrd
