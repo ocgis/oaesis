@@ -48,7 +48,7 @@ static LOCK_INFO free_lock_info = LOCK_INFO_NIL;
 ** Description
 ** Allocate a new lock info structure
 */
-INLINE
+inline
 LOCK_INFO
 lialloc (COMM_HANDLE handle,
          WORD        apid) {
@@ -73,7 +73,7 @@ lialloc (COMM_HANDLE handle,
 ** Description
 ** Free an lock info structure
 */
-INLINE
+inline
 void
 lifree (LOCK_INFO     li,
         COMM_HANDLE * handle,
@@ -90,7 +90,7 @@ lifree (LOCK_INFO     li,
 ** Description
 ** Get lock
 */
-INLINE
+inline
 void
 get_lock (COMM_HANDLE handle,
           WORD        apid,
@@ -127,7 +127,7 @@ get_lock (COMM_HANDLE handle,
 ** Description
 ** Try to return lock
 */
-INLINE
+inline
 void
 return_lock (COMM_HANDLE handle,
              WORD        apid,

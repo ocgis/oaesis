@@ -61,7 +61,7 @@ static COMM_HANDLE last_queued_handle  = COMM_HANDLE_NIL;
 ** Insert a handle last in the queue
 */
 static
-INLINE
+inline
 void
 insert_last (COMM_HANDLE handle) {
   if (first_queued_handle == COMM_HANDLE_NIL) {
@@ -81,7 +81,7 @@ insert_last (COMM_HANDLE handle) {
 ** Pop the first queued handle
 */
 static
-INLINE
+inline
 COMM_HANDLE
 pop_first (void) {
   COMM_HANDLE handle;

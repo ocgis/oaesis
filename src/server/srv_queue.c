@@ -80,7 +80,7 @@ free_queue (QUEUE q) {
 ** Description
 ** Allocate a new element
 */
-INLINE
+inline
 ELEMENT
 ealloc (QUEUE q) {
   if (q->free == ELEMENT_NIL) {
@@ -101,7 +101,7 @@ ealloc (QUEUE q) {
 ** Description
 ** Free an element
 */
-INLINE
+inline
 void
 efree (QUEUE   q,
        ELEMENT e) {

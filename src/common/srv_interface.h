@@ -387,11 +387,11 @@ typedef union {
 } R_SRV;
 
 
-#define FIX_ENDIAN(parameters,routine) \
+#define FIX_ENDIAN(parameters,routine,n_o_words) \
 { \
   int    i; \
   void * walk = parameters; \
-  int    words = (parameters)->common.words; \
+  int    words = n_o_words; \
 \
   for(i = 0; i < words; i++) \
   { \
@@ -408,16 +408,16 @@ typedef union {
   (parameters)->common.call = SRV_##callname; \
 }
 
-#ifdef WORDS_BIGENDIAN
+#ifndef WORDS_BIGENDIAN
 #define HTON(parameters)
 #else
-#define HTON(parameters) FIX_ENDIAN(parameters,hton)
+#define HTON(parameters) FIX_ENDIAN(parameters,hton,(parameters)->common.words)
 #endif
 
-#ifdef WORDS_BIGENDIAN
+#ifndef WORDS_BIGENDIAN
 #define NTOH(parameters)
 #else
-#define NTOH(parameters) FIX_ENDIAN(parameters,ntoh)
+#define NTOH(parameters) FIX_ENDIAN(parameters,ntoh,ntohs((parameters)->common.words))
 #endif
 
 #define PUT_R_ALL(callname,parameters) \
