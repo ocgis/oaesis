@@ -30,9 +30,9 @@
 
 #include "debug.h"
 #include "gemdefs.h"
-#include "lxgemdos.h"
-#include "misc.h"
-#include "srv.h"
+/*#include "lxgemdos.h"*/
+#include "lib_misc.h"
+#include "srv_calls.h"
 #include "types.h"
 
 #define TOSAPP 0

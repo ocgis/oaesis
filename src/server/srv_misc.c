@@ -48,9 +48,9 @@
 #include <unistd.h>
 
 #include "gemdefs.h"
-#include "global.h"
+#include "srv_global.h"
 #include "lxgemdos.h"
-#include "misc.h"
+#include "srv_misc.h"
 #include "types.h"
 #include "vdi.h"
 

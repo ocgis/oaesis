@@ -2590,7 +2590,7 @@ done
 ac_given_srcdir=$srcdir
 ac_given_INSTALL="$INSTALL"
 
-trap 'rm -fr `echo "Makefile src/Makefile src/comm/Makefile src/lib/Makefile test/Makefile config.h" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
+trap 'rm -fr `echo "Makefile src/Makefile src/comm/Makefile src/common/Makefile src/lib/Makefile src/server/Makefile test/Makefile config.h" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
 EOF
 cat >> $CONFIG_STATUS <<EOF
 
@@ -2699,7 +2699,7 @@ EOF
 
 cat >> $CONFIG_STATUS <<EOF
 
-CONFIG_FILES=\${CONFIG_FILES-"Makefile src/Makefile src/comm/Makefile src/lib/Makefile test/Makefile"}
+CONFIG_FILES=\${CONFIG_FILES-"Makefile src/Makefile src/comm/Makefile src/common/Makefile src/lib/Makefile src/server/Makefile test/Makefile"}
 EOF
 cat >> $CONFIG_STATUS <<\EOF
 for ac_file in .. $CONFIG_FILES; do if test "x$ac_file" != x..; then
@@ -2868,8 +2868,8 @@ fi; done
 EOF
 
 cat >> $CONFIG_STATUS <<EOF
-ac_sources="src/debug.c src/global.c src/misc.c src/rlist.c src/comm/srv_get_pmsg.c src/comm/srv_put_pmsg.c src/vdi.c"
-ac_dests="src/lib/debug.c src/lib/global.c src/lib/misc.c src/lib/rlist.c src/srv_get.c src/lib/srv_put.c src/lib/vdi.c"
+ac_sources="src/common/debug.c src/common/debug.c src/comm/srv_get_sockets.c src/comm/srv_put_sockets.c src/common/vdi.c src/common/vdi.c src/lib/resource.h"
+ac_dests="src/lib/debug.c src/server/debug.c src/server/srv_get.c src/lib/srv_put.c src/lib/vdi.c src/server/vdi.c src/server/resource.h"
 EOF
 
 cat >> $CONFIG_STATUS <<\EOF

@@ -80,9 +80,9 @@ ovdisis_libs = @ovdisis_libs@
 target_cpu = @target_cpu@
 target_os = @target_os@
 
-EXTRA_DIST = srv_get_sockets.c srv_get_pmsg.c srv_put_sockets.c srv_put_pmsg.c
+EXTRA_DIST = debug.c vdi.c
 
-noinst_HEADERS = srv_get.h srv_put.h srv_sockets.h
+noinst_HEADERS = debug.h gemdefs.h mesagdef.h mintdefs.h oconfig.h srv_interface.h types.h version.h vdi.h
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../../config.h
 CONFIG_CLEAN_FILES = 
@@ -99,7 +99,7 @@ all: Makefile $(HEADERS)
 
 .SUFFIXES:
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4)
-	cd $(top_srcdir) && $(AUTOMAKE) --gnu src/comm/Makefile
+	cd $(top_srcdir) && $(AUTOMAKE) --gnu src/common/Makefile
 
 Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
 	cd $(top_builddir) \
@@ -133,14 +133,14 @@ maintainer-clean-tags:
 
 distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
 
-subdir = src/comm
+subdir = src/common
 
 distdir: $(DISTFILES)
 	here=`cd $(top_builddir) && pwd`; \
 	top_distdir=`cd $(top_distdir) && pwd`; \
 	distdir=`cd $(distdir) && pwd`; \
 	cd $(top_srcdir) \
-	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --gnu src/comm/Makefile
+	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --gnu src/common/Makefile
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  test -f $(distdir)/$$file \

@@ -1,7 +1,7 @@
 #ifndef	__WIND__
 #define	__WIND__
 
-#include "rlist.h"
+/*#include "rlist.h"*/
 #include "types.h"
 
 void Wind_create(AES_PB *apb); /*0x0064*/

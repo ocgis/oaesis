@@ -25,7 +25,7 @@
  ****************************************************************************/
 
 #include "debug.h"
-#include "lxgemdos.h"
+/*#include "lxgemdos.h"*/
 #include "types.h"
 #include "vdi.h"
 

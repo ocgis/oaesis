@@ -33,7 +33,7 @@
 #endif
 
 #include "mintdefs.h"
-#include "misc.h"
+#include "srv_misc.h"
 #include "rlist.h"
 #include "types.h"
 

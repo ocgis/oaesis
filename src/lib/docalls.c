@@ -35,7 +35,7 @@
 #include "evnt.h"
 #include "form.h"
 #include "fsel.h"
-#include "global.h"
+#include "lib_global.h"
 #include "graf.h"
 #include "menu.h"
 #include "objc.h"

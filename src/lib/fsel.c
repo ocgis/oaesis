@@ -57,12 +57,13 @@
 #include "fsel.h"
 #include "gemdefs.h"
 #include "graf.h"
+#include "lib_global.h"
+#include "lib_misc.h"
 #include "mintdefs.h"
-#include "misc.h"
 #include "objc.h"
 #include "resource.h"
 #include "rsrc.h"
-#include "srv.h"
+#include "srv_calls.h"
 #include "types.h"
 
 /****************************************************************************

@@ -3,14 +3,35 @@
 
 #include "types.h"
 
-void *
-Srv_get (WORD * apid,
-         WORD * pid,
-         WORD * call,
-         void * spec);
+/*
+** Description
+** Open the server connection
+**
+** 1998-09-25 CG
+*/
+void
+Srv_open (void);
 
+
+/*
+** Description
+** Wait for a message from a client
+**
+** 1998-09-25 CG
+*/
+void *
+Srv_get (void * in,
+         int    max_bytes_in);
+
+
+/*
+** Description
+** Reply with a message to a client
+**
+** 1998-09-25 CG
+*/
 void
 Srv_reply (void * handle,
-           void * spec,
-           WORD   code);
+           void * out,
+           WORD   bytes_out);
 #endif

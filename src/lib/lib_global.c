@@ -46,11 +46,11 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#include "boot.h"
+/*#include "boot.h"*/
 #include "debug.h"
 #include "gemdefs.h"
-#include "global.h"
-#include "lxgemdos.h"
+#include "lib_global.h"
+/*#include "lxgemdos.h"*/
 #include "resource.h"
 #include "rsrc.h"
 #include "types.h"
@@ -221,7 +221,7 @@ void init_global(WORD nocnf) {
   }
 #else  /* ! MINT_TARGET */
   work_in[0] = 5;
-  Vdi_v_opnwk(work_in,&globals.vid,work_out);
+  /*  Vdi_v_opnwk(work_in,&globals.vid,work_out);*/
 #endif /* MINT_TARGET */
 
   Vdi_vq_extnd(globals.vid,0,work_out);

@@ -44,12 +44,12 @@
 #include "evnthndl.h"
 #include "form.h"
 #include "gemdefs.h"
-#include "global.h"
+#include "lib_global.h"
 #include "graf.h"
 #include "mintdefs.h"
 #include "objc.h"
 #include "resource.h"
-#include "srv.h"
+#include "srv_calls.h"
 #include "types.h"
 
 /****************************************************************************

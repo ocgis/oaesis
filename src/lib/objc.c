@@ -58,9 +58,9 @@
 
 #include "debug.h"
 #include "gemdefs.h"
-#include "global.h"
+#include "lib_global.h"
 #include "mintdefs.h"
-#include "misc.h"
+#include "lib_misc.h"
 #include "objc.h"
 #include "types.h"
 #include "vdi.h"

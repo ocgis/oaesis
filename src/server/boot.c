@@ -59,9 +59,9 @@
 
 #include "debug.h"
 #include "gemdefs.h"
-#include "global.h"
+#include "srv_global.h"
 #include "mintdefs.h"
-#include "misc.h"
+#include "srv_misc.h"
 #include "srv.h"
 #include "types.h"
 

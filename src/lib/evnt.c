@@ -62,11 +62,11 @@
 #include "evnt.h"
 #include "evnthndl.h"
 #include "gemdefs.h"
-#include "global.h"
+#include "lib_global.h"
 #include "mintdefs.h"
 #include "mesagdef.h"
 #include "resource.h"
-#include "srv.h"
+#include "srv_calls.h"
 #include "types.h"
 
 #ifdef HAVE_SYSVARS_H

@@ -1,7 +1,7 @@
 #ifndef	__MESAGDEF__
 #define	__MESAGDEF__
 
-#include	"global.h"
+/*#include	"global.h"*/
 #include	"types.h"
 
 typedef struct {

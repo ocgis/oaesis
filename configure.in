@@ -114,13 +114,13 @@ dnl Set CFLAGS
 CFLAGS="$CFLAGS -Wall"
 
 dnl Setup symbolic links
-AC_LINK_FILES(src/debug.c, src/lib/debug.c)
-AC_LINK_FILES(src/global.c, src/lib/global.c)
-AC_LINK_FILES(src/misc.c, src/lib/misc.c)
-AC_LINK_FILES(src/rlist.c, src/lib/rlist.c)
-AC_LINK_FILES(src/comm/srv_get_pmsg.c, src/srv_get.c)
-AC_LINK_FILES(src/comm/srv_put_pmsg.c, src/lib/srv_put.c)
-AC_LINK_FILES(src/vdi.c, src/lib/vdi.c)
+AC_LINK_FILES(src/common/debug.c, src/lib/debug.c)
+AC_LINK_FILES(src/common/debug.c, src/server/debug.c)
+AC_LINK_FILES(src/comm/srv_get_sockets.c, src/server/srv_get.c)
+AC_LINK_FILES(src/comm/srv_put_sockets.c, src/lib/srv_put.c)
+AC_LINK_FILES(src/common/vdi.c, src/lib/vdi.c)
+AC_LINK_FILES(src/common/vdi.c, src/server/vdi.c)
+AC_LINK_FILES(src/lib/resource.h, src/server/resource.h)
 
 dnl Specify which files that should be created
-AC_OUTPUT(Makefile src/Makefile src/comm/Makefile src/lib/Makefile test/Makefile)
+AC_OUTPUT(Makefile src/Makefile src/comm/Makefile src/common/Makefile src/lib/Makefile src/server/Makefile test/Makefile)

@@ -54,21 +54,21 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "boot.h"
+/*#include "boot.h"*/
 #include "debug.h"
 #include "evnt.h"
 #include "form.h"
 #include "fsel.h"
 #include "gemdefs.h"
-#include "global.h"
+#include "lib_global.h"
 #include "mintdefs.h"
 #include "menu.h"
 #include "mesagdef.h"
-#include "misc.h"
+#include "lib_misc.h"
 #include "objc.h"
 #include "resource.h"
 #include "rsrc.h"
-#include "srv.h"
+#include "srv_calls.h"
 #include "types.h"
 
 #ifdef HAVE_SYSVARS_H

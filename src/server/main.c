@@ -26,13 +26,13 @@
 #include <unistd.h>
 
 #include "debug.h"
-#include "evnthndl.h"
+/*#include "evnthndl.h"*/
 #include "lxgemdos.h"
-#include "menu.h"
-#include "misc.h"
+/*#include "menu.h"*/
+#include "srv_misc.h"
 #include "mousedev.h"
-#include "objc.h"
-#include "resource.h"
+/*#include "objc.h"*/
+/*#include "resource.h"*/
 #include "srv.h"
 #include "version.h"
 

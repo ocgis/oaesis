@@ -48,11 +48,11 @@
 
 #include "debug.h"
 #include "gemdefs.h"
-#include "global.h"
+#include "lib_global.h"
 #include "mintdefs.h"
 #include "rsrc.h"
 #include "shel.h"
-#include "srv.h"
+#include "srv_calls.h"
 #include "types.h"
 #include "vdi.h"
 

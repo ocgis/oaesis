@@ -48,16 +48,17 @@
 #include "oconfig.h"
 #include "debug.h"
 #include "gemdefs.h"
-#include "global.h"
+#include "srv_global.h"
 #include "lxgemdos.h"
 #include "mesagdef.h"
 #include "mintdefs.h"
-#include "misc.h"
-#include "objc.h"
+#include "srv_misc.h"
+/*#include "objc.h"*/
 #include "resource.h"
 #include "rlist.h"
 #include "srv.h"
 #include "srv_get.h"
+#include "srv_interface.h"
 #include "types.h"
 #include "vdi.h"
 
@@ -68,38 +69,6 @@
 
 
 #define SRV_QUE_SIZE 32
-
-/* Server calls */
-
-enum {
-  SRV_SHAKE,
-  SRV_SHUTDOWN,
-  SRV_APPL_CONTROL,
-  SRV_APPL_EXIT,
-  SRV_APPL_FIND,
-  SRV_APPL_INIT,
-  SRV_APPL_SEARCH,
-  SRV_APPL_WRITE,
-  SRV_CLICK_OWNER,
-  SRV_GET_APPL_INFO,
-  SRV_GET_TOP_MENU,
-  SRV_GET_WM_INFO,
-  SRV_MENU_BAR,
-  SRV_MENU_REGISTER,
-  SRV_PUT_EVENT,
-  SRV_SHEL_ENVRN,
-  SRV_SHEL_WRITE,
-  SRV_WIND_CHANGE,
-  SRV_WIND_CLOSE,
-  SRV_WIND_CREATE,
-  SRV_WIND_DELETE,
-  SRV_WIND_DRAW,
-  SRV_WIND_FIND,
-  SRV_WIND_GET,
-  SRV_WIND_NEW,
-  SRV_WIND_OPEN,
-  SRV_WIND_SET
-};
 
 /* appl_* related */
 
@@ -128,189 +97,6 @@ enum {
  * Typedefs of module global interest                                       *
  ****************************************************************************/
 
-/* appl_* related */
-
-typedef struct {
-	WORD apid;
-	WORD mode;
-	WORD retval;
-}C_APPL_CONTROL;
-
-typedef struct {
-	WORD retval;
-}C_APPL_EXIT;
-
-typedef struct {
-	BYTE *fname;
-	WORD retval;
-}C_APPL_FIND;
-
-typedef struct {
-	WORD         vid;
-	BYTE         msgname[20];
-	WORD         msghandle;
-	BYTE         eventname[20];
-	WORD         eventhandle;
-	GLOBAL_ARRAY *global;
-}C_APPL_INIT;
-
-typedef struct {
-	WORD mode;
-	BYTE *name;
-	WORD type;
-	WORD ap_id;
-	WORD retval;
-}C_APPL_SEARCH;
-
-typedef struct {
-	WORD apid;
-	WORD length;
-	void *msg;
-	WORD retval;
-}C_APPL_WRITE;
-
-typedef struct {
-	WORD retval;
-}C_CLICK_OWNER;
-
-typedef struct {
-	SRV_APPL_INFO *appl_info;
-	WORD      retval;
-}C_GET_APPL_INFO;
-
-typedef struct {
-	void *retval;
-}C_GET_TOP_MENU;
-
-typedef struct {
-	WORD id;
-	void *retval;
-}C_GET_WM_INFO;
-
-typedef struct {
-	WORD   apid;
-	OBJECT *tree;
-	WORD   mode;
-	WORD   retval;
-}C_MENU_BAR;
-
-typedef struct {
-	BYTE *title;
-	WORD retval;
-}C_MENU_REGISTER;
-
-typedef struct {
-	WORD    apid;
-	EVNTREC *er;
-	WORD    length;
-	WORD    retval;
-}C_PUT_EVENT;
-
-typedef struct {
-	WORD pid;
-	WORD type;
-	WORD retval;
-}C_REGISTER_PRG;
-
-typedef struct {
-	BYTE **value;
-	BYTE *name;
-	WORD retval;
-}C_SHEL_ENVRN;
-
-typedef struct {
-	WORD mode;
-	WORD wisgr;
-	WORD wiscr;
-	BYTE *cmd;
-	BYTE *tail;
-	WORD retval;
-}C_SHEL_WRITE;
-
-typedef struct {
-	WORD id;
-	WORD object;
-	WORD newstate;
-	WORD retval;
-}C_WIND_CHANGE;
- 
-typedef struct {
-	WORD id;
-	WORD retval;
-}C_WIND_CLOSE;
-
-typedef struct {
-	WORD owner;
-	WORD elements;
-	RECT *maxsize;
-	WORD status;
-	WORD retval;
-}C_WIND_CREATE;
-
-typedef C_WIND_CLOSE C_WIND_DELETE;
-
-typedef struct {
-	WORD handle;
-	WORD object;
-	WORD retval;
-}C_WIND_DRAW;
-
-typedef struct {
-	WORD x;
-	WORD y;
-	WORD retval;
-}C_WIND_FIND;
-
-typedef struct {
-	WORD handle;
-	WORD mode;
-	WORD parm1;
-	WORD parm2;
-	WORD parm3;
-	WORD parm4;
-	WORD retval;
-}C_WIND_GET;
-
-typedef struct {
-	WORD retval;
-}C_WIND_NEW;
-
-typedef C_WIND_GET C_WIND_SET;
-
-typedef struct {
-	WORD id;
-	RECT *size;
-	WORD retval;
-}C_WIND_OPEN;
-
-typedef union {
-	C_APPL_CONTROL  appl_control;
-	C_APPL_EXIT     appl_exit;
-	C_APPL_FIND     appl_find;
-	C_APPL_INIT     appl_init;
-	C_APPL_SEARCH   appl_search;
-	C_APPL_WRITE    appl_write;
-	C_CLICK_OWNER   click_owner;
-	C_GET_APPL_INFO get_appl_info;
-	C_GET_TOP_MENU  get_top_menu;
-	C_GET_WM_INFO   get_wm_info;
-	C_MENU_BAR      menu_bar;
-	C_MENU_REGISTER menu_register;
-	C_PUT_EVENT     put_event;
-	C_REGISTER_PRG  register_prg;
-	C_SHEL_ENVRN    shel_envrn;
-	C_SHEL_WRITE    shel_write;
-	C_WIND_CHANGE   wind_change;
-	C_WIND_CLOSE    wind_close;
-	C_WIND_CREATE   wind_create;
-	C_WIND_DELETE   wind_delete;
-	C_WIND_DRAW     wind_draw;
-	C_WIND_FIND     wind_find;
-	C_WIND_GET      wind_get;
-	C_WIND_NEW      wind_new;
-	C_WIND_OPEN     wind_open;
-	C_WIND_SET      wind_set;
-}C_SRV;
 
 /****************************************************************************
  * Module global variables                                                  *
@@ -410,9 +196,10 @@ void accstart (void) {}
  * srv_appl_exit                                                            *
  *  Implementation of appl_exit().                                          *
  ****************************************************************************/
-WORD            /* 0 if error, or 1.                                        */
-srv_appl_exit(  /*                                                          */
-WORD apid);     /* Application id.                                          */
+void
+srv_appl_exit(      /*                                                      */
+C_APPL_EXIT * par,  /* Application id.                                      */
+R_APPL_EXIT * ret);
 /****************************************************************************/
 
 /****************************************************************************
@@ -1576,11 +1363,15 @@ C_APPL_CONTROL * msg) /*                                                    */
 	srv_appl_write (&c_appl_write);
       }
       else {
+        C_APPL_EXIT par;
+        R_APPL_EXIT ret;
+
 	DB_printf("Killing apid %d", msg->apid);
 	
 	(void)Pkill(ai->pid,SIGKILL);
-	
-	srv_appl_exit (msg->apid);
+
+	par.common.apid = msg->apid;
+	srv_appl_exit (&par, &ret);
       };
       
       return 1;
@@ -1600,9 +1391,10 @@ C_APPL_CONTROL * msg) /*                                                    */
  * srv_appl_exit                                                            *
  *  Implementation of appl_exit().                                          *
  ****************************************************************************/
-WORD            /* 0 if error, or 1.                                        */
-srv_appl_exit(  /*                                                          */
-WORD apid)      /* Application id.                                          */
+void
+srv_appl_exit(     /*                                                       */
+C_APPL_EXIT * par,
+R_APPL_EXIT * ret)
 /****************************************************************************/
 {
   C_WIND_SET cws = {0,WF_NEWDESK,0,0,0,0};
@@ -1610,18 +1402,26 @@ WORD apid)      /* Application id.                                          */
 
   /*clean up*/
 
-  c_menu_bar.apid = apid;
+  c_menu_bar.apid = par->common.apid;
   c_menu_bar.tree = NULL;
   c_menu_bar.mode = MENU_REMOVE;
+  fprintf (stderr, "oaesis: srv.c: srv_appl_exit: Removing menu bar\n");
   srv_menu_bar(&c_menu_bar);
-  unregister_menu(apid);
-  srv_wind_set(apid,&cws);
-  srv_wind_new(apid);
-  apinfofree(apid);
+  fprintf (stderr, "oaesis: srv.c: srv_appl_exit: Unregistering menu bar\n");
+  unregister_menu(par->common.apid);
+  /*  srv_wind_set(par->common.apid,&cws);*/
+  fprintf (stderr, "oaesis: srv.c: srv_appl_exit: Removing windows\n");
+  srv_wind_new(par->common.apid);
+  fprintf (stderr, "oaesis: srv.c: srv_appl_exit: Removing apinf\n");
+  apinfofree(par->common.apid);
   
+  /*
+  fprintf (stderr, "oaesis: srv.c: srv_appl_exit: Updating application menu\n");
   update_appl_menu();
-  
-  return 1;
+  */
+
+  fprintf (stderr, "oaesis: srv.c: srv_appl_exit: Returning\n");
+  ret->common.retval = 1;
 }
 
 /****************************************************************************
@@ -1684,11 +1484,21 @@ BYTE *fname)      /* File name of application to seek.                      */
   return -1;
 }
 
-static void srv_appl_init(WORD pid,C_APPL_INIT *par) {
+/*
+** Description
+** appl_init help call
+**
+** 1998-09-26 CG
+*/
+static void
+srv_appl_init(C_APPL_INIT * par,
+              R_APPL_INIT * ret) {
   AP_INFO	*ai;
   AP_LIST	*al;
   
-  al = search_mpid(pid);
+  fprintf (stderr, "oaesis: srv.c: srv_appl_init: Beginning\n");
+
+  al = search_mpid(par->common.pid);
   
   if(!al) {     
     /* Has an info structure already been reserved? */
@@ -1696,7 +1506,7 @@ static void srv_appl_init(WORD pid,C_APPL_INIT *par) {
     AP_LIST **awalk = &ap_resvd;
     
     while(*awalk) {
-      if((*awalk)->ai->pid == pid) {
+      if((*awalk)->ai->pid == par->common.pid) {
 	break;
       };
       
@@ -1713,7 +1523,7 @@ static void srv_appl_init(WORD pid,C_APPL_INIT *par) {
       ai = al->ai;
     }
     else {
-      ai = srv_info_alloc(pid,APP_APPLICATION,0);
+      ai = srv_info_alloc(par->common.pid,APP_APPLICATION,0);
     };
   }
   else {
@@ -1721,7 +1531,7 @@ static void srv_appl_init(WORD pid,C_APPL_INIT *par) {
   };
   
   if(ai) {
-    if(par->msghandle) {
+    /*    if(par->msghandle) {
       ai->msgpipe = par->msghandle;
     };
     
@@ -1733,26 +1543,23 @@ static void srv_appl_init(WORD pid,C_APPL_INIT *par) {
     strcpy(ai->eventname,par->eventname);
     
     ai->vid = par->vid;
+    */
     
-    par->global->apid = ai->id;	
-    
-    par->global->version = 0x0410;
-    par->global->numapps = -1;
-    par->global->apid = ai->id;
-    par->global->appglobal = 0L;
-    par->global->rscfile = 0L;
-    par->global->rshdr = 0L;
-    par->global->resvd1 = 0;
-    par->global->resvd2 = 0;
-    par->global->int_info = ai;
-    par->global->maxchar = 0;
-    par->global->minchar = 0;
+    ret->apid = ai->id;
+
+    fprintf (stderr,
+             "oaesis: srv.c: srv_appl_init: apid=%d\n",
+             (int)ret->apid);
   }
   else {
+    /*
     par->global->apid = -1;
+    */
+    ret->apid = -1;
   };
   
-  if(par->global->apid >= 0) {
+  /*
+  if(ret->apid >= 0) {
     BYTE fname[128],cmdlin[128],menuentry[21],*tmp;
     
     Misc_get_loadinfo(pid,128,cmdlin,fname);
@@ -1774,7 +1581,9 @@ static void srv_appl_init(WORD pid,C_APPL_INIT *par) {
       srv_menu_register(ai->id, menuentry);
     };
   };
+  */
 }
+
 
 /****************************************************************************
  * srv_appl_search                                                          *
@@ -4167,6 +3976,12 @@ C_PUT_EVENT *msg)
 }
 
 
+/*
+** Description
+** This is the server itself
+**
+** 1998-09-26 CG
+*/
 static WORD server(LONG arg) {
   WORD          work_in[] = {1,7,1,1,1,1,1,1,1,1,2};
   WORD          work_out[57];
@@ -4180,6 +3995,7 @@ static WORD server(LONG arg) {
   WORD          apid;
   WORD          call;
   C_SRV         par;
+  R_SRV         ret;
   void *        handle;
 
   WORD          code;
@@ -4187,6 +4003,11 @@ static WORD server(LONG arg) {
   /* Stop warnings from compiler about unused parameters */
   NOT_USED(arg);
   
+  /* Initialize message handling */
+  fprintf (stderr, "oaesis: srv.c: Initializing message handling\n");
+  Srv_open ();
+  fprintf (stderr, "oaesis: srv.c: Initialized message handling\n");
+
   svid = globals.vid;
   Vdi_v_opnvwk(work_in,&svid,work_out);
   
@@ -4216,13 +4037,15 @@ static WORD server(LONG arg) {
 #endif
 
     /* Wait for another call from a client */
-    handle = Srv_get (&apid, &client_pid, &call, &par);
+    fprintf (stderr, "oaesis: srv.c: Waiting for message from client\n");
+    handle = Srv_get (&par, sizeof (C_SRV));
+    fprintf (stderr, "oaesis: srv.c: Got message from client\n");
     
 #ifdef SRV_DEBUG
     DB_printf("Call: %d pid: %d",msg.cr.call,msg.pid);
 #endif		
     
-    switch(call) {
+    switch (par.common.call) {
     case SRV_SHAKE:
       DB_printf ("I'm fine application %d (process %d)!", apid, client_pid);
       DB_printf ("How are you doing yourself?");
@@ -4243,9 +4066,9 @@ static WORD server(LONG arg) {
       break;
       
     case SRV_APPL_EXIT:
-      code = srv_appl_exit (apid);
+      srv_appl_exit (&par.appl_exit, &ret.appl_exit);
       
-      Srv_reply (handle, &par, code);
+      Srv_reply (handle, &ret, sizeof (R_APPL_EXIT));
       break;
       
     case SRV_APPL_FIND:
@@ -4255,9 +4078,9 @@ static WORD server(LONG arg) {
       break;
       
     case SRV_APPL_INIT:
-      srv_appl_init (client_pid, &par.appl_init);
+      srv_appl_init (&par.appl_init, &ret.appl_init);
       
-      Srv_reply (handle, &par, 0);
+      Srv_reply (handle, &ret, sizeof (R_APPL_INIT));
       break;
       
     case SRV_APPL_SEARCH:
