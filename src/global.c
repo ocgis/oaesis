@@ -77,9 +77,9 @@ void	init_global(WORD physical) {
   
   if(globals.video == 0x00030000L) {
     oldmode = globals.vmode = 3;
-    printf("Getting old modecode\n");
+    DB_printf("Getting old modecode\n");
     oldmodecode = globals.vmodecode = VsetMode(-1);
-    printf("Got old modecode = 0x%x\n",oldmodecode);
+    DB_printf("Got old modecode = 0x%x\n",oldmodecode);
   }
   else {
     oldmode = globals.vmode = Getrez();
@@ -95,9 +95,7 @@ void	init_global(WORD physical) {
   globals.icon_height = 56;
   globals.wind_appl = 1;
   
-  printf("Boot parse cnf\n");
   Boot_parse_cnf();
-  printf("/Boot parse cnf\n");
   
   open_physical_ws = physical;
   
@@ -106,14 +104,16 @@ void	init_global(WORD physical) {
     
     work_in[0] = 5;
 
-    printf("v_opnwk\n");
-
+    DB_printf("v_opnwk\n");
+ 
     Vdi_v_opnwk(work_in,&globals.vid,work_out);
 
-    printf("VsetScreen\n");
+    DB_printf("VsetScreen mode=%d modecode=%x\n",globals.vmode,globals.vmodecode);
    
     VsetScreen(NULL,NULL,globals.vmode,globals.vmodecode);
     
+    DB_printf("/VsetScreen\n");
+
     DB_printf("Vmode=%4x",VsetMode(-1));
   }
   else {

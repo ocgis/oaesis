@@ -6,13 +6,13 @@ CC = gcc
 AS = gcc
 LD = gcc
 MODEL = -mshort
-LDLIBS = -lgem
+LDLIBS = -lgem16 -lc16
 
 
 DEFS = -D__MINT__ 
 
 MDEFS = -bm68k-atari-mint
-CFLAGS = -Wall -fomit-frame-pointer $(MODEL) $(DEFS) $(MDEFS)
+CFLAGS = -Wall -fomit-frame-pointer $(MODEL) $(DEFS) $(MDEFS) -O2
 ASFLAGS = $(MODEL)
 
 CFILES = appl.c boot.c debug.c docalls.c evnt.c evnthndl.c form.c fsel.c \
@@ -34,8 +34,7 @@ all: oaesis.prg
 
 oaesis.prg: $(OBJS)
 	$(LINK.c) -o $@ $(OBJS) $(LDLIBS)
-	-fixstk 64000 $@
-	-strip $@
+	-fixstk 65536 $@
 
 gcc.o: lxgemdos.h
 

@@ -101,20 +101,24 @@ _accstart:
 	jmp a1@
 
 _VsetScreen:
-	movew sp@(16),sp@-
-	movew sp@(16),sp@-
-	movel sp@(16),sp@-
-	movel sp@(16),sp@-
+	link  a6,#0
+	movew a6@(18),sp@-
+	movew a6@(16),sp@-
+	movel a6@(12),sp@-
+	movel a6@(8),sp@-
 	movew #0x05,sp@-
 	trap  #14
 	lea   sp@(14),sp
+	unlk  a6
 	rts
 		
 _VsetMode:
-	movew sp@(4),sp@-
+	link  a6,#0
+	movew a6@(8),sp@-
 	movew #0x58,sp@-
 	trap  #14
 	addql #4,sp
+	unlk  a6
 	rts
 
 mmov:

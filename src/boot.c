@@ -51,15 +51,19 @@
  * Local functions (use static!)                                            *
  ****************************************************************************/
 
-static void get_token(FILE *fp,BYTE *token) {
-	fscanf(fp,"%[ \t]",token);
+static WORD get_token(FILE *fp,BYTE *token) {
+  WORD err;
+
+  fscanf(fp,"%[ \t]",token);
 		
-	if(fscanf(fp,"%[^= \t\n\r]",token) == 0) {
-		if(fscanf(fp,"%[=]",token) == 0) {
-			fscanf(fp,"%[\n\r]",token);
-			strcpy(token,"\n");
-		};
-	};
+  if((err = fscanf(fp,"%[^= \t\n\r]",token)) == 0) {
+    if((err = fscanf(fp,"%[=]",token)) == 0) {
+      err = fscanf(fp,"%[\n\r]",token);
+      strcpy(token,"\n");
+    };
+  };
+  
+  return err;
 }
 
 /****************************************************************************
@@ -91,8 +95,6 @@ void Boot_parse_cnf(void) /*                                                */
   
   fp = fopen("oaesis.cnf","r");
 
-  printf("A\n");
- 
   while(!fp && filelist[i]) {
     sprintf(filepath,"%s%s",bootpath,filelist[i]);
     
@@ -101,19 +103,12 @@ void Boot_parse_cnf(void) /*                                                */
     i++;
   };
   
-  printf("B\n");
-
   if(!fp) {
     return;
   };
   
-  printf("C\n");
-
   while(1) {
     get_token(fp,line);
-
-    printf("D: %s\n",line);
-
     
     if(feof(fp)) {
       break;

@@ -141,8 +141,10 @@ int main(int argc,BYTE *argv[],BYTE *envp[]) {
 		printf("Unknown video shifter!\r\n");
 	}
 
+	printf("argc=%d\n",argc);
+
 	for(i = 1; i < argc; i++) {
-		if(!strcmp("-physical",argv[i])) {
+		if(!strcmp("--physical",argv[i])) {
 			physical = 1;
 		}
 		else {
