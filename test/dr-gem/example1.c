@@ -11,63 +11,50 @@
 /*	Standard includes	*/
 /*------------------------------*/
 
-#include "portab.h"				/* portable coding macros */
-#include "machine.h"				/* machine dependencies   */
-#include "obdefs.h"				/* object definitions	  */
-#include "treeaddr.h"				/* tree address macros    */
-#include "vdibind.h"				/* vdi binding structures */
-#include "gembind.h"				/* gem binding structures */
-
+#include <aesbind.h>				/* aes binding structures  */
+#include <mintbind.h>				/* mint binding structures */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <vdibind.h>				/* vdi binding structures */
+ 
 /*------------------------------*/
-/*	Global GEM arrays	*/
+/*	Some Defines    	*/
 /*------------------------------*/
 
-GLOBAL WORD	contrl[11];		/* control inputs		*/
-GLOBAL WORD	intin[80];		/* max string length		*/
-GLOBAL WORD	ptsin[256];		/* polygon fill points		*/
-GLOBAL WORD	intout[45];		/* open workstation output	*/
-GLOBAL WORD	ptsout[12];		/* points out array		*/
+#define TRUE  1
+#define FALSE 0
 
 /*------------------------------*/
 /*	Local variables		*/
 /*------------------------------*/
 
-WORD	gl_apid;			/* ID returned by appl_init 	*/
+int apid;                                       /* ID returned by appl_init */
 
 /*------------------------------*/
-/*	initialise		*/
+/*	Test Procedure		*/
 /*------------------------------*/
 
-WORD	initialise()
-
+void testproc(void)
 {
-
-	gl_apid = appl_init();		/* return application ID	*/
-	
-	if (gl_apid == -1)
-
-		return(FALSE);		/* unable to use AES		*/
-
-	return(TRUE);			/* ID returned successfully	*/
-	
+                                                /* First button default, No ICON */
+        form_alert(1,"[0][Welcome to OSIS|From NoCrew][ OK ]");
 }
 
 /*------------------------------*/
-/*	GEMAIN			*/
+/*	Main code               */
 /*------------------------------*/
 
-GEMAIN()
-
+int main ()
 {
 
-	if (!initialise())
-	
-		return(FALSE);
-		
-/*	First button default, No ICON					*/
+        apid = appl_init();		        /* return application ID */
+        if (apid == -1)
+		return(FALSE);		        /* unable to use AES */
 
-	form_alert(1,ADDR("[0][Welcome to GEM|From Digital Research][ OK ]"));
-	
-	appl_exit();			/* exit AES tidily		*/
+        testproc();                             /* Test what we want to test */
 
+        appl_exit();
+        return(TRUE);			        /* ID returned successfully */
+	
 }

@@ -12,37 +12,30 @@
 /*	Standard includes	*/
 /*------------------------------*/
 
-#include "portab.h"				/* portable coding macros */
-#include "machine.h"				/* machine dependencies   */
-#include "obdefs.h"				/* object definitions	  */
-#include "treeaddr.h"				/* tree address macros    */
-#include "vdibind.h"				/* vdi binding structures */
-#include "gembind.h"				/* gem binding structures */
-#include "example3.h"				/* resource file offsets  */
-
+#include <aesbind.h>				/* aes binding structures  */
+#include <mintbind.h>				/* mint binding structures */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <vdibind.h>				/* vdi binding structures */
+ 
 /*------------------------------*/
-/*	Global GEM arrays	*/
+/*	Some Defines    	*/
 /*------------------------------*/
 
-GLOBAL WORD	contrl[11];		/* control inputs		*/
-GLOBAL WORD	intin[80];		/* max string length		*/
-GLOBAL WORD	ptsin[256];		/* polygon fill points		*/
-GLOBAL WORD	intout[45];		/* open workstation output	*/
-GLOBAL WORD	ptsout[12];		/* points out array		*/
+#define TRUE  1
+#define FALSE 0
+#define CHAR  char
 
 /*------------------------------*/
 /*	Local variables		*/
 /*------------------------------*/
 
-WORD	gl_apid;			/* ID returned by appl_init 	*/
-LONG	sys_alert;			/* Holds System alert message	*/
-LONG	reset_alert;			/* Holds reset alert message	*/
-LONG	ignore_alert;			/* Holds ignore alert message	*/
-LONG	retry_alert;			/* Holds retry alert message	*/
-
-/*------------------------------*/
-/*	application code	*/
-/*------------------------------*/
+WORD    apid;                           /* ID returned by appl_init */
+CHAR *	sys_alert;			/* Holds System alert message	*/
+CHAR *	reset_alert;			/* Holds reset alert message	*/
+CHAR *	ignore_alert;			/* Holds ignore alert message	*/
+CHAR *	retry_alert;			/* Holds retry alert message	*/
 
 /*------------------------------*/
 /*	do_alert		*/
@@ -55,88 +48,55 @@ do_alert()
 	WORD	wbutton;		/* Exit button from ALERT	*/
 	
 /*	No default default, STOP ICON					*/
-
 	wbutton=form_alert(0, sys_alert);
 	
 /*	Display a NOTE alert depending on button selection		*/
-
 	switch(wbutton)
 	{
-	
 		case	1:		/* Button 1 - RESET		*/
 		{
-		
 			form_alert(1, reset_alert);
 			break;
-			
 		}
 		
 		case	2:		/* Button 2 - IGNORE		*/
 		{
-		
 			form_alert(1, ignore_alert);
 			break;
-			
 		}			
 	
 		case	3:		/* Button 3 - RETRY		*/
 		{
-		
 			form_alert(1, retry_alert);
 			break;
-		
 		}	
-				
 	}
-
 }
 
+
+
+
+
 /*------------------------------*/
-/*	initialise		*/
+/*	Main code               */
 /*------------------------------*/
 
-WORD	initialise()
-
+int main ()
 {
 
-	gl_apid = appl_init();		/* return application ID	*/
-	
-	if (gl_apid == -1)
+        apid = appl_init();		        /* return application ID */
+        if (apid == -1)
+		return(FALSE);		        /* unable to use AES */
 
-		return(FALSE);		/* unable to use AES		*/
-
-	if (!rsrc_load(ADDR("EXAMPLE3.RSC")))
+	if (!rsrc_load("./example3.rsc"))
 	{
-	
-		form_alert(1, ADDR("[3][Unable to load resource][ Abort ]"));
-
+		form_alert(1, "[3][Unable to load resource][ Abort ]");
 		return(FALSE);		/* unable to load resource	*/
-		
 	}
 
-	return(TRUE);			/* ID returned successfully	*/
+        do_alert();                             /* Test what we want to test */
+
+        appl_exit();
+        return(TRUE);			        /* ID returned successfully */
 	
-}
-
-/*------------------------------*/
-/*	GEMAIN			*/
-/*------------------------------*/
-
-GEMAIN()
-
-{
-
-	if (!initialise())
-	
-		return(FALSE);
-		
-	rsrc_gaddr(R_STRING, SYSALERT, &sys_alert);
-	rsrc_gaddr(R_STRING, RESALERT, &reset_alert);
-	rsrc_gaddr(R_STRING, IGNALERT, &ignore_alert);
-	rsrc_gaddr(R_STRING, RETALERT, &retry_alert);
-	
-	do_alert();			/* process alert		*/
-
-	appl_exit();			/* exit AES tidily		*/
-
 }

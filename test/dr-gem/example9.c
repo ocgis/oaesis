@@ -11,22 +11,27 @@
 /*	Standard includes	*/
 /*------------------------------*/
 
-#include "portab.h"				/* portable coding macros */
-#include "machine.h"				/* machine dependencies   */
-#include "obdefs.h"				/* object definitions	  */
-#include "treeaddr.h"				/* tree address macros    */
-#include "vdibind.h"				/* vdi binding structures */
-#include "gembind.h"				/* gem binding structures */
-
+#include <aesbind.h>				/* aes binding structures  */
+#include <mintbind.h>				/* mint binding structures */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <vdibind.h>				/* vdi binding structures */
+ 
 /*------------------------------*/
-/*	Global GEM arrays	*/
+/*	Some Defines    	*/
 /*------------------------------*/
 
-GLOBAL WORD	contrl[11];		/* control inputs		*/
-GLOBAL WORD	intin[80];		/* max string length		*/
-GLOBAL WORD	ptsin[256];		/* polygon fill points		*/
-GLOBAL WORD	intout[45];		/* open workstation output	*/
-GLOBAL WORD	ptsout[12];		/* points out array		*/
+#define TRUE  1
+#define FALSE 0
+#define LONG int
+#define BYTE char
+#define LLOWD(x) ((UWORD)(x))
+						/* return high word of	*/
+						/*   a long value	*/
+#define LHIWD(x) ((UWORD)(x >> 16))
+						/* return low byte of	*/
+						/*   a word value	*/
 
 /*------------------------------*/
 /*	Local defines		*/
@@ -34,7 +39,7 @@ GLOBAL WORD	ptsout[12];		/* points out array		*/
 
 #define	ARROW	0			/* Arrow cursor form for mouse	*/
 #define	HOUR	2			/* Hourglass cursor form	*/
-#define	DESK	0			/* DESK area identifier		*/
+/*#define	DESK	0*/			/* DESK area identifier		*/
 #define	WBOX	21			/* Initial width for GROWBOX	*/
 #define	HBOX	21			/* Initial height for GROWBOX	*/
 
@@ -44,7 +49,7 @@ GLOBAL WORD	ptsout[12];		/* points out array		*/
 
 WORD	gl_apid;			/* ID returned by appl_init 	*/
 WORD	gl_rmsg[8];			/* Message buffer		*/
-LONG	ad_rmsg;			/* Pointer to message buffer	*/
+WORD    ad_rmsg;			/* Pointer to message buffer	*/
 WORD	xfull;				/* Desk area X coordinate	*/
 WORD	yfull;				/* Desk area Y coordinate	*/
 WORD	wfull;				/* Desk area width		*/
@@ -72,7 +77,7 @@ WORD	handle;				/* Window handle		*/
 	
 	graf_mouse(HOUR, 0L);		/* Show hourglass		*/
 
-	wind_get(handle, WF_CXYWH, &cx, &cy, &cw, &ch);
+	wind_get(handle, WF_CURRXYWH, &cx, &cy, &cw, &ch);
 
 	wind_close(handle);		/* Close window off screen	*/
 
@@ -134,7 +139,7 @@ BYTE	*info;				/* Window information line	*/
 	WORD	low_word;		/* Low word address		*/
 
 	
-	wind_get(DESK, WF_WXYWH, &xfull, &yfull, &wfull, &hfull);
+	wind_get(DESK, WF_WORKXYWH, &xfull, &yfull, &wfull, &hfull);
 
 	xstart = wfull / 2;		/* Calculate X of screen centre	*/
 	ystart = hfull / 2;		/* Calculate Y of screen centre	*/
@@ -146,7 +151,7 @@ BYTE	*info;				/* Window information line	*/
 	if (handle <= 0)
 	{
 	
-		form_alert(1, ADDR("[3][No windows left][ QUIT ]"));
+		form_alert(1, "[3][No windows left][ QUIT ]");
 		appl_exit();
 
 		return(handle);
@@ -155,18 +160,18 @@ BYTE	*info;				/* Window information line	*/
 
 	if (attributes & NAME)		/* Title present ?		*/
 	{
-	  	low_word  = (WORD) LLOWD(ADDR(title));
-		high_word = (WORD) LHIWD(ADDR(title));
+	  	low_word  =  LLOWD(title);
+		high_word =  LHIWD(title);
 	
-		wind_set(handle, WF_NAME, low_word, high_word);
+		wind_set(handle, WF_NAME, low_word, high_word, 0 ,0);
 	}
 	
 	if (attributes & INFO)		/* Information line present ?	*/
 	{
-		low_word  = (WORD) LLOWD(ADDR(info));
-		high_word = (WORD) LHIWD(ADDR(info));
+		low_word  = LLOWD(info);
+		high_word = LHIWD(info);
 	
-		wind_set(handle, WF_INFO, low_word, high_word);
+		wind_set(handle, WF_INFO, low_word, high_word,0 ,0 );
 	}
 	
 	graf_growbox(xstart, ystart, HBOX, WBOX, xfull, yfull, wfull, hfull);
@@ -186,7 +191,7 @@ WORD	initialise()
 
 {
 
-	ad_rmsg = ADDR((BYTE *) &gl_rmsg[0]);
+	ad_rmsg = (BYTE *) &gl_rmsg[0];
 	
 	gl_apid = appl_init();		/* return application ID	*/
 	
