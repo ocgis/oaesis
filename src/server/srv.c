@@ -82,22 +82,7 @@ static WORD nocnf;
 
 static WORD	next_ap = 0;
 
-extern AP_INFO apps[MAX_NUM_APPS];
-
 static AP_LIST *ap_resvd = NULL;
-
-static struct {
-	WORD menu_cur_apid;
-	WORD winbar;          /* Window handle of the menu bar window         */
-} mglob = {
-	-1,
-	-1
-};
-
-static WINLIST *win_list = 0L;
-static WINLIST *win_free = 0L;
-
-static WORD	win_next = 0;
 
 static OBJC_COLORWORD top_colour[20] = {
   {BLACK,BLACK,1,7,LWHITE},
@@ -147,9 +132,6 @@ static OBJC_COLORWORD untop_colour[20] = {
 
 /* When this is set to false the server will exit */
 static volatile WORD run_server = TRUE;
-
-extern AP_LIST_REF ap_pri;
-extern WINLIST * win_vis;
 
 /* This has to be fixed */
 #ifndef MINT_TARGET
@@ -508,17 +490,6 @@ menu_bar_install (OBJECT * tree,
 }
 
 
-/*
- * 	This one is simple.. Return the apid of the currently topped menu owner.
- * 
- */
-static WORD         /* .w return code	*/
-menu_bar_inquire(   /*	*/
-void)               /*	*/
-{
-	return mglob.menu_cur_apid;
-}
-
 /****************************************************************************
  * menu_bar_remove                                                          *
  *  Remove menu.                                                            *
@@ -555,7 +526,7 @@ srv_menu_bar (C_MENU_BAR * msg,
     break;
     
   case MENU_INQUIRE:
-    retval = menu_bar_inquire ();
+    retval = get_top_menu_owner();
     break;
 
   default:
@@ -1379,29 +1350,6 @@ setwinsize (WINSTRUCT * win,
     changeslider(win,0,HSLIDE | VSLIDE,-1,-1);
   }
   */
-}
-
-/*winalloc creates/fetches a free window structure/id*/
-
-static WINSTRUCT	*winalloc(void) {
-	WINLIST	*wl;
-	
-	if(win_free) {
-		wl = win_free;
-		win_free = win_free->next;
-	}
-	else {
-          DEBUG2 ("srv.c: winalloc: Allocating memory");
-		wl = (WINLIST *)Mxalloc(sizeof(WINLIST),GLOBALMEM);
-		wl->win = (WINSTRUCT *)Mxalloc(sizeof(WINSTRUCT),GLOBALMEM);
-		wl->win->id = win_next;
-		win_next++;
-	};
-	
-	wl->next = win_list;
-	win_list = wl;
-	
-	return wl->win;
 }
 
 /****************************************************************************
@@ -2862,26 +2810,177 @@ srv_vdi_call (COMM_HANDLE  handle,
 
 /*
 ** Description
+** Handle incoming server request
+*/
+static
+inline
+void
+srv_call(COMM_HANDLE handle,
+         C_SRV *     par)
+{
+  R_SRV ret;
+
+  DEBUG2 ("srv.c: Call no %d 0x%x", par->common.call, par->common.call);
+  switch (par->common.call) {
+  case SRV_APPL_CONTROL:
+    srv_appl_control (&par->appl_control, &ret.appl_control);
+    
+    SRV_REPLY(handle, &ret, sizeof (R_APPL_CONTROL));
+    break;
+    
+  case SRV_APPL_EXIT:
+    srv_appl_exit (&par->appl_exit, &ret.appl_exit);
+    
+    SRV_REPLY(handle, &ret, sizeof (R_APPL_EXIT));
+    break;
+    
+  case SRV_APPL_FIND:
+    srv_appl_find (&par->appl_find, &ret.appl_find);
+    
+    SRV_REPLY(handle, &ret, sizeof (R_APPL_FIND));
+    break;
+    
+  case SRV_APPL_INIT:
+    srv_appl_init (&par->appl_init, &ret.appl_init);
+    
+    SRV_REPLY(handle, &ret, sizeof (R_APPL_INIT));
+    break;
+        
+  case SRV_APPL_SEARCH:
+    srv_appl_search (&par->appl_search, &ret.appl_search);
+    
+    SRV_REPLY(handle, &ret, sizeof (R_APPL_SEARCH));
+    break;
+    
+  case SRV_APPL_WRITE:
+    srv_appl_write (&par->appl_write, &ret.appl_write);
+    
+    SRV_REPLY(handle, &ret, sizeof (R_APPL_WRITE));
+    break;
+    
+  case SRV_EVNT_MULTI:
+    srv_wait_for_event (handle, &par->evnt_multi);
+    break;
+    
+  case SRV_GRAF_MKSTATE :
+    srv_graf_mkstate (&par->graf_mkstate, &ret.graf_mkstate);
+    
+    SRV_REPLY(handle, &ret, sizeof (R_GRAF_MKSTATE));
+    break;
+    
+  case SRV_GRAF_MOUSE :
+    srv_graf_mouse (globals.vid, &par->graf_mouse, &ret.graf_mouse);
+    
+    SRV_REPLY(handle, &ret, sizeof (R_GRAF_MOUSE));
+    break;
+    
+  case SRV_MENU_BAR:
+    srv_menu_bar (&par->menu_bar, &ret.menu_bar);
+    
+    SRV_REPLY(handle, &par, sizeof (R_MENU_BAR));
+    break;
+    
+  case SRV_MENU_REGISTER:
+    srv_menu_register (&par->menu_register, &ret.menu_register);
+    
+    SRV_REPLY(handle, &par, sizeof (R_MENU_REGISTER));
+    break;
+    
+  case SRV_WIND_CLOSE:
+    srv_wind_close (&par->wind_close, &ret.wind_close);
+    
+    SRV_REPLY(handle, &ret, sizeof (R_WIND_CLOSE));
+    break;
+    
+  case SRV_WIND_CREATE:
+    srv_wind_create (&par->wind_create, &ret.wind_create);
+    
+    SRV_REPLY(handle, &ret, sizeof (R_WIND_CREATE));
+    break;
+    
+  case SRV_WIND_DELETE:
+    srv_wind_delete (&par->wind_delete,
+                     &ret.wind_delete);
+    
+    SRV_REPLY(handle, &ret, sizeof (R_WIND_DELETE));
+    break;
+    
+  case SRV_WIND_FIND:
+    srv_wind_find (&par->wind_find,
+                   &ret.wind_find);
+    
+    SRV_REPLY(handle, &ret, sizeof (R_WIND_FIND));
+    break;
+    
+  case SRV_WIND_GET:
+    srv_wind_get (&par->wind_get,
+                  &ret.wind_get);
+    
+    SRV_REPLY(handle, &ret, sizeof (R_WIND_GET));
+    break;
+    
+  case SRV_WIND_NEW:
+    ret.common.retval = 
+      srv_wind_new (par->wind_new.common.apid);
+    PUT_R_ALL(WIND_NEW, &ret, ret.common.retval);
+    
+    SRV_REPLY(handle, &ret, sizeof (R_WIND_NEW));
+    break;
+    
+  case SRV_WIND_OPEN:
+    srv_wind_open (&par->wind_open, &ret.wind_open);
+    
+    SRV_REPLY(handle, &ret, sizeof (R_WIND_OPEN));
+    break;
+        
+  case SRV_WIND_SET:
+    srv_wind_set (&par->wind_set, &ret.wind_set);
+    
+    SRV_REPLY(handle, &ret, sizeof (R_WIND_SET));
+    break;
+    
+  case SRV_WIND_UPDATE:
+    srv_wind_update (handle,
+                     &par->wind_update);
+    break;
+    
+  case SRV_VDI_CALL:
+    srv_vdi_call (handle,
+                  &par->vdi_call);
+    break;
+    
+  case SRV_MALLOC:
+    ret.malloc.address = (ULONG)malloc (par->malloc.amount);
+    PUT_R_ALL(MALLOC, &ret, 0);
+    SRV_REPLY(handle, &ret, sizeof (R_MALLOC));
+    break;
+    
+  case SRV_FREE:
+    free ((void *)par->free.address);
+    
+    PUT_R_ALL(FREE, &ret, 0);
+    SRV_REPLY(handle, &ret, sizeof (R_FREE));
+    break;
+    
+  default:
+    DB_printf("%s: Line %d:\r\n"
+              "Unknown call %d (0x%x) to server!",
+              __FILE__, __LINE__, par->common.call, par->common.call);
+    SRV_REPLY(handle, par, -1); /* FIXME */
+  }
+}
+
+
+/*
+** Description
 ** This is the server itself
 */
 static
 WORD
 server (LONG arg) {
-  RECT          r;
-  C_WIND_CREATE c_wind_create;
-  R_WIND_CREATE r_wind_create;
-  C_WIND_GET    c_wind_get;
-  R_WIND_GET    r_wind_get;
-  C_WIND_OPEN   c_wind_open;
-  R_WIND_OPEN   r_wind_open;
-
   /* These variables are passed from clients */
   C_SRV         par;
-  R_SRV         ret;
   COMM_HANDLE   handle;
-
-  WINSTRUCT *   ws;
-  WINLIST *     wl;
 
   /* Stop warnings from compiler about unused parameters */
   NOT_USED(arg);
@@ -2894,57 +2993,8 @@ server (LONG arg) {
   DEBUG3 ("srv.c: Initializing global variables");
   srv_init_global (nocnf);
 
-  /* Initialize desktop background */
-  DEBUG3 ("srv.c: Initializing desktop window");
-  ws = winalloc();
-  ws->status = WIN_OPEN | WIN_DESKTOP | WIN_UNTOPPABLE;
-  ws->owner = 0;
-  
-  
-  ws->tree = NULL;
-  
-  ws->worksize.x = globals.screen.x;
-  ws->worksize.y = globals.screen.y + globals.clheight + 3;
-  ws->worksize.width = globals.screen.width;
-  ws->worksize.height = globals.screen.height - globals.clheight - 3;
-  
-  ws->maxsize = ws->totsize = ws->worksize;
-  
-  wl = (WINLIST *)Mxalloc(sizeof(WINLIST),GLOBALMEM);
-  
-  wl->win = ws;
-  
-  wl->next = win_vis;
-  win_vis = wl;
-
-  wl->win->rlist = (RLIST *)Mxalloc(sizeof(RLIST),GLOBALMEM);
-  wl->win->rlist->r.x = globals.screen.x;
-  wl->win->rlist->r.y = globals.screen.y;
-  wl->win->rlist->r.width = globals.screen.width;
-  wl->win->rlist->r.height = globals.screen.height;
-  wl->win->rlist->next = NULL;
-
-  c_wind_get.handle = 0;
-  c_wind_get.mode = WF_FULLXYWH;
-  srv_wind_get (&c_wind_get, &r_wind_get);
-  r = *((RECT *)&r_wind_get.parm1);
-
-  r.height = r.y;
-  r.y = 0;
-
-  DEBUG3 ("srv.c: Creating menu bar window");
-  c_wind_create.common.apid = 0;
-  c_wind_create.elements = 0;
-  c_wind_create.maxsize = r;
-  c_wind_create.status = WIN_MENU;
-
-  srv_wind_create (&c_wind_create, &r_wind_create);
-  mglob.winbar = r_wind_create.common.retval;
-
-  c_wind_open.id = mglob.winbar;
-  c_wind_open.size = r;
-  srv_wind_open (&c_wind_open,
-                 &r_wind_open);
+  /* Initialize desktop and menu bar windows */
+  srv_init_windows();
   
   DEBUG3 ("srv.c: Intializing event handler");
   /* Setup event vectors */
@@ -2963,154 +3013,8 @@ server (LONG arg) {
     if (handle != NULL) {
       NTOH(&par);
 
-      DEBUG2 ("srv.c: Call no %d 0x%x", par.common.call, par.common.call);
-      switch (par.common.call) {
-      case SRV_APPL_CONTROL:
-        srv_appl_control (&par.appl_control, &ret.appl_control);
-        
-        SRV_REPLY(handle, &ret, sizeof (R_APPL_CONTROL));
-        break;
-        
-      case SRV_APPL_EXIT:
-        srv_appl_exit (&par.appl_exit, &ret.appl_exit);
-        
-        SRV_REPLY(handle, &ret, sizeof (R_APPL_EXIT));
-        break;
-        
-      case SRV_APPL_FIND:
-        srv_appl_find (&par.appl_find, &ret.appl_find);
-        
-        SRV_REPLY(handle, &ret, sizeof (R_APPL_FIND));
-        break;
-        
-      case SRV_APPL_INIT:
-        srv_appl_init (&par.appl_init, &ret.appl_init);
-        
-        SRV_REPLY(handle, &ret, sizeof (R_APPL_INIT));
-        break;
-        
-      case SRV_APPL_SEARCH:
-        srv_appl_search (&par.appl_search, &ret.appl_search);
-        
-        SRV_REPLY(handle, &ret, sizeof (R_APPL_SEARCH));
-        break;
-        
-      case SRV_APPL_WRITE:
-        srv_appl_write (&par.appl_write, &ret.appl_write);
-        
-        SRV_REPLY(handle, &ret, sizeof (R_APPL_WRITE));
-        break;
-        
-      case SRV_EVNT_MULTI:
-        srv_wait_for_event (handle, &par.evnt_multi);
-        break;
-        
-      case SRV_GRAF_MKSTATE :
-        srv_graf_mkstate (&par.graf_mkstate, &ret.graf_mkstate);
-        
-        SRV_REPLY(handle, &ret, sizeof (R_GRAF_MKSTATE));
-        break;
-
-      case SRV_GRAF_MOUSE :
-        srv_graf_mouse (globals.vid, &par.graf_mouse, &ret.graf_mouse);
-        
-        SRV_REPLY(handle, &ret, sizeof (R_GRAF_MOUSE));
-        break;
-
-      case SRV_MENU_BAR:
-        srv_menu_bar (&par.menu_bar, &ret.menu_bar);
-        
-        SRV_REPLY(handle, &par, sizeof (R_MENU_BAR));
-        break;
-        
-      case SRV_MENU_REGISTER:
-        srv_menu_register (&par.menu_register, &ret.menu_register);
-        
-        SRV_REPLY(handle, &par, sizeof (R_MENU_REGISTER));
-        break;
-        
-      case SRV_WIND_CLOSE:
-        srv_wind_close (&par.wind_close, &ret.wind_close);
-        
-        SRV_REPLY(handle, &ret, sizeof (R_WIND_CLOSE));
-        break;
-        
-      case SRV_WIND_CREATE:
-        srv_wind_create (&par.wind_create, &ret.wind_create);
-        
-        SRV_REPLY(handle, &ret, sizeof (R_WIND_CREATE));
-        break;
-        
-      case SRV_WIND_DELETE:
-        srv_wind_delete (&par.wind_delete,
-                         &ret.wind_delete);
-        
-        SRV_REPLY(handle, &ret, sizeof (R_WIND_DELETE));
-        break;
-        
-      case SRV_WIND_FIND:
-        srv_wind_find (&par.wind_find,
-                       &ret.wind_find);
-        
-        SRV_REPLY(handle, &ret, sizeof (R_WIND_FIND));
-        break;
-        
-      case SRV_WIND_GET:
-        srv_wind_get (&par.wind_get,
-                      &ret.wind_get);
-        
-        SRV_REPLY(handle, &ret, sizeof (R_WIND_GET));
-        break;
-        
-      case SRV_WIND_NEW:
-        ret.common.retval = 
-          srv_wind_new (par.wind_new.common.apid);
-        PUT_R_ALL(WIND_NEW, &ret, ret.common.retval);
-
-        SRV_REPLY(handle, &ret, sizeof (R_WIND_NEW));
-        break;
-        
-      case SRV_WIND_OPEN:
-        srv_wind_open (&par.wind_open, &ret.wind_open);
-        
-        SRV_REPLY(handle, &ret, sizeof (R_WIND_OPEN));
-        break;
-        
-      case SRV_WIND_SET:
-        srv_wind_set (&par.wind_set, &ret.wind_set);
-        
-        SRV_REPLY(handle, &ret, sizeof (R_WIND_SET));
-        break;
-        
-      case SRV_WIND_UPDATE:
-        srv_wind_update (handle,
-                         &par.wind_update);
-        break;
-
-      case SRV_VDI_CALL:
-        srv_vdi_call (handle,
-                      &par.vdi_call);
-        break;
-
-      case SRV_MALLOC:
-        ret.malloc.address = (ULONG)malloc (par.malloc.amount);
-        PUT_R_ALL(MALLOC, &ret, 0);
-        SRV_REPLY(handle, &ret, sizeof (R_MALLOC));
-        break;
-
-      case SRV_FREE:
-        free ((void *)par.free.address);
-
-        PUT_R_ALL(FREE, &ret, 0);
-        SRV_REPLY(handle, &ret, sizeof (R_FREE));
-        break;
-
-      default:
-        DB_printf("%s: Line %d:\r\n"
-                  "Unknown call %d (0x%x) to server!",
-                  __FILE__, __LINE__, par.common.call, par.common.call);
-        SRV_REPLY(handle, &par, -1);
-      }
+      srv_call(handle,
+               &par);
     }
 
     DEBUG3 ("srv.c: calling srv_handle_events");

@@ -33,6 +33,13 @@
 #define	WIN_MENU       0x0020
 #define WIN_ICONIFIED  0x0040
 
+
+/* Global variables. These should be removed from here FIXME */
+extern WINLIST * win_vis;
+extern WINLIST * win_list;
+extern WINLIST * win_free;
+extern WORD	 win_next;
+
 /*
 ** Description
 ** Find window on known coordinates
@@ -80,5 +87,18 @@ srv_click_owner (WORD mouse_x,
 void
 srv_wind_debug(int mouse_x,
                int mouse_y);
+
+/* Description
+** Create/fetch a free window structure/id
+*/
+WINSTRUCT *
+winalloc(void);
+
+/*
+** Description
+** Initialize windows
+*/
+void
+srv_init_windows(void);
 
 #endif /* _SRV_WIND_H_ */

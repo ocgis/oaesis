@@ -14,6 +14,7 @@
 #ifndef _SRV_APPL_INFO_H_
 #define _SRV_APPL_INFO_H_
 
+#include "oconfig.h"
 #include "types.h"
 
 /* appl_* related */
@@ -59,6 +60,10 @@ typedef struct ap_list {
 
 typedef AP_LIST * AP_LIST_REF;
 #define AP_LIST_REF_NIL ((AP_LIST_REF)NULL)
+
+/* Global variables. These should be removed from here. FIXME */
+extern AP_INFO     apps[MAX_NUM_APPS];
+extern AP_LIST_REF ap_pri;
 
 /*
 ** Description

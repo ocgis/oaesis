@@ -46,10 +46,10 @@ typedef struct key_event {
 } KEY_EVENT;
 
 /* APPL_LIST is used for queueing applications that wait for better times */
-typedef struct appl_list * APPL_LIST_REF;
+typedef struct appl_list_s * APPL_LIST_REF;
 #define APPL_LIST_REF_NIL ((APPL_LIST_REF)NULL)
 
-typedef struct appl_list {
+typedef struct appl_list_s {
   WORD          is_waiting;
   COMM_HANDLE   handle;
   C_EVNT_MULTI  par;
@@ -66,7 +66,7 @@ typedef struct appl_list {
 } APPL_LIST;
 
 static APPL_LIST_REF waiting_appl = APPL_LIST_REF_NIL;
-static APPL_LIST     apps [MAX_NUM_APPS];
+static APPL_LIST     appl_list [MAX_NUM_APPS];
 
 static WORD  x_new = 0;
 static WORD  x_last = 0;
@@ -145,14 +145,6 @@ void * old_timer_vector;
 
 /*
 ** Exported
-**
-** 1998-12-07 CG
-** 1998-12-13 CG
-** 1999-01-29 CG
-** 1999-03-07 CG
-** 1999-03-08 CG
-** 1999-05-22 CG
-** 1999-08-05 CG
 */
 void
 srv_init_event_handler (WORD vdi_workstation_id) {
@@ -160,11 +152,11 @@ srv_init_event_handler (WORD vdi_workstation_id) {
 
   /* Reset buffers */
   for (i = 0; i < MAX_NUM_APPS; i++) {
-    apps [i].is_waiting = FALSE;
-    apps [i].mouse_head = 0;
-    apps [i].mouse_size = 0;
-    apps [i].key_head = 0;
-    apps [i].key_size = 0;
+    appl_list [i].is_waiting = FALSE;
+    appl_list [i].mouse_head = 0;
+    appl_list [i].mouse_size = 0;
+    appl_list [i].key_head = 0;
+    appl_list [i].key_size = 0;
   }
 
   /* Setup mouse button handler */
@@ -189,14 +181,12 @@ srv_init_event_handler (WORD vdi_workstation_id) {
 /*
 ** Description
 ** Queue the application to wait for events
-**
-** 1998-12-13 CG
 */
 static
 void
 queue_appl (COMM_HANDLE    handle,
             C_EVNT_MULTI * par) {
-  APPL_LIST_REF this_entry = &apps [par->common.apid];
+  APPL_LIST_REF this_entry = &appl_list [par->common.apid];
 
   /* We got an empty list node => fill in some data and queue it */
   this_entry->is_waiting = TRUE;
@@ -214,9 +204,6 @@ queue_appl (COMM_HANDLE    handle,
 /*
 ** Description
 ** Dequeue an application that's done waiting for events
-**
-** 1998-12-13 CG
-** 1998-12-23 CG
 */
 static
 void
@@ -277,20 +264,20 @@ check_for_messages (C_EVNT_MULTI * par,
 */
 void
 srv_wake_appl_if_waiting_for_msg (WORD id) {
-  if (apps [id].is_waiting) {
+  if (appl_list [id].is_waiting) {
     R_EVNT_MULTI ret;
 
     /* Reset events before calling check_for_messages! */
     ret.eventout.events = 0;
-    ret.eventout.events = check_for_messages (&apps [id].par,
+    ret.eventout.events = check_for_messages (&appl_list [id].par,
                                               &ret);
     
     if (ret.eventout.events != 0) {
       PUT_R_ALL(EVNT_MULTI, &ret, 0);
-      SRV_REPLY(apps [id].handle, &ret, sizeof (R_EVNT_MULTI));
+      SRV_REPLY(appl_list [id].handle, &ret, sizeof (R_EVNT_MULTI));
       
       /* The application is not waiting anymore */
-      dequeue_appl (&apps [id]);
+      dequeue_appl (&appl_list [id]);
     }
   }
 }
@@ -299,22 +286,17 @@ srv_wake_appl_if_waiting_for_msg (WORD id) {
 /*
 ** Description
 ** Check for waiting mouse events
-**
-** 1998-12-13 CG
-** 1999-01-30 CG
-** 1999-04-07 CG
-** 1999-08-16 CG
 */
 static
 WORD
 check_mouse_buttons (C_EVNT_MULTI * par,
                      R_EVNT_MULTI * ret) {
 #define MOUSE_BUFFER_HEAD \
-        apps[par->common.apid].mouse_buffer[apps [par->common.apid].mouse_head]
+        appl_list[par->common.apid].mouse_buffer[appl_list [par->common.apid].mouse_head]
 
   WORD retval = 0;
 
-  if (apps [par->common.apid].mouse_size > 0) {
+  if (appl_list [par->common.apid].mouse_size > 0) {
     ret->eventout.mx = MOUSE_BUFFER_HEAD.x;
     ret->eventout.my = MOUSE_BUFFER_HEAD.y;
     ret->eventout.mb = MOUSE_BUFFER_HEAD.buttons;
@@ -323,12 +305,12 @@ check_mouse_buttons (C_EVNT_MULTI * par,
     retval = MU_BUTTON;
     
     /* Save the latest values */
-    apps [par->common.apid].mouse_last = MOUSE_BUFFER_HEAD;
+    appl_list [par->common.apid].mouse_last = MOUSE_BUFFER_HEAD;
     
     /* Update mouse buffer head */
-    apps [par->common.apid].mouse_head =
-      (apps [par->common.apid].mouse_head + 1) % MOUSE_BUFFER_SIZE;
-    apps [par->common.apid].mouse_size--;
+    appl_list [par->common.apid].mouse_head =
+      (appl_list [par->common.apid].mouse_head + 1) % MOUSE_BUFFER_SIZE;
+    appl_list [par->common.apid].mouse_size--;
   } else if (par->eventin.events & MU_BUTTON) {
     if (par->eventin.bclicks & 0x100) {
       if (par->eventin.bmask & buttons_last) {
@@ -420,23 +402,18 @@ check_mouse_motion (WORD           x,
 /*
 ** Description
 ** Check for waiting key events
-**
-** 1999-03-08 CG
-** 1999-04-06 CG
-** 1999-08-05 CG
-** 1999-08-13 CG
 */
 static
 WORD
 check_keys (C_EVNT_MULTI * par,
             R_EVNT_MULTI * ret) {
 #define KEY_BUFFER_HEAD \
-        apps[par->common.apid].key_buffer[apps [par->common.apid].key_head]
+        appl_list[par->common.apid].key_buffer[appl_list [par->common.apid].key_head]
 
   WORD retval = 0;
 
   if (par->eventin.events & MU_KEYBD) {
-    if (apps [par->common.apid].key_size > 0) {
+    if (appl_list [par->common.apid].key_size > 0) {
       ret->eventout.ks = KEY_BUFFER_HEAD.state;
       ret->eventout.kc = (KEY_BUFFER_HEAD.scan << 8) | KEY_BUFFER_HEAD.ascii;
       
@@ -446,9 +423,9 @@ check_keys (C_EVNT_MULTI * par,
       retval = MU_KEYBD;
 
       /* Update key buffer head */
-      apps [par->common.apid].key_head =
-        (apps [par->common.apid].key_head + 1) % KEY_BUFFER_SIZE;
-      apps [par->common.apid].key_size--;
+      appl_list [par->common.apid].key_head =
+        (appl_list [par->common.apid].key_head + 1) % KEY_BUFFER_SIZE;
+      appl_list [par->common.apid].key_size--;
     }
   }
   
@@ -461,8 +438,6 @@ check_keys (C_EVNT_MULTI * par,
 /*
 ** Description
 ** Check for timer event
-**
-** 1999-01-29 CG
 */
 static
 WORD
@@ -471,7 +446,7 @@ check_timer (C_EVNT_MULTI * par,
   WORD retval = 0;
 
   if (par->eventin.events & MU_TIMER) {
-    if (apps[par->common.apid].timer_event <= timer_counter) {
+    if (appl_list[par->common.apid].timer_event <= timer_counter) {
       return MU_TIMER;
     }
   }
@@ -509,11 +484,11 @@ srv_wait_for_event (COMM_HANDLE    handle,
 
   /* Check for timer event */
   if (par->eventin.events & MU_TIMER) {
-    apps[par->common.apid].timer_event =
+    appl_list[par->common.apid].timer_event =
       timer_counter + (par->eventin.hicount << 16) + par->eventin.locount;
     
-    if (apps[par->common.apid].timer_event < next_timer_event) {
-      next_timer_event = apps[par->common.apid].timer_event;
+    if (appl_list[par->common.apid].timer_event < next_timer_event) {
+      next_timer_event = appl_list[par->common.apid].timer_event;
     }
     
     ret.eventout.events |= check_timer (par, &ret);
@@ -543,33 +518,33 @@ handle_mouse_buttons (void) {
   /* Did the mouse buttons change? */
   if (buttons_last != buttons_new) {
     WORD click_owner = srv_click_owner (x_last, y_last);
-    WORD index = (apps [click_owner].mouse_head +
-                  apps [click_owner].mouse_size) % MOUSE_BUFFER_SIZE;
+    WORD index = (appl_list [click_owner].mouse_head +
+                  appl_list [click_owner].mouse_size) % MOUSE_BUFFER_SIZE;
     
-    apps [click_owner].mouse_buffer [index].x = x_last;
-    apps [click_owner].mouse_buffer [index].y = y_last;
-    apps [click_owner].mouse_buffer [index].buttons = buttons_new;
-    apps [click_owner].mouse_buffer [index].change =
+    appl_list [click_owner].mouse_buffer [index].x = x_last;
+    appl_list [click_owner].mouse_buffer [index].y = y_last;
+    appl_list [click_owner].mouse_buffer [index].buttons = buttons_new;
+    appl_list [click_owner].mouse_buffer [index].change =
       buttons_new ^ buttons_last;
-    apps [click_owner].mouse_size++;
+    appl_list [click_owner].mouse_size++;
 
     buttons_last = buttons_new;
 
     /* Wake the application if it's waiting */
-    if (apps [click_owner].is_waiting) {
+    if (appl_list [click_owner].is_waiting) {
       R_EVNT_MULTI ret;
       
       /* Reset events before calling check_mouse_buttons! */
       ret.eventout.events = 0;
-      ret.eventout.events = check_mouse_buttons (&apps [click_owner].par,
+      ret.eventout.events = check_mouse_buttons (&appl_list [click_owner].par,
                                                  &ret);
 
       if (ret.eventout.events != 0) {
         PUT_R_ALL(EVNT_MULTI, &ret, 0);
-        SRV_REPLY(apps [click_owner].handle, &ret, sizeof (R_EVNT_MULTI));
+        SRV_REPLY(appl_list [click_owner].handle, &ret, sizeof (R_EVNT_MULTI));
 
         /* The application is not waiting anymore */
-        dequeue_appl (&apps [click_owner]);
+        dequeue_appl (&appl_list [click_owner]);
       }
     }
   }
@@ -602,15 +577,15 @@ handle_keys (WORD vdi_workstation_id) {
     DEBUG2 ("srv_event.c: handle_keys: %d keys pressed", n_o_keys);
     
     for (i = 0; i < n_o_keys; i++) {
-      WORD index = (apps [topped_appl].key_head +
-		    apps [topped_appl].key_size) % KEY_BUFFER_SIZE;
+      WORD index = (appl_list [topped_appl].key_head +
+		    appl_list [topped_appl].key_size) % KEY_BUFFER_SIZE;
 
       DEBUG2 ("srv_event.c: handle_keys: key 0x%x => apid %d",
 	      str[i],
 	      topped_appl);
-      apps [topped_appl].key_buffer [index].ascii = str[i] & 0xff;
-      apps [topped_appl].key_buffer [index].scan = (str[i] >> 8) & 0xff;
-      apps [topped_appl].key_buffer [index].state = 0; /* FIXME */
+      appl_list [topped_appl].key_buffer [index].ascii = str[i] & 0xff;
+      appl_list [topped_appl].key_buffer [index].scan = (str[i] >> 8) & 0xff;
+      appl_list [topped_appl].key_buffer [index].state = 0; /* FIXME */
       
       if(str[i] == 0x5d00) /* F20 */
       {
@@ -622,25 +597,25 @@ handle_keys (WORD vdi_workstation_id) {
         srv_wind_debug(x_last, y_last);
       }
 
-      apps [topped_appl].key_size++;
+      appl_list [topped_appl].key_size++;
     }
 
     /* Wake the application if it's waiting */
-    if (apps [topped_appl].is_waiting) {
+    if (appl_list [topped_appl].is_waiting) {
       R_EVNT_MULTI ret;
       
       DEBUG3 ("calling check_keys");
       /* Reset events before calling check_keys! */
       ret.eventout.events = 0;
-      ret.eventout.events = check_keys (&apps [topped_appl].par,
+      ret.eventout.events = check_keys (&appl_list [topped_appl].par,
                                         &ret);
 
       if (ret.eventout.events != 0) {
         PUT_R_ALL(EVNT_MULTI, &ret, 0);
-        SRV_REPLY(apps [topped_appl].handle, &ret, sizeof (R_EVNT_MULTI));
+        SRV_REPLY(appl_list [topped_appl].handle, &ret, sizeof (R_EVNT_MULTI));
 
         /* The application is not waiting anymore */
-        dequeue_appl (&apps [topped_appl]);
+        dequeue_appl (&appl_list [topped_appl]);
       }
     }
   }

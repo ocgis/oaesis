@@ -31,7 +31,11 @@
 static WORD mouse_lock;
 static WORD mouse_cnt = 0;
 
-WINLIST * win_vis = NULL; /* FIXME: make static */
+/* FIXME: make all of the variables below static */
+WINLIST * win_vis = NULL;
+WINLIST * win_list = 0L;
+WINLIST * win_free = 0L;
+WORD      win_next = 0;
 
 typedef struct lock_info_s * LOCK_INFO;
 #define LOCK_INFO_NIL ((LOCK_INFO)NULL)
@@ -521,4 +525,104 @@ srv_wind_debug(int mouse_x,
                int mouse_y)
 {
   DB_printf("Mouse click owner: %d", srv_click_owner(mouse_x, mouse_y));
+}
+
+
+/* Description
+** Create/fetch a free window structure/id
+*/
+WINSTRUCT *
+winalloc(void)
+{
+  WINLIST * wl;
+  
+  if(win_free)
+  {
+    wl = win_free;
+    win_free = win_free->next;
+  }
+  else
+  {
+    DEBUG2 ("srv.c: winalloc: Allocating memory");
+    wl = (WINLIST *)malloc(sizeof(WINLIST));
+    wl->win = (WINSTRUCT *)malloc(sizeof(WINSTRUCT));
+    wl->win->id = win_next;
+    win_next++;
+  }
+	
+  wl->next = win_list;
+  win_list = wl;
+  
+  return wl->win;
+}
+
+
+/*
+** Description
+** Initialize windows
+*/
+void
+srv_init_windows(void)
+{
+  RECT          r;
+  C_WIND_CREATE c_wind_create;
+  R_WIND_CREATE r_wind_create;
+  C_WIND_GET    c_wind_get;
+  R_WIND_GET    r_wind_get;
+  C_WIND_OPEN   c_wind_open;
+  R_WIND_OPEN   r_wind_open;
+
+  WINSTRUCT *   ws;
+  WINLIST *     wl;
+
+  /* Initialize desktop background */
+  DEBUG3 ("srv.c: Initializing desktop window");
+  ws = winalloc();
+  ws->status = WIN_OPEN | WIN_DESKTOP | WIN_UNTOPPABLE;
+  ws->owner = 0;
+  
+  
+  ws->tree = NULL;
+  
+  ws->worksize.x = globals.screen.x;
+  ws->worksize.y = globals.screen.y + globals.clheight + 3;
+  ws->worksize.width = globals.screen.width;
+  ws->worksize.height = globals.screen.height - globals.clheight - 3;
+  
+  ws->maxsize = ws->totsize = ws->worksize;
+  
+  wl = (WINLIST *)malloc(sizeof(WINLIST));
+  
+  wl->win = ws;
+  
+  wl->next = win_vis;
+  win_vis = wl;
+
+  wl->win->rlist = (RLIST *)malloc(sizeof(RLIST));
+  wl->win->rlist->r.x = globals.screen.x;
+  wl->win->rlist->r.y = globals.screen.y;
+  wl->win->rlist->r.width = globals.screen.width;
+  wl->win->rlist->r.height = globals.screen.height;
+  wl->win->rlist->next = NULL;
+
+  c_wind_get.handle = 0;
+  c_wind_get.mode = WF_FULLXYWH;
+  srv_wind_get (&c_wind_get, &r_wind_get);
+  r = *((RECT *)&r_wind_get.parm1);
+
+  r.height = r.y;
+  r.y = 0;
+
+  DEBUG3 ("srv.c: Creating menu bar window");
+  c_wind_create.common.apid = 0;
+  c_wind_create.elements = 0;
+  c_wind_create.maxsize = r;
+  c_wind_create.status = WIN_MENU;
+
+  srv_wind_create (&c_wind_create, &r_wind_create);
+
+  c_wind_open.id = r_wind_create.common.retval;
+  c_wind_open.size = r;
+  srv_wind_open (&c_wind_open,
+                 &r_wind_open);
 }
