@@ -11,6 +11,8 @@
 ** Read the file COPYING for more information.
 */
 
+#define DEBUGLEVEL 0
+
 #include <stdlib.h>
 
 #include "debug.h"
@@ -89,6 +91,7 @@ static WORD  timer_tick_ms; /* Number of milliseconds per tick */
 **
 ** 1999-03-07 CG
 ** 1999-03-08 CG
+** 1999-04-06 CG
 */
 static
 void
@@ -99,7 +102,8 @@ catch_keys (int state,
   key_buffer[key_buffer_tail].state = state;
   key_buffer[key_buffer_tail].ascii = ascii;
   key_buffer[key_buffer_tail].scan = scan;
-  key_buffer_tail++;
+  key_buffer_tail = (key_buffer_tail + 1) % KEY_BUFFER_SIZE;
+  DEBUG3 ("srv_event.c: catch_keys: Caught key");
 
   /* Wake up the server so that it will be able to distribute the event */
   Srv_wake ();
@@ -409,6 +413,7 @@ check_mouse_motion (WORD           x,
 ** Check for waiting key events
 **
 ** 1999-03-08 CG
+** 1999-04-06 CG
 */
 static
 WORD
@@ -421,10 +426,14 @@ check_keys (C_EVNT_MULTI * par,
 
   if (par->eventin.events & MU_KEYBD) {
     if (apps [par->common.apid].key_size > 0) {
-      if (KEY_BUFFER_HEAD.scan & 0x80) {
+      if ((KEY_BUFFER_HEAD.scan & 0x80) &&
+          (KEY_BUFFER_HEAD.ascii >= 10)) /* FIXME */ {
         ret->eventout.ks = KEY_BUFFER_HEAD.state;
         ret->eventout.kc = KEY_BUFFER_HEAD.ascii;
         
+        DEBUG3 ("srv_event.c: ks = 0x%x  kc = 0x%x",
+                ret->eventout.ks,
+                ret->eventout.kc);
         retval = MU_KEYBD;
       }
 
@@ -579,6 +588,7 @@ handle_keys (void) {
                   apps [topped_appl].key_size) % KEY_BUFFER_SIZE;
     
     while (key_buffer_head != key_buffer_tail) {
+      DEBUG3 ("srv_event.c: handle_keys: key => apid %d", topped_appl);
       apps [topped_appl].key_buffer [index] = key_buffer [key_buffer_head];
       apps [topped_appl].key_size++;
       key_buffer_head = (key_buffer_head + 1) % KEY_BUFFER_SIZE;
@@ -588,6 +598,7 @@ handle_keys (void) {
     if (apps [topped_appl].is_waiting) {
       R_EVNT_MULTI ret;
       
+      DEBUG3 ("calling check_keys");
       ret.eventout.events = check_keys (&apps [topped_appl].par,
                                         &ret);
 
