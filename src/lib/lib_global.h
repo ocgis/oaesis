@@ -128,7 +128,6 @@ typedef struct global_appl
   OBJECT *         menu;
   RECT             menu_bar_rect;
   RSHDR *          rshdr;
-  OBJECT **        rscfile;
   OAESIS_PATH_MODE path_mode;
   APPL_LIST        appl_menu;
   APPL_LIST        acc_menu;
@@ -166,11 +165,10 @@ int check_apid(int apid);
 #define CHECK_APID(apid) apid = check_apid(apid);
 
 #ifdef WORDS_BIGENDIAN
-
-#define CW_TO_HW(cw) cw
-#define HW_TO_CW(hw) hw
-#define CL_TO_HL(cl) (LONG)cl
-#define HL_TO_CL(hl) (LONG)hl
+#define CW_TO_HW(cw) (cw)
+#define HW_TO_CW(hw) (hw)
+#define CL_TO_HL(cl) ((LONG)cl)
+#define HL_TO_CL(hl) ((LONG)hl)
 
 #else /* WORDS_BIGENDIAN */
 
@@ -181,31 +179,31 @@ extern OAESIS_ENDIAN oaesis_client_endian;
 
 #define CW_TO_HW(word) \
         ((oaesis_client_endian == OAESIS_ENDIAN_HOST) ? \
-          word : \
+          (word) : \
           (oaesis_client_endian == OAESIS_ENDIAN_BIG) ? \
             ntohs((WORD)word) : \
-            word)
+            (word))
 
 #define HW_TO_CW(word) \
         ((oaesis_client_endian == OAESIS_ENDIAN_HOST) ? \
-          word : \
+          (word) : \
           (oaesis_client_endian == OAESIS_ENDIAN_BIG) ? \
             htons((WORD)word) : \
-            word)
+            (word))
 
 #define CL_TO_HL(cl) \
         ((oaesis_client_endian == OAESIS_ENDIAN_HOST) ? \
-          (LONG)cl : \
+          ((LONG)cl) : \
           (oaesis_client_endian == OAESIS_ENDIAN_BIG) ? \
             ntohl((LONG)cl) : \
-            (LONG)cl)
+            ((LONG)cl))
 
 #define HL_TO_CL(hl) \
         ((oaesis_client_endian == OAESIS_ENDIAN_HOST) ? \
-          (LONG)hl : \
+          ((LONG)hl) : \
           (oaesis_client_endian == OAESIS_ENDIAN_BIG) ? \
             htonl((LONG)hl) : \
-            (LONG)hl)
+            ((LONG)hl))
 
 #endif /* WORDS_BIGENDIAN */
 
