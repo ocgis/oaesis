@@ -339,12 +339,13 @@ Evnt_do_multi (WORD       apid,
   }
 
   /* Loop until a user event has been found */
-  while (events_out == 0) {
+  while (events_out == 0)
+  {
     DEBUG3 ("evnt.c: timeout = %d %d", par.eventin.hicount, par.eventin.locount);
     CLIENT_SEND_RECV(&par,
-                     sizeof (C_EVNT_MULTI),
-                     &ret,
-                     sizeof (R_EVNT_MULTI));
+		     sizeof (C_EVNT_MULTI),
+		     &ret,
+		     sizeof (R_EVNT_MULTI));
     
     /* Handle messages */
     if (ret.eventout.events & MU_MENU_BAR) {

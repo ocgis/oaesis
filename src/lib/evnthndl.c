@@ -1444,10 +1444,6 @@ handle_selected_title (WORD        apid,
   WORD          title;
   WORD          deskbox;
   GLOBAL_APPL * globals = get_globals (apid);
-  WORD          mx;
-  WORD          my;
-  WORD          mb;
-  WORD          ks;
   EVENTIN       ei = {
     MU_M1,
     0,
@@ -1471,10 +1467,8 @@ handle_selected_title (WORD        apid,
   MFDB   mfdb_dst;
   int    pxy[8];
 #endif
-
-  Graf_do_mkstate (apid, &mx, &my, &mb, &ks);
-        
-  title = Objc_do_find (globals->menu, 0, 9, mx, my, 0);
+      
+  title = Objc_do_find (globals->menu, 0, 9, mouse_x, mouse_y, 0);
   box = get_matching_menu (globals->menu, title);
   
   deskbox = globals->menu[globals->menu[0].ob_tail].ob_head;
@@ -1574,16 +1568,16 @@ handle_selected_title (WORD        apid,
     ei.m1r = titlearea;
 
     /* Wait for mouse to leave title rectangle */
-    while (TRUE) {
-      WORD event;
-
+    while(TRUE)
+    {
       Evnt_do_multi (apid, &ei, &buffer, &eo, 0, DONT_HANDLE_MENU_BAR);
 
       if (eo.events & MU_M1) {
         WORD closebox = 0;
         
         if ((deskbox == box) &&
-            (mouse_y >= globals->common->pmenutad[0].ob_y)) {
+            (eo.my >= globals->common->pmenutad[0].ob_y))
+	{
           if (!Misc_inside ((RECT *)&globals->common->pmenutad[0].ob_x,
                             eo.mx,
                             eo.my) ||
@@ -1596,18 +1590,20 @@ handle_selected_title (WORD        apid,
               handle_drop_down (apid, eo.mx, eo.my, hm_buffer, box, title)) {
             closebox = 1;
           }
-        } else if ((Objc_do_find (globals->menu,
-                                  box,
-                                  9,
-                                  eo.mx,
-                                  eo.my,
-                                  0) < 0) ||
-                   handle_drop_down (apid,
-                                     eo.mx,
-                                     eo.my,
-                                     hm_buffer,
-                                     box,
-                                     title)) {
+        }
+	else if ((Objc_do_find (globals->menu,
+				box,
+				9,
+				eo.mx,
+				eo.my,
+				0) < 0) ||
+		 handle_drop_down (apid,
+				   eo.mx,
+				   eo.my,
+				   hm_buffer,
+				   box,
+				   title))
+	{
           closebox = 1;
         }
 

@@ -11,6 +11,8 @@
 ** Read the file COPYING for more information.
 */
 
+#define DEBUGLEVEL 0
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -19,6 +21,7 @@
 #include <mintbind.h>
 #endif
 
+#include "debug.h"
 #include "mintdefs.h"
 #include "srv_pmsg.h"
 #include "srv_put.h"
@@ -57,4 +60,3 @@ Client_send_recv(void * in,
 
   return msg.bytes_out;
 }
-

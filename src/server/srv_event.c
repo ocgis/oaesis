@@ -279,7 +279,9 @@ void
 srv_wake_appl_if_waiting_for_msg (WORD id) {
   if (apps [id].is_waiting) {
     R_EVNT_MULTI ret;
-      
+
+    /* Reset events before calling check_for_messages! */
+    ret.eventout.events = 0;
     ret.eventout.events = check_for_messages (&apps [id].par,
                                               &ret);
     
@@ -486,6 +488,9 @@ srv_wait_for_event (COMM_HANDLE    handle,
                     C_EVNT_MULTI * par) {
   R_EVNT_MULTI   ret;
 
+  /* Reset events before calling any check routines */
+  ret.eventout.events = 0;
+
   /* Are there any waiting messages? */
   ret.eventout.events = check_for_messages (par, &ret);
 
@@ -554,6 +559,8 @@ handle_mouse_buttons (void) {
     if (apps [click_owner].is_waiting) {
       R_EVNT_MULTI ret;
       
+      /* Reset events before calling check_mouse_buttons! */
+      ret.eventout.events = 0;
       ret.eventout.events = check_mouse_buttons (&apps [click_owner].par,
                                                  &ret);
 
@@ -623,6 +630,8 @@ handle_keys (WORD vdi_workstation_id) {
       R_EVNT_MULTI ret;
       
       DEBUG3 ("calling check_keys");
+      /* Reset events before calling check_keys! */
+      ret.eventout.events = 0;
       ret.eventout.events = check_keys (&apps [topped_appl].par,
                                         &ret);
 
@@ -657,6 +666,8 @@ handle_mouse_motion (void) {
 
       appl_walk = appl_walk->next;
 
+      /* Reset events before calling check_mouse_motion! */
+      ret.eventout.events = 0;
       ret.eventout.events = check_mouse_motion (x_new,
                                                 y_new,
                                                 &this_appl->par,
@@ -696,6 +707,8 @@ handle_timer (void) {
 
       appl_walk = appl_walk->next;
 
+      /* Reset events before calling check_timer! */
+      ret.eventout.events = 0;
       ret.eventout.events = check_timer (&this_appl->par,
                                          &ret);
       if (ret.eventout.events != 0) {
