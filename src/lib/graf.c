@@ -47,6 +47,7 @@
 #endif
 
 #include <stdio.h>
+#include <unistd.h>
 
 #include "debug.h"
 #include "evnt.h"
@@ -62,8 +63,6 @@
 #include "srv_interface.h"
 #include "srv_put.h"
 #include "types.h"
-#include <unistd.h>
-#include "vdi.h"
 #include "wind.h"
 
 /****************************************************************************
@@ -82,7 +81,7 @@ static MFORM m_arrow,m_text_crsr,m_busy_bee,m_point_hand,m_flat_hand,
              m_thin_cross,m_thick_cross,m_outln_cross;
 static MFORM current,last,last_saved;
 
-WORD   grafvid;
+static int grafvid;
 
 /****************************************************************************
  * Local functions (use static!)                                            *
@@ -119,14 +118,15 @@ icon2mform(MFORM  *  mf,
  * Public functions                                                         *
  ****************************************************************************/
  
+/* FIXME: remove this routine */
 void Graf_init_module(void) {   
-  WORD work_in[] = {1,7,1,1,1,1,1,1,1,1,2};
-  WORD work_out[57];
+  int work_in[] = {1,7,1,1,1,1,1,1,1,1,2};
+  int work_out[57];
 
   /*
   grafvid = globals->common->vid;
   */
-  Vdi_v_opnvwk(work_in,&grafvid,work_out);
+  v_opnvwk(work_in,&grafvid,work_out);
   
   Psemaphore(SEM_CREATE,GRAFSEM,-1);
   Psemaphore(SEM_UNLOCK,GRAFSEM,-1);
@@ -151,7 +151,7 @@ void Graf_exit_module(void) {
   Psemaphore(SEM_LOCK,GRAFSEM,-1);
   Psemaphore(SEM_DESTROY,GRAFSEM,-1);
 
-  Vdi_v_clsvwk(grafvid);
+  v_clsvwk(grafvid);
 }
 
 
@@ -187,7 +187,7 @@ Graf_do_rubberbox (WORD   apid,
   };
   COMMSG        buffer;
   EVENTOUT      eo;
-  WORD          xyarray[10];
+  int           xyarray[10];
   WORD          lastw;
   WORD          lasth;
   WORD          neww;
@@ -221,9 +221,9 @@ Graf_do_rubberbox (WORD   apid,
     return 1;
   }
 
-  Vdi_vsl_color (globals->vid, BLACK);
-  Vdi_vswr_mode (globals->vid, MD_XOR);
-  Vdi_vsl_type (globals->vid, DOTTED);
+  vsl_color (globals->vid, BLACK);
+  vswr_mode (globals->vid, MD_XOR);
+  vsl_type (globals->vid, DOTTED);
 
   xyarray[0] = bx;
   xyarray[1] = by;
@@ -237,7 +237,7 @@ Graf_do_rubberbox (WORD   apid,
   xyarray[9] = xyarray[1];
   
   Graf_do_mouse (apid, M_OFF, NULL);
-  Vdi_v_pline (globals->vid, 5, xyarray);
+  v_pline (globals->vid, 5, xyarray);
   Graf_do_mouse (apid, M_ON, NULL);
   
   ei.m1r.x = mx;
@@ -260,7 +260,7 @@ Graf_do_rubberbox (WORD   apid,
 
       if ((lastw != neww) || (lasth != newh)) {
         Graf_do_mouse (apid, M_OFF, NULL);
-        Vdi_v_pline (globals->vid, 5, xyarray);
+        v_pline (globals->vid, 5, xyarray);
 
         lastw = neww;
         lasth = newh;
@@ -276,7 +276,7 @@ Graf_do_rubberbox (WORD   apid,
         xyarray[8] = xyarray[0];
         xyarray[9] = xyarray[1];
          
-        Vdi_v_pline (globals->vid, 5, xyarray);
+        v_pline (globals->vid, 5, xyarray);
         Graf_do_mouse (apid, M_ON, NULL);
       }
     }
@@ -289,7 +289,7 @@ Graf_do_rubberbox (WORD   apid,
   }
 
   Graf_do_mouse (apid, M_OFF, NULL);
-  Vdi_v_pline (globals->vid, 5, xyarray);
+  v_pline (globals->vid, 5, xyarray);
   Graf_do_mouse (apid, M_ON, NULL);
 
   *endw = lastw;
@@ -331,6 +331,7 @@ Graf_rubberbox (AES_PB *apb) {
 ** 1998-12-26 CG
 ** 1999-01-03 CG
 ** 1999-01-09 CG
+** 1999-05-16 CG
 */
 WORD
 Graf_do_dragbox (WORD   apid,
@@ -358,7 +359,7 @@ Graf_do_dragbox (WORD   apid,
     
   WORD          relx;
   WORD          rely;
-  WORD          xyarray[10];
+  int           xyarray[10];
   WORD          lastx = sx;
   WORD          lasty = sy;
   WORD          newx;
@@ -384,9 +385,9 @@ Graf_do_dragbox (WORD   apid,
     return 1;
   }
 
-  Vdi_vsl_color (globals->vid, BLACK);
-  Vdi_vswr_mode (globals->vid, MD_XOR);
-  Vdi_vsl_type (globals->vid, DOTTED);
+  vsl_color (globals->vid, BLACK);
+  vswr_mode (globals->vid, MD_XOR);
+  vsl_type (globals->vid, DOTTED);
 
   xyarray[0] = lastx;
   xyarray[1] = lasty;
@@ -400,7 +401,7 @@ Graf_do_dragbox (WORD   apid,
   xyarray[9] = xyarray[1];
          
   Graf_do_mouse (apid, M_OFF, NULL);
-  Vdi_v_pline (globals->vid, 5, xyarray);
+  v_pline (globals->vid, 5, xyarray);
   Graf_do_mouse (apid, M_ON, NULL);
 
   ei.m1r.x = mx;
@@ -427,7 +428,7 @@ Graf_do_dragbox (WORD   apid,
       
       if ((lastx != newx) || (lasty != newy)) {
         Graf_do_mouse (apid, M_OFF, NULL);
-        Vdi_v_pline (globals->vid, 5, xyarray);
+        v_pline (globals->vid, 5, xyarray);
 
         xyarray[0] = newx;
         xyarray[1] = newy;
@@ -440,7 +441,7 @@ Graf_do_dragbox (WORD   apid,
         xyarray[8] = xyarray[0];
         xyarray[9] = xyarray[1];
         
-        Vdi_v_pline (globals->vid, 5, xyarray);
+        v_pline (globals->vid, 5, xyarray);
         Graf_do_mouse (apid, M_ON, NULL);
         
         lastx = newx;
@@ -456,7 +457,7 @@ Graf_do_dragbox (WORD   apid,
   }
 
   Graf_do_mouse (apid, M_OFF, NULL);
-  Vdi_v_pline (globals->vid, 5, xyarray);
+  v_pline (globals->vid, 5, xyarray);
   Graf_do_mouse (apid, M_ON, NULL);
 
   *endx = lastx;
@@ -500,7 +501,7 @@ RECT *r2)         /* End rectangle.                                         */
 /****************************************************************************/
 {
   WORD f,g;
-  WORD xy[10];
+  int  xy[10];
   
   WORD dx = (r2->x - r1->x) / GRAF_STEPS;
   WORD dy = (r2->y - r1->y) / GRAF_STEPS;
@@ -509,10 +510,10 @@ RECT *r2)         /* End rectangle.                                         */
   
   Psemaphore(SEM_LOCK,GRAFSEM,-1);
 
-  Vdi_vswr_mode(grafvid,MD_XOR);
-  Vdi_vsl_type(grafvid,3);
+  vswr_mode(grafvid,MD_XOR);
+  vsl_type(grafvid,3);
   
-  Vdi_v_hide_c(grafvid);
+  v_hide_c(grafvid);
   
   for(g = 0; g < 2; g++) {
     xy[0] = r1->x;
@@ -529,7 +530,7 @@ RECT *r2)         /* End rectangle.                                         */
     for(f=0; f < GRAF_STEPS; f++) { 
       /* Draw initial growing outline */
       
-      Vdi_v_pline(grafvid,5,xy);
+      v_pline(grafvid,5,xy);
         
       xy[0] += dx;
       xy[1] += dy;
@@ -544,9 +545,9 @@ RECT *r2)         /* End rectangle.                                         */
     }
   }
   
-  Vdi_v_show_c(grafvid,1);
+  v_show_c(grafvid,1);
   
-  Vdi_vswr_mode(grafvid,MD_TRANS);
+  vswr_mode(grafvid,MD_TRANS);
   
   Psemaphore(SEM_LOCK,GRAFSEM,-1);
 
@@ -857,81 +858,81 @@ Graf_do_mouse (WORD    apid,
   case ARROW: /*0x000*/
     last = current;
     current = m_arrow;
-    Vdi_v_hide_c (globals->vid);
-    Vdi_vsc_form (globals->vid, &m_arrow);
-    Vdi_v_show_c (globals->vid, 0);
+    v_hide_c (globals->vid);
+    vsc_form (globals->vid, &m_arrow);
+    v_show_c (globals->vid, 0);
     break;
     
   case TEXT_CRSR: /*0x001*/
     last = current;
     current = m_text_crsr;
-    Vdi_v_hide_c (globals->vid);
-    Vdi_vsc_form(globals->vid, &m_text_crsr);
-    Vdi_v_show_c(globals->vid, 0);
+    v_hide_c (globals->vid);
+    vsc_form(globals->vid, &m_text_crsr);
+    v_show_c(globals->vid, 0);
     break;
     
   case BUSY_BEE: /*0x002*/
     last = current;
     current = m_busy_bee;
-    Vdi_v_hide_c (globals->vid);
-    Vdi_vsc_form (globals->vid, &m_busy_bee);
-    Vdi_v_show_c (globals->vid, 0);
+    v_hide_c (globals->vid);
+    vsc_form (globals->vid, &m_busy_bee);
+    v_show_c (globals->vid, 0);
     break;
     
   case POINT_HAND: /*0x003*/
     last = current;
     current = m_point_hand;
-    Vdi_v_hide_c (globals->vid);
-    Vdi_vsc_form (globals->vid, &m_point_hand);
-    Vdi_v_show_c (globals->vid, 0);
+    v_hide_c (globals->vid);
+    vsc_form (globals->vid, &m_point_hand);
+    v_show_c (globals->vid, 0);
     break;
     
   case FLAT_HAND: /*0x004*/
     last = current;
     current = m_flat_hand;
-    Vdi_v_hide_c (globals->vid);
-    Vdi_vsc_form (globals->vid, &m_flat_hand);
-    Vdi_v_show_c (globals->vid, 0);
+    v_hide_c (globals->vid);
+    vsc_form (globals->vid, &m_flat_hand);
+    v_show_c (globals->vid, 0);
     break;
     
   case THIN_CROSS: /*0x005*/
     last = current;
     current = m_thin_cross;
-    Vdi_v_hide_c (globals->vid);
-    Vdi_vsc_form (globals->vid, &m_thin_cross);
-    Vdi_v_show_c (globals->vid, 0);
+    v_hide_c (globals->vid);
+    vsc_form (globals->vid, &m_thin_cross);
+    v_show_c (globals->vid, 0);
     break;
     
   case THICK_CROSS: /*0x006*/
     last = current;
     current = m_thick_cross;
-    Vdi_v_hide_c (globals->vid);
-    Vdi_vsc_form (globals->vid, &m_thick_cross);
-    Vdi_v_show_c (globals->vid, 0);
+    v_hide_c (globals->vid);
+    vsc_form (globals->vid, &m_thick_cross);
+    v_show_c (globals->vid, 0);
     break;
     
   case OUTLN_CROSS: /*0x007*/
     last = current;
     current = m_outln_cross;
-    Vdi_v_hide_c (globals->vid);
-    Vdi_vsc_form (globals->vid, &m_outln_cross);
-    Vdi_v_show_c (globals->vid, 0);
+    v_hide_c (globals->vid);
+    vsc_form (globals->vid, &m_outln_cross);
+    v_show_c (globals->vid, 0);
     break;
     
   case USER_DEF :
     last = current;
     current = *formptr;
-    Vdi_v_hide_c (globals->vid);
-    Vdi_vsc_form (globals->vid, formptr);
-    Vdi_v_show_c (globals->vid, 0);
+    v_hide_c (globals->vid);
+    vsc_form (globals->vid, formptr);
+    v_show_c (globals->vid, 0);
     break;
     
   case M_OFF    :
-    Vdi_v_hide_c (globals->vid);
+    v_hide_c (globals->vid);
     break;
                                 
   case M_ON     :
-    Vdi_v_show_c (globals->vid, 0);
+    v_show_c (globals->vid, 0);
     break;
     
   case M_SAVE:
@@ -942,9 +943,9 @@ Graf_do_mouse (WORD    apid,
     last = current;
     current = last_saved;
     
-    Vdi_v_hide_c (globals->vid);
-    Vdi_vsc_form (globals->vid, &current);
-    Vdi_v_show_c (globals->vid, 0);
+    v_hide_c (globals->vid);
+    vsc_form (globals->vid, &current);
+    v_show_c (globals->vid, 0);
     
     break;
     
@@ -953,9 +954,9 @@ Graf_do_mouse (WORD    apid,
     current = last;
     last = tmp;
     
-    Vdi_v_hide_c(globals->vid);
-    Vdi_vsc_form(globals->vid, &current);
-    Vdi_v_show_c(globals->vid, 0);
+    v_hide_c(globals->vid);
+    vsc_form(globals->vid, &current);
+    v_show_c(globals->vid, 0);
     
     break;                      
     

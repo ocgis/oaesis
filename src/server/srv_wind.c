@@ -11,6 +11,8 @@
 ** Read the file COPYING for more information.
 */
 
+#define DEBUGLEVEL 1
+
 #include <stdlib.h>
 
 #include "debug.h"
@@ -225,6 +227,7 @@ srv_wind_update (COMM_HANDLE     handle,
 ** Implementation of wind_get()
 **
 ** 1998-12-07 CG
+** 1999-05-18 CG
 */
 void
 srv_wind_get (C_WIND_GET * msg,
@@ -310,7 +313,7 @@ srv_wind_get (C_WIND_GET * msg,
 	ret->common.retval = 1;
 	
 	while(win->rpos) {
-	  if(Misc_intersect(&win->rpos->r,&win->worksize,&r)) {
+	  if(Misc_intersect(&win->rpos->r,&win->totsize,&r)) {
 	    break;
 	  }
 	  

@@ -78,7 +78,6 @@
 #include "srv_interface.h"
 #include "srv_put.h"
 #include "types.h"
-#include "vdi.h"
 #include "wind.h"
 
 /****************************************************************************
@@ -988,7 +987,7 @@ Wind_redraw_elements (WORD   apid,
                    &r.y,
                    &r.width,
                    &r.height,
-                 FALSE);
+                   FALSE);
       
       /* Loop while there are more rectangles to redraw */
       while (!((r.width == 0) && (r.height == 0))) {

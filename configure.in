@@ -1,5 +1,8 @@
 AC_INIT(src/Makefile.am)
 
+dnl extra options
+AC_ARG_ENABLE(vdi-tunnel, [  --enable-vdi-tunnel     tunnel VDI calls to the oAESis server ], AC_DEFINE(TUNNEL_VDI_CALLS))
+
 . $srcdir/OAESIS-VERSION
 
 dnl libtool versioning

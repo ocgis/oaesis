@@ -34,7 +34,7 @@ v   Fixed mover grabbing bug; if the mouse was moved during click on
  
  ****************************************************************************/
 
-#define DEBUGLEVEL 3
+#define DEBUGLEVEL 0
 
 /****************************************************************************
  * Used interfaces                                                          *
@@ -86,7 +86,6 @@ v   Fixed mover grabbing bug; if the mouse was moved during click on
 #include "resource.h"
 #include "srv_calls.h"
 #include "types.h"
-#include "vdi.h"
 #include "wind.h"
 /*#include "wm/wm.h"*/
 
@@ -787,6 +786,7 @@ handle_slider_click (WORD apid,
 ** 1998-12-20 CG
 ** 1998-12-25 CG
 ** 1999-04-09 CG
+** 1999-05-16 CG
 */
 void 
 Evhd_handle_button (WORD apid,
@@ -795,6 +795,7 @@ Evhd_handle_button (WORD apid,
                     WORD mouse_y) {
   EVNTREC     er;
 
+  DEBUG2 ("evnthndl.c: Entering Evhd_handle_button");
   if (mouse_button & LEFT_BUTTON) {
     WORD     win_id;
     WORD     owner;
@@ -886,9 +887,11 @@ Evhd_handle_button (WORD apid,
       OBJECT * tree;
       COMMSG   mesag;
 
+      DEBUG2 ("evnthndl.c: Click on window element");
       tree = Wind_get_rsrc (apid, win_id);
       obj = Objc_do_find (tree, 0, 9, mouse_x, mouse_y, 0);
 
+      DEBUG2 ("evnthndl.c: obj = %d\n", obj);
       switch(obj) {         
       case WCLOSER :
         if (Graf_do_watchbox (apid, tree, WCLOSER, SELECTED, 0)) {
@@ -902,7 +905,7 @@ Evhd_handle_button (WORD apid,
         
       case WSMALLER:
       {
-        WORD skeys;
+        int skeys;
         
         Wind_change (apid, win_id, W_SMALLER, SELECTED);
         
@@ -914,7 +917,7 @@ Evhd_handle_button (WORD apid,
         
         Wind_change (apid, win_id, W_SMALLER, 0);
         
-        Vdi_vq_key_s(evntglbl.evid,&skeys);
+        vq_key_s(evntglbl.evid,&skeys);
         
         if(skeys & K_CTRL) {
           mesag.type = WM_ALLICONIFY;
@@ -958,7 +961,9 @@ Evhd_handle_button (WORD apid,
       
       case WAPP:            
       case WMOVER:
+        DEBUG2 ("evnthndl.c: calling handle_mover_click");
         handle_mover_click (apid, win_id);
+        DEBUG2 ("evnthndl.c: returned from handle_mover_click");
         break;
         
       case WLEFT:
@@ -1748,7 +1753,7 @@ evnt_handler (LONG arg) {
   /*
   evntglbl.evid = globals.vid;
   */
-  Vdi_v_opnvwk(work_in,&evntglbl.evid,work_out);
+  v_opnvwk(work_in,&evntglbl.evid,work_out);
   
   while(1) {
     get_evntpacket(&er,0);

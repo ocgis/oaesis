@@ -95,7 +95,7 @@ oaesis_HEADERS = aesbind.h
 
 lib_LTLIBRARIES = liboaesis.la
 
-liboaesis_la_SOURCES =  	aesbind.c appl.c cursors.c resource.c debug.c docalls.c evnt.c 	evnthndl.c form.c fsel.c graf.c lib_global.c lib_misc.c menu.c 	objc.c rsrc.c scrp.c shel.c srv_calls.c srv_put.c vdi.c wind.c
+liboaesis_la_SOURCES =  	aesbind.c appl.c cursors.c debug.c docalls.c evnt.c evnthndl.c form.c 	fsel.c graf.c lib_global.c lib_misc.c menu.c objc.c resource.c rsrc.c 	scrp.c shel.c srv_calls.c srv_put.c wind.c
 
 
 EXTRA_liboaesis_la_SOURCES =  	cursors.rsc resource.rsc cursors.hrd resource.hrd
@@ -115,10 +115,10 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 liboaesis_la_LIBADD = 
-liboaesis_la_OBJECTS =  aesbind.lo appl.lo cursors.lo resource.lo \
-debug.lo docalls.lo evnt.lo evnthndl.lo form.lo fsel.lo graf.lo \
-lib_global.lo lib_misc.lo menu.lo objc.lo rsrc.lo scrp.lo shel.lo \
-srv_calls.lo srv_put.lo vdi.lo wind.lo
+liboaesis_la_OBJECTS =  aesbind.lo appl.lo cursors.lo debug.lo \
+docalls.lo evnt.lo evnthndl.lo form.lo fsel.lo graf.lo lib_global.lo \
+lib_misc.lo menu.lo objc.lo resource.lo rsrc.lo scrp.lo shel.lo \
+srv_calls.lo srv_put.lo wind.lo
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
@@ -136,7 +136,7 @@ DEP_FILES =  .deps/aesbind.P .deps/appl.P .deps/cursors.P .deps/debug.P \
 .deps/docalls.P .deps/evnt.P .deps/evnthndl.P .deps/form.P .deps/fsel.P \
 .deps/graf.P .deps/lib_global.P .deps/lib_misc.P .deps/menu.P \
 .deps/objc.P .deps/resource.P .deps/rsrc.P .deps/scrp.P .deps/shel.P \
-.deps/srv_calls.P .deps/srv_put.P .deps/vdi.P .deps/wind.P
+.deps/srv_calls.P .deps/srv_put.P .deps/wind.P
 SOURCES = $(liboaesis_la_SOURCES) $(EXTRA_liboaesis_la_SOURCES)
 OBJECTS = $(liboaesis_la_OBJECTS)
 

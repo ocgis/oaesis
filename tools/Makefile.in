@@ -94,9 +94,11 @@ LDLIBS =
 DEFS = 
 LIBS = 
 
-noinst_PROGRAMS = r2c_raw
+noinst_PROGRAMS = r2c_raw switchvt
 
 r2c_raw_SOURCES = r2c_raw.c
+
+switchvt_SOURCES = switchvt.c
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../config.h
 CONFIG_CLEAN_FILES = 
@@ -107,6 +109,10 @@ r2c_raw_OBJECTS =  r2c_raw.o
 r2c_raw_LDADD = $(LDADD)
 r2c_raw_DEPENDENCIES = 
 r2c_raw_LDFLAGS = 
+switchvt_OBJECTS =  switchvt.o
+switchvt_LDADD = $(LDADD)
+switchvt_DEPENDENCIES = 
+switchvt_LDFLAGS = 
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
@@ -118,9 +124,9 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
 TAR = tar
 GZIP_ENV = --best
-DEP_FILES =  .deps/r2c_raw.P
-SOURCES = $(r2c_raw_SOURCES)
-OBJECTS = $(r2c_raw_OBJECTS)
+DEP_FILES =  .deps/r2c_raw.P .deps/switchvt.P
+SOURCES = $(r2c_raw_SOURCES) $(switchvt_SOURCES)
+OBJECTS = $(r2c_raw_OBJECTS) $(switchvt_OBJECTS)
 
 all: all-redirect
 .SUFFIXES:
@@ -177,6 +183,10 @@ maintainer-clean-libtool:
 r2c_raw: $(r2c_raw_OBJECTS) $(r2c_raw_DEPENDENCIES)
 	@rm -f r2c_raw
 	$(LINK) $(r2c_raw_LDFLAGS) $(r2c_raw_OBJECTS) $(r2c_raw_LDADD) $(LIBS)
+
+switchvt: $(switchvt_OBJECTS) $(switchvt_DEPENDENCIES)
+	@rm -f switchvt
+	$(LINK) $(switchvt_LDFLAGS) $(switchvt_OBJECTS) $(switchvt_LDADD) $(LIBS)
 
 tags: TAGS
 

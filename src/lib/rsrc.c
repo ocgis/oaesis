@@ -49,6 +49,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <vdibind.h>
 
 #include "debug.h"
 #include "gemdefs.h"
@@ -58,7 +59,6 @@
 #include "shel.h"
 #include "srv_calls.h"
 #include "types.h"
-#include "vdi.h"
 
 /****************************************************************************
  * Macros                                                                   *
@@ -389,13 +389,13 @@ Rsrc_do_rcfix(WORD     vid,
         d = s;
         d.fd_stand = 0;
         
-        Vdi_vr_trnfm(vid,&s,&d);
+        vr_trnfm(vid,&s,&d);
 
         if(cicwalk->sel_data) {
           (LONG)s.fd_addr = (LONG)cicwalk->sel_data;
           (LONG)d.fd_addr = (LONG)cicwalk->sel_data;
           
-          Vdi_vr_trnfm(vid,&s,&d);
+          vr_trnfm(vid,&s,&d);
         };
 
         if(last_res == TRUE) {

@@ -1,13 +1,14 @@
 #ifndef _SRV_INTERFACE_H_
 #define _SRV_INTERFACE_H_
 
+#include <vdibind.h>
+
 #include "mesagdef.h"
 
 /* Server calls */
 
 enum {
   SRV_SHAKE,
-  SRV_SHUTDOWN,
   SRV_APPL_CONTROL,
   SRV_APPL_INIT     =  10,
   SRV_APPL_WRITE    =  12,
@@ -35,7 +36,8 @@ enum {
   SRV_WIND_UPDATE   = 107,
   SRV_WIND_NEW      = 109,
   SRV_SHEL_WRITE    = 121,
-  SRV_SHEL_ENVRN    = 125
+  SRV_SHEL_ENVRN    = 125,
+  SRV_VDI_CALL      = 200
 };
 
 
@@ -329,6 +331,20 @@ typedef struct {
   R_ALL common;
 }R_WIND_UPDATE;
 
+typedef struct {
+  C_ALL common;
+  WORD  contrl[15];
+  WORD  intin[132];
+  WORD  ptsin[145];
+} C_VDI_CALL;
+
+typedef struct {
+  R_ALL common;
+  WORD  contrl[15];
+  WORD  intout[140];
+  WORD  ptsout[145];
+} R_VDI_CALL;
+
 typedef union {
   C_ALL           common;
   C_APPL_CONTROL  appl_control;
@@ -360,6 +376,7 @@ typedef union {
   C_WIND_OPEN     wind_open;
   C_WIND_SET      wind_set;
   C_WIND_UPDATE   wind_update;
+  C_VDI_CALL      vdi_call;
 } C_SRV;
 
 
@@ -384,6 +401,7 @@ typedef union {
   R_WIND_OPEN     wind_open;
   R_WIND_SET      wind_set;
   R_WIND_UPDATE   wind_update;
+  R_VDI_CALL      vdi_call;
 } R_SRV;
 
 /*

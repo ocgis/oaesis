@@ -278,8 +278,8 @@ updatewait (int wid) {
         wind_get (wid, WF_FIRSTXYWH, &x, &y, &w, &h);
         
         /*
-          fprintf (stderr, "wind_get (WF_FIRSTXYWH...): x=%d y=%d w=%d h=%d\n",
-          x, y, w, h);
+        fprintf (stderr, "launcher: wind_get (WF_FIRSTXYWH...): x=%d y=%d w=%d h=%d\n",
+                 x, y, w, h);
         */
         
         while((w > 0) && (h > 0)) {
@@ -303,7 +303,15 @@ updatewait (int wid) {
             vs_clip(vid,1,xyxy);
             
             graf_mouse (M_OFF, NULL);
-            
+
+            /*            
+            fprintf (stderr,
+                     "launcher: calling vr_recfl %d %d %d %d\n",
+                     xyxy[0],
+                     xyxy[1],
+                     xyxy[2],
+                     xyxy[3]);
+            */
             vr_recfl(vid,xyxy);
             
             for(i = 0; i < num_lines; i++) {
@@ -537,7 +545,9 @@ main ()
   menu_bar (menu, MENU_INSTALL);
 
   vid = graf_handle (&wc, &hc, &wb, &hb);
+  fprintf (stderr, "launcher: vid = %d\n", vid);
   v_opnvwk(work_in,&vid,work_out);
+  fprintf (stderr, "launcher: vid = %d\n", vid);
   num_colors = work_out[39];
   num_colors = 256;
 

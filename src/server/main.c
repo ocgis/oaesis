@@ -44,23 +44,18 @@
 ** 1998-09-20 CG
 ** 1998-12-22 CG
 ** 1999-01-09 CG
+** 1999-05-20 CG
 */
 void
 init_aes (WORD nocnf) {
-  fprintf(stderr,"oaesis: main.c: Entering init_aes:\n");
-  
-  srv_init_global(nocnf);
-
-  fprintf(stderr,"Initializing server:\n");
-  Srv_init_module();
+  DEBUG3 ("main.c: init_aes: Initializing server");
+  Srv_init_module (nocnf);
   
 #ifdef MINT_TARGET
-  fprintf(stderr,"AES trap vector\r\n");
+  DEBUG3 ("main.c: init_aes: AES trap vector");
   Supexec(link_in);
-#endif /* MINT_TARGET */
 
-#ifdef MINT_TARGET  
-  fprintf(stderr,"Mouse device\r\n");
+  DEBUG3 ("main.c: init_aes: Mouse device");
   Moudev_init_module();
 #endif /* MINT_TARGET */
 }
@@ -70,27 +65,19 @@ init_aes (WORD nocnf) {
 ** Exported
 **
 ** 1999-01-09 CG
+** 1999-05-20 CG
 */
 void
 exit_aes (void) {
-  fprintf(stderr,"Exiting:\r\n");
+  DEBUG3 ("main.c: exit_aes: Enter");
   
 #ifdef MINT_TARGET
-  fprintf(stderr,"Mouse device\r\n");
-  
+  DEBUG3 ("main.c: exit_aes: Mouse device");
   Moudev_exit_module();
   
-  fprintf(stderr,"Aes trap vector\r\n");
-  
+  DEBUG3 ("main.c: exit_aes: AES trap vector");
   Supexec(link_remove);
 #endif /* MINT_TARGET */
-  
-  fprintf(stderr,"Server\r\n");
-  Srv_exit_module();  
-
-  fprintf(stderr,"Global\r\n");
-  
-  srv_exit_global();
 }
 
 
@@ -186,6 +173,7 @@ main (int     argc,
   Misc_setpath ("u:\\");
   */
 
+  sleep (2);
   DB_printf ("main.c: Starting launcher.prg");
   for (i = 0; i < 1; i++) {
     system ("launcher.prg");

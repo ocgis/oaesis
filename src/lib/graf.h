@@ -1,3 +1,8 @@
+#ifndef __GRAF_H__
+#define __GRAF_H__
+
+#include <vdibind.h>
+
 void	Graf_init_module(void);
 
 /*
@@ -166,3 +171,5 @@ Graf_do_mkstate (WORD   apid,
 
 void
 Graf_mkstate (AES_PB *apb);	/*0x004f*/
+
+#endif /* __GRAF_H__ */

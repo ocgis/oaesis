@@ -20,6 +20,8 @@
  
  ****************************************************************************/
 
+#define DEBUGLEVEL 3
+
 /****************************************************************************
  * Used interfaces                                                          *
  ****************************************************************************/
@@ -33,6 +35,8 @@
  * Typedefs of module global interest                                       *
  ****************************************************************************/
 
+#if 0
+/* FIXME: Remove and use vdibind.h instead */
 typedef struct {
   WORD * contrl;
   WORD * intin;
@@ -40,6 +44,7 @@ typedef struct {
   WORD * intout;
   WORD * ptsout;
 }VDIPB;
+#endif
 
 /****************************************************************************
  * Module global variables                                                  *
@@ -232,9 +237,12 @@ WORD *work_out)   /* Out parameters.                                        */
 	vdipb.intout = work_out;
 	vdipb.ptsout = &work_out[45];
 	
+        DEBUG3 ("vdi.c: before vdi_call");
 	vdicall(&vdipb);
+        DEBUG3 ("vdi.c: after vdi_call");
 	
 	*handle = contrl[6];
+        DEBUG3 ("vdi.c: leaving Vdi_v_opnvwk");
 }
 
 /****************************************************************************

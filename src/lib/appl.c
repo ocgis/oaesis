@@ -66,6 +66,7 @@
 #endif
 
 #include <unistd.h>
+#include <vdibind.h>
 
 #include "appl.h"
 #include "debug.h"
@@ -75,10 +76,12 @@
 #include "srv_put.h"
 #include "srv_interface.h"
 #include "types.h"
-#include "vdi.h"
 
 
 extern char * program_invocation_short_name;
+
+/* From ovdisis */
+extern void (*vdi_handler)(VDIPB *);
 
 /****************************************************************************
  * Local functions (use static!)                                            *
@@ -117,6 +120,35 @@ Appl_do_read (WORD   apid,
  * Public functions                                                         *
  ****************************************************************************/
 
+#ifdef TUNNEL_VDI_CALLS
+/*
+** Description
+** Tunnel a vdi call to the oaesis server
+**
+** 1999-05-16 CG
+*/
+static
+void
+vdi_tunnel (VDIPB * vpb) {
+  C_VDI_CALL par;
+  R_VDI_CALL ret;
+
+  par.common.call = SRV_VDI_CALL;
+  memcpy (&par.contrl, vpb->contrl, sizeof (WORD) * 15);
+  memcpy (&par.intin, vpb->intin, sizeof (WORD) * 132);
+  memcpy (&par.ptsin, vpb->ptsin, sizeof (WORD) * 145);
+
+  Client_send_recv (&par,
+                    sizeof (C_VDI_CALL),
+                    &ret,
+                    sizeof (R_VDI_CALL));
+
+  memcpy (vpb->intout, &ret.intout, sizeof (WORD) * 140);
+  memcpy (vpb->ptsout, &ret.ptsout, sizeof (WORD) * 145);
+  memcpy (vpb->contrl, &ret.contrl, sizeof (WORD) * 15);
+}
+#endif /* TUNNEL_VDI_CALLS */
+
 /* 0x000a appl_init */
 
 /*
@@ -134,6 +166,11 @@ Appl_do_init (GLOBAL_ARRAY * global) {
   if (Client_open () == -1) {
     return -1;
   }
+
+#ifdef TUNNEL_VDI_CALLS
+  /* Tunnel VDI calls through oaesis' connection with the server */
+  vdi_handler = vdi_tunnel;
+#endif /* TUNNEL_VDI_CALLS */
 
   par.common.call = SRV_APPL_INIT;
   par.common.pid = getpid ();
@@ -311,6 +348,7 @@ Appl_search (AES_PB * apb) {
 ** Exported
 **
 ** 1998-12-28 CG
+** 1999-05-16 CG
 */
 WORD
 Appl_do_exit (WORD apid) {
@@ -327,7 +365,7 @@ Appl_do_exit (WORD apid) {
                     &ret,
                     sizeof (R_APPL_EXIT));
   
-  Vdi_v_clsvwk (globals->vid);
+  v_clsvwk (globals->vid);
 
   return ret.common.retval;
 }

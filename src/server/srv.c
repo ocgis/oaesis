@@ -1,7 +1,7 @@
 /*
 ** srv.c
 **
-** Copyright 1996 - 1998 Christer Gustavsson <cg@nocrew.org>
+** Copyright 1996 - 1999 Christer Gustavsson <cg@nocrew.org>
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -72,6 +72,8 @@
 /****************************************************************************
  * Module global variables                                                  *
  ****************************************************************************/
+
+static WORD nocnf;
 
 /* appl_* related */
 
@@ -1195,6 +1197,7 @@ srv_appl_control (C_APPL_CONTROL * msg,
 ** Implementation of appl_exit ()
 **
 ** 1999-01-09 CG
+** 1999-05-20 CG
 */
 static
 void
@@ -1216,10 +1219,13 @@ srv_appl_exit (C_APPL_EXIT * par,
   srv_wind_new(par->common.apid);
   apinfofree(par->common.apid);
   
-  /*
-  fprintf (stderr, "oaesis: srv.c: srv_appl_exit: Updating application menu\n");
-  update_appl_menu();
-  */
+  /* Exit server if it's the shell application (id 0) */
+  if (par->common.apid) {
+    DEBUG3 ("srv.c: Application 0 exited. Will shutdown server.");
+    Srv_exit_module ();
+
+    exit (0);
+  }
 
   ret->common.retval = 1;
 }
@@ -3669,6 +3675,7 @@ C_PUT_EVENT *msg)
 ** 1999-04-11 CG
 ** 1999-04-12 CG
 ** 1999-04-18 CG
+** 1999-05-20 CG
 */
 static
 WORD
@@ -3697,9 +3704,15 @@ server (LONG arg) {
   NOT_USED(arg);
 
   /* Initialize message handling */
+  DEBUG3 ("srv.c: Initializing server socket");
   Srv_open ();
 
+  /* Initialize global variables */
+  DEBUG3 ("srv.c: Initializing global variables");
+  srv_init_global (nocnf);
+
   /* Initialize desktop background */
+  DEBUG3 ("srv.c: Initializing desktop window");
   ws = winalloc();
   ws->status = WIN_OPEN | WIN_DESKTOP | WIN_UNTOPPABLE;
   ws->owner = 0;
@@ -3735,7 +3748,8 @@ server (LONG arg) {
 
   r.height = r.y;
   r.y = 0;
-  
+
+  DEBUG3 ("srv.c: Creating menu bar window");
   c_wind_create.common.apid = 0;
   c_wind_create.elements = 0;
   c_wind_create.maxsize = r;
@@ -3749,18 +3763,15 @@ server (LONG arg) {
   srv_wind_open (&c_wind_open,
                  &r_wind_open);
   
+  DEBUG3 ("srv.c: Intializing event handler");
   /* Setup event vectors */
   srv_init_event_handler (globals.vid);
 
+  DEBUG3 ("srv.c: Show mouse cursor");
   /* Show mouse cursor */
   Vdi_v_show_c (globals.vid, 1);
 
   while (TRUE) {
-    
-#ifdef SRV_DEBUG
-    DB_printf("///");
-#endif
-
     /* Wait for another call from a client */
     DEBUG3 ("srv.c: Waiting for message from client");
     handle = Srv_get (&par, sizeof (C_SRV));
@@ -3776,13 +3787,6 @@ server (LONG arg) {
         DB_printf ("How are you doing yourself?");
         Srv_reply (handle, &par, 0);
         break;
-        
-      case SRV_SHUTDOWN:
-        DB_printf("OK! Nice chatting with you! Bye!");
-        
-        Srv_reply (handle, &par, 0);
-        Vdi_v_clswk (globals.vid);
-        return 0;
         
       case SRV_APPL_CONTROL:
         srv_appl_control (&par.appl_control, &ret.appl_control);
@@ -3951,7 +3955,24 @@ server (LONG arg) {
         srv_wind_update (handle,
                          &par.wind_update);
         break;
-        
+
+      case SRV_VDI_CALL:
+      {
+        VDIPB vpb;
+
+        vpb.contrl = &par.vdi_call.contrl;
+        vpb.intin = &par.vdi_call.intin;
+        vpb.ptsin = &par.vdi_call.ptsin;
+        vpb.intout = &ret.vdi_call.intout;
+        vpb.ptsout = &ret.vdi_call.ptsout;
+        vdi_call (&vpb);
+        memcpy (&ret.vdi_call.contrl,
+                &par.vdi_call.contrl,
+                sizeof (WORD) * 15);;
+        Srv_reply (handle, &ret, sizeof (R_VDI_CALL));
+      }
+      break;
+
       default:
         DB_printf("%s: Line %d:\r\n"
                   "Unknown call %d to server!",
@@ -3972,12 +3993,15 @@ server (LONG arg) {
 **
 ** 1998-12-22 CG
 ** 1999-01-09 CG
+** 1999-05-20 CG
 */
 void
-Srv_init_module (void) {
+Srv_init_module (WORD no_config) {
   WORD i;
   
-  DB_printf ("In Srv_init_module\n");
+  nocnf = no_config;
+
+  DEBUG3 ("srv.c: Srv_init_module: In Srv_init_module");
 
   for(i = 0; i < MAX_NUM_APPS; i++) {
     apps[i].id = -1;
@@ -4016,6 +4040,7 @@ Srv_init_module (void) {
 ** 1998-12-22 CG
 ** 1999-01-09 CG
 ** 1999-04-18 CG
+** 1999-05-20 CG
 */
 void
 Srv_exit_module (void) {
@@ -4031,9 +4056,6 @@ Srv_exit_module (void) {
 
     srv_appl_control (&msg, &ret);
   }
-  
-  DB_printf("Killed all processes\r\n");
 
-  DB_printf("Server we have to quit now! Bye!");
-  /*  Srv_put (0, SRV_SHUTDOWN, NULL);*/
+  srv_exit_global ();
 }

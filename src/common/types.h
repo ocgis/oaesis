@@ -60,6 +60,8 @@ typedef struct _mn_set {
 
 /* VDI Memory Form Definition Block */
 
+#if 0
+/* FIXME: check type in ovdisis and remove from here */
 typedef struct {
   void            *fd_addr;   /* Addrerss of upper left corner of first*/
   /* plane of raster area. If NULL then    */
@@ -73,8 +75,11 @@ typedef struct {
   WORD            fd_r2;      /* Reserved                              */
   WORD            fd_r3;      /* Reserved                              */
 } MFDB;
+#endif
 
 /* Mouse Form Definition Block */
+#if 0
+/* FIXME: check type in ovdisis and remove from here */
 typedef struct mouse_form {
   WORD mf_xhot;
   WORD mf_yhot;
@@ -84,6 +89,7 @@ typedef struct mouse_form {
   WORD mf_mask[16];
   WORD mf_data[16];
 } __attribute__ ((packed)) MFORM;
+#endif
 
 typedef struct mouse_event_type {
   int     *x;
@@ -92,12 +98,15 @@ typedef struct mouse_event_type {
   int     *k;
 } Mouse;
 
+#if 0
+/* FIXME: check type in ovdisis and remove from here */
 typedef struct vdi_rectangle {
   int v_x1;
   int v_y1;
   int v_x2;
   int v_y2;
 } VRECT;
+#endif
 
 typedef struct orect {
   struct orect  *o_link;

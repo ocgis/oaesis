@@ -27,6 +27,8 @@
  
  ****************************************************************************/
 
+#define DEBUGLEVEL 0
+
 /****************************************************************************
  * Used interfaces                                                          *
  ****************************************************************************/
@@ -46,6 +48,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <vdibind.h>
 
 /*#include "boot.h"*/
 #include "debug.h"
@@ -55,7 +58,6 @@
 #include "resource.h"
 #include "rsrc.h"
 #include "types.h"
-#include "vdi.h"
 #include "version.h"
 
 /****************************************************************************
@@ -84,8 +86,8 @@ static BYTE versionstring[50];
  * Module local functions                                                   *
  ****************************************************************************/
 
-/* These few functions can only be used if we run TOS/MiNT */
-#ifdef MINT_TARGET
+/* TheBse few functions can only be used if we run TOS/MiNT */
+#ifdef BOBMINT_TARGET
 WORD own_appl_init(void) {
   LONG addr_in[3],
   addr_out[1];
@@ -171,16 +173,17 @@ WORD own_graf_handle(void) {
 ** 1999-04-13 CG
 ** 1999-04-18 CG
 ** 1999-04-24 CG
+** 1999-05-16 CG
 */
 void
 init_global (WORD nocnf,
              WORD physical_vdi_id) {
-  WORD work_in[] = {1,1,1,1,1,1,1,1,1,1,2};
-  WORD work_out[57];
-  WORD dum;
-  
+  int work_in[] = {1,1,1,1,1,1,1,1,1,1,2};
+  int work_out[57];
+  int dum;
+  int temp_vid;
 
-  DB_printf ("Entering init_global");
+  DEBUG3 ("Entering init_global");
 
 #ifdef MINT_TARGET
   /* Only mess with videomodes if running under MiNT */
@@ -210,7 +213,7 @@ init_global (WORD nocnf,
   global_common.fsel_sorted = 1;
   global_common.fsel_extern = 0;
   
-  DB_printf ("init_global: 2");
+  DEBUG3 ("init_global: 2");
 
   if(!nocnf) {
     /*
@@ -226,7 +229,7 @@ init_global (WORD nocnf,
   if(open_physical_ws) {	
     printf("No other AES found. Opening own Workstation.\r\n");
     work_in[0] = 5;
-    Vdi_v_opnwk(work_in,&global_common.vid,work_out);
+    v_opnwk(work_in,&global_common.vid,work_out);
 
     if(global_common.video == 0x00030000L) {
       VsetScreen(NULL, NULL, global_common.vmode, global_common.vmodecode);
@@ -238,20 +241,22 @@ init_global (WORD nocnf,
   else {
     printf("Other AES detected.\r\n");
     global_common.vid = own_graf_handle();
-    Vdi_v_clrwk(global_common.vid);
+    v_clrwk(global_common.vid);
   }
 #else  /* ! MINT_TARGET */
   work_in[0] = 5;
-  DB_printf ("lib_global.c: init_global: physical_vdi_id = %d",
+  DEBUG3 ("lib_global.c: init_global: physical_vdi_id = %d",
              physical_vdi_id);
-  global_appl.vid = physical_vdi_id;
-  Vdi_v_opnvwk (work_in, &global_appl.vid, work_out);
-  DB_printf ("init_global: 3");
+  /* FIXME: change vid types to int and remove temp_vid */
+  temp_vid = physical_vdi_id;
+  v_opnvwk (work_in, &temp_vid, work_out);
+  global_appl.vid = temp_vid;
+  DEBUG3 ("init_global: 3");
   global_common.vid = global_appl.vid; /* Remove global_common.vid */
-  DB_printf ("lib_global.c: init_global: vid=%d", global_appl.vid);
+  DEBUG3 ("lib_global.c: init_global: vid=%d", global_appl.vid);
 #endif /* MINT_TARGET */
   DB_printf ("lib_global.c: init_global: calling vq_extnd");
-  Vdi_vq_extnd(global_common.vid,0,work_out);
+  vq_extnd(global_common.vid,0,work_out);
 
   
   global_common.screen.x = 0;
@@ -274,8 +279,8 @@ init_global (WORD nocnf,
   global_common.fnt_small_id = global_common.fnt_regul_id;
   global_common.fnt_small_sz = global_common.fnt_regul_sz / 2;
   
-  Vdi_vst_font(global_common.vid, global_common.fnt_regul_id);
-  Vdi_vst_point(global_common.vid,global_common.fnt_regul_sz,&dum,&dum,&dum,&dum);
+  vst_font(global_common.vid, global_common.fnt_regul_id);
+  vst_point(global_common.vid,global_common.fnt_regul_sz,&dum,&dum,&dum,&dum);
   
   /*
   global_common.applmenu = NULL;
@@ -288,8 +293,8 @@ init_global (WORD nocnf,
   
   global_common.arrowrepeat = 100;
   
-  DB_printf ("lib_global.c: init_global: calling vqt_attributes");
-  Vdi_vqt_attributes(global_common.vid,work_out);
+  DEBUG3 ("lib_global.c: init_global: calling vqt_attributes");
+  vqt_attributes(global_common.vid,work_out);
   
   global_common.blwidth = work_out[8] + 3;
   global_common.blheight = work_out[9] + 3;
@@ -368,6 +373,8 @@ init_global (WORD nocnf,
     (APPL_ENTRY *)malloc (sizeof (APPL_ENTRY) * 10);
 
   global_appl.common = &global_common;
+
+  DEBUG3 ("lib_global.c: Leaving global_init");
 }
 
 void	exit_global(void) {
@@ -380,7 +387,7 @@ void	exit_global(void) {
       VsetScreen((void *)-1, (void *)-1, oldmode, oldmodecode);
     };
     
-    Vdi_v_clsvwk(global_common.vid);
+    v_clsvwk(global_common.vid);
     own_appl_exit();
   };
 #endif

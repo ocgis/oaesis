@@ -46,13 +46,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <vdibind.h>
 
 #include "gemdefs.h"
 #include "lib_global.h"
 /*#include "lxgemdos.h"*/
 #include "lib_misc.h"
 #include "types.h"
-#include "vdi.h"
 
 #ifdef HAVE_SYSVARS_H
 #include <sysvars.h>
@@ -166,7 +166,7 @@ RECT *src)        /* The original area.                                     */
 /****************************************************************************/
 {
 	MFDB	mfdbd,mfdbs;
-	WORD	koordl[8];
+	int	koordl[8];
 	
 	mfdbd.fd_addr = 0L;
 	mfdbs.fd_addr = 0L;
@@ -180,7 +180,7 @@ RECT *src)        /* The original area.                                     */
 	koordl[6] = dst->x + dst->width - 1;
 	koordl[7] = dst->y;
 	
-	Vdi_vro_cpyfm(vid,S_ONLY,koordl,&mfdbs,&mfdbd);
+	vro_cpyfm(vid,S_ONLY,koordl,&mfdbs,&mfdbd);
 }
 
 
