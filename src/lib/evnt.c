@@ -1,33 +1,19 @@
-/****************************************************************************
+/*
+** evnt.c
+**
+** Copyright 1996 - 2000 Christer Gustavsson <cg@nocrew.org>
+**
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+**  
+** Read the file COPYING for more information.
+**
+*/
 
- Module
-  evnt.c
-  
- Description
-  Event handling routines in oAESis.
-  
- Author(s)
- 	cg (Christer Gustavsson <d2cg@dtek.chalmers.se>)
- 	
- Revision history
- 
-  960127 cg
-   Standard header added.
-
-  960322 cg
-	 Fixed "0x100" mode of evnt_multi().
- 
- Copyright notice
-  The copyright to the program code herein belongs to the authors. It may
-  be freely duplicated and distributed without fee, but not charged for.
- 
- ****************************************************************************/
 
 #define DEBUGLEVEL 0
-
-/****************************************************************************
- * Used interfaces                                                          *
- ****************************************************************************/
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -78,10 +64,6 @@
 #ifdef HAVE_SYSVARS_H
 #include <sysvars.h>
 #endif
-
-/****************************************************************************
- * Module global variables                                                  *
- ****************************************************************************/
 
 static WORD	clicktime = 200;
 
@@ -200,14 +182,20 @@ Evnt_mesag(AES_PB * apb)
 
 /*0x0018 evnt_timer*/
 
-void	Evnt_timer(AES_PB *apb) {
-	LONG	time = apb->int_in[1];
-	
-	time <<= 16;
-	time += apb->int_in[0];
-	time <<= 10;	/*approx * 1000 :-)*/
+void
+Evnt_timer(AES_PB * apb)
+{
+  EVENTIN	ei;
+  
+  EVENTOUT	eo;
+  
+  COMMSG	buf;
+  
+  ei.events = MU_TIMER;
+  ei.locount = apb->int_in[0];
+  ei.hicount = apb->int_in[1];
 
-	usleep(time);
+  Evnt_do_multi(apb->global->apid, &ei, &buf, &eo, 0, DONT_HANDLE_MENU_BAR);  
 }
 
 
