@@ -969,7 +969,9 @@ objc_change (OBJECT * Tree,
              short    Ch,
              short    NewState,
              short    Redraw);
-int     objc_delete (void *Tree, int Object);
+int
+objc_delete (OBJECT * tree,
+             int      obj);
 short
 objc_draw (OBJECT * tree,
            short    start,
@@ -997,7 +999,8 @@ objc_order (OBJECT * tree,
             int      pos);
 int     objc_sysvar (int mode, int which, int in1, int in2, int *out1, int *out2);
 
-int     rsrc_free (void);
+int
+rsrc_free(void);
 int
 rsrc_gaddr (int     type,
             int     index,
@@ -1027,7 +1030,9 @@ shel_get (char * buf,
 int
 shel_put (char * buf,
           int    length);
-int     shel_read (char *Command, char *Tail);
+int
+shel_read (char * name,
+           char * tail);
 int
 shel_write (int    mode,
             int    wisgr,

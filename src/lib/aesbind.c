@@ -803,6 +803,26 @@ objc_change (OBJECT * tree,
 }
 
 
+int
+objc_delete(OBJECT * tree,
+            int      obj)
+{
+  OPCODE = 41;
+  NO_INTIN = 1;
+  NO_ADDRIN = 1;
+  NO_INTOUT = 1;
+  NO_ADDROUT = 0;
+
+  aespb.intin[0] = obj;
+
+  aespb.addrin[0] = (long)tree;
+
+  aes_call (&aespb);
+
+  return aespb.intout[0];
+}
+
+
 short
 objc_draw (OBJECT * tree,
            short    start,
@@ -895,6 +915,21 @@ objc_order (OBJECT * tree,
   aespb.intin[1] = pos;
 
   aespb.addrin[0] = (long)tree;
+
+  aes_call (&aespb);
+
+  return aespb.intout[0];
+}
+
+
+int
+rsrc_free(void)
+{
+  OPCODE     = 111;
+  NO_INTIN   = 0;
+  NO_ADDRIN  = 0;
+  NO_INTOUT  = 1;
+  NO_ADDROUT = 0;
 
   aes_call (&aespb);
 
@@ -1068,6 +1103,25 @@ shel_put (char * buf,
 
   aespb.addrin[0] = (long)buf;
   aespb.intin[0] = length;
+
+  aes_call (&aespb);
+
+  return aespb.intout[0];
+}
+
+
+int
+shel_read(char * name,
+          char * tail)
+{
+  OPCODE = 120;
+  NO_INTIN = 0;
+  NO_ADDRIN = 2;
+  NO_INTOUT = 1;
+  NO_ADDROUT = 0;
+
+  aespb.addrin[0] = (long)name;
+  aespb.addrin[1] = (long)tail;
 
   aes_call (&aespb);
 
