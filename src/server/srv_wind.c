@@ -31,9 +31,6 @@
 #include "srv_wind.h"
 #include "types.h"
 
-static WORD mouse_lock;
-static WORD mouse_cnt = 0;
-
 /* FIXME: make all of the variables below static */
 WINLIST * win_vis = NULL;
 WINLIST * win_list = 0L;
@@ -948,10 +945,13 @@ changewinsize(WINSTRUCT * win,
 
 
 
-static WORD   update_lock = 0;
-static WORD   update_cnt = 0;
-static QUEUE  update_q = NULL;
-static QUEUE  mouse_q;
+static WORD  update_lock = 0;
+static WORD  update_cnt = 0;
+static QUEUE update_q = NULL;
+static WORD  mouse_lock = 0;
+static WORD  mouse_cnt = 0;
+static QUEUE mouse_q = NULL;
+
 
 
 /*
@@ -1620,7 +1620,12 @@ void
 srv_wind_debug(int mouse_x,
                int mouse_y)
 {
-  KDEBUG0("Mouse click owner: %d", srv_click_owner(mouse_x, mouse_y));
+  KDEBUG0("======= Window =======");
+  KDEBUG0("Mouse click owner: %3d", srv_click_owner(mouse_x, mouse_y));
+  KDEBUG0("Mouse lock owner : %3d", mouse_lock);
+  KDEBUG0("Mouse lock count : %3d", mouse_cnt);
+  KDEBUG0("Screen lock owner: %3d", update_lock);
+  KDEBUG0("Screen lock count: %3d", update_cnt);
 }
 
 
