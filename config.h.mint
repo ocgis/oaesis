@@ -9,7 +9,7 @@
 #define WORDS_BIGENDIAN 1
 
 /* Define if you have the <alloc.h> header file.  */
-#define HAVE_ALLOC_H 1
+/* #undef HAVE_ALLOC_H */
 
 /* Define if you have the <basepage.h> header file.  */
 #define HAVE_BASEPAGE_H 1
@@ -21,7 +21,10 @@
 #define HAVE_FCNTL_H 1
 
 /* Define if you have the <ioctl.h> header file.  */
-#define HAVE_IOCTL_H 1
+/* #undef HAVE_IOCTL_H */
+
+/* Define if you have the <mint/dcntl.h> header file.  */
+#define HAVE_MINT_DCNTL_H 1
 
 /* Define if you have the <mintbind.h> header file.  */
 #define HAVE_MINTBIND_H 1
@@ -54,19 +57,19 @@
 #define MINT_TARGET 1
 
 /* Define to build launcher.prg not attached to the server */
-#undef LAUNCHER_AS_PRG
+/* #undef LAUNCHER_AS_PRG */
 
 /* Missing POSIX types */
+/*
 #define int8_t signed char
 #define u_int8_t unsigned char
 #define int16_t signed short
 #define u_int16_t unsigned short
 #define int32_t signed long
 #define u_int32_t unsigned long
+*/
 
 /* Version */
-#define OAESIS_VERSION "0.91.0"
-
-#define inline
+#define OAESIS_VERSION "0.92.0"
 
 #define strcasecmp stricmp
