@@ -796,6 +796,7 @@ srv_graf_mouse(C_GRAF_MOUSE * par,
 {
   static MFORM current;
   static MFORM last;
+  static MFORM saved;
 
   switch (par->mode)
   {
@@ -816,10 +817,17 @@ srv_graf_mouse(C_GRAF_MOUSE * par,
     current = last = current;
     break;
 
+  case M_SAVE:
+    saved = current;
+    break;
+
+  case M_LAST:
+    last = current;
+    current = saved;
+    break;
+
   case M_ON :
   case M_OFF :
-  case M_SAVE:
-  case M_LAST:
   default:
   }
 

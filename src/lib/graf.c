@@ -884,6 +884,8 @@ Graf_do_mouse(WORD    apid,
   case OUTLN_CROSS: /*0x007*/
   case USER_DEF:
   case M_RESTORE:
+  case M_SAVE:
+  case M_LAST:
     PUT_C_ALL(GRAF_MOUSE, &par);
     
     par.mode = mode;
@@ -898,8 +900,6 @@ Graf_do_mouse(WORD    apid,
 
   case M_OFF:
   case M_ON:
-  case M_SAVE:
-  case M_LAST:
   default:
     ;
   }
@@ -914,7 +914,9 @@ Graf_do_mouse(WORD    apid,
   case THIN_CROSS: /*0x005*/
   case THICK_CROSS: /*0x006*/
   case OUTLN_CROSS: /*0x007*/
-  case USER_DEF :
+  case USER_DEF:
+  case M_RESTORE:
+  case M_LAST:
     v_hide_c (globals->vid);
     vsc_form (globals->vid, &ret.cursor);
     v_show_c (globals->vid, 0);
@@ -927,32 +929,10 @@ Graf_do_mouse(WORD    apid,
   case M_ON     :
     v_show_c (globals->vid, 0);
     break;
-#if 0 /* FIXME */
+
   case M_SAVE:
-    last_saved = current;
     break;
-    
-  case M_LAST:
-    last = current;
-    current = last_saved;
-    
-    v_hide_c (globals->vid);
-    vsc_form (globals->vid, &current);
-    v_show_c (globals->vid, 0);
-    
-    break;
-    
-  case M_RESTORE:
-    tmp = current;
-    current = last;
-    last = tmp;
-    
-    v_hide_c(globals->vid);
-    vsc_form(globals->vid, &current);
-    v_show_c(globals->vid, 0);
-    
-    break;                      
-#endif    
+
   default:
     DB_printf("%s: Line %d: Graf_do_mouse:\r\n"
               "Unknown mode %d\r\n",__FILE__,__LINE__,mode);
