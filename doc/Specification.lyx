@@ -61,6 +61,12 @@ The server handles things that have to be shared or synchronized between
  applications.
  It may be implemented as a device driver or as a standalone process.
  Services that the server offers shall be quick for it to complete.
+\layout Subsubsection
+
+Event handler
+\layout Subsubsection
+
+Display handler
 \layout Subsection
 
 Client library
@@ -91,6 +97,160 @@ Interface between the server and the client library
 All data passed between the client library and the server shall be in network
  order.
  Its size shall be well defined.
+\layout Subsubsection
+
+SRV_APPL_CONTROL
+\layout Subsubsection
+
+SRV_APPL_INIT
+\layout Standard
+
+Get a new application id.
+\layout Subsubsection
+
+SRV_APPL_WRITE
+\layout Standard
+
+Send data to an application.
+\layout Subsubsection
+
+SRV_APPL_FIND
+\layout Standard
+
+Search for an application by its name.
+\layout Subsubsection
+
+SRV_APPL_SEARCH
+\layout Standard
+
+Search for an application by its type.
+\layout Subsubsection
+
+SRV_APPL_EXIT
+\layout Standard
+
+Free an application id.
+\layout Subsubsection
+
+SRV_APPL_RESERVE
+\layout Standard
+
+Reserve application id for a specific process.
+\layout Subsubsection
+
+SRV_EVNT_MULTI
+\layout Standard
+
+Wait for an event to occur.
+\layout Subsubsection
+
+SRV_MENU_BAR
+\layout Standard
+
+Register that a menu bar is or isn't available.
+\layout Subsubsection
+
+SRV_MENU_REGISTER
+\layout Standard
+
+Set application name to be shown in the application list in the menu.
+\layout Subsubsection
+
+SRV_GRAF_MOUSE
+\layout Standard
+
+Alter appearance of mouse cursor.
+\layout Subsubsection
+
+SRV_GRAF_MKSTATE
+\layout Standard
+
+Get coordinates of mouse pointer and state of mouse buttons as well as state
+ of shift keys.
+\layout Subsubsection
+
+SRV_WIND_CREATE
+\layout Standard
+
+Create a new window.
+\layout Subsubsection
+
+SRV_WIND_OPEN
+\layout Standard
+
+Open a window.
+\layout Subsubsection
+
+SRV_WIND_CLOSE
+\layout Standard
+
+Close a window.
+\layout Subsubsection
+
+SRV_WIND_DELETE
+\layout Standard
+
+Delete a window.
+\layout Subsubsection
+
+SRV_WIND_GET
+\layout Standard
+
+Get information about a window.
+\layout Subsubsection
+
+SRV_WIND_SET
+\layout Standard
+
+Set information about a window.
+\layout Subsubsection
+
+SRV_WIND_FIND
+\layout Standard
+
+Find a window by coordinates.
+\layout Subsubsection
+
+SRV_WIND_UPDATE
+\layout Standard
+
+Get or release window or mouse control semaphore.
+\layout Subsubsection
+
+SRV_WIND_NEW
+\layout Standard
+
+Close and delete all windows of an application.
+\layout Subsubsection
+
+SRV_VDI_CALL
+\layout Standard
+
+Make vdi call through server.
+\layout Subsubsection
+
+SRV_MEMORY_ALLOC
+\layout Standard
+
+Allocate memory to be used in server for VDI call.
+\layout Subsubsection
+
+SRV_MEMORY_FREE
+\layout Standard
+
+Free memory that was used in server for VDI call.
+\layout Subsubsection
+
+SRV_MEMORY_SET
+\layout Standard
+
+Set memory to be used in server for VDI call.
+\layout Subsubsection
+
+SRV_MEMORY_GET
+\layout Standard
+
+Get memory that was used in server for VDI call.
 \layout Section
 
 Application interfaces
