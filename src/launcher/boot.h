@@ -16,4 +16,4 @@
 ** Start programs mentioned in oaesis.cnf
 */
 void
-Boot_start_programs(void);
+start_programs(void);

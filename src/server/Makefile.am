@@ -13,11 +13,23 @@ SERVER_SRCS = \
 if MINT_TARGET
 oaesis_SOURCES = \
 	$(TRAP_SRCS) $(SERVER_SRCS)
-oaesis_LDADD = ../lib/liboaesis_client.a
 
-else # MINT_TARGET
+if LAUNCHER_AS_PRG
+oaesis_LDADD = ../lib/liboaesis_client.a
+else  # LAUNCHER_AS_PRG
+oaesis_LDADD = \
+	../lib/liboaesis_client.a ../launcher/liblauncher.a ../lib/liboaesis.a
+endif # LAUNCHER_AS_PRG
+
+else  # MINT_TARGET
 oaesis_SOURCES = \
 	$(SERVER_SRCS)
+
+if LAUNCHER_AS_PRG
+else  # LAUNCHER_AS_PRG
+oaesis_LDADD = ../launcher/liblauncher.a ../lib/liboaesis.la
+endif # LAUNCHER_AS_PRG
+
 endif # MINT_TARGET
 
 noinst_HEADERS = \

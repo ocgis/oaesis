@@ -30,6 +30,13 @@ dnl Use this instead of AC_PROG_RANLIB because
 dnl this works with cross-compiling.
 AC_CHECK_TOOL(RANLIB, ranlib, :)
 
+dnl Check if launcher should be linked with the server
+AC_ARG_ENABLE(launcher-as-prg, [  --enable-launcher-as-prg    don't link the launcher with the server ])
+if test x$enable_launcher_as_prg = xyes ; then
+  AC_DEFINE(LAUNCHER_AS_PRG)
+fi
+AM_CONDITIONAL(LAUNCHER_AS_PRG, test x$enable_launcher_as_prg = xyes)
+
 if test x$with_ovdisis = xyes ; then
   AC_MSG_ERROR([
 *** Directory must be specified for --with-ovdisis])
@@ -183,6 +190,9 @@ AC_CHECK_TYPE(u_int32_t, unsigned long)
 
 dnl Check for SIGSTKFLT
 OAESIS_CHECK_SIGNAL(SIGSTKFLT) 
+
+dnl Define version in config.h
+AC_DEFINE_UNQUOTED(OAESIS_VERSION, "$VERSION")
 
 dnl Specify which variables that should be exchanged
 AC_SUBST(PACKAGE)

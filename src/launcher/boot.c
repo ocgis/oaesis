@@ -139,7 +139,7 @@ open_config_file () {
  * Boot_parse_cnf                                                           *
  *  Parse oaesis.cnf.                                                       *
  ****************************************************************************/
-void Boot_parse_cnf(void) /*                                                */
+static void Boot_parse_cnf(void) /*                                         */
 /****************************************************************************/
 {
   FILE *fp;
@@ -358,7 +358,7 @@ void Boot_parse_cnf(void) /*                                                */
 ** Start programs mentioned in oaesis.cnf
 */
 void
-Boot_start_programs(void)
+start_programs(void)
 {
   _DTA newdta, *olddta;
   int  found;

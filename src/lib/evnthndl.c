@@ -412,13 +412,9 @@ handle_mover_click (WORD apid,
 /*
 ** Description
 ** Handle window sizer click
-**
-** 1998-12-25 CG
-** 1999-04-07 CG
-** 1999-04-10 CG
-** 1999-05-24 CG
 */
 static
+inline
 void
 handle_sizer_click (WORD apid,
                     WORD win_id,
@@ -522,6 +518,101 @@ handle_sizer_click (WORD apid,
   Wind_do_update (apid, END_UPDATE);
   Wind_do_update (apid, END_MCTRL);
 }
+
+
+/*
+** Description
+** Handle click on smaller window element
+*/
+static
+inline
+void
+handle_smaller_click (WORD     apid,
+		      WORD     win_id,
+		      WORD     owner,
+		      OBJECT * tree)
+{
+  COMMSG  mesag;
+
+  Wind_do_update (apid, BEG_MCTRL);
+
+  if(Graf_do_watchbox(apid, tree, WSMALLER, SELECTED, 0))
+  {
+    WORD            dummy;
+    WORD            skeys;
+    GLOBAL_COMMON * globals = get_global_common();
+    
+    Graf_do_mkstate(apid, &dummy, &dummy, &dummy, &skeys);
+    
+    if(skeys & K_CTRL)
+    {
+      mesag.type = WM_ALLICONIFY;
+    }
+    else
+    {
+      mesag.type = WM_ICONIFY;
+    }
+      
+    mesag.sid = 0;
+    mesag.length = 0;
+    mesag.msg0 = win_id;
+    mesag.msg3 = globals->icon_width;
+    mesag.msg4 = globals->icon_height;
+    mesag.msg1 = iconify_x;
+    mesag.msg2 = globals->screen.height - mesag.msg4;
+    
+    iconify_x += mesag.msg3;
+    if(iconify_x + mesag.msg3 > globals->screen.width)
+    {
+      iconify_x = 0;
+    }
+    
+    DEBUG2("Sending iconify message to %d from %d", owner, apid);
+    Appl_do_write(apid, owner, 16, &mesag);
+  }
+
+  Graf_do_mouse(apid, M_OFF, NULL);
+  Wind_change(apid, win_id, W_SMALLER, 0);
+  Graf_do_mouse(apid, M_ON, NULL);
+
+  Wind_do_update (apid, END_MCTRL);
+}
+
+
+/*
+** Description
+** Handle click on window button element
+*/
+static
+inline
+void
+handle_window_button_click(WORD     apid,
+			   WORD     win_id,
+			   WORD     owner,
+			   OBJECT * tree,
+			   WORD     obj,
+			   WORD     log_obj,
+			   WORD     message_type)
+{
+  COMMSG  mesag;
+
+  Wind_do_update (apid, BEG_MCTRL);
+
+  if(Graf_do_watchbox(apid, tree, obj, SELECTED, 0)) {
+    mesag.type = message_type;
+    mesag.sid = 0;
+    mesag.length = 0;
+    mesag.msg0 = win_id;
+    Appl_do_write(apid, owner, 16, &mesag);
+  }
+
+  Graf_do_mouse(apid, M_OFF, NULL);
+  Wind_change(apid, win_id, log_obj, 0);
+  Graf_do_mouse(apid, M_ON, NULL);
+
+  Wind_do_update (apid, END_MCTRL);
+}
+
 
 /*
 ** Description
@@ -770,24 +861,22 @@ handle_user_click (WORD   apid,
 /*
 ** Description
 ** Handle mouse click on window element
-**
-** 1999-05-24 CG
-** 1999-08-17 CG
-** 1999-08-20 CG
 */
 static
+inline
 WORD
-handle_window_element_click (WORD   apid,
-                             WORD   win_id,
-                             WORD   owner,
-                             WORD   top,
-                             WORD   mouse_button,
-                             WORD   mouse_x,
-                             WORD   mouse_y,
-			     WORD   bclicks,
-			     WORD   bmask,
-			     WORD   bstate,
-			     WORD * mc) {
+handle_window_element_click(WORD   apid,
+			    WORD   win_id,
+			    WORD   owner,
+			    WORD   top,
+			    WORD   mouse_button,
+			    WORD   mouse_x,
+			    WORD   mouse_y,
+			    WORD   bclicks,
+			    WORD   bmask,
+			    WORD   bstate,
+			    WORD * mc)
+{
   WORD     obj;
   OBJECT * tree;
   COMMSG   mesag;
@@ -795,68 +884,30 @@ handle_window_element_click (WORD   apid,
   tree = Wind_get_rsrc (apid, win_id);
   obj = Objc_do_find (tree, 0, 9, mouse_x, mouse_y, 0);
   
-  switch(obj) {         
+  switch(obj)
+  {
   case WCLOSER :
-    if (Graf_do_watchbox (apid, tree, WCLOSER, SELECTED, 0)) {
-      mesag.type = WM_CLOSED;
-      mesag.sid = 0;
-      mesag.length = 0;
-      mesag.msg0 = win_id;
-      Appl_do_write (apid, owner, 16, &mesag);
-    }
+    handle_window_button_click(apid,
+			       win_id,
+			       owner,
+			       tree,
+			       WCLOSER,
+			       W_CLOSER,
+			       WM_CLOSED);
     return 0;
     
   case WSMALLER:
-  {
-    int skeys;
-    
-    Wind_change (apid, win_id, W_SMALLER, SELECTED);
-    
-    /* FIXME: Replace with evnt_multi    
-    do {
-      get_evntpacket(&er,0);
-      update_local_mousevalues(&er);
-    }while(!((er.ap_event == APPEVNT_BUTTON) &&
-             !(er.ap_value & LEFT_BUTTON)));
-    */
-
-    Wind_change (apid, win_id, W_SMALLER, 0);
-    
-    vq_key_s(evntglbl.evid,&skeys);
-    
-    if(skeys & K_CTRL) {
-      mesag.type = WM_ALLICONIFY;
-    } else {
-      mesag.type = WM_ICONIFY;
-    }
-    
-    mesag.sid = 0;
-    mesag.length = 0;
-    mesag.msg0 = win_id;
-    /*
-      mesag.msg3 = globals.icon_width;
-      mesag.msg4 = globals.icon_height;
-      mesag.msg1 = iconify_x;
-      mesag.msg2 = globals.screen.height - mesag.msg4;
-      
-      iconify_x += mesag.msg3;
-      if(iconify_x + mesag.msg3 > globals.screen.width) {
-      iconify_x = 0;
-      };
-    */
-    
-    Appl_do_write (apid, owner,16,&mesag);
-  }
-  return 0;
+    handle_smaller_click(apid, win_id, owner, tree);
+    return 0;
   
   case WFULLER:
-    if (Graf_do_watchbox (apid, tree, WFULLER, SELECTED, 0)) {
-      mesag.type = WM_FULLED;
-      mesag.sid = 0;
-      mesag.length = 0;
-      mesag.msg0 = win_id;
-      Appl_do_write (apid, owner, 16, &mesag);
-    }
+    handle_window_button_click(apid,
+			       win_id,
+			       owner,
+			       tree,
+			       WFULLER,
+			       W_FULLER,
+			       WM_FULLED);
     return 0;
     
   case WSIZER:

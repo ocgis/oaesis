@@ -145,6 +145,10 @@ show_information (void) {
   /* Get address if information resource */
   rsrc_gaddr (R_TREE, INFORM, &information);
 
+  /* Fix version number :-) */
+  sprintf(information[INFOVERSION].ob_spec.tedinfo->te_ptext,
+          OAESIS_VERSION);
+
   /* Calculate area of resource */
   form_center (information, &x, &y, &w, &h);
 
@@ -487,16 +491,13 @@ void testwin(void)
 /*
 ** Description
 ** The launcher takes care of program and accessory launching for oaesis
-**
-** 1998-12-28 CG
-** 1999-01-01 CG
-** 1999-01-03 CG
-** 1999-01-06 CG
-** 1999-01-09 CG
-** 1999-03-21 CG
 */
 int
-main ()
+#ifdef LAUNCHER_AS_PRG
+main()
+#else
+launcher_main()
+#endif
 {
   int      work_in[] = {1,1,1,1,1,1,1,1,1,1,2,0};
   
@@ -508,10 +509,11 @@ main ()
   short    exit_button;
   
   int      wc, hc, wb, hb;
+  int      ap_id;
 
   /* Pdomain (1); FIXME decide where to put this */
   /* Get application id */
-  appl_init();
+  ap_id = appl_init();
 
   /* Fix resource data */
   rsrc_rcfix (launch);
@@ -533,6 +535,9 @@ main ()
   /* Install menu */
   menu_bar (menu, MENU_INSTALL);
 
+  /* Register launcher as "oAESis" */
+  menu_register(ap_id, "  oAESis");
+
   vid = graf_handle (&wc, &hc, &wb, &hb);
   v_opnvwk(work_in,&vid,work_out);
   num_colors = work_out[39];
@@ -541,11 +546,7 @@ main ()
 
   graf_mouse (ARROW, 0L);
 
-  /*
-  fsel_exinput (path, file, &exit_button, "Hulabopp");
-  */
-
-  Boot_start_programs();
+  start_programs();
 
   testwin();
 

@@ -34,6 +34,7 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <string.h>
+#include <unistd.h>
 #include <vdibind.h>
 
 #include "aesbind.h"
@@ -136,7 +137,7 @@ srv_vdi_call (COMM_HANDLE  handle,
     vpb.contrl[i] = par->contrl[i];
   }
   
-  DEBUG2 ("srv_vdi_call: Call no %d (0x%x)", vpb.contrl[0], vpb.contrl[0]);
+  DEBUG3("srv_vdi_call: Call no %d (0x%x)", vpb.contrl[0], vpb.contrl[0]);
 
   /* Copy ptsin array */
   for (i = 0, j = 0; i < (vpb.contrl[1] * 2); i++, j++) {
@@ -198,7 +199,7 @@ srv_call(COMM_HANDLE handle,
 {
   R_SRV ret;
 
-  DEBUG2 ("srv.c: Call no %d 0x%x", par->common.call, par->common.call);
+  DEBUG3 ("srv.c: Call no %d 0x%x", par->common.call, par->common.call);
   switch (par->common.call) {
   case SRV_APPL_CONTROL:
     srv_appl_control (&par->appl_control, &ret.appl_control);
@@ -399,8 +400,10 @@ server (LONG arg) {
     srv_handle_events (globals.vid);
   }
 
-  Srv_exit_module ();
+  DEBUG2("Calling Srv_exit_module");
+  Srv_exit_module();
 
+  DEBUG2("Calling srv_term");
   srv_term (0);
 
   return 0;
@@ -471,11 +474,13 @@ Srv_exit_module (void) {
 /*
 ** Description
 ** Request the server to stop
-**
-** 1999-07-27 CG
 */
 void
-Srv_stop (void) {
-  DEBUG2 ("Assigning run_server FALSE");
+Srv_stop(void)
+{
+  DEBUG2("Assigning run_server FALSE");
   run_server = FALSE;
+
+  /* FIXME Give the server some time to finish */
+  sleep(1);
 }

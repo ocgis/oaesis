@@ -38,6 +38,7 @@
 #include <support.h>
 #endif
 
+#include <sys/wait.h>
 #include <unistd.h>
 
 #include "debug.h"
@@ -75,10 +76,6 @@ init_aes (WORD nocnf) {
 
 /*
 ** Exported
-**
-** 1999-01-09 CG
-** 1999-05-20 CG
-** 1999-07-27 CG
 */
 void
 exit_aes (void) {
@@ -89,7 +86,7 @@ exit_aes (void) {
   Supexec(link_remove);
 #endif /* MINT_TARGET */
 
-  Srv_stop ();
+  Srv_stop();
 }
 
 
@@ -185,15 +182,34 @@ main (int     argc,
   */
 
   sleep (1);
-  DB_printf ("main.c: Starting launcher.prg");
-  for (i = 0; i < 1; i++) {
-    system ("launcher.prg");
-  }
-  DB_printf ("main.c: Left launcher.prg");
 
-  /*  Menu_handler(envp); */
-  
-  exit_aes ();
+#ifdef LAUNCHER_AS_PRG
+  system ("launcher.prg");
+#else
+
+#ifdef MINT_TARGET
+  launcher_main();
+#else
+  {
+    int child;
+    
+    child = fork();
+
+    if(child == 0)
+    {
+      launcher_main();
+      exit(0);
+    }
+    else
+    {
+      waitpid(child, NULL, 0);
+    }
+  }
+#endif
+
+#endif
+
+  exit_aes();
   
   return 0;
 }
