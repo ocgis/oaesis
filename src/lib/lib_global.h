@@ -80,8 +80,8 @@ typedef struct global_common {
   WORD    mouse_owner;
   WORD    mouse_mode;
 
-  OBJC_COLORWORD top_colour[20];
-  OBJC_COLORWORD untop_colour[20];
+  WORD    top_colour[20];
+  WORD    untop_colour[20];
 
 #ifndef MINT_TARGET
   WORD           (*callback_handler)(void *, void *);
