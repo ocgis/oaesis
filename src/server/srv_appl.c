@@ -17,12 +17,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "debug.h"
 #include "srv_appl.h"
 #include "srv_appl_info.h"
 #include "srv_event.h"
 #include "srv_global.h"
 #include "srv_interface.h"
+#include "srv_kdebug.h"
 #include "srv_malloc.h"
 #include "srv_menu.h"
 #include "srv_trace.h"
@@ -47,7 +47,7 @@ top_appl (WORD apid)
   WORD        deskbgcount = 0;
   WORD        lasttop;
 
-  DEBUG2 ("srv.c: top_appl: apid = %d", apid);
+  KDEBUG2("srv.c: top_appl: apid = %d", apid);
   lasttop = ap_pri->ai->id;
 
   if (lasttop != apid)
@@ -153,7 +153,7 @@ srv_appl_control(C_APPL_CONTROL * msg,
 	
 	ai->killtries++;
 
-	DB_printf("Sending AP_TERM to %d", msg->ap_id);
+	KDEBUG0("Sending AP_TERM to %d", msg->ap_id);
 	
 	m.type = AP_TERM;
 	m.sid = 0;
@@ -169,7 +169,7 @@ srv_appl_control(C_APPL_CONTROL * msg,
         C_APPL_EXIT par;
         R_APPL_EXIT ret;
 
-	DB_printf("Killing apid %d", msg->ap_id);
+	KDEBUG0("Killing apid %d", msg->ap_id);
 	
 	(void)Pkill(ai->pid,SIGKILL);
 
@@ -187,7 +187,7 @@ srv_appl_control(C_APPL_CONTROL * msg,
     break;
 
   default:
-    DB_printf("srv_appl_control doesn't support mode %d", msg->mode);
+    KDEBUG0("srv_appl_control doesn't support mode %d", msg->mode);
     retval = 0;
   }
 
@@ -306,13 +306,13 @@ srv_info_alloc(COMM_HANDLE handle,
 {
   AP_LIST	*al;
   
-  DEBUG2 ("srv.c: srv_info_alloc: Allocating memory");
+  KDEBUG2("srv.c: srv_info_alloc: Allocating memory");
   al = (AP_LIST *)MALLOC(sizeof(AP_LIST));
   
   if(!al)
   {
-    DEBUG1("%s: Line %d: srv_info_alloc:\r\n"
-           "out of memory!\r\n",__FILE__,__LINE__);
+    KDEBUG1("%s: Line %d: srv_info_alloc:\r\n"
+            "out of memory!\r\n",__FILE__,__LINE__);
     return NULL;
   }
   
@@ -393,7 +393,7 @@ srv_appl_init(COMM_HANDLE   handle,
   AP_LIST *  al;
   AP_LIST ** awalk = &ap_resvd;
 
-  DEBUG2 ("oaesis: srv.c: srv_appl_init: Beginning");
+  KDEBUG2("oaesis: srv.c: srv_appl_init: Beginning");
 
   /* Has an info structure already been reserved? */
   while(*awalk)
@@ -428,7 +428,7 @@ srv_appl_init(COMM_HANDLE   handle,
   {
     ret->apid = ai->id;
 
-    DEBUG2 ("oaesis: srv.c: srv_appl_init: apid=%d",
+    KDEBUG2("oaesis: srv.c: srv_appl_init: apid=%d",
 	    (int)ret->apid);
   }
   else
@@ -496,13 +496,13 @@ srv_appl_search(C_APPL_SEARCH * msg,
       break;
 
     case 2:        /* search system shell (??) */
-      DB_printf("srv_appl_search(2,...) not implemented yet.\r\n");
+      KDEBUG0("srv_appl_search(2,...) not implemented yet.\r\n");
       retval = 0;
       break;
       
     default:
-      DB_printf("%s: Line %d: srv_appl_search\r\n"
-                "Unknown mode %d",__FILE__,__LINE__,msg->mode);
+      KDEBUG0("%s: Line %d: srv_appl_search\r\n"
+              "Unknown mode %d",__FILE__,__LINE__,msg->mode);
       retval = 0;
     }
   }
@@ -549,7 +549,7 @@ srv_appl_write (C_APPL_WRITE * msg,
       retval = 1;
     }
   } else {
-    DB_printf ("srv.c: srv_appl_write: couldn't find appl info");
+    KDEBUG0("srv.c: srv_appl_write: couldn't find appl info");
     retval = 1;
   }
 

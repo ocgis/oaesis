@@ -153,12 +153,13 @@ own_graf_handle(void)
 static
 void
 OAESIS_CDECL
-handle_signal (int s) {
+handle_signal(int s)
+{
   v_clswk (globals.vid);
 
-  DB_printf ("srv_global.c: handle_signal: Got signal %d", s);
+  DEBUG0("srv_global.c: handle_signal: Got signal %d", s);
 
-  signal (s, SIG_DFL);
+  signal(s, SIG_DFL);
 }
 
 

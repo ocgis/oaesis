@@ -20,11 +20,11 @@
 #include <stdlib.h>
 
 #include "aesbind.h"
-#include "debug.h"
 #include "rlist.h"
 #include "srv_appl.h"
 #include "srv_comm.h"
 #include "srv_global.h"
+#include "srv_kdebug.h"
 #include "srv_malloc.h"
 #include "srv_misc.h"
 #include "srv_queue.h"
@@ -153,7 +153,7 @@ lialloc(COMM_HANDLE handle,
   LOCK_INFO li;
 
   if (free_lock_info == LOCK_INFO_NIL) {
-    DEBUG3 ("srv_wind.c: lialloc: allocating new structure!");
+    KDEBUG3("srv_wind.c: lialloc: allocating new structure!");
     li = (LOCK_INFO)MALLOC(sizeof (LOCK_INFO_S));
   } else {
     li = free_lock_info;
@@ -211,10 +211,10 @@ get_lock(COMM_HANDLE handle,
     } else {
       /* Queue application */
       insert_last (lock_q, lialloc (handle, apid));
-      DEBUG2 ("srv_wind.c: get_lock: queued appl %d", apid);
+      KDEBUG2("srv_wind.c: get_lock: queued appl %d", apid);
     }
   } else {
-    DEBUG2 ("srv_wind.c: get_lock: appl %d got lock", apid);
+    KDEBUG2("srv_wind.c: get_lock: appl %d got lock", apid);
     *lock = apid;
     *lock_cnt = 1;
     
@@ -254,7 +254,7 @@ return_lock(COMM_HANDLE handle,
       (*lock_cnt)--;
     }
 
-    DEBUG2 ("srv_wind.c: return_lock: appl %d", apid);
+    KDEBUG2("srv_wind.c: return_lock: appl %d", apid);
     /* Return ok */
     PUT_R_ALL(WIND_UPDATE, &ret, 1);
 
@@ -960,7 +960,7 @@ void
 srv_wind_update(COMM_HANDLE     handle,
                 C_WIND_UPDATE * msg)
 {
-  DEBUG2 ("srv_wind.c: srv_wind_update: mode = %d", msg->mode);
+  KDEBUG2("srv_wind.c: srv_wind_update: mode = %d", msg->mode);
 
   if (update_q == NULL)
   {
@@ -1006,7 +1006,7 @@ srv_wind_update(COMM_HANDLE     handle,
     break;
     
   default: /* FIXME */
-    DB_printf ("srv_wind_update: Unhandled case!");
+    KDEBUG0("srv_wind_update: Unhandled case!");
   }
 }
 
@@ -1224,10 +1224,10 @@ srv_wind_get (C_WIND_GET * msg,
       break;
       
     default:
-      DB_printf("%s: Line %d: srv_wind_get:\r\n"
-		"Unknown mode %d  (0x%x) wind_get(%d,%d,...)",
-		__FILE__,__LINE__,msg->mode,msg->mode,
-		msg->handle,msg->mode);
+      KDEBUG0("%s: Line %d: srv_wind_get:\r\n"
+              "Unknown mode %d  (0x%x) wind_get(%d,%d,...)",
+              __FILE__,__LINE__,msg->mode,msg->mode,
+              msg->handle,msg->mode);
       retval = 0;
     }
   } else {
@@ -1383,7 +1383,7 @@ srv_wind_open (C_WIND_OPEN * msg,
   
   if(ws) {
     if(!(ws->status & WIN_OPEN)) {
-      DEBUG2 ("srv.c: srv_wind_open: Allocating memory");
+      KDEBUG2("srv.c: srv_wind_open: Allocating memory");
       wl = (WINLIST *)MALLOC(sizeof(WINLIST));
       
       wl->win = ws;
@@ -1541,7 +1541,7 @@ void
 srv_wind_debug(int mouse_x,
                int mouse_y)
 {
-  DB_printf("Mouse click owner: %d", srv_click_owner(mouse_x, mouse_y));
+  KDEBUG0("Mouse click owner: %d", srv_click_owner(mouse_x, mouse_y));
 }
 
 
@@ -1560,7 +1560,7 @@ winalloc(void)
   }
   else
   {
-    DEBUG2 ("srv.c: winalloc: Allocating memory");
+    KDEBUG2("srv.c: winalloc: Allocating memory");
     wl = (WINLIST *)MALLOC(sizeof(WINLIST));
     wl->win = (WINSTRUCT *)MALLOC(sizeof(WINSTRUCT));
     wl->win->id = win_next;
@@ -1612,7 +1612,7 @@ srv_init_windows(void)
   }
   
   /* Initialize desktop background */
-  DEBUG3 ("srv.c: Initializing desktop window");
+  KDEBUG3("srv.c: Initializing desktop window");
   ws = winalloc();
   ws->status = WIN_OPEN | WIN_DESKTOP | WIN_UNTOPPABLE;
   ws->owner = 0;
@@ -1649,7 +1649,7 @@ srv_init_windows(void)
   r.height = r.y;
   r.y = 0;
 
-  DEBUG3 ("srv.c: Creating menu bar window");
+  KDEBUG3("srv.c: Creating menu bar window");
   c_wind_create.common.apid = 0;
   c_wind_create.elements = 0;
   c_wind_create.maxsize = r;
@@ -2034,11 +2034,11 @@ srv_wind_set(C_WIND_SET * msg,
   win = find_wind_description(msg->handle);
   
   if(win) {
-    DEBUG2 ("srv.c: srv_wind_set: mode = %d (0x%x)", msg->mode, msg->mode);
+    KDEBUG2("srv.c: srv_wind_set: mode = %d (0x%x)", msg->mode, msg->mode);
     switch (msg->mode) {        
     case WF_NAME        :       /*0x0002*/
     case WF_INFO        :       /*0x0003*/
-      DEBUG1 ("srv.c: srv_wind_set: no support for mode %d in server",
+      KDEBUG1("srv.c: srv_wind_set: no support for mode %d in server",
               msg->mode);
       retval = 0;
       break;
@@ -2092,7 +2092,7 @@ srv_wind_set(C_WIND_SET * msg,
       break;
       
     case WF_COLOR:  /*0x12*/
-      DB_printf("srv_wind_set WF_COLOR not implemented");
+      KDEBUG0("srv_wind_set WF_COLOR not implemented");
       retval = 0;
       break;
 
@@ -2142,8 +2142,8 @@ srv_wind_set(C_WIND_SET * msg,
       break;
 
     default:
-      DB_printf("%s: Line %d: srv_wind_set:\r\n"
-                "Unknown mode %d",__FILE__,__LINE__,msg->mode);
+      KDEBUG0("%s: Line %d: srv_wind_set:\r\n"
+              "Unknown mode %d",__FILE__,__LINE__,msg->mode);
       retval = 0;
     }
   } else {
