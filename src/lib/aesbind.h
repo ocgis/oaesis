@@ -1,7 +1,7 @@
 /*
 ** aesbind.h
 **
-** Copyright 1998 Christer Gustavsson <cg@nocrew.org>
+** Copyright 1998-1999 Christer Gustavsson <cg@nocrew.org>
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -14,6 +14,9 @@
 
 #ifndef _AESBIND_H_
 #define _AESBIND_H_
+
+#define NIL (-1)
+
 /* appl_control modes */
 #define APC_HIDE    10
 #define APC_SHOW    11
@@ -466,7 +469,8 @@ typedef struct _mn_set {
 #define DISABLED   0x0008
 #define OUTLINED   0x0010
 #define SHADOWED   0x0020
-#define WHITEBAK   0x0080
+#define WHITEBAK   0x0040 /* Should WHITEBAK and DRAW3D be swapped? */
+#define DRAW3D     0x0080
 
 /* Object colors - default pall. */
 #define WHITE    0
