@@ -1,7 +1,7 @@
 /*
 ** srv_event.h
 **
-** Copyright 1998 Christer Gustavsson <cg@nocrew.org>
+** Copyright 1998-1999 Christer Gustavsson <cg@nocrew.org>
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -81,4 +81,28 @@ srv_graf_mouse (WORD           vid,
 */
 void
 srv_wake_appl_if_waiting_for_msg (WORD id);
+
+/* Interrupt handlers */
+/*
+** Description
+** This procedure is installed with vex_butv to handle mouse button clicks.
+*/
+void
+catch_mouse_buttons(int buttons);
+
+/*
+** Description
+** This procedure is installed with vex_motv to handle mouse motion.
+*/
+void
+catch_mouse_motion(int x,
+		   int y);
+
+/*
+** Description
+** This procedure is installed with vex_timv to handle timer clicks
+*/
+void
+catch_timer_click(void);
+
 #endif /* _SRV_EVENT_H_ */

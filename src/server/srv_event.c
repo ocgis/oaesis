@@ -90,12 +90,10 @@ static int   timer_tick_ms; /* Number of milliseconds per tick */
 /*
 ** Description
 ** This procedure is installed with vex_butv to handle mouse button clicks.
-**
-** 1998-12-06 CG
-** 1999-08-05 CG
 */
 void
-catch_mouse_buttons (int buttons) {
+catch_mouse_buttons(int buttons)
+{
   buttons_new = buttons;
 }
 
@@ -103,13 +101,11 @@ catch_mouse_buttons (int buttons) {
 /*
 ** Description
 ** This procedure is installed with vex_motv to handle mouse motion.
-**
-** 1998-12-13 CG
-** 1999-08-05 CG
 */
 void
-catch_mouse_motion (int x,
-                    int y) {
+catch_mouse_motion(int x,
+		   int y)
+{
   x_new = x;
   y_new = y;
 }
@@ -120,8 +116,9 @@ catch_mouse_motion (int x,
 ** This procedure is installed with vex_timv to handle timer clicks
 */
 void
-catch_timer_click (void) {
-  /* Another 20 ms has passed */
+catch_timer_click(void)
+{
+  /* Another 20 ms or so has passed */
   timer_counter += timer_tick_ms;
 }
 

@@ -1,3 +1,10 @@
+1999-10-09  Christer Gustavsson  <cg@nocrew.org>
+
+	* Fixed bug with wrong application updating the desktop background.
+
+	* Made MiNT specific makefiles. Use make -f Makefile.mint to build
+	with gcc under MiNT.
+
 1999-10-03  Christer Gustavsson  <cg@nocrew.org>
 
 	* I've decided to release 0.90. Please note that this is no stable

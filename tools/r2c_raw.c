@@ -10,7 +10,10 @@
 
 #define TRUE	1
 
-char * lower (char * str) {
+static
+char *
+lower (char * str)
+{
   char * tmp = str;
   
   while (*tmp) {
@@ -34,7 +37,9 @@ typedef struct treeinfo
 static unsigned char *memory;
 
 
-char	*stripext(char *instring)
+static
+char *
+stripext(char *instring)
 {
   static char	outstring[100];
   
@@ -51,10 +56,12 @@ char	*stripext(char *instring)
   outstring[i] = 0;
   
   return(outstring);
-};
+}
 
 
-void	insert(long tree,char *name,TREEINFO	**treeinf)
+static
+void
+insert(long tree,char *name,TREEINFO **treeinf)
 {
   TREEINFO	*treedum;
   
@@ -64,9 +71,12 @@ void	insert(long tree,char *name,TREEINFO	**treeinf)
   treedum->name = (char *)malloc(strlen(name)+1);
   strcpy(treedum->name,name);
   treedum->tree = tree;
-};
+}
 
-void	delete(TREEINFO **treeinf)
+
+static
+void
+delete(TREEINFO **treeinf)
 {
   TREEINFO	*treedum;
   
@@ -75,54 +85,8 @@ void	delete(TREEINFO **treeinf)
     treedum = (*treeinf)->next;
     free(*treeinf);
     *treeinf = treedum;
-  };
-};
-
-char	*find(long tree,TREEINFO *treeinf)
-{
-  TREEINFO	*treedum;
-  
-  treedum = treeinf;
-  
-  while(treedum != NULL) {
-    if(tree == treedum->tree) {
-      return(treedum->name);
-    };
-    
-    treedum = treedum->next;
-  };
-  
-  return(NULL);
-};
-
-void	printwords(FILE *fput,long mem,long nr)
-{
-  short	i;
-  
-  fprintf(fput,"{\n\t");
-  
-  for(i = 0; i < nr; i++) {
-    if(i)
-      fprintf(fput,",");
-    
-    fprintf(fput,"0x%04x",((short *)mem)[i]);
-  };
-  
-  fprintf(fput,"\n}");
-};
-
-void	nfsprint(FILE *fput,char *pc)
-{
-  while (*pc != '\0')
-    if ((unsigned int) *pc < 32) {
-      fprintf (fput, "\\%u", *pc);
-      pc++;
-    }
-    else {
-      fprintf (fput, "%c", *pc);
-      pc++;
-    };
-};		
+  }
+}
 
 
 /*

@@ -1,10 +1,11 @@
 Known bugs:
-- Accessories start as applications at oaesis boot time.
-- When the desktop is redrawn sometimes the wrong application redraws it.
 - The AE_-directives in the configuration file are not supported.
 - Shel_do_write needs to be fixed for linux.
 - The menu bar is not updated properly when an application is started.
-- Accessories can't be activated from the menu.
+- The menu_register call in the launcher doesn't seem to work.
+- "Already present" button state => no click owner check => clicks fall
+  through desktop.
+- Iconification doesn't work.
 
 Other things to do:
 - Check mint emulation flag when loading resource files in rsrc.c and make

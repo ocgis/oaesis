@@ -1458,17 +1458,17 @@ srv_wind_open (C_WIND_OPEN * msg,
 
 /*
 ** Exported
-**
-** 1999-02-05 CG
 */
 WORD
-srv_click_owner (WORD mouse_x,
-                 WORD mouse_y) {
-  if (mouse_cnt > 0) {
+srv_click_owner(WORD mouse_x,
+		WORD mouse_y)
+{
+  if (mouse_cnt > 0)
+  {
     return mouse_lock;
-  } else {
-    WORD        status;
-    WORD        owner;
+  }
+  else
+  {
     C_WIND_FIND c_wind_find;
     R_WIND_FIND r_wind_find;
     C_WIND_GET  c_wind_get;
@@ -1481,23 +1481,9 @@ srv_click_owner (WORD mouse_x,
     c_wind_get.handle = r_wind_find.common.retval;
     c_wind_get.mode = WF_OWNER;
     srv_wind_get (&c_wind_get, &r_wind_get);
-    owner = r_wind_get.parm1;
-    status = r_wind_get.parm2;
-    
-    if (status & WIN_DESKTOP) {
-      AP_INFO *ai;
-      
-      ai = search_appl_info(DESK_OWNER);
-      
-      if(ai) {
-	return ai->id;
-      }
-    } else {
-      return owner;
-    }
+
+    return r_wind_get.parm1; /* The owner */
   }
-  
-  return 0;
 }
 
 
@@ -1629,11 +1615,12 @@ srv_init_windows(void)
 ** Description
 ** Update the owner of the desktop window
 */
-static
 void
-update_desktop_owner (void)
+update_desktop_owner(void)
 {
-  WINSTRUCT *win = find_wind_description (DESKTOP_WINDOW);
+  WINSTRUCT *win;
+  
+  win = find_wind_description(DESKTOP_WINDOW);
   
   if (win != NULL)
   {
