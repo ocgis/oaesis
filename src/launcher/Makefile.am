@@ -21,3 +21,5 @@ endif                            # USE_LIBTOOL
 
 launch.c launch.h: launch.rsc launch.hrd
 	../../tools/r2c_raw launch.rsc
+
+EXTRA_DIST = Makefile.mint

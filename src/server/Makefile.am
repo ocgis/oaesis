@@ -38,4 +38,4 @@ noinst_HEADERS = \
 EXTRA_oaesis_SOURCES = \
 	$(TRAP_SRCS) $(SERVER_SRCS) purec.s
 
-EXTRA_DIST = Makefile.purec
+EXTRA_DIST = Makefile.mint

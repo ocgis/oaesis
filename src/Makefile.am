@@ -1,3 +1,3 @@
 SUBDIRS = comm common lib launcher server
 
-EXTRA_DIST = Makefile.purec
+EXTRA_DIST = Makefile.mint
