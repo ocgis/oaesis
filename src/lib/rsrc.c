@@ -151,7 +151,10 @@ Rsrc_do_load_mint (WORD   apid,
   Fread((WORD)fnr,flen,rsc);
   Fclose((WORD)fnr);
 
-  Rsrc_do_rcfix (vid, rsc, flen != rsc->rsh_rssize);
+  Rsrc_do_rcfix(vid,
+                rsc,
+                FALSE /* FIXME: make better endian check
+                         flen != rsc->rsh_rssize */);
 
   return rsc;
 }
