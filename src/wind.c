@@ -180,13 +180,8 @@ void	Wind_find(AES_PB *apb) {
 }
 
 /*wind_update 0x006b*/
-void	Wind_update(AES_PB *apb) {
-	if(apb->int_in[0] & 0x0002) {
-		apb->int_out[0] = Srv_wind_update(apb->global->apid,apb->int_in[0]);
-	}
-	else {
-		apb->int_out[0] = Srv_wind_update(Pgetpid(),apb->int_in[0]);
-	};
+void Wind_update(AES_PB *apb) {
+  Srv_wind_update(apb->global->apid,apb->int_in[0]);
 }
 
 

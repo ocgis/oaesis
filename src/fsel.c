@@ -323,13 +323,16 @@ static void slider_handle (WORD apid, WORD vid, WORD eventpipe, OBJECT *tree,
                    0,
                    0,
                    1,
-                   { globals.mouse_x, globals.mouse_y, 1, 1},
+                   { 0, 0, 1, 1},
                    0,
                    {0, 0, 0, 0},
                    0,
                    0 };
 
     EVENTOUT eo;
+
+	  ei.m1r.x = globals.mouse_x;
+	  ei.m1r.y = globals.mouse_y;
 
     Srv_wind_update(apid, BEG_MCTRL);
     Graf_do_mouse(FLAT_HAND, NULL);

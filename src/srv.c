@@ -35,6 +35,7 @@
 #include <signal.h>
 #include <string.h>
 
+#include "config.h"
 #include "debug.h"
 #include "gemdefs.h"
 #include "global.h"
@@ -113,6 +114,8 @@ enum {
 #define D3DSIZE       2
 
 #define INTS2LONG(a,b) (((((LONG)a) << 16) & 0xffff0000L) | (((LONG)b) & 0xffff))
+
+#define EACCESS 36
 
 /****************************************************************************
  * Typedefs of module global interest                                       *
@@ -4099,78 +4102,78 @@ WORD apid)     /* Application whose windows should be erased.               */
 }
 
 static void srv_wind_update(WORD pid,WORD apid,WORD *par) {
-	PMSG     msg;
-	SRV_SEMA *sem;
-	SRV_QUE  *que;
+  PMSG     msg;
+  SRV_SEMA *sem;
+  SRV_QUE  *que;
+  
+  if(par[0] & 0x0002) {
+    sem = &mctrl;
+    que = &mctrl_q;
+  }
+  else {
+    sem = &update;
+    que = &update_q;
+  };
+  
+  switch(par[0] & 0x0101) {
+  case 0x0001 :  /* Begin lock */
+    if((sem->count == 0) || (sem->apid == apid)) {
+      sem->apid = apid;
+      sem->count++;
+      sem->mode = par[0] & 0xf000;
+      
+      msg.spec.par = par;
+      par[1] = 1;
+      Pmsg(MSG_WRITE,0xffff0000L | pid,&msg);
+    }
+    else {
+      que->que[que->tail].apid = apid;
+      que->que[que->tail].pid = pid;
+      que->que[que->tail].par = par;
+      que->que[que->tail].mode = par[0] & 0xf000;
+      
+      que->tail = (que->tail + 1) % SRV_QUE_SIZE;
+      que->length++;
+    };
+    break;
+    
+  case 0x0000 :  /* End lock */
+    sem->count--;
+    msg.spec.par = par;
+    par[1] = 1;
+    Pmsg(MSG_WRITE,0xffff0000L | pid,&msg);
+    
+    if(sem->count == 0) {
+      if(que->length > 0) {
+	msg.spec.par = que->que[que->head].par;
 	
-	if(par[0] & 0x0002) {
-		sem = &mctrl;
-		que = &mctrl_q;
-	}
-	else {
-		sem = &update;
-		que = &update_q;
-	};
+	que->que[que->head].par[1] = 1;
+	sem->count++;
+	sem->apid = que->que[que->head].apid;
+	sem->mode = que->que[que->head].mode;
 	
-	switch(par[0] & 0x0101) {
-	case 0x0001 :  /* Begin lock */
-		if((sem->count == 0) || (sem->apid == apid)) {
-			sem->apid = apid;
-			sem->count++;
-			sem->mode = par[0] & 0xf000;
-		
-			msg.spec.par = par;
-			par[1] = 1;
-			Pmsg(MSG_WRITE,0xffff0000L | pid,&msg);
-		}
-		else {
-			que->que[que->tail].apid = apid;
-			que->que[que->tail].pid = pid;
-			que->que[que->tail].par = par;
-			que->que[que->tail].mode = par[0] & 0xf000;
-		
-			que->tail = (que->tail + 1) % SRV_QUE_SIZE;
-			que->length++;
-		};
-		break;
-		
-	case 0x0000 :  /* End lock */
-		sem->count--;
-		msg.spec.par = par;
-		par[1] = 1;
-		Pmsg(MSG_WRITE,0xffff0000L | pid,&msg);
-		
-		if(sem->count == 0) {
-			if(que->length > 0) {
-				msg.spec.par = que->que[que->head].par;
-			
-				que->que[que->head].par[1] = 1;
-				sem->count++;
-				sem->apid = que->que[que->head].apid;
-				sem->mode = que->que[que->head].mode;
-			
-				Pmsg(MSG_WRITE,0xffff0000L | que->que[que->head].pid,
-						&msg);
-			
-				que->head = (que->head + 1) % SRV_QUE_SIZE;
-				que->length--;
-			}
-			else {
-				sem->apid = -1;
-			};
-		};
-		break;
-		
-	default:
-		par[1] = 0;
-		msg.spec.par = par;
-		Pmsg(MSG_WRITE,0xffff0000L | pid,&msg);
-	};
+	Pmsg(MSG_WRITE,0xffff0000L | que->que[que->head].pid,
+	     &msg);
 	
-	if(par[0] & 2) {
-		globals.mouse_owner = mctrl.apid;
-		globals.mouse_mode = mctrl.mode;
-	};
+	que->head = (que->head + 1) % SRV_QUE_SIZE;
+	que->length--;
+      }
+      else {
+	sem->apid = -1;
+      };
+    };
+    break;
+    
+  default:
+    par[1] = 0;
+    msg.spec.par = par;
+    Pmsg(MSG_WRITE,0xffff0000L | pid,&msg);
+  };
+  
+  if(par[0] & 2) {
+    globals.mouse_owner = mctrl.apid;
+    globals.mouse_mode = mctrl.mode;
+  };
 }
 
 /****************************************************************************
@@ -4487,6 +4490,9 @@ static WORD server(LONG arg) {
  * Public functions                                                         *
  ****************************************************************************/
 
+#define MOUSE_LOCK  0x01010202
+#define UPDATE_LOCK 0x02020101
+
 /****************************************************************************
  * Server_init_module                                                       *
  *  Initialize server module.                                               *
@@ -4495,45 +4501,45 @@ void                   /*                                                   */
 Srv_init_module(void)  /*                                                   */
 /****************************************************************************/
 {
-	WORD i;
+  WORD i;
   
   WINLIST	*wl;
   
   WINSTRUCT	*ws;
-	
-	for(i = 0; i < MAX_NUM_APPS; i++) {
-		apps[i].id = -1;
-		apps[i].eventpipe = -1;
-		apps[i].msgpipe = -1;
-		apps[i].rshdr = NULL;
-		apps[i].deskbg = NULL;
-		apps[i].menu = NULL;
-		apps[i].deskmenu = -1;
-	};
+  
+  for(i = 0; i < MAX_NUM_APPS; i++) {
+    apps[i].id = -1;
+    apps[i].eventpipe = -1;
+    apps[i].msgpipe = -1;
+    apps[i].rshdr = NULL;
+    apps[i].deskbg = NULL;
+    apps[i].menu = NULL;
+    apps[i].deskmenu = -1;
+  };
   
   if(globals.num_pens < 16) {
-  	for(i = 0; i <= W_SMALLER; i++) {
-  		untop_colour[i].pattern = 0;
-  		untop_colour[i].fillc = WHITE;
-  		top_colour[i].pattern = 0;
-  		top_colour[i].fillc = WHITE;
-  	}
+    for(i = 0; i <= W_SMALLER; i++) {
+      untop_colour[i].pattern = 0;
+      untop_colour[i].fillc = WHITE;
+      top_colour[i].pattern = 0;
+      top_colour[i].fillc = WHITE;
+    }
   }
-	
+  
   ws = winalloc();
   ws->status = WIN_OPEN | WIN_DESKTOP | WIN_UNTOPPABLE;
   ws->owner = 0;
   
   
   ws->tree = NULL;
-
+  
   ws->worksize.x = globals.screen.x;
   ws->worksize.y = globals.screen.y + globals.clheight + 3;
   ws->worksize.width = globals.screen.width;
   ws->worksize.height = globals.screen.height - globals.clheight - 3;
   
   ws->maxsize = ws->totsize = ws->worksize;
-
+  
   wl = (WINLIST *)Mxalloc(sizeof(WINLIST),GLOBALMEM);
   
   wl->win = ws;
@@ -4548,10 +4554,14 @@ Srv_init_module(void)  /*                                                   */
   wl->win->rlist->r.height = globals.screen.height;
   wl->win->rlist->next = NULL;
 
+  Psemaphore(SEM_CREATE,MOUSE_LOCK,-1);
+  Psemaphore(SEM_UNLOCK,MOUSE_LOCK,-1);
+  Psemaphore(SEM_CREATE,UPDATE_LOCK,-1);
+  Psemaphore(SEM_UNLOCK,UPDATE_LOCK,-1);
 
-	globals.srvpid = (WORD)Misc_fork(server,0,"oAESsrv");
-	
-	Srv_shake();
+  globals.srvpid = (WORD)Misc_fork(server,0,"oAESsrv");
+  
+  Srv_shake();
 }
 
 /****************************************************************************
@@ -4811,6 +4821,12 @@ WORD apid,                 /* Application id.                               */
 SRV_APPL_INFO *appl_info)  /* Returned information.                         */
 /****************************************************************************/
 {
+  appl_info->msgpipe = apps[apid].msgpipe;
+  appl_info->eventpipe = apps[apid].eventpipe;
+  appl_info->vid = apps[apid].vid;
+
+  return 0;
+/*
 	C_GET_APPL_INFO par;
 	PMSG            msg;
 	
@@ -4823,6 +4839,7 @@ SRV_APPL_INFO *appl_info)  /* Returned information.                         */
 	Pmsg(MSG_READWRITE,SRVBOX,&msg);
 
 	return par.retval;
+*/
 }
 
 
@@ -5247,18 +5264,74 @@ WORD apid,             /* Application id.                                   */
 WORD mode)             /* Mode.                                             */
 /****************************************************************************/
 {
-	WORD par[2];
-	PMSG msg;
-	
-	par[0] = mode;
-	
-	msg.call = SRV_WIND_UPDATE;
-	msg.apid = apid;
-	msg.spec.par = par;
+#ifdef DIRECT_WIND_UPDATE
+  static WORD update_lock = 0,update_cnt = 0;
+  static WORD mouse_lock,mouse_cnt = 0;
 
-	Pmsg(MSG_READWRITE,SRVBOX,&msg);
+  WORD clnt_pid = Pgetpid();
+  long timeout = (mode & 0x100) ? 0L : -1L; /* test for check-and-set mode */
+  
+  switch(mode & 0xff) {
+  case BEG_UPDATE:	/* Grab the update lock */
+  case BEG_UPDATE|0x100:
+    if (update_lock==clnt_pid) {
+      update_cnt++ ;
+      break ;
+    }
 
-	return par[1];
+    if ( Psemaphore(2,UPDATE_LOCK,timeout)==-EACCESS ) {
+      return 0;	/* screen locked by different process */
+    }
+
+    update_lock=clnt_pid;
+    update_cnt=1 ;
+    break;
+  
+  case END_UPDATE:
+    if ((update_lock == clnt_pid) && (--update_cnt == 0)) {
+      update_lock=FALSE;
+      Psemaphore(3,UPDATE_LOCK,0);
+    }
+    break;
+  
+  case BEG_MCTRL:		/* Grab the mouse lock */
+  case BEG_MCTRL|0x100:
+    if (mouse_lock==clnt_pid) {
+      mouse_cnt++ ;
+      break ;
+    }
+     
+    if ( Psemaphore(2,MOUSE_LOCK,timeout)==-EACCESS ) {
+      return 0;	/* mouse locked by different process */
+    }
+    
+    mouse_lock=clnt_pid;
+    mouse_cnt=1 ;
+    break;
+    
+  case END_MCTRL:
+    if ((mouse_lock==clnt_pid)&&(--mouse_cnt==0)) {
+      mouse_lock=FALSE;
+      Psemaphore(3,MOUSE_LOCK,0);
+    }
+  }
+
+  return 1;
+
+#else
+  WORD par[2];
+  PMSG msg;
+  
+  par[0] = mode;
+  
+  msg.call = SRV_WIND_UPDATE;
+  msg.apid = apid;
+  msg.spec.par = par;
+  
+  Pmsg(MSG_READWRITE,SRVBOX,&msg);
+  
+  return par[1];
+#endif
 }
 
 /****************************************************************************

@@ -63,7 +63,7 @@
 #include "srv.h"
 #include "types.h"
 #include "vdi.h"
-#include "wm/wm.h"
+/*#include "wm/wm.h"*/
 
 #include <sysvars.h>
 

@@ -75,7 +75,14 @@ WORD own_appl_init(void) {
   int_in[16],
   int_out[7];
 
-  void *aespb[6] = { contrl, global, int_in, int_out, addr_in, addr_out };
+  void *aespb[6];
+  
+  aespb[0] = contrl;
+  aespb[1] = global;
+  aespb[2] = int_in;
+  aespb[3] = int_out;
+  aespb[4] = addr_in;
+  aespb[5] = addr_out;
   
   global[0] = 0;                   /* clear AES version number  */
   aescall(aespb); 
@@ -92,8 +99,15 @@ WORD own_appl_exit(void) {
   int_in[16],
   int_out[7];
 
-  void *aespb[6] = { contrl, global, int_in, int_out, addr_in, addr_out };
-
+  void *aespb[6];
+  
+  aespb[0] = contrl;
+  aespb[1] = global;
+  aespb[2] = int_in;
+  aespb[3] = int_out;
+  aespb[4] = addr_in;
+  aespb[5] = addr_out;
+  
   aescall(aespb);
 
   return(int_out[0]);
@@ -106,7 +120,14 @@ WORD own_graf_handle(void) {
   int_in[16],
   int_out[7];
   
-  void *aespb[6] = { contrl, global, int_in, int_out, addr_in, addr_out };
+  void *aespb[6];
+  
+  aespb[0] = contrl;
+  aespb[1] = global;
+  aespb[2] = int_in;
+  aespb[3] = int_out;
+  aespb[4] = addr_in;
+  aespb[5] = addr_out;
   
   aescall(aespb);
   
@@ -123,9 +144,13 @@ void init_global(WORD nocnf) {
   WORD dum;
   
 
+  fprintf(stderr,"init_global\r\n");
+
   if(globals.video == 0x00030000L) {
+    fprintf(stderr,"VsetMode\r\n");
     oldmode = globals.vmode = 3;
     oldmodecode = globals.vmodecode = VsetMode(-1);
+    fprintf(stderr,"/VsetMode\r\n");
   }
   else {
     oldmode = globals.vmode = Getrez();
@@ -147,10 +172,14 @@ void init_global(WORD nocnf) {
   globals.fsel_extern = 0;
   
   if(!nocnf) {
+    fprintf(stderr,"Boot_parse_cnf()\r\n");
     Boot_parse_cnf();
+    fprintf(stderr,"/Boot_parse_cnf()\r\n");
   };
 
+  fprintf(stderr,"appl_init()\r\n");
   own_appl_init();
+  fprintf(stderr,"/appl_init()\r\n");
 
   if(open_physical_ws) {	
     printf("No other AES found. Opening own Workstation.\r\n");
@@ -161,7 +190,7 @@ void init_global(WORD nocnf) {
       VsetScreen(NULL, NULL, globals.vmode, globals.vmodecode);
     }
     else {
-      VsetScreen(-1, -1, globals.vmode, globals.vmodecode);
+      VsetScreen((void*)-1, (void *)-1, globals.vmode, globals.vmodecode);
     };
   }
   else {
@@ -256,7 +285,7 @@ void	exit_global(void) {
       VsetScreen(NULL, NULL, oldmode, oldmodecode);
     }
     else {
-      VsetScreen(-1, -1, oldmode, oldmodecode);
+      VsetScreen((void *)-1, (void *)-1, oldmode, oldmodecode);
     };
     
     Vdi_v_clswk(globals.vid);

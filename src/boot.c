@@ -94,7 +94,7 @@ void Boot_parse_cnf(void) /*                                                */
   BYTE bootdrive = (get_sysvar(_bootdev) >> 16) + 'a';
 
   BYTE *pathlist[] = {
-    homepath,
+    NULL,
     "u:\\?\\mint",
     "u:\\?\\multitos",
     "u:\\?",
@@ -103,6 +103,8 @@ void Boot_parse_cnf(void) /*                                                */
   
   WORD i = 0;
   
+  pathlist[0] = homepath;
+
   (pathlist[0])[3] = bootdrive;
   (pathlist[1])[3] = bootdrive;
   (pathlist[2])[3] = bootdrive;
