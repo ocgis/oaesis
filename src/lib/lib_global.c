@@ -185,7 +185,7 @@ init_global (WORD nocnf,
 
   DEBUG3 ("Entering init_global");
 
-#ifdef MINT_TARGET
+#if 0 /* FIXME def MINT_TARGET */
   /* Only mess with videomodes if running under MiNT */
   if(globals.video == 0x00030000L) {
     fprintf(stderr,"VsetMode\r\n");
@@ -221,7 +221,7 @@ init_global (WORD nocnf,
     */
   };
 
-#ifdef MINT_TARGET
+#if 0 /* FIXME : Remove? def MINT_TARGET */
   fprintf(stderr,"appl_init()\r\n");
   own_appl_init();
   fprintf(stderr,"/appl_init()\r\n");
@@ -237,8 +237,7 @@ init_global (WORD nocnf,
     else {
       VsetScreen((void*)-1, (void *)-1, global_common.vmode, global_common.vmodecode);
     };
-  }
-  else {
+  } else {
     printf("Other AES detected.\r\n");
     global_common.vid = own_graf_handle();
     v_clrwk(global_common.vid);
@@ -378,7 +377,7 @@ init_global (WORD nocnf,
 }
 
 void	exit_global(void) {
-#ifdef MINT_TARGET
+#if 0 /* FIXME def MINT_TARGET */
   if(open_physical_ws) {
     if(global_common.video == 0x00030000L) {
       VsetScreen(NULL, NULL, oldmode, oldmodecode);
@@ -392,3 +391,18 @@ void	exit_global(void) {
   };
 #endif
 }
+
+
+#ifdef MINT_TARGET
+GLOBAL_COMMON *
+get_global_common (void) {
+  return NULL; /* FIXME */
+}
+
+
+GLOBAL_APPL *
+get_globals (WORD apid) {
+  return NULL; /* FIXME */
+}
+
+#endif /* MINT_TARGET */

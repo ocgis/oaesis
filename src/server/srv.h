@@ -38,12 +38,13 @@ typedef struct {
 void
 Srv_init_module (WORD no_config);
 
-/****************************************************************************
- * Srv_exit_module                                                          *
- *  Shutdown server module.                                                 *
- ****************************************************************************/
-void                   /*                                                   */
-Srv_exit_module(void); /*                                                   */
-/****************************************************************************/
+/*
+** Description
+** Request the server to stop
+**
+** 1999-07-27 CG
+*/
+void
+Srv_stop (void);
 
 #endif

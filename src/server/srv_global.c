@@ -62,7 +62,7 @@
  ****************************************************************************/
 
 GLOBALVARS	globals;
-char *p_fsel_extern = (char *)&globals.fsel_extern;
+/* FIXME char *p_fsel_extern = (char *)&globals.fsel_extern; */
 WORD global[15];
 
 /****************************************************************************
@@ -257,7 +257,7 @@ srv_init_global (WORD nocnf) {
 */
 void
 srv_exit_global (void) {
-#ifdef MINT_TARGET
+#if 0 /* FIXME def MINT_TARGET */
   if(open_physical_ws) {
     if(globals.video == 0x00030000L) {
       VsetScreen(NULL, NULL, oldmode, oldmodecode);

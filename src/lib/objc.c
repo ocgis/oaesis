@@ -294,6 +294,7 @@ drawtext (WORD   vid,
 ** Draw text portion of an object
 **
 ** 1998-01-02 CG
+** 1999-07-25 CG
 */
 static
 void
@@ -314,7 +315,7 @@ draw_text (WORD     vid,
   WORD draw3d = ob->ob_flags & FLD3DANY;
   WORD invertcolour = 0;
   U_OB_SPEC ob_spec;
-  GLOBAL_APPL * globals = get_globals (apid);
+  GLOBAL_COMMON * globals = get_global_common ();
 
   if(ob->ob_flags & INDIRECT) {
     ob_spec = *ob->ob_spec.indirect;
@@ -403,20 +404,20 @@ draw_text (WORD     vid,
       case GDOS_BITM:		/* Use a GDOS bitmap font (AES4.1 style) */
         vst_font(vid,textblk->te_fontid);
         vst_point(vid,textblk->te_fontsize,&temp,&temp,&temp,&temp);
-        ty = par_y + ob->ob_y + ((ob->ob_height - globals->common->clheight) / 2);
+        ty = par_y + ob->ob_y + ((ob->ob_height - globals->clheight) / 2);
         break;
 
       case IBM:		/* Use the standard system font (probably 10 point) */
-        vst_font(vid,globals->common->fnt_regul_id);
-        vst_point(vid,globals->common->fnt_regul_sz,&temp,&temp,&temp,&temp);
-        ty = par_y + ob->ob_y + ((ob->ob_height - globals->common->clheight) / 2);
+        vst_font(vid,globals->fnt_regul_id);
+        vst_point(vid,globals->fnt_regul_sz,&temp,&temp,&temp,&temp);
+        ty = par_y + ob->ob_y + ((ob->ob_height - globals->clheight) / 2);
         break;
 
       case SMALL:			/* Use the small system font (probably 8 point) */
-        vst_font(vid,globals->common->fnt_small_id);
-        vst_point(vid,globals->common->fnt_small_sz,&temp,&temp,&temp,&temp);
+        vst_font(vid,globals->fnt_small_id);
+        vst_point(vid,globals->fnt_small_sz,&temp,&temp,&temp,&temp);
 						
-        ty = par_y + ob->ob_y + ((ob->ob_height - globals->common->csheight) / 2);
+        ty = par_y + ob->ob_y + ((ob->ob_height - globals->csheight) / 2);
       }
 				
       switch(textblk->te_just) {
@@ -448,10 +449,10 @@ draw_text (WORD     vid,
 				
     case G_STRING:
     case G_TITLE:
-      vst_font(vid,globals->common->fnt_regul_id);
-      vst_point(vid,globals->common->fnt_regul_sz,&temp,&temp,&temp,&temp);
+      vst_font(vid,globals->fnt_regul_id);
+      vst_point(vid,globals->fnt_regul_sz,&temp,&temp,&temp,&temp);
       ty =
-        par_y + ob->ob_y + ((ob->ob_height - globals->common->clheight) / 2);
+        par_y + ob->ob_y + ((ob->ob_height - globals->clheight) / 2);
 
       tx = par_x + ob->ob_x;
       vst_alignment(vid,0,5,&temp,&temp);
@@ -467,10 +468,10 @@ draw_text (WORD     vid,
       break;
 
     case G_BOXCHAR:
-      vst_font(vid,globals->common->fnt_regul_id);
-      vst_point(vid,globals->common->fnt_regul_sz,&temp,&temp,&temp,&temp);
+      vst_font(vid,globals->fnt_regul_id);
+      vst_point(vid,globals->fnt_regul_sz,&temp,&temp,&temp,&temp);
       ty =
-        par_y + ob->ob_y + ((ob->ob_height - globals->common->clheight) / 2);
+        par_y + ob->ob_y + ((ob->ob_height - globals->clheight) / 2);
 
       tx = par_x + ob->ob_x + (ob->ob_width >> 1);
       vst_alignment(vid,1,5,&temp,&temp);
@@ -485,10 +486,10 @@ draw_text (WORD     vid,
       break;			
 				
     case G_BUTTON:
-      vst_font(vid,globals->common->fnt_regul_id);
-      vst_point(vid,globals->common->fnt_regul_sz,&temp,&temp,&temp,&temp);
+      vst_font(vid,globals->fnt_regul_id);
+      vst_point(vid,globals->fnt_regul_sz,&temp,&temp,&temp,&temp);
       ty =
-        par_y + ob->ob_y + ((ob->ob_height - globals->common->clheight) / 2);
+        par_y + ob->ob_y + ((ob->ob_height - globals->clheight) / 2);
       
       tx = par_x + ob->ob_x + (ob->ob_width >> 1);
       vst_alignment(vid,1,5,&temp,&temp);
@@ -547,11 +548,11 @@ draw_text (WORD     vid,
       }
     }
 		
-    if(!(bcolour < globals->common->num_pens)) {
+    if(!(bcolour < globals->num_pens)) {
       bcolour = BLACK;
     }
 		
-    if(!(tcolour < globals->common->num_pens)) {
+    if(!(tcolour < globals->num_pens)) {
       tcolour = BLACK;
     }
 		

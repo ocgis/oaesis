@@ -21,14 +21,14 @@
  
  ****************************************************************************/
 
-/****************************************************************************
- * Used interfaces                                                          *
- ****************************************************************************/
-
-#include <pthread.h>
+#define DEBUGLEVEL 3
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
+#endif
+
+#ifndef MINT_TARGET
+#include <pthread.h>
 #endif
 
 #ifdef HAVE_BASEPAGE_H
@@ -50,6 +50,7 @@
 #include <unistd.h>
 #include <vdibind.h>
 
+#include "debug.h"
 #include "srv_global.h"
 #include "lxgemdos.h"
 #include "srv_misc.h"
@@ -63,15 +64,16 @@
  * Public functions                                                         *
  ****************************************************************************/
 
-WORD Misc_get_cookie(LONG code,LONG *value) {
+#ifdef MINT_TARGET
+WORD
+Misc_get_cookie (LONG   code,
+		 LONG * value) {
   register COOKIE *cookie;
   void            *stack;
   
-  /* FIXME
   stack = (void*)Super(0L);
   cookie = *(COOKIE **)_p_cookies;
   Super(stack);
-  */
 
   while(cookie->cookie) {
     if(cookie->cookie == code) {
@@ -85,7 +87,7 @@ WORD Misc_get_cookie(LONG code,LONG *value) {
   
   return FALSE;
 }
-
+#endif
 
 #ifdef MINT_TARGET
 static void CDECL startup(register BASEPAGE *b) {
@@ -96,7 +98,8 @@ static void CDECL startup(register BASEPAGE *b) {
 
   func = (WORD (*)(LONG))b->p_dbase;
   arg = b->p_dlen;
-  
+
+  DEBUG3 ("srv_misc.c: startup: Calling Pterm()");
   Pterm((*func)(arg));
 }
 #else
@@ -105,7 +108,10 @@ void startup () {}
 
 
 #ifdef MINT_TARGET
-LONG Misc_fork(WORD (*func)(LONG),LONG arg,BYTE *name) {
+LONG
+Misc_fork (WORD   (*func)(LONG),
+	   LONG   arg,
+	   BYTE * name) {
   register BASEPAGE *b;
   register LONG pid;
 
@@ -122,30 +128,32 @@ LONG Misc_fork(WORD (*func)(LONG),LONG arg,BYTE *name) {
 }
 #else /* MINT_TARGET */
 LONG
-Misc_fork (WORD (*func)(LONG),
-	   LONG arg,
+Misc_fork (WORD   (*func)(LONG),
+	   LONG   arg,
 	   BYTE * name) {
   pthread_attr_t thread;
 
   pthread_create (&thread, NULL, func, (void *)arg);
 
   return 0;
-#if 0
-  LONG pid;
+}
 
-  pid = fork ();
+#endif /* MINT_TARGET */
 
-  /* For the new process pid will be 0 */
-  if (pid == 0) {
-    (func) (arg);
-    exit (0);
-  }
 
-  return pid;
+/*
+** Description
+** End thread
+**
+** 1999-07-26 CG
+*/
+void
+Misc_term (WORD retval) {
+  DEBUG3 ("srv_misc.c: Misc_term: Terminating thread");
+#ifndef MINT_TARGET
+  pthread_exit ((void *)retval);
 #endif
 }
-	   
-#endif /* MINT_TARGET */
 
 
 WORD	max(WORD a,WORD b) {

@@ -1,11 +1,7 @@
 #include	"types.h"
 
-LONG Misc_fork(WORD (*func)(LONG),LONG arg,BYTE *name);
-
 WORD	max(WORD a,WORD b);
 WORD	min(WORD a,WORD b);
-
-WORD Misc_get_cookie(LONG code,LONG *value);
 
 /****************************************************************************
  *  Misc_copy_area                                                          *

@@ -9,10 +9,10 @@
 	.globl _VsetScreen
 	.globl _VsetMode
 
-	.globl	_h_aes_call
-	.globl	_oldmvec
-	.globl	_oldbvec
-	.globl	_Moudev_handler
+	.globl	_aes_call
+	.globl	_old_motion_vector
+	.globl	_old_button_vector
+|	.globl	_Moudev_handler
 	.globl	_p_fsel_extern
         .globl _aescall
 
@@ -36,7 +36,7 @@ myxgemdos:
 
 intern:
 	movel	d1,sp@-
-	jsr		_h_aes_call
+	jsr		_aes_call
 	addql		#4,sp
 	moveml	sp@+,d0-d7/a0-a6
 
@@ -72,7 +72,7 @@ _newmvec:
 	movew	d1,a0@+ 	| pass position
 	movew  d0,a0@
 	pea   a0@(-6)
-	jsr	_Moudev_handler
+|	jsr	_Moudev_handler
 	addql		#4,sp		
 	moveml	sp@+,d0-d2/a0-a2
 	movel sp@,sp
@@ -85,7 +85,7 @@ _newbvec:
 	lea     pc@(mbut+6),a0
 	movew	d0,a0@ 	| pass buttons
 	pea   a0@(-6)
-	jsr	_Moudev_handler
+|	jsr	_Moudev_handler
 	addql		#4,sp		|
 	moveml	sp@+,d0-d2/a0-a2
 	movel  sp@,sp
@@ -96,7 +96,7 @@ _newtvec:
 	lea newstack+800,sp
 	moveml	d0-d2/a0-a2,sp@-
 	pea   mtim
-	jsr	_Moudev_handler
+|	jsr	_Moudev_handler
 	addql   #4,sp		|
 	moveml	sp@+,d0-d2/a0-a2
 	movel  sp@,sp

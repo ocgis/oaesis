@@ -31,10 +31,6 @@ dnl Use this instead of AC_PROG_RANLIB because
 dnl this works with cross-compiling.
 AC_CHECK_TOOL(RANLIB, ranlib, :)
 
-dnl Use libtool to create liboaesis
-AM_PROG_LIBTOOL
-
-
 if test x$with_ovdisis = xyes ; then
   AC_MSG_ERROR([
 *** Directory must be specified for --with-ovdisis])
@@ -81,66 +77,82 @@ else
 
   AC_SUBST(OVDISIS_CFLAGS)
   AC_SUBST(OVDISIS_LIBS)
+
+  dnl This is needed for AC_CHECK_HEADERS to find the otosis 
+  dnl and the oVDIsis headers
+  INCLUDES="$INCLUDES $OVDISIS_CFLAGS"
 fi
 
-if test x$with_otosis = xyes ; then
-  AC_MSG_ERROR([
-*** Directory must be specified for --with-otosis])
-fi
-
-if test x$with_otosis = x ; then 
-  # Look for separately installed otosis
-
-  AM_PATH_OTOSIS(0.31.0,,
-    AC_MSG_ERROR([
-*** otosis 0.31.0 or better is required. The latest version of otosis
-*** is always available from ftp://ftp.nocrew.org.]),
-    libotosis)
-
-  otosis_cflags=$OTOSIS_CFLAGS
-  otosis_libs=$OTOSIS_LIBS
+if test x$target_os = xmint ; then
+  AC_CHECK_LIB(socket,accept)
 else
-  # Use uninstalled otosis (assume they got the version right)
+  AC_CHECK_LIB(pthread,pthread_create)
 
-  if test -x $with_otosis/otosis-config ; then 
-    :
-  else
-    AC_MSG_ERROR([otosis directory ($with_otosis) not present or not configured])
+  if test x$with_otosis = xyes ; then
+    AC_MSG_ERROR([
+*** Directory must be specified for --with-otosis])
   fi
 
-  # For use in oaesis-config
-  otosis_cflags=`$with_otosis/otosis-config --cflags`
-  otosis_libs=`$with_otosis/otosis-config --libs`
+  if test x$with_otosis = x ; then 
+    # Look for separately installed otosis
 
-  otosis_release=`$with_otosis/otosis-config --version | sed 's%\\.[[0-9]]*$%%'`
+    AM_PATH_OTOSIS(0.31.0,,
+      AC_MSG_ERROR([
+*** otosis 0.31.0 or better is required. The latest version of otosis
+*** is always available from ftp://ftp.nocrew.org.]),
+      libotosis)
 
-  # canonicalize relative paths
-  case $with_otosis in 
-    /*)
-      otosis_dir=$with_otosis
-      ;;
-    *)
-      otosis_dir="\$(top_builddir)/$with_otosis"
-      ;;
-  esac
+    otosis_cflags=$OTOSIS_CFLAGS
+    otosis_libs=$OTOSIS_LIBS
+  else
+    # Use uninstalled otosis (assume they got the version right)
 
-  OTOSIS_CFLAGS="-I$otosis_dir"
-  OTOSIS_LIBS=$otosis_dir/libfb.la
+    if test -x $with_otosis/otosis-config ; then 
+      :
+    else
+      AC_MSG_ERROR([otosis directory ($with_otosis) not present or not configured])
+    fi
 
-  AC_SUBST(OTOSIS_CFLAGS)
-  AC_SUBST(OTOSIS_LIBS)
+    # For use in oaesis-config
+    otosis_cflags=`$with_otosis/otosis-config --cflags`
+    otosis_libs=`$with_otosis/otosis-config --libs`
+
+    otosis_release=`$with_otosis/otosis-config --version | sed 's%\\.[[0-9]]*$%%'`
+
+    # canonicalize relative paths
+    case $with_otosis in 
+      /*)
+        otosis_dir=$with_otosis
+        ;;
+      *)
+        otosis_dir="\$(top_builddir)/$with_otosis"
+        ;;
+    esac
+
+    OTOSIS_CFLAGS="-I$otosis_dir"
+    OTOSIS_LIBS=$otosis_dir/libfb.la
+
+    AC_SUBST(OTOSIS_CFLAGS)
+    AC_SUBST(OTOSIS_LIBS)
+  fi
+
+  dnl This is needed for AC_CHECK_HEADERS to find the otosis 
+  dnl and the oVDIsis headers
+  INCLUDES="$INCLUDES $OTOSIS_CFLAGS"
+
+  dnl Use libtool to create liboaesis, but not for MiNT
+  AM_PROG_LIBTOOL
 fi
 
-dnl This is needed for AC_CHECK_HEADERS to find the otosis 
-dnl and the oVDIsis headers
-CPPFLAGS="$CPPFLAGS $OTOSIS_CFLAGS $OVDISIS_CFLAGS"
 
 OSISINCLUDE=${includedir}/osis
 
-dnl Set target specific things
-case "${target}" in
-    *mint*)    DEFS="$DEFS -DMINT_TARGET" ;;
-esac
+if test x$target_os = xmint; then
+  AC_DEFINE(MINT_TARGET)
+fi
+
+AM_CONDITIONAL(MINT_TARGET, test x$target_os = xmint)
+AM_CONDITIONAL(USE_LIBTOOL, test x$target_os != xmint)
 
 dnl Check for header files
 AC_HEADER_STDC
@@ -153,8 +165,6 @@ AC_CHECK_HEADERS(compiler.h)
 AC_CHECK_HEADERS(fcntl.h)
 AC_CHECK_HEADERS(ioctl.h)
 AC_CHECK_HEADERS(osbind.h)
-AC_CHECK_HEADERS(vdi.h)
-AC_CHECK_HEADERS(vdibind.h)
 AC_CHECK_HEADERS(sysvars.h)
 
 dnl Check for SIGSTKFLT
@@ -179,3 +189,6 @@ AC_LINK_FILES(src/comm/srv_put_sockets.c, src/lib/srv_put.c)
 
 dnl Specify which files that should be created
 AC_OUTPUT(Makefile src/Makefile src/comm/Makefile src/common/Makefile src/launcher/Makefile src/lib/Makefile src/server/Makefile test/Makefile tools/Makefile oaesis.m4 oaesis-config)
+
+
+

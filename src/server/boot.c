@@ -119,12 +119,23 @@ open_config_file () {
     strcat (config_path, ".oaesisrc");
 
 #ifdef MINT_TARGET
-    /* Convert '/' to '\' */
-    while(*tmp) {
-      if(*tmp++ == '/') (tmp[-1] = '\\');
+    {
+      char * tmp = config_path;
+
+      /* Convert '/' to '\' */
+      while (*tmp) {
+	if (*tmp == '/') {
+	  *tmp = '\\';
+	}
+	
+	tmp++;
+      }
+
+      if(tmp[-1] == '\\') {
+	tmp[-1] = '\0';
+      }
     }
 
-    if(tmp[-1] == '\\') tmp[-1] = '\0';
 #endif
 
     fp = fopen(config_path, "r");

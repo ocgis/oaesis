@@ -11,7 +11,7 @@
 ** Read the file COPYING for more information.
 */
 
-#define DEBUGLEVEL 0
+#define DEBUGLEVEL 2
 
 /****************************************************************************
  * Used interfaces                                                          *
@@ -144,11 +144,16 @@ static OBJC_COLORWORD untop_colour[20] = {
   {BLACK,BLACK,1,7,LWHITE}
 };
 
+/* When this is set to false the server will exit */
+static volatile WORD run_server = TRUE;
+
 extern AP_LIST_REF ap_pri;
 extern WINLIST * win_vis;
 
 /* This has to be fixed */
+#ifndef MINT_TARGET
 void accstart (void) {}
+#endif
 
 static
 void
@@ -158,6 +163,9 @@ srv_appl_exit (C_APPL_EXIT * par,
 void
 srv_appl_write (C_APPL_WRITE * msg,
                 R_APPL_WRITE * ret);
+
+void
+Srv_exit_module (void);
 
 /****************************************************************************
  * srv_wind_new                                                             *
@@ -238,7 +246,7 @@ WORD alloc_only)    /* Should the structure only be allocated?              */
 {
   AP_LIST	*al;
    
-  DEBUG2 ("srv.c: srv_info_alloc: Allocation memory");
+  DEBUG2 ("srv.c: srv_info_alloc: Allocating memory");
   al = (AP_LIST *)Mxalloc(sizeof(AP_LIST),GLOBALMEM);
   
   if(!al) {
@@ -700,6 +708,7 @@ srv_appl_control (C_APPL_CONTROL * msg,
 ** 1999-01-09 CG
 ** 1999-05-20 CG
 ** 1999-05-25 CG
+** 1999-07-27 CG
 */
 static
 void
@@ -721,14 +730,6 @@ srv_appl_exit (C_APPL_EXIT * par,
   srv_wind_new(par->common.apid);
   apinfofree(par->common.apid);
   
-  /* Exit server if it's the shell application (id 0) */
-  if (par->common.apid == 0) {
-    DEBUG3 ("srv.c: Application 0 exited. Will shutdown server.");
-    Srv_exit_module ();
-
-    exit (0);
-  }
-
   ret->common.retval = 1;
 }
 
@@ -1392,7 +1393,7 @@ static WINSTRUCT	*winalloc(void) {
 		win_free = win_free->next;
 	}
 	else {
-          DEBUG2 ("srv.c: winalloc: Allocation memory");
+          DEBUG2 ("srv.c: winalloc: Allocating memory");
 		wl = (WINLIST *)Mxalloc(sizeof(WINLIST),GLOBALMEM);
 		wl->win = (WINSTRUCT *)Mxalloc(sizeof(WINSTRUCT),GLOBALMEM);
 		wl->win->id = win_next;
@@ -2470,7 +2471,7 @@ srv_wind_open (C_WIND_OPEN * msg,
   
   if(ws) {
     if(!(ws->status & WIN_OPEN)) {
-      DEBUG2 ("srv.c: srv_wind_open: Allocation memory");
+      DEBUG2 ("srv.c: srv_wind_open: Allocating memory");
       wl = (WINLIST *)Mxalloc(sizeof(WINLIST),GLOBALMEM);
       
       wl->win = ws;
@@ -2973,7 +2974,7 @@ server (LONG arg) {
   /* Show mouse cursor */
   v_show_c (globals.vid, 1);
 
-  while (TRUE) {
+  while (run_server) {
     /* Wait for another call from a client */
     DEBUG3 ("srv.c: Waiting for message from client");
     handle = Srv_get (&par, sizeof (C_SRV));
@@ -3119,6 +3120,12 @@ server (LONG arg) {
       }
     }
   }
+
+  Srv_exit_module ();
+
+  Misc_term (0);
+
+  return 0;
 }
 
 /****************************************************************************
@@ -3176,10 +3183,11 @@ Srv_init_module (WORD no_config) {
 ** 1999-01-09 CG
 ** 1999-04-18 CG
 ** 1999-05-20 CG
+** 1999-07-26 CG
 */
 void
 Srv_exit_module (void) {
-  DB_printf("Killing off alive processes");
+  DEBUG2("Killing off alive processes");
   
   /* Kill all AES processes */
   while (ap_pri) {
@@ -3193,4 +3201,17 @@ Srv_exit_module (void) {
   }
 
   srv_exit_global ();
+}
+
+
+/*
+** Description
+** Request the server to stop
+**
+** 1999-07-27 CG
+*/
+void
+Srv_stop (void) {
+  DEBUG2 ("Assigning run_server FALSE");
+  run_server = FALSE;
 }

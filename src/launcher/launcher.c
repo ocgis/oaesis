@@ -520,7 +520,7 @@ main ()
   int      wc, hc, wb, hb;
 
   fprintf (stderr, "launcher.c: before Pdomain\n");
-  Pdomain (1); /* FIXME decide where to put this */
+  /* Pdomain (1); FIXME decide where to put this */
   /* Get application id */
   appl_init();
 

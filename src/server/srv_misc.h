@@ -64,3 +64,13 @@ WORD fnamelen,      /* Length of filename buffer.                           */
 BYTE *cmdlin,       /* Command line buffer.                                 */
 BYTE *fname);       /* File name buffer.                                    */
 /****************************************************************************/
+
+
+/*
+** Description
+** End thread
+**
+** 1999-07-26 CG
+*/
+void
+Misc_term (WORD retval);

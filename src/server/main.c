@@ -1,3 +1,18 @@
+/*
+** main.c
+**
+** Copyright 1999 Christer Gustavsson <cg@nocrew.org>
+**
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+**  
+** Read the file COPYING for more information.
+*/
+
+#define DEBUGLEVEL 3
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -53,10 +68,7 @@ init_aes (WORD nocnf) {
   
 #ifdef MINT_TARGET
   DEBUG3 ("main.c: init_aes: AES trap vector");
-  Supexec(link_in);
-
-  DEBUG3 ("main.c: init_aes: Mouse device");
-  Moudev_init_module();
+/*  Supexec(link_in);*/
 #endif /* MINT_TARGET */
 }
 
@@ -66,18 +78,18 @@ init_aes (WORD nocnf) {
 **
 ** 1999-01-09 CG
 ** 1999-05-20 CG
+** 1999-07-27 CG
 */
 void
 exit_aes (void) {
   DEBUG3 ("main.c: exit_aes: Enter");
   
 #ifdef MINT_TARGET
-  DEBUG3 ("main.c: exit_aes: Mouse device");
-  Moudev_exit_module();
-  
   DEBUG3 ("main.c: exit_aes: AES trap vector");
-  Supexec(link_remove);
+/*  Supexec(link_remove);*/
 #endif /* MINT_TARGET */
+
+  Srv_stop ();
 }
 
 
@@ -98,6 +110,8 @@ main (int     argc,
 #ifdef MINT_TARGET
   LONG mintval;
 #endif  
+
+  DEBUG3 ("main: Starting oAESis");
 
   /* We only need to check for mint if we've built oaesis for mint */
 #ifdef MINT_TARGET
@@ -130,7 +144,7 @@ main (int     argc,
   fprintf(stderr,"- Math co-processor 68881.\r\n");
 #endif
  
-#ifdef MINT_TARGET 
+#if 0 /* FIXME def MINT_TARGET */
   fprintf(stderr,"\r\nMiNT version %ld.%02ld detected\r\n",mintval >> 8,mintval & 0xff);
   
   globals.video = 0;
@@ -173,7 +187,7 @@ main (int     argc,
   Misc_setpath ("u:\\");
   */
 
-  sleep (2);
+  sleep (5);
   DB_printf ("main.c: Starting launcher.prg");
   for (i = 0; i < 1; i++) {
     system ("launcher.prg");

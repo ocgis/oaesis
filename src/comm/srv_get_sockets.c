@@ -1,3 +1,18 @@
+/*
+** srv_get_sockets.c
+**
+** Copyright 1999 Christer Gustavsson <cg@nocrew.org>
+**
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+**  
+** Read the file COPYING for more information.
+*/
+
+#define DEBUGLEVEL 0
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <netinet/in.h>
@@ -6,6 +21,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#include "debug.h"
 #include "srv_get.h"
 #include "srv_sockets.h"
 
@@ -135,6 +151,7 @@ Srv_open (void) {
 ** 1998-12-23 CG
 ** 1999-02-04 CG
 ** 1999-02-07 CG
+** 1999-07-26 CG
 */
 COMM_HANDLE
 Srv_get (void * in,
@@ -147,11 +164,15 @@ Srv_get (void * in,
   int                   new_fd;
   int                   highest_fd;
   int                   err;
-  static struct timeval timeout = {0 , 0};
+  static struct timeval timeout;
   /*  static int count = 0;*/
 
   FD_ZERO (&handle_set);
-  
+
+  /* Timeout after 50 ms */
+  timeout.tv_sec  = 0;
+  timeout.tv_usec = 50000;
+
   /* Specify which handles to wait for */
   FD_SET (sockfd, &handle_set);
   FD_SET (wake_fd [0], &handle_set);
@@ -174,11 +195,16 @@ Srv_get (void * in,
   */
 
   /* Wait for input */
-  select (highest_fd + 1,
-          &handle_set,
-          NULL,
-          NULL,
-          QUEUE_EMPTY ? NULL : &timeout);
+  err = select (highest_fd + 1,
+		&handle_set,
+		NULL,
+		NULL,
+		/* FIXME: Why this? QUEUE_EMPTY ? NULL :*/ &timeout);
+
+  /* We got a timeout */
+  if (err == 0) {
+    return NULL;
+  }
 
   if (FD_ISSET (wake_fd [0], &handle_set)) {
     char dum;
@@ -222,7 +248,7 @@ Srv_get (void * in,
   }
 
   handle_walk = pop_first ();
-  /*  DB_printf ("poped %p", handle_walk);*/
+  /*  DB_printf ("popped %p", handle_walk);*/
 
   /* Something strange has happened */
   if (handle_walk == NULL) {

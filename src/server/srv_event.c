@@ -16,6 +16,9 @@
 #include <stdlib.h>
 #include <vdibind.h>
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 #include "debug.h"
 #include "mesagdef.h"
 #include "oconfig.h"
@@ -167,6 +170,10 @@ catch_timer_click (void) {
 }
 
 
+void * old_button_vector;
+void * old_motion_vector;
+void * old_timer_vector;
+
 /*
 ** Exported
 **
@@ -180,9 +187,6 @@ catch_timer_click (void) {
 void
 srv_init_event_handler (WORD vdi_workstation_id) {
   void * old_key_vector;
-  void * old_button_vector;
-  void * old_motion_vector;
-  void * old_timer_vector;
   int    i;
 
   /* Reset buffers */
@@ -194,6 +198,7 @@ srv_init_event_handler (WORD vdi_workstation_id) {
     apps [i].key_size = 0;
   }
 
+#ifndef MINT_TARGET /* FIXME */
   /* Setup keyboard handler */
   vex_keyv (vdi_workstation_id, catch_keys, &old_key_vector);
 
@@ -208,6 +213,7 @@ srv_init_event_handler (WORD vdi_workstation_id) {
             catch_timer_click,
             &old_timer_vector,
             &timer_tick_ms);
+#endif
 }
 
 

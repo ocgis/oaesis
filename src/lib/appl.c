@@ -239,11 +239,17 @@ Appl_do_init (GLOBAL_ARRAY * global) {
   par.common.call = SRV_APPL_INIT;
   par.common.pid = getpid ();
 
+#ifdef MINT_TARGET
+  strncpy (par.appl_name,
+           "FIXME",
+           sizeof (par.appl_name) - 1);
+#else
   DEBUG3 ("appl.c: Appl_do_init: program_invocation_short_name %s",
           program_invocation_short_name);
   strncpy (par.appl_name,
            program_invocation_short_name,
            sizeof (par.appl_name) - 1);
+#endif
   par.appl_name[sizeof (par.appl_name) - 1] = 0;
 
   Client_send_recv (&par,

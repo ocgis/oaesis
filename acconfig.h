@@ -5,3 +5,6 @@
 
 /* Define if vdi calls are to be tunneled to the oAESis server */
 #undef TUNNEL_VDI_CALLS
+
+/* Define if we're building for MiNT */
+#undef MINT_TARGET
