@@ -24,10 +24,10 @@
 #define OB_FLAGS_SET(ob,flags)   (ob)->ob_flags |= flags
 #define OB_FLAGS_CLEAR(ob,flags) (ob)->ob_flags &= ~(flags)
 
-#define OB_STATE(ob)             (ob)->ob_flags
-#define OB_STATE_SET(ob,flags)   (ob)->ob_flags |= flags
-#define OB_STATE_CLEAR(ob,flags) (ob)->ob_flags &= ~(flags)
-#define OB_STATE_PUT(ob,flags)   (ob)->ob_flags = flags
+#define OB_STATE(ob)             (ob)->ob_state
+#define OB_STATE_SET(ob,state)   (ob)->ob_state |= state
+#define OB_STATE_CLEAR(ob,state) (ob)->ob_state &= ~(state)
+#define OB_STATE_PUT(ob,state)   (ob)->ob_state = state
 
 void do_objc_add(OBJECT *t,WORD p,WORD c);
 
