@@ -1,3 +1,5 @@
+SUBDIRS = dr-gem
+
 INCLUDES = -I ../src/lib
 
 noinst_PROGRAMS = formtest structtest testmenu
