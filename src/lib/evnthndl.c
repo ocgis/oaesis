@@ -1394,7 +1394,6 @@ handle_drop_down (WORD        apid,
     }
 
     while(TRUE) {
-      DEBUG3 ("Calling Evnt_do_multi with LEFT_BUTTON");
       Evnt_do_multi (apid, &ei, &buffer, &eo, 0, DONT_HANDLE_MENU_BAR);
 
       if (eo.events & MU_M1) {
@@ -1594,8 +1593,9 @@ handle_selected_title (WORD        apid,
     */
     Wind_do_update (apid, BEG_MCTRL);
     Wind_do_update(apid, BEG_UPDATE);
-    menu_buffer = Misc_Vdi_Malloc (((area.width+16) * area.height * 
-				    globals->common->num_planes)/8);
+    menu_buffer = malloc(((area.width + 15) * area.height * 
+                          globals->common->num_planes) / 8);
+
     pxy[0] = area.x;
     pxy[1] = area.y;
     pxy[2] = area.x + area.width - 1;
@@ -1711,7 +1711,7 @@ handle_selected_title (WORD        apid,
 	  Graf_do_mouse (apid, M_ON, NULL);
 	  Wind_do_update (apid, END_UPDATE);
           Wind_do_update (apid, END_MCTRL);
-	  Misc_Vdi_Free (menu_buffer);
+	  free(menu_buffer);
 #endif
 
           globals->menu[box].ob_flags |= HIDETREE;

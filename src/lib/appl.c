@@ -78,6 +78,7 @@
 #include "debug.h"
 #include "lib_comm.h"
 #include "lib_global.h"
+#include "lib_mem.h"
 #include "srv_put.h"
 #include "srv_interface.h"
 #include "types.h"
@@ -133,6 +134,8 @@ Appl_do_read (WORD   apid,
 #ifdef TUNNEL_VDI_CALLS
 
 #define WORDS_TO_POINTER(m,l) ((void *)(((unsigned long)(m)<<16) | ((unsigned long)(l&0xffff))))
+#define LO_WORD(ptr) ((LONG)ptr & 0xffff)
+#define HI_WORD(ptr) (((LONG)ptr >> 16) & 0xffff)
 
 /* Description
 ** Copy MFDB with network order conversion
@@ -142,8 +145,10 @@ Appl_do_read (WORD   apid,
 static
 void
 copy_mfdb (MFDB * dst,
-           MFDB * src) {
-  dst->fd_addr = (void *)htonl ((long)src->fd_addr);
+           MFDB * src,
+           void * address)
+{
+  dst->fd_addr = (void *)htonl(address);
   dst->fd_w = htons (src->fd_w);
   dst->fd_h = htons (src->fd_h);
   dst->fd_wdwidth = htons (src->fd_wdwidth);
@@ -157,67 +162,147 @@ copy_mfdb (MFDB * dst,
 
 /*
 ** Description
+** Calculate size of block specified by MFDB
+*/
+static
+LONG
+calculate_block_size(MFDB * block)
+{
+  return block->fd_wdwidth * block->fd_h * block->fd_nplanes * sizeof(WORD);
+}
+
+
+/*
+** Description
+** Check if vdi_call uses MFDB
+*/
+static
+int
+is_blit_call(int call_num)
+{
+  switch(call_num)
+  {
+  case 109:  /* vro_cpyfm */
+  case 110:  /* vr_trnfm  */
+  case 121:  /* vrt_cpyfm */
+    return TRUE;
+  
+  default:
+    return FALSE;
+  }
+}
+
+
+/*
+** Description
 ** Tunnel a vdi call to the oaesis server
 */
 static
 void
-vdi_tunnel (VDIPB * vpb) {
-  C_VDI_CALL par;
-  R_VDI_CALL ret;
+vdi_tunnel(VDIPB * vpb)
+{
+  C_VDI_CALL   par_data;
+  C_VDI_CALL * par = &par_data;
+  R_VDI_CALL   ret_data;
+  R_VDI_CALL * ret = &ret_data;
   int        i;
   int        j;
   int        apid = 0;
+  MFDB *        src = NULL;
+  MFDB *        dst = NULL;
+  MEMORY_HANDLE src_mem = NULL;
+  MEMORY_HANDLE dst_mem = NULL;
+
+
+  DEBUG3("vdi_tunnel: call %d", vpb->contrl[0]);
+
+  if(is_blit_call(vpb->contrl[0]))
+  {
+    src = (MFDB *)WORDS_TO_POINTER(vpb->contrl[7],vpb->contrl[8]);
+    dst = (MFDB *)WORDS_TO_POINTER(vpb->contrl[9],vpb->contrl[10]);
+
+    if(src->fd_addr != NULL)
+    {
+      src_mem = Mem_register(src->fd_addr,
+                             calculate_block_size(src),
+                             MEMORY_READ);
+    }
+
+    if(dst->fd_addr != NULL)
+    {
+      dst_mem = Mem_register(dst->fd_addr,
+                             calculate_block_size(dst),
+                             MEMORY_READWRITE);
+    }
+  }
 
   /* Copy contrl array */
   for (i = 0; i < 15; i++) {
-    par.contrl[i] = vpb->contrl[i];
+    par->contrl[i] = vpb->contrl[i];
   }
 
   /* Copy ptsin parameters */
   for (i = 0, j = 0; i < (vpb->contrl[1] * 2); i++, j++) {
-    par.inpar[j] = vpb->ptsin[i];
+    par->inpar[j] = vpb->ptsin[i];
   }
 
   /* Copy intin parameters */
   for (i = 0; i < vpb->contrl[3]; i++, j++) {
-    par.inpar[j] = vpb->intin[i];
+    par->inpar[j] = vpb->intin[i];
   }
 
-  PUT_C_ALL_W(VDI_CALL,&par,C_ALL_WORDS + 15 + j);
+  PUT_C_ALL_W(VDI_CALL,par,C_ALL_WORDS + 15 + j);
 
   /* Copy MFDBs when available */
-  if ((vpb->contrl[0] == 109) ||  /* vro_cpyfm */
-      (vpb->contrl[0] == 110) ||  /* vr_trnfm  */
-      (vpb->contrl[0] == 121)) {  /* vrt_cpyfm */
-    copy_mfdb ((MFDB *)&par.inpar[j],
-               (MFDB *)WORDS_TO_POINTER(vpb->contrl[7],vpb->contrl[8]));
+  if(is_blit_call(vpb->contrl[0]))
+  {
+    copy_mfdb((MFDB *)&par->inpar[j],
+              src,
+              Mem_server_addr(src_mem));
     j += sizeof (MFDB) / 2;
-    copy_mfdb ((MFDB *)&par.inpar[j],
-               (MFDB *)WORDS_TO_POINTER(vpb->contrl[9],vpb->contrl[10]));
+
+    copy_mfdb((MFDB *)&par->inpar[j],
+              dst,
+              Mem_server_addr(dst_mem));
     j += sizeof (MFDB) / 2;
   }
 
   /* Pass the call to the server */
-  CLIENT_SEND_RECV(&par,
-                   sizeof (C_ALL) +
-                   sizeof (WORD) * (15 + j),
-                   &ret,
-                   sizeof (R_VDI_CALL));
+  CLIENT_SEND_RECV(par,
+                   sizeof(C_ALL) +
+                   sizeof(WORD) * (15 + j),
+                   ret,
+                   sizeof(R_VDI_CALL) + sizeof(WORD));
 
   /* Copy contrl array */
   for (i = 0; i < 15; i++) {
-    vpb->contrl[i] = ret.contrl[i];
+    vpb->contrl[i] = ret->contrl[i];
   }
 
   /* Copy ptsout parameters */
   for (i = 0, j = 0; i < (vpb->contrl[2] * 2); i++, j++) {
-    vpb->ptsout[i] = ret.outpar[j];
+    vpb->ptsout[i] = ret->outpar[j];
   }
 
   /* Copy intout parameters */
   for (i = 0; i < vpb->contrl[4]; i++, j++) {
-    vpb->intout[i] = ret.outpar[j];
+    vpb->intout[i] = ret->outpar[j];
   }
+
+  if(is_blit_call(vpb->contrl[0]))
+  {
+    if(src_mem != MEMORY_HANDLE_NIL)
+    {
+      Mem_unregister(src_mem);
+    }
+
+    if(dst_mem != MEMORY_HANDLE_NIL)
+    {
+      Mem_unregister(dst_mem);
+    }
+  }
+
+  DEBUG3("vdi_tunnel: completed call %d", vpb->contrl[0]);
 }
 #endif /* TUNNEL_VDI_CALLS */
 
@@ -330,6 +415,7 @@ WORD
 Appl_do_init (GLOBAL_ARRAY * global) {
   C_APPL_INIT   par;
   R_APPL_INIT   ret;
+
   WORD          apid = -1;
 
 #ifdef MINT_TARGET
@@ -379,8 +465,6 @@ Appl_do_init (GLOBAL_ARRAY * global) {
   global->int_info = 0L;
   global->maxchar = 0;
   global->minchar = 0;
-
-  DEBUG2("apid = %d", ret.apid);
 
   if(global->apid >= 0) {
     init_global_appl (global->apid, ret.physical_vdi_id, par.appl_name);

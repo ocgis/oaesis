@@ -12,7 +12,8 @@
 
 /* Server calls */
 
-enum {
+enum
+{
   SRV_APPL_CONTROL,
   SRV_APPL_INIT     =  10,
   SRV_APPL_WRITE    =  12,
@@ -35,8 +36,10 @@ enum {
   SRV_WIND_NEW      = 109,
   SRV_VDI_CALL      = 200,
   SRV_APPL_RESERVE  = 201,
-  SRV_MALLOC        = 202,
-  SRV_FREE          = 203
+  SRV_MEMORY_ALLOC  = 202,
+  SRV_MEMORY_FREE   = 203,
+  SRV_MEMORY_SET    = 205,
+  SRV_MEMORY_GET    = 206
 };
 
 
@@ -408,31 +411,76 @@ typedef struct {
 typedef struct {
   C_ALL common;
   ULONG amount;
-} C_MALLOC;
+} C_MEMORY_ALLOC;
 
-#define C_MALLOC_WORDS 0
+#define C_MEMORY_ALLOC_WORDS 0
 
-typedef struct {
+typedef struct
+{
   R_ALL common;
   ULONG address;
-} R_MALLOC;
+} R_MEMORY_ALLOC;
 
-#define R_MALLOC_WORDS 0
+#define R_MEMORY_ALLOC_WORDS 0
 
-typedef struct {
+typedef struct
+{
   C_ALL common;
   ULONG address;
-} C_FREE;
+} C_MEMORY_FREE;
 
-#define C_FREE_WORDS 0
+#define C_MEMORY_FREE_WORDS 0
 
-typedef struct {
+typedef struct
+{
   R_ALL common;
-} R_FREE;
+} R_MEMORY_FREE;
 
-#define R_FREE_WORDS 0
+#define R_MEMORY_FREE_WORDS 0
 
-typedef union {
+#define MEMORY_BLOCK_SIZE 1024
+
+typedef struct
+{
+  C_ALL common;
+  WORD  amount;
+  ULONG address;
+} C_MEMORY_GET;
+
+#define C_MEMORY_GET_WORDS 1
+#define C_MEMORY_GET_LONGS 1
+
+typedef struct
+{
+  R_ALL common;
+  BYTE  data[MEMORY_BLOCK_SIZE];
+} R_MEMORY_GET;
+
+#define R_MEMORY_GET_WORDS 0
+#define R_MEMORY_GET_LONGS 0
+
+typedef struct
+{
+  C_ALL common;
+  WORD  amount;
+  ULONG address;
+  BYTE  data[MEMORY_BLOCK_SIZE];
+} C_MEMORY_SET;
+
+#define C_MEMORY_SET_WORDS 1
+#define C_MEMORY_SET_LONGS 1
+
+typedef struct
+{
+  R_ALL common;
+} R_MEMORY_SET;
+
+#define R_MEMORY_SET_WORDS 0
+#define R_MEMORY_SET_LONGS 0
+
+
+typedef union
+{
   C_ALL           common;
   C_APPL_CONTROL  appl_control;
   C_APPL_EXIT     appl_exit;
@@ -456,8 +504,10 @@ typedef union {
   C_WIND_SET      wind_set;
   C_WIND_UPDATE   wind_update;
   C_VDI_CALL      vdi_call;
-  C_MALLOC        malloc;
-  C_FREE          free;
+  C_MEMORY_ALLOC  memory_alloc;
+  C_MEMORY_FREE   memory_free;
+  C_MEMORY_SET    memory_set;
+  C_MEMORY_GET    memory_get;
 } C_SRV;
 
 
@@ -485,8 +535,10 @@ typedef union {
   R_WIND_SET      wind_set;
   R_WIND_UPDATE   wind_update;
   R_VDI_CALL      vdi_call;
-  R_MALLOC        malloc;
-  R_FREE          free;
+  R_MEMORY_ALLOC  memory_alloc;
+  R_MEMORY_FREE   memory_free;
+  R_MEMORY_SET    memory_set;
+  R_MEMORY_GET    memory_get;
 } R_SRV;
 
 

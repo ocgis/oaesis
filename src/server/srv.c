@@ -64,7 +64,6 @@
  * Macros                                                                   *
  ****************************************************************************/
 
-
 #define SRV_QUE_SIZE 32
 
 #define IMOVER 0x8000  /* Used with set_win_elem() to make icon window */
@@ -120,7 +119,8 @@ srv_copy_mfdb (MFDB * dst,
 static
 void
 srv_vdi_call (COMM_HANDLE  handle,
-              C_VDI_CALL * par) {
+              C_VDI_CALL * par)
+{
   R_VDI_CALL       ret;
   static VDIPARBLK e_vdiparblk;
   static VDIPB     vpb = { e_vdiparblk.contrl,
@@ -137,25 +137,28 @@ srv_vdi_call (COMM_HANDLE  handle,
     vpb.contrl[i] = par->contrl[i];
   }
   
-  DEBUG3("srv_vdi_call: Call no %d (0x%x)", vpb.contrl[0], vpb.contrl[0]);
-
   /* Copy ptsin array */
-  for (i = 0, j = 0; i < (vpb.contrl[1] * 2); i++, j++) {
+  for (i = 0, j = 0; i < (vpb.contrl[1] * 2); i++, j++)
+  {
     vpb.ptsin[i] = par->inpar[j];
   }
   
   /* Copy intin array */
-  for (i = 0; i < vpb.contrl[3]; i++, j++) {
+  for (i = 0; i < vpb.contrl[3]; i++, j++)
+  {
     vpb.intin[i] = par->inpar[j];
   }
 
   /* Copy MFDBs when available */
   if ((vpb.contrl[0] == 109)  ||  /* vro_cpyfm */
       (vpb.contrl[0] == 110)  ||  /* vr_trnfm  */
-      (vpb.contrl[0] == 121)) {   /* vrt_cpyfm */
+      (vpb.contrl[0] == 121))     /* vrt_cpyfm */
+  {
     srv_copy_mfdb (&mfdb_src, (MFDB *)&par->inpar[j]);
     j += sizeof (MFDB) / 2;
+
     srv_copy_mfdb (&mfdb_dst, (MFDB *)&par->inpar[j]);
+
     vpb.contrl[7] = MSW(&mfdb_src);
     vpb.contrl[8] = LSW(&mfdb_src);
     vpb.contrl[9] = MSW(&mfdb_dst);
@@ -175,7 +178,7 @@ srv_vdi_call (COMM_HANDLE  handle,
   }
   
   /* Copy intout array */
-  for (i = 0; i < vpb.contrl[4]; i++, j++) {
+  for(i = 0; i < vpb.contrl[4]; i++, j++) {
     ret.outpar[j] = vpb.intout[i];
   }
 
@@ -334,19 +337,35 @@ srv_call(COMM_HANDLE handle,
                   &par->vdi_call);
     break;
     
-  case SRV_MALLOC:
-    ret.malloc.address = (ULONG)malloc (par->malloc.amount);
-    PUT_R_ALL(MALLOC, &ret, 0);
-    SRV_REPLY(handle, &ret, sizeof (R_MALLOC));
+  case SRV_MEMORY_ALLOC:
+    ret.memory_alloc.address = (ULONG)malloc(par->memory_alloc.amount);
+    PUT_R_ALL(MEMORY_ALLOC, &ret, 0);
+    SRV_REPLY(handle, &ret, sizeof (R_MEMORY_ALLOC));
     break;
     
-  case SRV_FREE:
-    free ((void *)par->free.address);
+  case SRV_MEMORY_FREE:
+    free((void *)par->memory_free.address);
     
-    PUT_R_ALL(FREE, &ret, 0);
-    SRV_REPLY(handle, &ret, sizeof (R_FREE));
+    PUT_R_ALL(MEMORY_FREE, &ret, 0);
+    SRV_REPLY(handle, &ret, sizeof (R_MEMORY_FREE));
     break;
     
+  case SRV_MEMORY_SET:
+    memcpy((void *)par->memory_set.address,
+           &par->memory_set.data,
+           par->memory_set.amount);
+    PUT_R_ALL(MEMORY_SET, &ret, 0);
+    SRV_REPLY(handle, &ret, sizeof(R_MEMORY_SET));
+    break;
+
+  case SRV_MEMORY_GET:
+    memcpy(&ret.memory_get.data,
+           (void *)par->memory_get.address,
+           par->memory_get.amount);
+    PUT_R_ALL(MEMORY_GET, &ret, 0);
+    SRV_REPLY(handle, &ret, sizeof(R_MEMORY_GET));
+    break;
+
   default:
     DB_printf("%s: Line %d:\r\n"
               "Unknown call %d (0x%x) to server!",
@@ -362,7 +381,8 @@ srv_call(COMM_HANDLE handle,
 */
 static
 WORD
-server (LONG arg) {
+server (LONG arg)
+{
   /* These variables are passed from clients */
   C_SRV         par;
   COMM_HANDLE   handle;
@@ -392,7 +412,7 @@ server (LONG arg) {
   while (run_server) {
     /* Wait for another call from a client */
     DEBUG3 ("srv.c: Waiting for message from client");
-    SRV_GET (&par, sizeof (C_SRV), handle);
+    SRV_GET(&par, sizeof (C_SRV), handle);
     DEBUG3 ("srv.c: Got message from client (%p)", handle);
 
     if (handle != NULL) {
