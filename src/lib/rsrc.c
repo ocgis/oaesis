@@ -103,7 +103,7 @@ Rsrc_do_load_mint (WORD   apid,
         
   flen = Fseek(0,(WORD)fnr,SEEK_END);
         
-  rsc = (RSHDR *)Mxalloc(flen,GLOBALMEM);
+  rsc = (RSHDR *)malloc(flen,GLOBALMEM);
 
   if(!rsc) {
     DB_printf("rsrc.c: loadrsc: Could not malloc memory for %s",namebuf);
@@ -610,7 +610,7 @@ Rsrc_load (AES_PB *apb)  /*0x006e*/ {
 void    Rsrc_free(AES_PB *apb)  /*0x006f*/ {
   /*
   if(apb->global->int_info->rshdr) {
-    Mfree(apb->global->int_info->rshdr);
+    free(apb->global->int_info->rshdr);
     apb->global->int_info->rshdr = NULL;
                 
     apb->int_out[0] = 1;
