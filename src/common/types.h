@@ -214,6 +214,7 @@ typedef struct devdrv {
 #define FS_LONGPATH      0x08 /* file system understands "size" argument to
                                  "getname" */
 
+#if 0 /* FIXME */
 typedef struct filesys {
   struct filesys  *next;  /* link to next file system on chain */
   LONG   fsflags;
@@ -250,7 +251,7 @@ typedef struct filesys {
   LONG    CDECL (*release)(fcookie *);
   LONG    CDECL (*dupcookie)(fcookie *new, fcookie *old);
 } FILESYS;
-
+#endif
 
 /* structure for internal kernel locks */
 typedef struct ilock {
