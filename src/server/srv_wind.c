@@ -1017,20 +1017,23 @@ srv_wind_update(COMM_HANDLE     handle,
 */
 void
 srv_wind_get (C_WIND_GET * msg,
-              R_WIND_GET * ret) {
+              R_WIND_GET * ret)
+{
   WINSTRUCT * win;
   WORD        retval;
   
   win = find_wind_description(msg->handle);
   
-  if(win) {
-    switch(msg->mode) {	
+  if(win)
+  {
+    switch(msg->mode)
+    {	
     case WF_KIND: /* 0x0001 */
       retval = 1;
       ret->parm1 = win->elements;
       break;
-      
-    case WF_WORKXYWH	:	/*0x0004*/
+
+    case WF_WORKXYWH: /*0x0004*/
       retval = 1;
       ret->parm1 = win->worksize.x;
       ret->parm2 = win->worksize.y;
@@ -1038,23 +1041,23 @@ srv_wind_get (C_WIND_GET * msg,
       ret->parm4 = win->worksize.height;
       break;
       
-    case	WF_CURRXYWH	:	/*0x0005*/
+    case WF_CURRXYWH: /*0x0005*/
       retval = 1;
       ret->parm1 = win->totsize.x;
       ret->parm2 = win->totsize.y;
       ret->parm3 = win->totsize.width;
       ret->parm4 = win->totsize.height;
-				break;
+      break;
       
-    case	WF_PREVXYWH	:	/*0x0006*/
+    case WF_PREVXYWH: /*0x0006*/
       retval = 1;
       ret->parm1 = win->lastsize.x;
       ret->parm2 = win->lastsize.y;
       ret->parm3 = win->lastsize.width;
       ret->parm4 = win->lastsize.height;
       break;
-      
-    case	WF_FULLXYWH	:	/*0x0007*/
+
+    case WF_FULLXYWH: /*0x0007*/
       retval = 1;
       ret->parm1 = win->maxsize.x;
       ret->parm2 = win->maxsize.y;
@@ -1073,55 +1076,65 @@ srv_wind_get (C_WIND_GET * msg,
       break;
       
     case WF_TOP: /*0x000a*/
-      if(win_vis) {
+      if(win_vis)
+      {
 	ret->parm1 = win_vis->win->id;
 	ret->parm2 = win_vis->win->owner;
 	
-	if(win_vis && win_vis->next) {
+	if(win_vis && win_vis->next)
+        {
 	  ret->parm3 = win_vis->next->win->id;
 	}
-	else {
+	else
+        {
 	  ret->parm3 = -1;
-	};
+	}
 	
 	retval = 1;
       }
-      else {
+      else
+      {
         retval = 0;
       }
       break;
       
-    case	WF_FIRSTXYWH:	/*0x000b*/
+    case WF_FIRSTXYWH: /*0x000b*/
       win->rpos = win->rlist;
-    case	WF_NEXTXYWH:	/*0x000c*/
+      /* Intentional fall-through */
+    case WF_NEXTXYWH: /*0x000c*/
+    {
+      RECT r;
+      
+      retval = 1;
+      
+      while(win->rpos)
       {
-	RECT r;
-	
-	retval = 1;
-	
-	while(win->rpos) {
-	  if(srv_intersect(&win->rpos->r,&win->totsize,&r)) {
-	    break;
-	  }
-	  
-	  win->rpos = win->rpos->next;
-	}					
-	
-	if(!win->rpos) {
-	  ret->parm1 = 0;
-	  ret->parm2 = 0;
-	  ret->parm3 = 0;
-	  ret->parm4 = 0;
-	} else {
-	  win->rpos = win->rpos->next;
-	  
-	  ret->parm1 = r.x;
-	  ret->parm2 = r.y;
-	  ret->parm3 = r.width;
-	  ret->parm4 = r.height;
-	}
+        if(srv_intersect(&win->rpos->r,&win->totsize,&r))
+        {
+          break;
+        }
+        
+        win->rpos = win->rpos->next;
+      }					
+      
+      if(!win->rpos)
+      {
+        ret->parm1 = 0;
+        ret->parm2 = 0;
+        ret->parm3 = 0;
+        ret->parm4 = 0;
       }
-      break;
+      else
+      {
+        win->rpos = win->rpos->next;
+        
+        ret->parm1 = r.x;
+        ret->parm2 = r.y;
+        ret->parm3 = r.width;
+        ret->parm4 = r.height;
+      }
+    }
+    break;
       
     case WF_HSLSIZE: /*0x0f*/
       retval = 1;
@@ -1144,25 +1157,30 @@ srv_wind_get (C_WIND_GET * msg,
     case WF_DCOLOR: /*0x13*/
       ret->parm2 = top_colour[msg->parm1];
       ret->parm3 = untop_colour[msg->parm1];
-      
-      retval = 0;
+      retval = 1;
       break;
 
     case WF_OWNER: /*0x14*/
-      if(win) {
+      if(win)
+      {
 	retval = 1;
 	ret->parm1 = win->owner;
 	ret->parm2 = win->status;
 	
-	if(win->status & WIN_OPEN) {
+	if(win->status & WIN_OPEN)
+        {
 	  WINLIST *wl = win_vis;
 	  
 	  
 	  if(wl->win == win) {
 	    ret->parm3 = -1;
-	  } else if(wl) {
-	    while(wl->next) {
-	      if(wl->next->win == win) {
+	  }
+          else if(wl)
+          {
+	    while(wl->next)
+            {
+	      if(wl->next->win == win)
+              {
 		ret->parm3 = wl->win->id;
 		break;
 	      }
@@ -1173,19 +1191,26 @@ srv_wind_get (C_WIND_GET * msg,
 	    wl = wl->next;
 	  }
 	  
-	  if(wl) {
+	  if(wl)
+          {
 	    wl = wl->next;
 	    
-	    if(wl) {
+	    if(wl)
+            {
 	      ret->parm4 = wl->win->id;
-	    } else {
+	    }
+            else
+            {
 	      ret->parm4 = -1;
 	    }
-						}
-	  else {
+          }
+	  else
+          {
 	    ret->parm4 = -1;
 	  }							
-	} else {
+	}
+        else
+        {
 	  ret->parm3 = -1;
 	  ret->parm4 = -1;
 	}
@@ -1197,10 +1222,12 @@ srv_wind_get (C_WIND_GET * msg,
       break;
       
     case WF_ICONIFY: /* 0x1a */
-      if(win->status & WIN_ICONIFIED) {
+      if(win->status & WIN_ICONIFIED)
+      {
 	ret->parm1 = 1;
       }
-      else {
+      else
+      {
 	ret->parm1 = 0;
       }
       
@@ -1222,7 +1249,22 @@ srv_wind_get (C_WIND_GET * msg,
     case WF_WINXCFG:
       retval = 0;
       break;
-      
+
+    case WF_BOTTOM:
+    case WF_FTOOLBAR:
+    case WF_NTOOLBAR:
+      KDEBUG0("srv_wind_get: Implement mode %d!", msg->mode);
+      retval = 0;
+      break;
+
+    case WF_NAME:
+    case WF_INFO:
+    case WF_RESVD:
+    case WF_NEWDESK:
+    case WF_COLOR:
+    case WF_BEVENT:
+    case WF_UNICONIFYXYWH:
+    case WF_TOOLBAR:
     default:
       KDEBUG0("%s: Line %d: srv_wind_get:\r\n"
               "Unknown mode %d  (0x%x) wind_get(%d,%d,...)",
@@ -1230,7 +1272,9 @@ srv_wind_get (C_WIND_GET * msg,
               msg->handle,msg->mode);
       retval = 0;
     }
-  } else {
+  }
+  else
+  {
     retval = 0;
   }
 
@@ -2033,11 +2077,13 @@ srv_wind_set(C_WIND_SET * msg,
   
   win = find_wind_description(msg->handle);
   
-  if(win) {
+  if(win)
+  {
     KDEBUG2("srv.c: srv_wind_set: mode = %d (0x%x)", msg->mode, msg->mode);
-    switch (msg->mode) {        
-    case WF_NAME        :       /*0x0002*/
-    case WF_INFO        :       /*0x0003*/
+    switch (msg->mode)
+    {
+    case WF_NAME:       /*0x0002*/
+    case WF_INFO:       /*0x0003*/
       KDEBUG1("srv.c: srv_wind_set: no support for mode %d in server",
               msg->mode);
       retval = 0;
@@ -2104,9 +2150,12 @@ srv_wind_set(C_WIND_SET * msg,
       break;
 
     case WF_BEVENT: /*0x18*/
-      if(msg->parm1 & 1) {
+      if(msg->parm1 & 1)
+      {
         win->status |= WIN_UNTOPPABLE;
-      } else {
+      }
+      else
+      {
         win->status &= ~WIN_UNTOPPABLE;
       }
       
@@ -2117,7 +2166,7 @@ srv_wind_set(C_WIND_SET * msg,
       retval = bottom_window(msg->handle);
       break;
 
-    case WF_ICONIFY: /*0x1a*/
+      /* case WF_ICONIFY: *//*0x1a*/
       /* FIXME:       win->origsize = win->totsize;
       set_win_elem(win->tree,IMOVER);
       win->status |= WIN_ICONIFIED;
@@ -2129,7 +2178,7 @@ srv_wind_set(C_WIND_SET * msg,
       */
       break;
 
-    case WF_UNICONIFY: /*0x1b*/
+      /* case WF_UNICONIFY: */ /*0x1b*/
       /* FIXME:
       set_win_elem(win->tree,win->elements);
       win->status &= ~WIN_ICONIFIED;
@@ -2140,13 +2189,32 @@ srv_wind_set(C_WIND_SET * msg,
                                           1);
       */
       break;
-
+      
+    case WF_KIND:
+    case WF_WORKXYWH:
+    case WF_PREVXYWH:
+    case WF_FULLXYWH:
+    case WF_FIRSTXYWH:
+    case WF_NEXTXYWH:
+    case WF_RESVD:
+    case WF_SCREEN:
+    case WF_OWNER:
+    case WF_ICONIFY:
+    case WF_UNICONIFY:
+    case WF_UNICONIFYXYWH:
+    case WF_TOOLBAR:
+    case WF_FTOOLBAR:
+    case WF_NTOOLBAR:
+    case WF_WINX:
+    case WF_WINXCFG:
     default:
       KDEBUG0("%s: Line %d: srv_wind_set:\r\n"
               "Unknown mode %d",__FILE__,__LINE__,msg->mode);
       retval = 0;
     }
-  } else {
+  }
+  else
+  {
     retval = 0;     
   }
 
