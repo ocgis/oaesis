@@ -74,10 +74,10 @@ typedef struct pEvntrec {
                 
 
 typedef struct graphic_rectangle {
-  int g_x;
-  int g_y;
-  int g_w;
-  int g_h;
+  short g_x;
+  short g_y;
+  short g_w;
+  short g_h;
 } GRECT;
 
                 /* evnt_button flags */
@@ -890,8 +890,8 @@ graf_movebox (int   bw,
               int   bh,
               int   sx,
               int   sy,
-              int * ex,
-              int * ey);
+              int   ex,
+              int   ey);
 int
 graf_rubberbox (int   bx,
                 int   by,
@@ -992,7 +992,7 @@ int     rsrc_free (void);
 int
 rsrc_gaddr (int     type,
             int     index,
-            void ** addr);
+            void *  addr);
 short
 rsrc_load (char * fname);
 short

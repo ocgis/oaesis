@@ -527,23 +527,22 @@ graf_movebox (int   bw,
               int   bh,
               int   sx,
               int   sy,
-              int * ex,
-              int * ey) {
+              int   ex,
+              int   ey) {
   OPCODE = 72;
-  NO_INTIN = 4;
+  NO_INTIN = 6;
   NO_ADDRIN = 0;
-  NO_INTOUT = 3;
+  NO_INTOUT = 1;
   NO_ADDROUT = 0;
 
   aespb.intin[0] = bw;
   aespb.intin[1] = bh;
   aespb.intin[2] = sx;
   aespb.intin[3] = sy;
+  aespb.intin[4] = ex;
+  aespb.intin[5] = ey;
 
   aes_call (&aespb);
-
-  *ex = aespb.intout[1];
-  *ey = aespb.intout[2];
 
   return aespb.intout[0];
 }
@@ -905,7 +904,7 @@ objc_order (OBJECT * tree,
 int
 rsrc_gaddr (int     type,
             int     index,
-            void ** addr) {
+            void  * addr) {
   OPCODE     = 112;
   NO_INTIN   = 2;
   NO_ADDRIN  = 0;
