@@ -1,19 +1,15 @@
-RCSFILES = makefile oaesis.cnf readme
-
 all:
-	cd src; $(MAKE)
-	cd tools; $(MAKE)
-
-rcsci:
-	ci -l $(RCSFILES)
-	cd doc; $(MAKE) rcsci
-	cd src; $(MAKE) rcsci
-	cd tools; $(MAKE) rcsci
+	$(MAKE) -C src
+	$(MAKE) -C test
+	$(MAKE) -C tools
 
 clean:
-	cd src; $(MAKE) clean
-	cd tools; $(MAKE) clean
+	$(MAKE) -C src clean
+	$(MAKE) -C test clean
+	$(MAKE) -C tools clean
 
 realclean:
-	cd src; $(MAKE) realclean
-	cd tools; $(MAKE) realclean
+	$(MAKE) -C src realclean
+	$(MAKE) -C test realclean
+	$(MAKE) -C tools realclean
+

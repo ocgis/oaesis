@@ -30,11 +30,9 @@ SFILES = gcc.s
 OBJS = $(CFILES:%.c=%.o) $(SFILES:%.s=%.o)
 
 all: oaesis.prg
-	cd test; $(MAKE)
 
 oaesis.prg: $(OBJS)
 	$(LINK.c) -o $@ $(OBJS) $(LDLIBS)
-	-fixstk 65536 $@
 
 gcc.o: lxgemdos.h
 

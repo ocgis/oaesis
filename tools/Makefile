@@ -1,12 +1,10 @@
 CC = gcc
-CFLAGS = -Wall -fomit-frame-pointer -D__MINT__ -mshort
+CFLAGS = -Wall -fomit-frame-pointer
 LD = gcc
-LDLIBS = -lmint16 -liio16
+LDLIBS = -lc
 TARGETS = cleanret.ttp depcheck.ttp r2c.ttp r2c_raw.ttp
 
 CFILES = cleanret.c depcheck.c r2c.c r2c_raw.c
-
-RCSFILES = $(CFILES) makefile
 
 all: $(TARGETS)
 
@@ -14,9 +12,6 @@ all: $(TARGETS)
 
 .c.ttp:
 	$(LINK.c) -o $@ $< $(LDLIBS)
-
-rcsci:
-	ci -l $(RCSFILES)
 
 clean:
 	rm -f *.o

@@ -6,11 +6,11 @@ CC = gcc
 AS = gcc
 LD = gcc
 MODEL = -mshort
-LDLIBS = -lmint16 -liio16 -lgem16
+LDLIBS = -lc16 -lgem16
 
 DEFS = -D__MINT__ 
 
-CFLAGS = -Wall -fomit-frame-pointer $(MODEL) $(DEFS) -bm68k-mint
+CFLAGS = -Wall -fomit-frame-pointer $(MODEL) $(DEFS) -bm68k-atari-mint
 ASFLAGS = $(MODEL)
 
 CFILES = appltrec.c evnttest.c formtest.c fcntltst.c lines.c test.c test2.c \
