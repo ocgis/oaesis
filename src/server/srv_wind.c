@@ -40,50 +40,92 @@ WINLIST * win_list = 0L;
 WINLIST * win_free = 0L;
 WORD      win_next = 0;
 
-static OBJC_COLORWORD top_colour[20] = {
-  {BLACK,BLACK,1,7,LWHITE},
-  {BLACK,BLACK,1,7,LWHITE},
-  {BLACK,BLACK,1,7,LWHITE},
-  {BLACK,BLACK,0,7,LYELLOW},
-  {BLACK,BLACK,1,7,LWHITE},
-  {BLACK,BLACK,0,7,WHITE},
-  {BLACK,BLACK,1,7,LWHITE},
-  {BLACK,BLACK,1,7,LWHITE},
-  {BLACK,BLACK,1,7,LWHITE},
-  {BLACK,BLACK,1,7,LWHITE},
-  {BLACK,BLACK,1,7,LWHITE},
-  {BLACK,BLACK,1,7,LWHITE},
-  {BLACK,BLACK,1,7,LWHITE},
-  {BLACK,BLACK,1,7,LWHITE},
-  {BLACK,BLACK,1,7,LWHITE},
-  {BLACK,BLACK,1,7,LWHITE},
-  {BLACK,BLACK,1,7,LWHITE},
-  {BLACK,BLACK,1,7,LWHITE},
-  {BLACK,BLACK,1,7,LWHITE},
-  {BLACK,BLACK,1,7,LWHITE}
+static WORD top_colour[20] =
+{
+  /* BLACK,BLACK,1,7,LWHITE */
+  0x11f8,
+  /* BLACK,BLACK,1,7,LWHITE */
+  0x11f8,
+  /* BLACK,BLACK,1,7,LWHITE */
+  0x11f8,
+  /* BLACK,BLACK,0,7,LYELLOW */
+  0x117e,
+  /* BLACK,BLACK,1,7,LWHITE */
+  0x11f8,
+  /* BLACK,BLACK,0,7,WHITE */
+  0x1170,
+  /* BLACK,BLACK,1,7,LWHITE */
+  0x11f8,
+  /* BLACK,BLACK,1,7,LWHITE */
+  0x11f8,
+  /* BLACK,BLACK,1,7,LWHITE */
+  0x11f8,
+  /* BLACK,BLACK,1,7,LWHITE */
+  0x11f8,
+  /* BLACK,BLACK,1,7,LWHITE */
+  0x11f8,
+  /* BLACK,BLACK,1,7,LWHITE */
+  0x11f8,
+  /* BLACK,BLACK,1,7,LWHITE */
+  0x11f8,
+  /* BLACK,BLACK,1,7,LWHITE */
+  0x11f8,
+  /* BLACK,BLACK,1,7,LWHITE */
+  0x11f8,
+  /* BLACK,BLACK,1,7,LWHITE */
+  0x11f8,
+  /* BLACK,BLACK,1,7,LWHITE */
+  0x11f8,
+  /* BLACK,BLACK,1,7,LWHITE */
+  0x11f8,
+  /* BLACK,BLACK,1,7,LWHITE */
+  0x11f8,
+  /* BLACK,BLACK,1,7,LWHITE */
+  0x11f8
 };
 
-static OBJC_COLORWORD untop_colour[20] = {
-  {BLACK,BLACK,1,7,LWHITE},
-  {BLACK,BLACK,1,7,LWHITE},
-  {BLACK,BLACK,1,7,LWHITE},
-  {BLACK,BLACK,1,7,LWHITE},
-  {BLACK,BLACK,1,7,LWHITE},
-  {BLACK,BLACK,0,7,WHITE},
-  {BLACK,BLACK,1,7,LWHITE},
-  {BLACK,BLACK,1,7,LWHITE},
-  {BLACK,BLACK,1,7,LWHITE},
-  {BLACK,BLACK,1,7,LWHITE},
-  {BLACK,BLACK,1,7,LWHITE},
-  {BLACK,BLACK,1,7,LWHITE},
-  {BLACK,BLACK,1,7,LWHITE},
-  {BLACK,BLACK,1,7,LWHITE},
-  {BLACK,BLACK,1,7,LWHITE},
-  {BLACK,BLACK,1,7,LWHITE},
-  {BLACK,BLACK,1,7,LWHITE},
-  {BLACK,BLACK,1,7,LWHITE},
-  {BLACK,BLACK,1,7,LWHITE},
-  {BLACK,BLACK,1,7,LWHITE}
+static WORD untop_colour[20] =
+{
+  /* BLACK,BLACK,1,7,LWHITE */
+  0x11f8,
+  /* BLACK,BLACK,1,7,LWHITE */
+  0x11f8,
+  /* BLACK,BLACK,1,7,LWHITE */
+  0x11f8,
+  /* BLACK,BLACK,1,7,LWHITE */
+  0x11f8,
+  /* BLACK,BLACK,1,7,LWHITE */
+  0x11f8,
+  /* BLACK,BLACK,1,7,WHITE */
+  0x1178,
+  /* BLACK,BLACK,1,7,LWHITE */
+  0x11f8,
+  /* BLACK,BLACK,1,7,LWHITE */
+  0x11f8,
+  /* BLACK,BLACK,1,7,LWHITE */
+  0x11f8,
+  /* BLACK,BLACK,1,7,LWHITE */
+  0x11f8,
+  /* BLACK,BLACK,1,7,LWHITE */
+  0x11f8,
+  /* BLACK,BLACK,1,7,LWHITE */
+  0x11f8,
+  /* BLACK,BLACK,1,7,LWHITE */
+  0x11f8,
+  /* BLACK,BLACK,1,7,LWHITE */
+  0x11f8,
+  /* BLACK,BLACK,1,7,LWHITE */
+  0x11f8,
+  /* BLACK,BLACK,1,7,LWHITE */
+  0x11f8,
+  /* BLACK,BLACK,1,7,LWHITE */
+  0x11f8,
+  /* BLACK,BLACK,1,7,LWHITE */
+  0x11f8,
+  /* BLACK,BLACK,1,7,LWHITE */
+  0x11f8,
+  /* BLACK,BLACK,1,7,LWHITE */
+  0x11f8
 };
 
 typedef struct lock_info_s * LOCK_INFO;
@@ -1051,8 +1093,8 @@ srv_wind_get (C_WIND_GET * msg,
       break;
       
     case WF_DCOLOR: /*0x13*/
-      *(OBJC_COLORWORD *)&ret->parm2 = top_colour[msg->parm1];
-      *(OBJC_COLORWORD *)&ret->parm3 = untop_colour[msg->parm1];
+      ret->parm2 = top_colour[msg->parm1];
+      ret->parm3 = untop_colour[msg->parm1];
       
       retval = 0;
       break;
@@ -1506,10 +1548,17 @@ srv_init_windows(void)
   /* Initialize colours when we don't have enough of them */
   if(globals.num_pens < 16) {
     for(i = 0; i <= W_SMALLER; i++) {
-      untop_colour[i].pattern = 0;
-      untop_colour[i].fillc = WHITE;
-      top_colour[i].pattern = 0;
-      top_colour[i].fillc = WHITE;
+      /* Set pattern to 0 */
+      untop_colour[i] &= 0xff8f;
+
+      /* Set fill colour to WHITE */
+      untop_colour[i] = (untop_colour[i] & 0xfff0) | WHITE;
+
+      /* Set pattern to 0 */
+      top_colour[i] &= 0xff8f;
+
+      /* Set fill colour to WHITE */
+      untop_colour[i] = (untop_colour[i] & 0xfff0) | WHITE;
     }
   }
   
@@ -1999,8 +2048,8 @@ srv_wind_set(C_WIND_SET * msg,
       break;
 
     case WF_DCOLOR: /*0x13*/
-      top_colour[msg->parm1]   = *(OBJC_COLORWORD *)&msg->parm2;
-      untop_colour[msg->parm1] = *(OBJC_COLORWORD *)&msg->parm3;
+      top_colour[msg->parm1]   = msg->parm2;
+      untop_colour[msg->parm1] = msg->parm3;
       
       retval = 0;
       break;
