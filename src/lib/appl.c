@@ -220,6 +220,7 @@ vdi_tunnel (VDIPB * vpb) {
 **
 ** 1998-12-28 CG
 ** 1999-04-10 CG
+** 1999-08-08 CG
 */
 WORD
 Appl_do_init (GLOBAL_ARRAY * global) {
@@ -270,7 +271,10 @@ Appl_do_init (GLOBAL_ARRAY * global) {
   global->minchar = 0;
 
   if(global->apid >= 0) {
+#ifndef MINT_TARGET
     init_global (1, ret.physical_vdi_id);
+#endif
+    init_global_appl (global->apid, ret.physical_vdi_id);
 
     return global->apid;
   } else {

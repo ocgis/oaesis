@@ -57,6 +57,10 @@
 #include "types.h"
 #include "version.h"
 
+#ifdef MINT_TARGET
+#include "lib_global.h"
+#endif
+
 /****************************************************************************
  * Global variables                                                         *
  ****************************************************************************/
@@ -180,6 +184,7 @@ handle_signal (int s) {
 ** 1999-01-16 CG
 ** 1999-03-28 CG
 ** 1999-05-22 CG
+** 1999-08-08 CG
 */
 void
 srv_init_global (WORD nocnf) {
@@ -202,6 +207,10 @@ srv_init_global (WORD nocnf) {
   signal (SIGTERM, handle_signal);
 
   v_opnwk (work_in, &globals.vid, work_out);
+
+#ifdef MINT_TARGET
+  init_global (nocnf, globals.vid);
+#endif
 
   vq_extnd(globals.vid,0,work_out);
   

@@ -152,6 +152,7 @@ Srv_open (void) {
 ** 1999-02-04 CG
 ** 1999-02-07 CG
 ** 1999-07-26 CG
+** 1999-08-12 CG
 */
 COMM_HANDLE
 Srv_get (void * in,
@@ -164,14 +165,17 @@ Srv_get (void * in,
   int                   new_fd;
   int                   highest_fd;
   int                   err;
-  static struct timeval timeout;
+  static struct timeval timeout = {0, 0};
   /*  static int count = 0;*/
 
   FD_ZERO (&handle_set);
 
-  /* Timeout after 50 ms */
-  timeout.tv_sec  = 0;
-  timeout.tv_usec = 50000;
+  if (QUEUE_EMPTY) {
+    /* Timeout after 50 ms */
+    timeout.tv_usec = 50000;
+  } else {
+    timeout.tv_usec = 0;
+  }
 
   /* Specify which handles to wait for */
   FD_SET (sockfd, &handle_set);
@@ -199,10 +203,10 @@ Srv_get (void * in,
 		&handle_set,
 		NULL,
 		NULL,
-		/* FIXME: Why this? QUEUE_EMPTY ? NULL :*/ &timeout);
+		&timeout);
 
   /* We got a timeout */
-  if (err == 0) {
+  if (QUEUE_EMPTY && (err == 0)) {
     return NULL;
   }
 

@@ -110,8 +110,10 @@ get_lock (COMM_HANDLE handle,
     } else {
       /* Queue application */
       insert_last (lock_q, lialloc (handle, apid));
+      DEBUG2 ("srv_wind.c: get_lock: queued appl %d", apid);
     }
   } else {
+    DEBUG2 ("srv_wind.c: get_lock: appl %d got lock", apid);
     *lock = apid;
     *lock_cnt = 1;
     
@@ -142,6 +144,7 @@ return_lock (COMM_HANDLE handle,
     
     (*lock_cnt)--;
 
+    DEBUG2 ("srv_wind.c: return_lock: appl %d", apid);
     /* Return ok */
     ret.common.retval = 1;
     Srv_reply (handle, &ret, sizeof (R_WIND_UPDATE));
@@ -176,6 +179,8 @@ srv_wind_update (COMM_HANDLE     handle,
   static WORD   update_cnt = 0;
   static QUEUE  update_q = NULL;
   static QUEUE  mouse_q;
+
+  DEBUG2 ("srv_wind.c: srv_wind_update: mode = %d", msg->mode);
 
   if (update_q == NULL) {
     update_q = allocate_queue ();

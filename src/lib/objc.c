@@ -1505,35 +1505,6 @@ handle_ed_char (WORD     vid,
  * Public functions                                                         *
  ****************************************************************************/
 
-/* FIXME: remove this routine */
-void
-Objc_init_module (WORD apid) {	
-  int  work_in[] = {1,7,1,1,1,1,1,1,1,1,2};
-  int  work_out[57];
-  GLOBAL_APPL * globals = get_globals (apid);
-
-  vq_extnd (globals->common->vid,1,work_out);
-  
-  num_planes = work_out[4];
-  
-  v_show_c (globals->common->vid,0);
-  
-  textyoffs = globals->common->clheight >> 1;
-  
-  /* if we don't have enough colours; use monochrome mode! */
-  
-  if(globals->common->num_pens < 16) {
-    ocolours.br = BLACK;         /* Colour used for bottom right 3d edge */
-    ocolours.tl = WHITE;         /* Colour used for top left 3d edge     */
-    ocolours.colour_ind = WHITE; /* Default indicator colour             */
-    ocolours.colour_act = WHITE; /* Default activator colour             */
-    ocolours.colour_bkg = WHITE; /* Default background colour            */
-  };
-}
-
-void Objc_exit_module(void) {
-}
-
 void	do_objc_add(OBJECT *t,WORD p,WORD c) {
 	if(t[p].ob_tail < 0) {
 		t[p].ob_head = c;

@@ -65,7 +65,13 @@
  ****************************************************************************/
 
 GLOBAL_COMMON global_common;
+
+#ifdef MINT_TARGET
+/* FIXME: allocate when needed */
+GLOBAL_APPL globals_appl[256];
+#else
 GLOBAL_APPL   global_appl;
+#endif
 
 char *p_fsel_extern = (char *)&global_common.fsel_extern;
 static WORD global[15];
@@ -242,20 +248,11 @@ init_global (WORD nocnf,
     global_common.vid = own_graf_handle();
     v_clrwk(global_common.vid);
   }
-#else  /* ! MINT_TARGET */
-  work_in[0] = 5;
-  DEBUG3 ("lib_global.c: init_global: physical_vdi_id = %d",
-             physical_vdi_id);
-  /* FIXME: change vid types to int and remove temp_vid */
-  temp_vid = physical_vdi_id;
-  v_opnvwk (work_in, &temp_vid, work_out);
-  global_appl.vid = temp_vid;
-  DEBUG3 ("init_global: 3");
-  global_common.vid = global_appl.vid; /* Remove global_common.vid */
-  DEBUG3 ("lib_global.c: init_global: vid=%d", global_appl.vid);
-#endif /* MINT_TARGET */
+#endif
+
+  global_common.physical_vdi_id = physical_vdi_id;
   DB_printf ("lib_global.c: init_global: calling vq_extnd");
-  vq_extnd(global_common.vid,0,work_out);
+  vq_extnd (physical_vdi_id, 0, work_out);
 
   
   global_common.screen.x = 0;
@@ -278,22 +275,18 @@ init_global (WORD nocnf,
   global_common.fnt_small_id = global_common.fnt_regul_id;
   global_common.fnt_small_sz = global_common.fnt_regul_sz / 2;
   
-  vst_font(global_common.vid, global_common.fnt_regul_id);
-  vst_point(global_common.vid,global_common.fnt_regul_sz,&dum,&dum,&dum,&dum);
-  
-  /*
-  global_common.applmenu = NULL;
-  global_common.accmenu = NULL;
-  */
-
-  global_common.mouse_x = 0;
-  global_common.mouse_y = 0;
-  global_common.mouse_button = 0;
+  vst_font (physical_vdi_id, global_common.fnt_regul_id);
+  vst_point (physical_vdi_id,
+	     global_common.fnt_regul_sz,
+	     &dum,
+	     &dum,
+	     &dum,
+	     &dum);
   
   global_common.arrowrepeat = 100;
   
   DEBUG3 ("lib_global.c: init_global: calling vqt_attributes");
-  vqt_attributes(global_common.vid,work_out);
+  vqt_attributes (physical_vdi_id, work_out);
   
   global_common.blwidth = work_out[8] + 3;
   global_common.blheight = work_out[9] + 3;
@@ -307,13 +300,7 @@ init_global (WORD nocnf,
   
   global_common.time = 0L;
 
-#ifdef MINT_TARGET
-  sprintf(global_common.mousename,"u:\\dev\\aesmouse.%03d",Pgetpid());
-#else
-  strcpy (global_common.mousename, "/dev/mouse");
-#endif  
-
-  Rsrc_do_rcfix (global_common.vid,
+  Rsrc_do_rcfix (physical_vdi_id,
                  (RSHDR *)resource,
                  FALSE /* FIXME: Swap if low_endian*/);
 
@@ -345,33 +332,57 @@ init_global (WORD nocnf,
                 WINDOW,
                 &global_common.windowtad);
   global_common.elemnumber = -1;
+}
 
-  global_common.applpid = Pgetpid();
+
+/*
+** Description
+** Initialize application specific variables
+**
+** 1999-08-08 CG
+*/
+void
+init_global_appl (int apid,
+		  int physical_vdi_id) {
+  GLOBAL_APPL * globals;
+  int           work_in[] = {1,1,1,1,1,1,1,1,1,1,2};
+  int           work_out[57];
+  int           temp_vid;
+
+  globals = get_globals (apid);
+
+  work_in[0] = 5;
+  DEBUG3 ("lib_global.c: init_global_appl: physical_vdi_id = %d",
+             physical_vdi_id);
+  /* FIXME: change vid types to int and remove temp_vid */
+  temp_vid = physical_vdi_id;
+  v_opnvwk (work_in, &temp_vid, work_out);
+  globals->vid = temp_vid;
 
   /* There is no default desktop background */
-  global_appl.desktop_background = NULL;
+  globals->desktop_background = NULL;
 
   /* There is no default menu */
-  global_appl.menu = NULL;
+  globals->menu = NULL;
 
   /* Setup resource header and resource file */
-  global_appl.rscfile = NULL;
-  global_appl.rshdr = NULL;
+  globals->rscfile = NULL;
+  globals->rshdr = NULL;
 
   /* Default is not to use MiNT pathnames, at least under unix */
-  global_appl.use_mint_paths = FALSE;
+  globals->use_mint_paths = FALSE;
 
   /* Initialize application and accessory list as empty */
-  global_appl.appl_menu.count = 0;
-  global_appl.appl_menu.size = 10;
-  global_appl.appl_menu.entries =
+  globals->appl_menu.count = 0;
+  globals->appl_menu.size = 10;
+  globals->appl_menu.entries =
     (APPL_ENTRY *)malloc (sizeof (APPL_ENTRY) * 10);
-  global_appl.acc_menu.count = 0;
-  global_appl.acc_menu.size = 10;
-  global_appl.acc_menu.entries =
+  globals->acc_menu.count = 0;
+  globals->acc_menu.size = 10;
+  globals->acc_menu.entries =
     (APPL_ENTRY *)malloc (sizeof (APPL_ENTRY) * 10);
 
-  global_appl.common = &global_common;
+  globals->common = &global_common;
 
   DEBUG3 ("lib_global.c: Leaving global_init");
 }
@@ -393,16 +404,17 @@ void	exit_global(void) {
 }
 
 
-#if 0 /* FIXME def MINT_TARGET */
-GLOBAL_COMMON *
-get_global_common (void) {
-  return NULL; /* FIXME */
-}
+#ifdef MINT_TARGET */
 
-
+/*
+** Description
+** Return reference to application global AES variables
+**
+** 1999-08-08 CG
+*/
 GLOBAL_APPL *
 get_globals (WORD apid) {
-  return NULL; /* FIXME */
+  return &globals_appl[apid];
 }
 
 #endif /* MINT_TARGET */

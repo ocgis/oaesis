@@ -814,10 +814,16 @@ Graf_do_handle (WORD * cwidth,
 }
 
 
-void    Graf_handle(AES_PB *apb) {
-  GLOBAL_APPL * globals = get_globals (apb->global->apid);
+/*
+** Exported
+**
+** 1999-08-08 CG
+*/
+void
+Graf_handle(AES_PB *apb) {
+  GLOBAL_COMMON * globals = get_global_common ();
 
-  apb->int_out[0] = globals->common->vid;
+  apb->int_out[0] = globals->physical_vdi_id;
         
   Graf_do_handle(&apb->int_out[1]
                  ,&apb->int_out[2],&apb->int_out[3]

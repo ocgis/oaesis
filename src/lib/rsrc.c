@@ -427,9 +427,13 @@ Rsrc_do_rcfix(WORD     vid,
     }
   }
   
-  DEBUG3 ("rsrc.c: Rsrc_do_rcfix: rsh_nobs = %d", rsc->rsh_nobs);
+  DEBUG2 ("rsrc.c: Rsrc_do_rcfix: rsh_nobs = %d (0x%x) swap_endian = %d",
+	  rsc->rsh_nobs,
+	  rsc->rsh_nobs,
+	  swap_endian);
+				     
   for (i = 0; i < rsc->rsh_nobs; i++) {
-    /* Swap endian if necesary */
+    /* Swap endian if necessary */
     if (swap_endian) {
       owalk[i].ob_next = SWAP_WORD(owalk[i].ob_next);
       owalk[i].ob_head = SWAP_WORD(owalk[i].ob_head);
@@ -444,7 +448,7 @@ Rsrc_do_rcfix(WORD     vid,
       owalk[i].ob_height = SWAP_WORD(owalk[i].ob_height);
     }
 
-    switch (owalk[i].ob_type) {
+    switch (owalk[i].ob_type & 0xff /* FIXME: Check that this is OK! */) {
     case        G_BOX:
     case        G_IBOX:
     case        G_BOXCHAR:
@@ -467,8 +471,8 @@ Rsrc_do_rcfix(WORD     vid,
       break;
       
     default:
-      DB_printf ("rsrc.c: Rsrc_do_rcfix: Unsupported type: 0x%04x",
-                 owalk[i].ob_type);
+      DEBUG2 ("rsrc.c: Rsrc_do_rcfix: Unsupported type: 0x%04x at %p for object %d",
+	      owalk[i].ob_type, &owalk[i].ob_type, i);
     }
     
     fix_object_coordinates (&owalk[i]);

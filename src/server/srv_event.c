@@ -584,6 +584,7 @@ handle_mouse_buttons (void) {
 **
 ** 1999-03-08 CG
 ** 1999-08-05 CG
+** 1999-08-11 CG
 */
 static
 void
@@ -616,6 +617,10 @@ handle_keys (WORD vdi_workstation_id) {
       apps [topped_appl].key_buffer [index].scan = (str[i] >> 8) & 0xff;
       apps [topped_appl].key_buffer [index].state = 0; /* FIXME */
       
+      if (str[i] == 0x5d00) { /* SHIFT + F10 */
+	Srv_stop ();
+      }
+
       apps [topped_appl].key_size++;
     }
 

@@ -19,11 +19,6 @@
 #define	FILLNUMBER	1
 #define	FILLCOLOR	1
 
-void
-Objc_init_module (WORD apid);
-
-void Objc_exit_module(void);
-
 void do_objc_add(OBJECT *t,WORD p,WORD c);
 
 /****************************************************************************
