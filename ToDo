@@ -3,8 +3,6 @@ Known bugs:
 - Shel_do_write needs to be fixed for linux.
 - The menu bar is not updated properly when an application is started.
 - The menu_register call in the launcher doesn't seem to work.
-- "Already present" button state => no click owner check => clicks fall
-  through desktop.
 - Iconification doesn't work.
 
 Other things to do:
@@ -15,3 +13,5 @@ Other things to do:
 - Clean up menu and desktop background code
 - Move appliction menu code to the client side (update_appl_menu in srv.c)
 - Clean up after applications that die before calling appl_exit()
+- Configuration file handling needs to be fixed: settings should be read by
+  launcher.prg and sent to the server
