@@ -1,7 +1,9 @@
+INCLUDES = -I ../src/lib
+
 noinst_PROGRAMS = formtest structtest
 
 formtest_SOURCES = \
-	formtest.c
+	formtest.c test2rsc.rsc
 
 structtest_SOURCES = \
 	structtest.c
