@@ -52,6 +52,7 @@
 
 #include "debug.h"
 #include "evnt.h"
+#include "evnthndl.h"
 #include "form.h"
 #include "fsel.h"
 #include "gemdefs.h"
