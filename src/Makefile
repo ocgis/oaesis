@@ -6,13 +6,13 @@ CC = gcc
 AS = gcc
 LD = gcc
 MODEL = -mshort
-LDLIBS = -lmint16 -liio16 -lgem16
+LDLIBS = -lgem
 
 
 DEFS = -D__MINT__ 
 
-
-CFLAGS = -Wall -fomit-frame-pointer $(MODEL) $(DEFS) -bm68k-atari-mint
+MDEFS = -bm68k-atari-mint
+CFLAGS = -Wall -fomit-frame-pointer $(MODEL) $(DEFS) $(MDEFS)
 ASFLAGS = $(MODEL)
 
 CFILES = appl.c boot.c debug.c docalls.c evnt.c evnthndl.c form.c fsel.c \

@@ -23,32 +23,32 @@
 #include	<sysvars.h>
 
 void init_aes(WORD physical) {
-	init_global(physical);
+  printf("Initializing:\r\n");
+  
+  init_global(physical);
 
-	printf("Initializing:\r\n");
-
-	printf("Server\r\n");
-	Srv_init_module();
-	
-	printf("AES trap vector\r\n");
-	Supexec(link_in);
-
-	printf("Object calls\r\n");
-	init_objc();
-
-	printf("Menu calls\r\n");
-	Menu_init_module();
-
-	printf("Graf calls\r\n");
-	Graf_init_module();
-
-	printf("Mouse device\r\n");
-	Moudev_init_module();
-
-	printf("Event handler\r\n");
-	Evhd_init_module();
-	
-	printf("Done.\r\n");
+  printf("Server\r\n");
+  Srv_init_module();
+  
+  printf("AES trap vector\r\n");
+  Supexec(link_in);
+  
+  printf("Object calls\r\n");
+  init_objc();
+  
+  printf("Menu calls\r\n");
+  Menu_init_module();
+  
+  printf("Graf calls\r\n");
+  Graf_init_module();
+  
+  printf("Mouse device\r\n");
+  Moudev_init_module();
+  
+  printf("Event handler\r\n");
+  Evhd_init_module();
+  
+  printf("Done.\r\n");
 }
 
 void	exit_aes(void) {
@@ -89,6 +89,7 @@ int main(int argc,BYTE *argv[],BYTE *envp[]) {
 	WORD physical = 0;
 	WORD i;
 	LONG mintval;
+
 
 	if(!Misc_get_cookie(0x4d694e54L /*'MiNT'*/,&mintval)) {
 		fprintf(stderr,"oAESis requires MiNT to work. Start MiNT and try again!\r\n");

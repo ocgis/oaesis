@@ -73,141 +73,150 @@ static void get_token(FILE *fp,BYTE *token) {
 void Boot_parse_cnf(void) /*                                                */
 /****************************************************************************/
 {
-	FILE *fp;
-	BYTE line[200];
-	BYTE bootpath[] = "u:\\c\\";
-	BYTE filepath[128];
+  FILE *fp;
+  BYTE line[200];
+  BYTE bootpath[] = "u:\\c\\";
+  BYTE filepath[128];
+  
+  BYTE *filelist[] = {
+    "mint\\oaesis.cnf",
+    "multitos\\oaesis.cnf",
+    "oaesis.cnf",
+    NULL
+    };
+  
+  WORD i = 0;
+  
+  bootpath[3] = (get_sysvar(_bootdev) >> 16) + 'a';
+  
+  fp = fopen("oaesis.cnf","r");
+
+  printf("A\n");
+ 
+  while(!fp && filelist[i]) {
+    sprintf(filepath,"%s%s",bootpath,filelist[i]);
+    
+    fp = fopen(filepath,"r");
+    
+    i++;
+  };
+  
+  printf("B\n");
+
+  if(!fp) {
+    return;
+  };
+  
+  printf("C\n");
+
+  while(1) {
+    get_token(fp,line);
+
+    printf("D: %s\n",line);
+
+    
+    if(feof(fp)) {
+      break;
+    };
+    
+    if(line[0] == '#') {
+      fgets(line,200,fp);
+    }
+    else {
+      if(!strcmp(line,"AE_DEBUG")) {
+	BYTE path[128];
+	BYTE lineend[128];
 	
-	BYTE *filelist[] = {
-		"mint\\oaesis.cnf",
-		"multitos\\oaesis.cnf",
-		"oaesis.cnf",
-		NULL
-	};
+	get_token(fp,path);
+	get_token(fp,path);
+	get_token(fp,lineend);
 	
-	WORD i = 0;
+	DB_setpath(path);				
+      }
+      else if(!strcmp(line,"AE_VMODE")) {
+	BYTE size[128];
+	BYTE lineend[128];
 	
-	bootpath[3] = (get_sysvar(_bootdev) >> 16) + 'a';
-
-	fp = fopen("oaesis.cnf","r");
-
-	while(!fp && filelist[i]) {
-		sprintf(filepath,"%s%s",bootpath,filelist[i]);
-		
-		fp = fopen(filepath,"r");
-		
-		i++;
-	};
+	get_token(fp,size);
+	get_token(fp,size);
+	get_token(fp,lineend);
 	
-	if(!fp) {
-		return;
-	};
-
-	while(1) {
-		get_token(fp,line);
-		
-		if(feof(fp)) {
-			break;
-		};
-		
-		if(line[0] == '#') {
-			fgets(line,200,fp);
-		}
-		else {
-			if(!strcmp(line,"AE_DEBUG")) {
-				BYTE path[128];
-				BYTE lineend[128];
-				
-				get_token(fp,path);
-				get_token(fp,path);
-				get_token(fp,lineend);
-				
-				DB_setpath(path);				
-			}
-			else if(!strcmp(line,"AE_VMODE")) {
-				BYTE size[128];
-				BYTE lineend[128];
-				
-				get_token(fp,size);
-				get_token(fp,size);
-				get_token(fp,lineend);
-
-				sscanf(size,"%hd",&globals.vmode);
-			}
-			else if(!strcmp(line,"AE_VMODECODE")) {
-				BYTE size[128];
-				BYTE lineend[128];
-				
-				get_token(fp,size);
-				get_token(fp,size);
-				get_token(fp,lineend);
-
-				sscanf(size,"%hd",&globals.vmodecode);
-			}
-			else if(!strcmp(line,"AE_REALMOVE")) {
-				BYTE size[128];
-				BYTE lineend[128];
-				
-				get_token(fp,size);
-				get_token(fp,size);
-				get_token(fp,lineend);
-
-				sscanf(size,"%hd",&globals.realmove);
-			}
-			else if(!strcmp(line,"AE_REALSIZE")) {
-				BYTE size[128];
-				BYTE lineend[128];
-				
-				get_token(fp,size);
-				get_token(fp,size);
-				get_token(fp,lineend);
-
-				sscanf(size,"%hd",&globals.realsize);
-			}
-			else if(!strcmp(line,"AE_REALSLIDE")) {
-				BYTE size[128];
-				BYTE lineend[128];
-				
-				get_token(fp,size);
-				get_token(fp,size);
-				get_token(fp,lineend);
-
-				sscanf(size,"%hd",&globals.realslide);
-			}
-			else if(!strcmp(line,"AE_FONTID")) {
-				BYTE size[128];
-				BYTE lineend[128];
-				
-				get_token(fp,size);
-				get_token(fp,size);
-				get_token(fp,lineend);
-
-				sscanf(size,"%hd",&globals.fnt_regul_id);
-			}
-			else if(!strcmp(line,"AE_PNTSIZE")) {
-				BYTE size[128];
-				BYTE lineend[128];
-				
-				get_token(fp,size);
-				get_token(fp,size);
-				get_token(fp,lineend);
-
-				sscanf(size,"%hd",&globals.fnt_regul_sz);
-			}
-			else if(!strcmp(line,"AE_WIND_APPL")) {
-				BYTE size[128];
-				BYTE lineend[128];
-				
-				get_token(fp,size);
-				get_token(fp,size);
-				get_token(fp,lineend);
-
-				sscanf(size,"%hd",&globals.wind_appl);
-			};
-		}
-	}
+	sscanf(size,"%hd",&globals.vmode);
+      }
+      else if(!strcmp(line,"AE_VMODECODE")) {
+	BYTE size[128];
+	BYTE lineend[128];
 	
-	fclose(fp);
+	get_token(fp,size);
+	get_token(fp,size);
+	get_token(fp,lineend);
+	
+	sscanf(size,"%hd",&globals.vmodecode);
+      }
+      else if(!strcmp(line,"AE_REALMOVE")) {
+	BYTE size[128];
+	BYTE lineend[128];
+	
+	get_token(fp,size);
+	get_token(fp,size);
+	get_token(fp,lineend);
+	
+	sscanf(size,"%hd",&globals.realmove);
+      }
+      else if(!strcmp(line,"AE_REALSIZE")) {
+	BYTE size[128];
+	BYTE lineend[128];
+	
+	get_token(fp,size);
+	get_token(fp,size);
+	get_token(fp,lineend);
+	
+	sscanf(size,"%hd",&globals.realsize);
+      }
+      else if(!strcmp(line,"AE_REALSLIDE")) {
+	BYTE size[128];
+	BYTE lineend[128];
+	
+	get_token(fp,size);
+				get_token(fp,size);
+	get_token(fp,lineend);
+
+	sscanf(size,"%hd",&globals.realslide);
+      }
+      else if(!strcmp(line,"AE_FONTID")) {
+	BYTE size[128];
+	BYTE lineend[128];
+	
+	get_token(fp,size);
+	get_token(fp,size);
+	get_token(fp,lineend);
+	
+	sscanf(size,"%hd",&globals.fnt_regul_id);
+      }
+      else if(!strcmp(line,"AE_PNTSIZE")) {
+	BYTE size[128];
+	BYTE lineend[128];
+	
+	get_token(fp,size);
+	get_token(fp,size);
+	get_token(fp,lineend);
+	
+	sscanf(size,"%hd",&globals.fnt_regul_sz);
+      }
+      else if(!strcmp(line,"AE_WIND_APPL")) {
+	BYTE size[128];
+	BYTE lineend[128];
+	
+	get_token(fp,size);
+	get_token(fp,size);
+	get_token(fp,lineend);
+	
+	sscanf(size,"%hd",&globals.wind_appl);
+      };
+    }
+  }
+  
+  fclose(fp);
 }
 
 /****************************************************************************
@@ -324,3 +333,4 @@ WORD apid)                     /*                                           */
 		
 	Fsetdta(olddta);
 }
+
