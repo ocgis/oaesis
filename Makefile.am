@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 
-SUBDIRS = src test
+SUBDIRS = tools src test
 
 bin_SCRIPTS = oaesis-config
 

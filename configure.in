@@ -171,4 +171,4 @@ AC_LINK_FILES(src/common/vdi.c, src/server/vdi.c)
 AC_LINK_FILES(src/lib/resource.h, src/server/resource.h)
 
 dnl Specify which files that should be created
-AC_OUTPUT(Makefile src/Makefile src/comm/Makefile src/common/Makefile src/launcher/Makefile src/lib/Makefile src/server/Makefile test/Makefile oaesis.m4 oaesis-config)
+AC_OUTPUT(Makefile src/Makefile src/comm/Makefile src/common/Makefile src/launcher/Makefile src/lib/Makefile src/server/Makefile test/Makefile tools/Makefile oaesis.m4 oaesis-config)

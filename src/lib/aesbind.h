@@ -846,10 +846,12 @@ int     objc_order (void *Tree, int Object, int NewPos);
 int     objc_sysvar (int mode, int which, int in1, int in2, int *out1, int *out2);
 
 int     rsrc_free (void);
-int     rsrc_gaddr (int Type, int Index, void *Address);
+extern short rsrc_gaddr (int    Type,
+                         int    Index,
+                         void * Address);
 int     rsrc_load (char *Name);
 int     rsrc_obfix (void *Tree, int Index);
-int     rsrc_rcfix (void *rc_header);
+extern short rsrc_rcfix (void * rc_header);
 int     rsrc_saddr (int Type, int Index, void *Address);
 
 int     scrp_clear (void);

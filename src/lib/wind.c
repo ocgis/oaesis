@@ -1263,6 +1263,7 @@ Wind_set_name_or_info (WORD   apid,
 ** Set desktop background
 **
 ** 1999-01-01 CG
+** 1999-01-06 CG
 */
 static
 WORD
@@ -1280,10 +1281,11 @@ Wind_set_desktop_background (WORD     apid,
   globals->desktop_background = tree;
 
   /* Adjust the size of the resource to the size of the desktop */
-  if (tree != NULL) {     
-    if(tree->ob_y + tree->ob_height < globals->common->screen.height) {
-      tree->ob_y = globals->common->screen.height - tree->ob_height;
-    }
+  if (tree != NULL) {
+    tree->ob_x = globals->common->screen.x;
+    tree->ob_y = globals->common->screen.y;
+    tree->ob_width = globals->common->screen.width;
+    tree->ob_height = globals->common->screen.height;
   }
 
   /* Return OK */

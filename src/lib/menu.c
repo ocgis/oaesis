@@ -189,6 +189,7 @@ Menu_handler (WORD   apid,
   /*  Boot_start_programs(mglob.menu_handl_apid);*/
 							
   /* Start waiting for messages and rect 1 */
+#if 0
   while(!quit) {
     EVENTIN  ei;
     EVENTOUT eo;
@@ -281,13 +282,13 @@ Menu_handler (WORD   apid,
       	DB_printf("Unknown message %d in Menu_handler\r\n",msg.type);
       };
     };
-    
     if(MU_KEYBD & eo.events) {
       if((eo.kc & 0xff) == 'q') {
 	quit = TRUE;
       };
     };
   };
+#endif    
 
   fprintf (stderr, "oaesis: menu.c: Leaving Menu_handler\n");
 }

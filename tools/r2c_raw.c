@@ -124,7 +124,15 @@ void	nfsprint(FILE *fput,char *pc)
 };		
 
 
-void	main(int argc,char *argv[]) {
+/*
+** Description
+** r2c_raw converts an .rsc and .hrd pair of files into .c and .h files
+**
+** 1999-01-06 CG
+*/
+int
+main (int    argc,
+      char * argv[]) {
   char	c;
   char	infile[200];
   char	orgfile[200],outfile[200];
@@ -219,7 +227,9 @@ void	main(int argc,char *argv[]) {
   strcpy(infile,stripext(orgfile));
   
   strcat(infile,".rsc");
-  printf("Converting file %s -> %s\n",infile,outfile); {
+  printf("Converting file %s -> %s\n",infile,outfile);
+  
+  {
     long size;
     
     fpin = (short)open(infile,0);
@@ -240,34 +250,34 @@ void	main(int argc,char *argv[]) {
       
       while(i < size) {
 	if((i % 8) == 0) {
-	  fprintf(fput,"/* 0x%06x */ ", i);
-	};
+	  fprintf(fput,"/* 0x%06lx */ ", i);
+	}
 	
 	fprintf(fput,"0x%02x",memory[i]);
 	
 	if(i < (size - 1)) {
 	  fprintf(fput,", ");
-	};
+	}
 	
 	if((i % 8) == 7) {
 	  fprintf(fput,"\n");
-	};
+	}
 	
 	i++;
-      };
+      }
       
       fprintf(fput,"\n};\n");
       
       fclose (fput);
       
       free ((void *)memory);
-    }
-    else {
+    } else {
       printf("Not enough memory to run!\nPress return to continue.\n");
       getchar();
-    };
-    
-  };
+    } 
+  }
   
   delete(&treeindx);
+
+  return 0;
 }

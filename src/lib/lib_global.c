@@ -163,6 +163,7 @@ WORD own_graf_handle(void) {
 **
 ** 1998-11-15 CG
 ** 1999-01-01 CG
+** 1999-01-06 CG
 */
 void
 init_global (WORD nocnf,
@@ -312,14 +313,14 @@ init_global (WORD nocnf,
 #endif  
 
   Rsrc_do_rcfix (global_common.vid,
-                 (RSHDR *)RESOURCE);
+                 (RSHDR *)resource);
 
   /*  
   Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,AICONS,&global_common.aiconstad);
   Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,ALERT,&global_common.alerttad);
   Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,DESKBG,&global_common.deskbgtad);
   */
-  Rsrc_do_gaddr ((RSHDR *)RESOURCE,
+  Rsrc_do_gaddr ((RSHDR *)resource,
                  R_TREE,
                  FISEL,
                  &global_common.fiseltad);
@@ -337,7 +338,7 @@ init_global (WORD nocnf,
   /*  global_common.informtad[INFOVERSION].ob_spec.tedinfo->te_ptext = versionstring; */
 
   /* Initialize window elements and resource counters */
-  Rsrc_do_gaddr((RSHDR *)RESOURCE,
+  Rsrc_do_gaddr((RSHDR *)resource,
                 R_TREE,
                 WINDOW,
                 &global_common.windowtad);
@@ -350,6 +351,10 @@ init_global (WORD nocnf,
 
   /* There is no default desktop background */
   global_appl.desktop_background = NULL;
+
+  /* Setup resource header and resource file */
+  global_appl.rscfile = NULL;
+  global_appl.rshdr = NULL;
 
   global_appl.common = &global_common;
 }

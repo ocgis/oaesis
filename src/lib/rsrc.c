@@ -415,12 +415,19 @@ OBJECT ** addr)   /* Object address.                                        */
   return 0;
 }
 
-void    Rsrc_gaddr(AES_PB *apb) /*0x0070*/ {
-  /*
-  apb->int_out[0] = Rsrc_do_gaddr(apb->global->int_info->rshdr,
-                                  apb->int_in[0],apb->int_in[1],
-                                  (OBJECT **)&apb->addr_out[0]);
-  */
+
+/*
+** Exported
+**
+** 1999-01-06 CG
+*/
+void
+Rsrc_gaddr (AES_PB *apb) {
+  GLOBAL_APPL * globals = get_globals (apb->global->apid);
+
+  apb->int_out[0] = Rsrc_do_gaddr (globals->rshdr,
+                                   apb->int_in[0],apb->int_in[1],
+                                   (OBJECT **)&apb->addr_out[0]);
 }
 
 void    Rsrc_saddr(AES_PB *apb) /*0x0071*/ {
@@ -437,17 +444,20 @@ void    Rsrc_obfix(AES_PB *apb) /*0x0072*/ {
 ** Exported
 **
 ** 1998-12-20 CG
+** 1999-01-06 CG
 */
 void
 Rsrc_rcfix (AES_PB *apb) /*0x0073*/ {
   RSHDR *       rsc = (RSHDR *)apb->addr_in[0];
   GLOBAL_APPL * globals = get_globals (apb->global->apid);
   
-  Rsrc_do_rcfix(globals->vid,
-                rsc);
+  Rsrc_do_rcfix (globals->vid,
+                 rsc);
         
-  apb->global->rscfile = (OBJECT **)((LONG)rsc->rsh_trindex + (LONG)rsc);
-  apb->global->rshdr = /*apb->global->int_info->rshdr =*/ rsc;
+  globals->rscfile = (OBJECT **)((LONG)rsc->rsh_trindex + (LONG)rsc);
+  globals->rshdr = rsc;
+
+  /* Return OK */
   apb->int_out[0] = 1;
 }
 

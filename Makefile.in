@@ -83,7 +83,7 @@ VERSION = @VERSION@
 target_cpu = @target_cpu@
 target_os = @target_os@
 
-SUBDIRS = src test
+SUBDIRS = tools src test
 
 bin_SCRIPTS = oaesis-config
 

@@ -127,9 +127,9 @@ fsel_exinput (char *  Path,
   aespb.contrl[2] = 2;
   aespb.contrl[3] = 3;
   
-  aespb.addrin[0] = Path;
-  aespb.addrin[1] = File;
-  aespb.addrin[2] = Prompt;
+  aespb.addrin[0] = (long)Path;
+  aespb.addrin[1] = (long)File;
+  aespb.addrin[2] = (long)Prompt;
     
   aes_call (&aespb);
   
@@ -171,6 +171,42 @@ graf_mouse (int    Form,
   aespb.intin[0] = Form;
   
   aespb.addrin[0] = FormAddress;
+
+  aes_call (&aespb);
+
+  return aespb.intout[0];
+}
+
+
+short
+rsrc_gaddr (int    Type,
+            int    Index,
+            void * Address) {
+  aespb.contrl[0] = 112;
+  aespb.contrl[1] = 2;
+  aespb.contrl[2] = 1;
+  aespb.contrl[3] = 0;
+  aespb.contrl[4] = 1;
+
+  aespb.intin[0] = Type;
+  aespb.intin[1] = Index;
+
+  aes_call (&aespb);
+
+  *(long *)Address = aespb.addrout[0];
+
+  return aespb.intout[0];
+}
+
+
+short
+rsrc_rcfix (void * rc_header) {
+  aespb.contrl[0] = 115;
+  aespb.contrl[1] = 0;
+  aespb.contrl[2] = 1;
+  aespb.contrl[3] = 1;
+
+  aespb.addrin[0] = (long)rc_header;
 
   aes_call (&aespb);
 

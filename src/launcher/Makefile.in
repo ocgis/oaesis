@@ -89,7 +89,7 @@ INCLUDES = -I../lib
 bin_PROGRAMS = launcher.prg
 
 launcher_prg_SOURCES = \
-        launcher.c
+        launcher.c launch.c
 
 launcher_prg_LDFLAGS = ../lib/liboaesis.la
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
@@ -102,7 +102,7 @@ DEFS = @DEFS@ -I. -I$(srcdir) -I../..
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
-launcher_prg_OBJECTS =  launcher.o
+launcher_prg_OBJECTS =  launcher.o launch.o
 launcher_prg_LDADD = $(LDADD)
 launcher_prg_DEPENDENCIES = 
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
@@ -115,7 +115,7 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
 TAR = tar
 GZIP = --best
-DEP_FILES =  .deps/launcher.P
+DEP_FILES =  .deps/launch.P .deps/launcher.P
 SOURCES = $(launcher_prg_SOURCES)
 OBJECTS = $(launcher_prg_OBJECTS)
 
@@ -324,6 +324,9 @@ install uninstall all installdirs mostlyclean-generic distclean-generic \
 clean-generic maintainer-clean-generic clean mostlyclean distclean \
 maintainer-clean
 
+
+launch.c launch.h: launch.rsc launch.hrd
+	../../tools/r2c_raw launch.rsc
 
 #noinst_LIBRARIES = liblauncher.a
 

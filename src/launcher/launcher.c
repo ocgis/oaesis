@@ -16,6 +16,8 @@
 #include <aesbind.h>
 #include <vdibind.h>
 
+#include "launch.h"
+
 #define WORD short
 #define LONG long
 
@@ -336,48 +338,35 @@ void testwin(void)
 ** 1998-12-28 CG
 ** 1999-01-01 CG
 ** 1999-01-03 CG
+** 1999-01-06 CG
 */
 int
 main ()
 {
-  int   work_in[] = {1,1,1,1,1,1
-                     ,1,1,1,1,2,0};
+  int      work_in[] = {1,1,1,1,1,1,1,1,1,1,2,0};
   
-  int   work_out[57];
-  static OBJECT deskbg [1];
-  char path[] = "/usr/dum";
-  char file[] = "djuro";
-  short exit_button;
+  int      work_out[57];
+  OBJECT * desktop_bg;
+  char     path[] = "/usr/dum";
+  char     file[] = "djuro";
+  short    exit_button;
   
-  WORD  wc, hc, wb, hb;
+  WORD     wc, hc, wb, hb;
 
-  fprintf (stderr, "lines.prg: calling appl_init\n");
+  /* Get application id */
   appl_init();
-  fprintf (stderr, "lines.prg: returned from appl_init\n");
 
-  /* Setup something to use as desktop background */
-  deskbg[0].ob_next = OO_LAST;
-  deskbg[0].ob_head = OO_LAST;
-  deskbg[0].ob_tail = OO_LAST;
-  deskbg[0].ob_type = G_BOX;
-  deskbg[0].ob_flags = LASTOB;
-  deskbg[0].ob_state = 0;
-  deskbg[0].ob_spec.obspec.character = 0;
-  deskbg[0].ob_spec.obspec.framesize = 0;
-  deskbg[0].ob_spec.obspec.framecol = 0;
-  deskbg[0].ob_spec.obspec.textcol = 0;
-  deskbg[0].ob_spec.obspec.textmode = 0;
-  deskbg[0].ob_spec.obspec.interiorcol = 10;
-  deskbg[0].ob_spec.obspec.fillpattern = 7;
-  deskbg[0].ob_x = 0;
-  deskbg[0].ob_y = 0;
-  deskbg[0].ob_width = 1024;
-  deskbg[0].ob_height = 768;
-  
+  /* Fix resource data */
+  rsrc_rcfix (launch);
+
+  /* Get address of desktop background */
+  rsrc_gaddr (R_TREE, DESKBG, &desktop_bg);
+
+  /* Set desktop background */
   wind_set (0,
             WF_NEWDESK,
-            HI_WORD(deskbg),
-            LO_WORD(deskbg),
+            HI_WORD(desktop_bg),
+            LO_WORD(desktop_bg),
             0,
             0);
 
@@ -390,7 +379,9 @@ main ()
 
   graf_mouse (ARROW, 0L);
 
+  /*
   fsel_exinput (path, file, &exit_button, "Hulabopp");
+  */
 
   testwin();
 

@@ -99,6 +99,8 @@ typedef struct global_appl {
   WORD            vid;
   void          * windows;
   OBJECT        * desktop_background;
+  RSHDR         * rshdr;
+  OBJECT       ** rscfile;
 }GLOBAL_APPL;
 
 /*
