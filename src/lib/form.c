@@ -390,7 +390,7 @@ Form_do_alert (WORD   apid,
 	
     tree[i + 1].ob_spec.tedinfo->te_ptext = text;
 	
-    tree[i + 1].ob_flags &= ~LASTOB;
+    OB_FLAGS_CLEAR(&tree[i + 1], LASTOB);
 
     if(tree[i + 1].ob_width > textwidth)
       textwidth = tree[i + 1].ob_width;
@@ -412,7 +412,7 @@ Form_do_alert (WORD   apid,
 	
     tree[i + 1 + no_rows].ob_spec.free_string = buttons;
 
-    tree[i + 1 + no_rows].ob_flags &= ~LASTOB;
+    OB_FLAGS_CLEAR(&tree[i + 1 + no_rows], LASTOB);
 
     width = (WORD)(strlen(buttons) * cwidth);
 
@@ -453,16 +453,17 @@ Form_do_alert (WORD   apid,
     break;
 
   default:
-    tree[1 + no_butts + no_rows].ob_flags |= HIDETREE;		
-  };
+    OB_FLAGS_SET(&tree[1 + no_butts + no_rows], HIDETREE);
+  }
 		
   buttonwidth += 2;
 
-  if(def) {
-    tree[no_rows + def].ob_flags |= DEFAULT;
-  };
+  if(def)
+  {
+    OB_FLAGS_SET(&tree[no_rows + def], DEFAULT);
+  }
 	
-  tree[no_rows + no_butts + 1].ob_flags |= LASTOB;
+  OB_FLAGS_SET(&tree[no_rows + no_butts + 1], LASTOB);
 
   tree[0].ob_width = (buttonwidth + 10) * no_butts + 10;
 	
@@ -644,18 +645,18 @@ Form_do_keybd(WORD     apid,
     *newobj = obj;
     *keyout = 0;
 			
-    if((obj != 0) && !(tree[obj].ob_flags & LASTOB))
+    if((obj != 0) && !(OB_FLAGS(&tree[obj]) & LASTOB))
     {
       while(TRUE)
       {
-        if(tree[i].ob_flags & EDITABLE)
+        if(OB_FLAGS(&tree[i]) & EDITABLE)
         {
           *newobj = i;
 
           break;
         }
 	
-        if(tree[i].ob_flags & LASTOB)
+        if(OB_FLAGS(&tree[i]) & LASTOB)
         {
           break;
         }
@@ -675,7 +676,7 @@ Form_do_keybd(WORD     apid,
 			
     while(i >= 0)
     {
-      if(tree[i].ob_flags & EDITABLE)
+      if(OB_FLAGS(&tree[i]) & EDITABLE)
       {
         *newobj = i;
 
@@ -695,7 +696,7 @@ Form_do_keybd(WORD     apid,
 			
     while(TRUE)
     {
-      if(tree[i].ob_flags & DEFAULT)
+      if(OB_FLAGS(&tree[i]) & DEFAULT)
       {
         RECT clip;
 					
@@ -708,7 +709,7 @@ Form_do_keybd(WORD     apid,
         return 0;
       }
 	
-      if(tree[i].ob_flags & LASTOB)
+      if(OB_FLAGS(&tree[i]) & LASTOB)
       {
         break;
       }
@@ -758,10 +759,12 @@ Form_do_button (WORD     apid,
 
   *newobj = 0;
 
-  if(tree[obj].ob_flags & (EXIT | SELECTABLE)) {
+  if(OB_FLAGS(&tree[obj]) & (EXIT | SELECTABLE))
+  {
     RECT clip;
 		
-    if(tree[obj].ob_flags & RBUTTON) {
+    if(OB_FLAGS(&tree[obj]) & RBUTTON)
+    {
       if(!(tree[obj].ob_state & SELECTED)) {
         WORD i = obj;
 				
@@ -798,12 +801,14 @@ Form_do_button (WORD     apid,
                       &dummy,
                       &dummy);
 			
-      if(tree[obj].ob_flags & (TOUCHEXIT | EXIT)) {
+      if(OB_FLAGS(&tree[obj]) & (TOUCHEXIT | EXIT))
+      {
         *newobj = obj;
 				
-        if((tree[obj].ob_flags & TOUCHEXIT) && (clicks >= 2)) {
+        if((OB_FLAGS(&tree[obj]) & TOUCHEXIT) && (clicks >= 2))
+        {
           *newobj |= 0x8000;
-        };
+        }
 
         return 0;
       }
@@ -815,18 +820,21 @@ Form_do_button (WORD     apid,
       WORD instate = tree[obj].ob_state;
       WORD outstate = instate;
 
-      if(tree[obj].ob_flags & SELECTABLE) {
+      if(OB_FLAGS(&tree[obj]) & SELECTABLE)
+      {
         instate ^= SELECTED;
       };
 	
       if ((Graf_do_watchbox (apid, tree, obj, instate, outstate) == 1) &&
-         (tree[obj].ob_flags & (EXIT | TOUCHEXIT))) {
+         (OB_FLAGS(&tree[obj]) & (EXIT | TOUCHEXIT)))
+      {
 	
         *newobj = obj;
 	
-        if((tree[obj].ob_flags & TOUCHEXIT) && (clicks >= 2)) {
+        if((OB_FLAGS(&tree[obj]) & TOUCHEXIT) && (clicks >= 2))
+        {
           *newobj |= 0x8000;
-        };
+        }
 				
         return 0;
       }
@@ -835,7 +843,8 @@ Form_do_button (WORD     apid,
       };
     };
   }
-  else if(tree[obj].ob_flags & TOUCHEXIT) {
+  else if(OB_FLAGS(&tree[obj]) & TOUCHEXIT)
+  {
     *newobj = obj;
 		
     if(clicks >= 2) {
@@ -844,7 +853,8 @@ Form_do_button (WORD     apid,
 	
     return 0;
   }
-  else if(tree[obj].ob_flags & EDITABLE) {
+  else if(OB_FLAGS(&tree[obj]) & EDITABLE)
+  {
     *newobj = obj;
 		
     return 1;

@@ -136,8 +136,9 @@ Menu_bar_install (WORD     apid,
   
   i = tree[tree[tree[0].ob_head].ob_next].ob_head;
   
-  while(i != -1) {		
-    tree[i].ob_flags |= HIDETREE;
+  while(i != -1)
+  {		
+    OB_FLAGS_SET(&tree[i], HIDETREE);
     
     if(i == tree[tree[i].ob_next].ob_tail) {
       break;
@@ -310,7 +311,7 @@ Menu_do_text(OBJECT * tree,
   case G_BOXTEXT:
   case G_FTEXT:
   case G_FBOXTEXT:
-    if(tree[obj].ob_flags & INDIRECT)
+    if(OB_FLAGS(&tree[obj]) & INDIRECT)
     {
       ti = tree[obj].ob_spec.indirect->tedinfo;
     }

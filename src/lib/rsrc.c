@@ -55,6 +55,7 @@
 #include "debug.h"
 #include "lib_global.h"
 #include "mintdefs.h"
+#include "objc.h"
 #include "rsrc.h"
 #include "shel.h"
 #include "types.h"
@@ -726,14 +727,16 @@ OBJECT *src)      /* Original resource tree.                                */
   WORD    num_obj = 0;
   WORD    num_ti = 0;
         
-  do {
+  do
+  {
     num_obj++;
                 
-    switch(twalk->ob_type) {
+    switch(twalk->ob_type)
+    {
     case G_TEXT:
       num_ti++;
-    };
-  }while(!((twalk++)->ob_flags & LASTOB));
+    }
+  }while(!(OB_FLAGS(twalk++) & LASTOB));
 
   newrsc =
     (OBJECT *)malloc(sizeof(OBJECT) * num_obj + sizeof(TEDINFO) * num_ti);
@@ -750,7 +753,7 @@ OBJECT *src)      /* Original resource tree.                                */
       twalk->ob_spec.tedinfo = ti;
       ti++;
     };
-  }while(!((twalk++)->ob_flags & LASTOB));
+  }while(!(OB_FLAGS(twalk++) & LASTOB));
 
   return newrsc;
 }

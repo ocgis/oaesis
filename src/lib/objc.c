@@ -314,12 +314,12 @@ draw_text (WORD     vid,
   WORD tcolour = BLACK,bcolour = WHITE;
   WORD bfill = 0;
   WORD writemode = SWRM_TRANS;
-  WORD draw3d = ob->ob_flags & FLD3DANY;
+  WORD draw3d = OB_FLAGS(ob) & FLD3DANY;
   WORD invertcolour = 0;
   U_OB_SPEC ob_spec;
   GLOBAL_COMMON * globals = get_global_common ();
 
-  if(ob->ob_flags & INDIRECT) {
+  if(OB_FLAGS(ob) & INDIRECT) {
     ob_spec = *ob->ob_spec.indirect;
   } else {
     ob_spec = ob->ob_spec;
@@ -664,7 +664,7 @@ draw_bg (WORD vid,
   U_OB_SPEC ob_spec;
   GLOBAL_COMMON * globals = get_global_common ();
 
-  if(ob->ob_flags & INDIRECT) {
+  if(OB_FLAGS(ob) & INDIRECT) {
     ob_spec = *ob->ob_spec.indirect;
   }
   else {
@@ -706,7 +706,7 @@ draw_bg (WORD vid,
 			
       fillcolour = WHITE;
 
-      if(ob->ob_flags & FLD3DANY) {
+      if(OB_FLAGS(ob) & FLD3DANY) {
         filltype = 0;
       }
       else {
@@ -726,7 +726,7 @@ draw_bg (WORD vid,
 		
     fillcolour = WHITE;
 
-    if(ob->ob_flags & FLD3DANY) {
+    if(OB_FLAGS(ob) & FLD3DANY) {
       filltype = 0;
     }
     else {
@@ -739,7 +739,7 @@ draw_bg (WORD vid,
   };
 
   if(draw) {
-    mode3d = ob->ob_flags & FLD3DANY;
+    mode3d = OB_FLAGS(ob) & FLD3DANY;
 		
     if(mode3d) {
       if((mode3d == FL3DACT) || (mode3d == FL3DIND)) {
@@ -861,7 +861,7 @@ draw_frame (WORD     vid,
   WORD      framesize = 0;
   U_OB_SPEC ob_spec;
 
-  if(ob->ob_flags & INDIRECT) {
+  if(OB_FLAGS(ob) & INDIRECT) {
     ob_spec = *ob->ob_spec.indirect;
   }
   else {
@@ -919,7 +919,7 @@ draw_frame (WORD     vid,
     r.width = ob->ob_width;
     r.height = ob->ob_height;
 			
-    if(ob->ob_flags & DEFAULT) {
+    if(OB_FLAGS(ob) & DEFAULT) {
       framesize = -DEFBUTFRAME;
     }
     else {
@@ -935,7 +935,7 @@ draw_frame (WORD     vid,
   }
 
   if(draw) {
-    WORD mode3d = ob->ob_flags & FLD3DANY;
+    WORD mode3d = OB_FLAGS(ob) & FLD3DANY;
 
     vsl_type(vid,1);
 		
@@ -1246,7 +1246,7 @@ draw_object (WORD     vid,
     return;
   }
 
-  if(tree[object].ob_flags & INDIRECT) {
+  if(OB_FLAGS(&tree[object]) & INDIRECT) {
     ob_spec = *tree[object].ob_spec.indirect;
   } else {
     ob_spec = tree[object].ob_spec;
@@ -1339,7 +1339,7 @@ get_char_bound (OBJECT *tree,
   WORD      firstreal = 0,lastreal = 0;
   U_OB_SPEC ob_spec;
 	
-  if(tree[obj].ob_flags & INDIRECT) {
+  if(OB_FLAGS(&tree[obj]) & INDIRECT) {
     ob_spec = *tree[obj].ob_spec.indirect;
   }
   else {
@@ -1421,7 +1421,7 @@ handle_ed_char (WORD     vid,
   U_OB_SPEC ob_spec;
   WORD      internal_kc;
 	
-  if(tree[obj].ob_flags & INDIRECT)
+  if(OB_FLAGS(&tree[obj]) & INDIRECT)
   {
     ob_spec = *tree[obj].ob_spec.indirect;
   }
@@ -1587,54 +1587,61 @@ void	Objc_add(AES_PB *apb) {
 static
 inline
 void
-Objc_do_delete(OBJECT *tree,WORD object)
+Objc_do_delete(OBJECT * tree,
+               WORD     object)
 {
-	WORD i;
-	WORD prev = -1;
-	WORD next;
-	
-	i = 0;
-	
-	next = tree[object].ob_next;
-	
-	if(next != -1) {
-		if(tree[next].ob_tail == object) {
-			next = -1;
-		}
-	}
-	
-	while(1) {	
-		if((tree[i].ob_next == object) && (tree[object].ob_tail != i)) {
-			prev = i;
-			tree[i].ob_next = tree[object].ob_next;
-	
-			break;
-		}
-	
-		if(tree[i].ob_flags & LASTOB) {
-			break;
-		};
-		
-		i++;
-	}
-	
-	i = 0;
-	
-	while(1) {	
-		if(tree[i].ob_head == object) {
-			tree[i].ob_head = next;
-		}
-
-		if(tree[i].ob_tail == object) {
-			tree[i].ob_tail = prev;
-		}
-
-		if(tree[i].ob_flags & LASTOB) {
-			break;
-		};
-		
-		i++;
-	}
+  WORD i;
+  WORD prev = -1;
+  WORD next;
+  
+  i = 0;
+  
+  next = tree[object].ob_next;
+  
+  if(next != -1)
+  {
+    if(tree[next].ob_tail == object)
+    {
+      next = -1;
+    }
+  }
+  
+  while(TRUE)
+  {	
+    if((tree[i].ob_next == object) && (tree[object].ob_tail != i))
+    {
+      prev = i;
+      tree[i].ob_next = tree[object].ob_next;
+      
+      break;
+    }
+    
+    if(OB_FLAGS(&tree[i]) & LASTOB)
+    {
+      break;
+    }
+    
+    i++;
+  }
+  
+  i = 0;
+  
+  while(TRUE)
+  {	
+    if(tree[i].ob_head == object) {
+      tree[i].ob_head = next;
+    }
+    
+    if(tree[i].ob_tail == object) {
+      tree[i].ob_tail = prev;
+    }
+    
+    if(OB_FLAGS(&tree[i]) & LASTOB) {
+      break;
+    }
+    
+    i++;
+  }
 }
 
 
@@ -1687,7 +1694,7 @@ Objc_do_draw (WORD     vid,
   v_hide_c (vid);
 
   do {
-    if(!(tree[current].ob_flags & HIDETREE)) {
+    if(!(OB_FLAGS(&tree[current]) & HIDETREE)) {
       draw_object (vid,
                    tree,
                    current,
@@ -1708,7 +1715,8 @@ Objc_do_draw (WORD     vid,
       break;
     }
     
-    if((depth < 0) || (next == -1) || (tree[current].ob_flags & HIDETREE)) {
+    if((depth < 0) || (next == -1) || (OB_FLAGS(&tree[current]) & HIDETREE))
+    {
       next = tree[current].ob_next;
       
       if(next == -1) {
@@ -1793,7 +1801,7 @@ Objc_do_find (OBJECT * t,
     return -1;
   }
 
-  if (t[startobject].ob_flags & HIDETREE) {
+  if (OB_FLAGS(&t[startobject]) & HIDETREE) {
     return -1;
   }
   
@@ -1906,12 +1914,14 @@ WORD     mode)    /* Edit mode.                                             */
   WORD      type;
   U_OB_SPEC ob_spec;
 
-  if(tree[obj].ob_flags & INDIRECT) {
+  if(OB_FLAGS(&tree[obj]) & INDIRECT)
+  {
     ob_spec = *tree[obj].ob_spec.indirect;
   }
-  else {
+  else
+  {
     ob_spec = tree[obj].ob_spec;
-  };
+  }
 	
   if((obj < 0) || (tree == NULL) || (idx == NULL)) {
     return 0;
@@ -2099,73 +2109,80 @@ AES_PB *apb)      /* AES parameter block.                                   */
 }
 
 
-/****************************************************************************
- *  Objc_area_needed                                                        *
- *   Calculate how large area an object covers.                             *
- ****************************************************************************/
-void              /*                                                        */
-Objc_area_needed( /*                                                        */
-OBJECT *tree,     /* Pointer to the root of the resource tree.              */
-WORD   object,    /* Index of interesting object.                           */
-RECT   *rect)     /* Buffer where the requested area size will be placed.   */
-/****************************************************************************/
+/*
+** Description
+** Calculate how large area an object covers
+*/
+void
+Objc_area_needed(OBJECT * tree,
+                 WORD     object,
+                 RECT   * rect)
 {
-	WORD mode3d = tree[object].ob_flags & FLD3DANY;
-	U_OB_SPEC ob_spec;
+  WORD mode3d = OB_FLAGS(&tree[object]) & FLD3DANY;
+  U_OB_SPEC ob_spec;
+  
+  if(OB_FLAGS(&tree[object]) & INDIRECT)
+  {
+    ob_spec = *tree[object].ob_spec.indirect;
+  }
+  else
+  {
+    ob_spec = tree[object].ob_spec;
+  }
 	
-	if(tree[object].ob_flags & INDIRECT) {
-		ob_spec = *tree[object].ob_spec.indirect;
-	}
-	else {
-		ob_spec = tree[object].ob_spec;
-	};
-	
-	Objc_do_offset(tree,object,(WORD *)rect);
-	
-	rect->width = tree[object].ob_width;
-	rect->height = tree[object].ob_height;
-	
-	switch(tree[object].ob_type) {
-		case	G_BOX:
-		case	G_IBOX:
-		case	G_BOXCHAR:
-			if(ob_spec.obspec.framesize < 0) {
-				rect->x += ob_spec.obspec.framesize;
-				rect->y += ob_spec.obspec.framesize;
-				rect->width -= (ob_spec.obspec.framesize << 1);
-				rect->height -= (ob_spec.obspec.framesize << 1);
-			};
-			break;
-		case	G_BUTTON:
-			if(tree[object].ob_flags & DEFAULT) {
-				rect->x -= DEFBUTFRAME;
-				rect->y -= DEFBUTFRAME;
-				rect->width += (DEFBUTFRAME << 1);
-				rect->height += (DEFBUTFRAME << 1);
-			}
-			else {
-				rect->x -= BUTTONFRAME;
-				rect->y -= BUTTONFRAME;
-				rect->width += (BUTTONFRAME << 1);
-				rect->height += (BUTTONFRAME << 1);
-			};
-			break;
-	};
-	
-	if(tree[object].ob_state & OUTLINED) {
-		rect->x -= OUTLINESIZE;
-		rect->y -= OUTLINESIZE;
-		rect->width += (OUTLINESIZE << 1);
-		rect->height += (OUTLINESIZE << 1);
-	};
-
-	if((mode3d == FL3DIND) || (mode3d == FL3DACT)) {
-		rect->x -= D3DSIZE;
-		rect->y -= D3DSIZE;
-		rect->width += (D3DSIZE << 1);
-		rect->height += (D3DSIZE << 1);
-	};
+  Objc_do_offset(tree,object,(WORD *)rect);
+  
+  rect->width = tree[object].ob_width;
+  rect->height = tree[object].ob_height;
+  
+  switch(tree[object].ob_type)
+  {
+  case	G_BOX:
+  case	G_IBOX:
+  case	G_BOXCHAR:
+    if(ob_spec.obspec.framesize < 0)
+    {
+      rect->x += ob_spec.obspec.framesize;
+      rect->y += ob_spec.obspec.framesize;
+      rect->width -= (ob_spec.obspec.framesize << 1);
+      rect->height -= (ob_spec.obspec.framesize << 1);
+    }
+    break;
+  case	G_BUTTON:
+    if(OB_FLAGS(&tree[object]) & DEFAULT)
+    {
+      rect->x -= DEFBUTFRAME;
+      rect->y -= DEFBUTFRAME;
+      rect->width += (DEFBUTFRAME << 1);
+      rect->height += (DEFBUTFRAME << 1);
+    }
+    else
+    {
+      rect->x -= BUTTONFRAME;
+      rect->y -= BUTTONFRAME;
+      rect->width += (BUTTONFRAME << 1);
+      rect->height += (BUTTONFRAME << 1);
+    }
+    break;
+  }
+  
+  if(tree[object].ob_state & OUTLINED)
+  {
+    rect->x -= OUTLINESIZE;
+    rect->y -= OUTLINESIZE;
+    rect->width += (OUTLINESIZE << 1);
+    rect->height += (OUTLINESIZE << 1);
+  }
+  
+  if((mode3d == FL3DIND) || (mode3d == FL3DACT))
+  {
+    rect->x -= D3DSIZE;
+    rect->y -= D3DSIZE;
+    rect->width += (D3DSIZE << 1);
+    rect->height += (D3DSIZE << 1);
+  }
 }
+
 
 /****************************************************************************
  *  Objc_calc_clip                                                          *

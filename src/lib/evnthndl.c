@@ -1260,14 +1260,14 @@ update_appl_menu(WORD apid)
       globals->common->pmenutad[rwalk].ob_state &= ~CHECKED;
     }
 	
-    globals->common->pmenutad[rwalk].ob_flags &= ~HIDETREE;
-    globals->common->pmenutad[rwalk].ob_state &= ~DISABLED;
+    OB_FLAGS_CLEAR(&globals->common->pmenutad[rwalk], HIDETREE);
+    OB_FLAGS_CLEAR(&globals->common->pmenutad[rwalk], DISABLED);
   }
 
   if (globals->acc_menu.count > 0) {
     strcpy(globals->common->pmenutad[rwalk].ob_spec.free_string,
            "----------------------");
-    globals->common->pmenutad[rwalk].ob_flags &= ~HIDETREE;
+    OB_FLAGS_CLEAR(&globals->common->pmenutad[rwalk], HIDETREE);
     globals->common->pmenutad[rwalk].ob_state &= ~CHECKED;
     globals->common->pmenutad[rwalk].ob_state |= DISABLED;
     rwalk++;
@@ -1282,13 +1282,13 @@ update_appl_menu(WORD apid)
         globals->common->pmenutad[rwalk].ob_state &= ~CHECKED;
       }
       
-      globals->common->pmenutad[rwalk].ob_flags &= ~HIDETREE;
+      OB_FLAGS_CLEAR(&globals->common->pmenutad[rwalk], HIDETREE);
       globals->common->pmenutad[rwalk].ob_state &= ~DISABLED;
     }
   }
 
   /* FIXME: Make pmenutad local to the application */
-  globals->common->pmenutad[rwalk].ob_flags |= HIDETREE;
+  OB_FLAGS_SET(&globals->common->pmenutad[rwalk], HIDETREE);
 	
   globals->common->pmenutad[0].ob_height =
     globals->common->pmenutad[rwalk].ob_y;
@@ -1621,7 +1621,7 @@ handle_selected_title (WORD        apid,
     Graf_do_mouse (apid, M_ON, NULL);
 #endif
 
-    globals->menu[box].ob_flags &= ~HIDETREE;
+    OB_FLAGS_CLEAR(&globals->menu[box], HIDETREE);
 
     if (box == deskbox) {
       RECT clip = area;
@@ -1716,7 +1716,7 @@ handle_selected_title (WORD        apid,
 	  free(menu_buffer);
 #endif
 
-          globals->menu[box].ob_flags |= HIDETREE;
+          OB_FLAGS_SET(&globals->menu[box], HIDETREE);
           
           return 0;
         }

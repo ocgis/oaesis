@@ -541,7 +541,7 @@ allocate_window_elements (void) {
       tnr++;
     }
                 
-    if (globals->windowtad[i].ob_flags & LASTOB)
+    if(OB_FLAGS(&globals->windowtad[i]) & LASTOB)
     {
       elemnumber = i + 1;
       tednumber = tnr;
@@ -691,42 +691,49 @@ set_win_elem (OBJECT * tree,
   }
         
   DEBUG3("wind.c: set_win_elem: 4");
-  if(CLOSER & elem) {
-    tree[WCLOSER].ob_flags &= ~HIDETREE;        
+  if(CLOSER & elem)
+  {
+    OB_FLAGS_CLEAR(&tree[WCLOSER], HIDETREE);        
                 
     packelem(tree,WCLOSER,0,-1,0,-1);
     left = WCLOSER;
   }     
-  else {
-    tree[WCLOSER].ob_flags |= HIDETREE;
+  else
+  {
+    OB_FLAGS_SET(&tree[WCLOSER], HIDETREE);
   }
         
   DEBUG3("wind.c: set_win_elem: 5");
-  if(FULLER & elem) {
-    tree[WFULLER].ob_flags &= ~HIDETREE;        
+  if(FULLER & elem)
+  {
+    OB_FLAGS_CLEAR(&tree[WFULLER], HIDETREE);        
                 
     packelem(tree,WFULLER,-1,0,0,-1);
     right = WFULLER;
   }     
-  else {
-    tree[WFULLER].ob_flags |= HIDETREE;
+  else
+  {
+    OB_FLAGS_SET(&tree[WFULLER], HIDETREE);
   }
                 
   DEBUG3("wind.c: set_win_elem: 6");
-  if(SMALLER & elem) {
-    tree[WSMALLER].ob_flags &= ~HIDETREE;       
+  if(SMALLER & elem)
+  {
+    OB_FLAGS_CLEAR(&tree[WSMALLER], HIDETREE);       
                 
     packelem(tree,WSMALLER,-1,right,0,-1);
     right = WSMALLER;
   }     
-  else {
-    tree[WSMALLER].ob_flags |= HIDETREE;
+  else
+  {
+    OB_FLAGS_SET(&tree[WSMALLER], HIDETREE);
   }
                 
   DEBUG3("wind.c: set_win_elem: 7");
-  if(MOVER & elem) {
-    tree[WMOVER].ob_flags &= ~HIDETREE;
-    tree[TFILLOUT].ob_flags |= HIDETREE;
+  if(MOVER & elem)
+  {
+    OB_FLAGS_CLEAR(&tree[WMOVER], HIDETREE);
+    OB_FLAGS_SET(&tree[TFILLOUT], HIDETREE);
                 
     tree[WMOVER].ob_height = tree[WCLOSER].ob_height;
     tree[WMOVER].ob_spec.tedinfo->te_font = IBM;
@@ -734,153 +741,178 @@ set_win_elem (OBJECT * tree,
     packelem(tree,WMOVER,left,right,0,-1);
     top = WMOVER;
   }
-  else {
-    tree[WMOVER].ob_flags |= HIDETREE;
+  else
+  {
+    OB_FLAGS_SET(&tree[WMOVER], HIDETREE);
 
-    if((left != 0) || (right != 0)) {
-      tree[TFILLOUT].ob_flags &= ~HIDETREE;
+    if((left != 0) || (right != 0))
+    {
+      OB_FLAGS_CLEAR(&tree[TFILLOUT], HIDETREE);
 
       packelem(tree,TFILLOUT,left,right,0,-1);
       top = TFILLOUT;
     }
-    else {
-      tree[TFILLOUT].ob_flags |= HIDETREE;
+    else
+    {
+      OB_FLAGS_SET(&tree[TFILLOUT], HIDETREE);
     }
   }
         
   DEBUG3("wind.c: set_win_elem: 8");
-  if(INFO & elem) {
-    tree[WINFO].ob_flags &= ~HIDETREE;
+  if(INFO & elem)
+  {
+    OB_FLAGS_CLEAR(&tree[WINFO], HIDETREE);
 
     packelem(tree,WINFO,0,0,top,-1);
     top = WINFO;                
   }
-  else {
-    tree[WINFO].ob_flags |= HIDETREE;
+  else
+  {
+    OB_FLAGS_SET(&tree[WINFO], HIDETREE);
   }
 
   right = 0;
   left = 0;
 
   DEBUG3("wind.c: set_win_elem: 9");
-  if(elem & UPARROW) {
-    tree[WUP].ob_flags &= ~HIDETREE;
+  if(elem & UPARROW)
+  {
+    OB_FLAGS_CLEAR(&tree[WUP], HIDETREE);
                 
     packelem(tree,WUP,-1,0,top,-1);
     top = WUP;
   }
-  else {
-    tree[WUP].ob_flags |= HIDETREE;
+  else
+  {
+    OB_FLAGS_SET(&tree[WUP], HIDETREE);
   }
 
   DEBUG3("wind.c: set_win_elem: 10");
-  if(SIZER & elem) {
-    tree[WSIZER].ob_flags &= ~HIDETREE;
-    tree[SFILLOUT].ob_flags |= HIDETREE;        
+  if(SIZER & elem)
+  {
+    OB_FLAGS_CLEAR(&tree[WSIZER], HIDETREE);
+    OB_FLAGS_SET(&tree[SFILLOUT], HIDETREE);
                 
     packelem(tree,WSIZER,-1,0,-1,0);
     bottom = right = WSIZER;
   }     
-  else {
-    tree[WSIZER].ob_flags |= HIDETREE;
+  else
+  {
+    OB_FLAGS_SET(&tree[WSIZER], HIDETREE);
                 
-    if((bottomsize > 0) && (rightsize > 0)) {
-      tree[SFILLOUT].ob_flags &= ~HIDETREE;
+    if((bottomsize > 0) && (rightsize > 0))
+    {
+      OB_FLAGS_CLEAR(&tree[SFILLOUT], HIDETREE);
                         
       packelem(tree,SFILLOUT,-1,0,-1,0);
       bottom = right = SFILLOUT;
     }
-    else {
-      tree[SFILLOUT].ob_flags |= HIDETREE;
+    else
+    {
+      OB_FLAGS_SET(&tree[SFILLOUT], HIDETREE);
     }
   }
         
   DEBUG3("wind.c: set_win_elem: 11");
-  if(elem & DNARROW) {
-    tree[WDOWN].ob_flags &= ~HIDETREE;
+  if(elem & DNARROW)
+  {
+    OB_FLAGS_CLEAR(&tree[WDOWN], HIDETREE);
 
     packelem(tree,WDOWN,-1,0,-1,bottom);
     bottom = WDOWN;             
   }
-  else {
-    tree[WDOWN].ob_flags |= HIDETREE;
+  else
+  {
+    OB_FLAGS_SET(&tree[WDOWN], HIDETREE);
   }
         
   DEBUG3("wind.c: set_win_elem: 12");
-  if(elem & VSLIDE) {
-    tree[WVSB].ob_flags &= ~HIDETREE;
+  if(elem & VSLIDE)
+  {
+    OB_FLAGS_CLEAR(&tree[WVSB], HIDETREE);
 
     packelem(tree,WVSB,-1,0,top,bottom);                
   }
   else
   {
-    tree[WVSB].ob_flags |= HIDETREE;
+    OB_FLAGS_SET(&tree[WVSB], HIDETREE);
   }
         
   DEBUG3("wind.c: set_win_elem: 13");
   if(!(VSLIDE & elem) && (rightsize > 0))
   {
-    tree[RFILLOUT].ob_flags &= ~HIDETREE;
+    OB_FLAGS_CLEAR(&tree[RFILLOUT], HIDETREE);
 
     packelem(tree,RFILLOUT,-1,0,top,bottom);            
   }
-  else {
-    tree[RFILLOUT].ob_flags |= HIDETREE;
+  else
+  {
+    OB_FLAGS_SET(&tree[RFILLOUT], HIDETREE);
   }
         
   DEBUG3("wind.c: set_win_elem: 14");
-  if(LFARROW & elem) {
-    tree[WLEFT].ob_flags &= ~HIDETREE;
+  if(LFARROW & elem)
+  {
+    OB_FLAGS_CLEAR(&tree[WLEFT], HIDETREE);
                 
     packelem(tree,WLEFT,0,-1,-1,0);
     left = WLEFT;
   }
-  else {
-    tree[WLEFT].ob_flags |= HIDETREE;
+  else
+  {
+    OB_FLAGS_SET(&tree[WLEFT], HIDETREE);
   }
         
   DEBUG3("wind.c: set_win_elem: 15");
-  if(RTARROW & elem) {
-    tree[WRIGHT].ob_flags &= ~HIDETREE;
+  if(RTARROW & elem)
+  {
+    OB_FLAGS_CLEAR(&tree[WRIGHT], HIDETREE);
                 
     packelem(tree,WRIGHT,-1,right,-1,0);
     right = WRIGHT;
   }
-  else {
-    tree[WRIGHT].ob_flags |= HIDETREE;
+  else
+  {
+    OB_FLAGS_SET(&tree[WRIGHT], HIDETREE);
   }
         
   DEBUG3("wind.c: set_win_elem: 16");
-  if(elem & HSLIDE) {
-    tree[WHSB].ob_flags &= ~HIDETREE;
+  if(elem & HSLIDE)
+  {
+    OB_FLAGS_CLEAR(&tree[WHSB], HIDETREE);
                 
     packelem(tree,WHSB,left,right,-1,0);
   }
-  else {
-    tree[WHSB].ob_flags |= HIDETREE;
+  else
+  {
+    OB_FLAGS_SET(&tree[WHSB], HIDETREE);
   }
         
   DEBUG3("wind.c: set_win_elem: 17");
-  if(!(HSLIDE & elem) && (bottomsize > 0)) {
-    tree[BFILLOUT].ob_flags &= ~HIDETREE;
+  if(!(HSLIDE & elem) && (bottomsize > 0))
+  {
+    OB_FLAGS_CLEAR(&tree[BFILLOUT], HIDETREE);
                 
     packelem(tree,BFILLOUT,left,right,-1,0);
   }
-  else {
-    tree[BFILLOUT].ob_flags |= HIDETREE;
+  else
+  {
+    OB_FLAGS_SET(&tree[BFILLOUT], HIDETREE);
   }
         
   DEBUG3("wind.c: set_win_elem: 18");
-  if(IMOVER & elem) {
-    tree[WMOVER].ob_flags &= ~HIDETREE;
+  if(IMOVER & elem)
+  {
+    OB_FLAGS_CLEAR(&tree[WMOVER], HIDETREE);
     tree[WMOVER].ob_height = /*globals.csheight*/ + 2;
     tree[WMOVER].ob_spec.tedinfo->te_font = SMALL;
     packelem(tree,WMOVER,0,0,0,-1);
 
-    tree[WAPP].ob_flags |= HIDETREE;
+    OB_FLAGS_SET(&tree[WAPP], HIDETREE);
   }
-  else {
-    tree[WAPP].ob_flags &= ~HIDETREE;
+  else
+  {
+    OB_FLAGS_CLEAR(&tree[WAPP], HIDETREE);
   }
   DEBUG3("wind.c: set_win_elem: 19");
 }
