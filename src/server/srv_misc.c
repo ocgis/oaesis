@@ -66,7 +66,7 @@
 
 #ifdef MINT_TARGET
 WORD
-Misc_get_cookie (LONG   code,
+srv_get_cookie (LONG   code,
 		 LONG * value) {
   register COOKIE *cookie;
   void            *stack;
@@ -109,7 +109,7 @@ void startup () {}
 
 #ifdef MINT_TARGET
 LONG
-Misc_fork (WORD   (*func)(LONG),
+srv_fork (WORD   (*func)(LONG),
 	   LONG   arg,
 	   BYTE * name) {
   register BASEPAGE *b;
@@ -128,7 +128,7 @@ Misc_fork (WORD   (*func)(LONG),
 }
 #else /* MINT_TARGET */
 LONG
-Misc_fork (WORD   (*func)(LONG),
+srv_fork (WORD   (*func)(LONG),
 	   LONG   arg,
 	   BYTE * name) {
   pthread_attr_t thread;
@@ -148,34 +148,20 @@ Misc_fork (WORD   (*func)(LONG),
 ** 1999-07-26 CG
 */
 void
-Misc_term (WORD retval) {
-  DEBUG3 ("srv_misc.c: Misc_term: Terminating thread");
+srv_term (WORD retval) {
+  DEBUG3 ("srv_misc.c: srv_term: Terminating thread");
 #ifndef MINT_TARGET
   pthread_exit ((void *)retval);
 #endif
 }
 
 
-WORD	max(WORD a,WORD b) {
-	if(a > b) 
-		return a;
-	else
-		return b;
-}
-
-WORD	min(WORD a,WORD b) {
-	if(a < b) 
-		return a;
-	else
-		return b;
-}
-
 /****************************************************************************
- *  Misc_copy_area                                                          *
+ *  srv_copy_area                                                          *
  *   Copy one area of the screen to another.                                *
  ****************************************************************************/
 void              /*                                                        */
-Misc_copy_area(   /*                                                        */
+srv_copy_area(   /*                                                        */
 WORD vid,         /* VDI workstation id.                                    */
 RECT *dst,        /* Where to the area is to be copied.                     */
 RECT *src)        /* The original area.                                     */
@@ -201,13 +187,13 @@ RECT *src)        /* The original area.                                     */
 
 
 /****************************************************************************
- *  Misc_intersect                                                          *
+ *  srv_intersect                                                          *
  *   Get intersection of two rectangles.                                    *
  ****************************************************************************/
 WORD              /* 0  Rectangles don't intersect.                         */
                   /* 1  Rectangles intersect but not completely.            */
                   /* 2  r2 is completely covered by r1.                     */
-Misc_intersect(   /*                                                        */
+srv_intersect(   /*                                                        */
 RECT *r1,         /* Rectangle r1.                                          */
 RECT *r2,         /* Rectangle r2.                                          */
 RECT *rinter)     /* Buffer where the intersecting part is returned.        */
@@ -234,12 +220,12 @@ RECT *rinter)     /* Buffer where the intersecting part is returned.        */
 }
 
 /****************************************************************************
- * Misc_inside                                                              *
+ * srv_inside                                                              *
  *  Check if coordinates is within rectangle.                               *
  ****************************************************************************/
 WORD              /* 0  Outside of rectangle.                               */
                   /* 1  Inside rectangle.                                   */
-Misc_inside(      /*                                                        */
+srv_inside(      /*                                                        */
 RECT *r,          /* Rectangle.                                             */
 WORD x,           /* X coordinate.                                          */
 WORD y)           /* Y coordinate.                                          */
@@ -252,12 +238,12 @@ WORD y)           /* Y coordinate.                                          */
 }
 
 /****************************************************************************
- * Misc_setpath                                                             *
+ * srv_setpath                                                             *
  *  Set current working directory. This one is stolen from the Mint-libs    *
  *  and modified because of the idiotic functionality of Dsetpath().        *
  ****************************************************************************/
 WORD              /* 0 ok, or -1.                                           */
-Misc_setpath(     /*                                                        */
+srv_setpath(     /*                                                        */
 BYTE *dir)        /* New directory.                                         */
 /****************************************************************************/
 {
@@ -287,11 +273,11 @@ BYTE *dir)        /* New directory.                                         */
 
 
 /****************************************************************************
- * Misc_get_loadinfo                                                        *
+ * srv_get_loadinfo                                                        *
  *  Get loading information.                                                *
  ****************************************************************************/
 void                /*                                                      */
-Misc_get_loadinfo(  /*                                                      */
+srv_get_loadinfo(  /*                                                      */
 WORD pid,           /*                                                      */
 WORD fnamelen,      /* Length of filename buffer.                           */
 BYTE *cmdlin,       /* Command line buffer.                                 */

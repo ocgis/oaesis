@@ -1,0 +1,8 @@
+SUBDIRS = lib server launcher
+
+all: subdirs
+
+subdirs:
+	for subdir in $(SUBDIRS); do \
+	  $(MAKE) -f Makefile.purec -C $$subdir;\
+	done

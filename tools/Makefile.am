@@ -12,3 +12,5 @@ EXTRA_PROGRAMS = $(LINUX_PRGS) $(MISC_PRGS)
 r2c_raw_SOURCES = r2c_raw.c
 
 switchvt_SOURCES = switchvt.c
+
+EXTRA_DIST = Makefile.purec

@@ -96,9 +96,6 @@ exit_aes (void) {
 /*
 ** Description
 ** Main routine of the oaesis server
-**
-** 1998-12-28 CG
-** 1999-01-09 CG
 */
 int
 main (int     argc,
@@ -115,7 +112,7 @@ main (int     argc,
 
   /* We only need to check for mint if we've built oaesis for mint */
 #ifdef MINT_TARGET
-  if(!Misc_get_cookie(0x4d694e54L /*'MiNT'*/,&mintval)) {
+  if(!srv_get_cookie(0x4d694e54L /*'MiNT'*/,&mintval)) {
     fprintf(stderr,"oAESis requires MiNT to work. Start MiNT and try again!\r\n");
     
     return -1;
@@ -148,7 +145,7 @@ main (int     argc,
   fprintf(stderr,"\r\nMiNT version %ld.%02ld detected\r\n",mintval >> 8,mintval & 0xff);
   
   globals.video = 0;
-  Misc_get_cookie(0x5f56444fL/*'_VDO'*/,&globals.video);
+  srv_get_cookie(0x5f56444fL/*'_VDO'*/,&globals.video);
   
   switch(globals.video >> 16) {
   case 0x00:
@@ -184,7 +181,7 @@ main (int     argc,
   init_aes (nocnf);
 
   /*
-  Misc_setpath ("u:\\");
+  srv_setpath ("u:\\");
   */
 
   sleep (1);

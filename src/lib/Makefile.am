@@ -53,4 +53,4 @@ cursors.c cursors.h: cursors.rsc cursors.hrd
 resource.c resource.h: resource.rsc resource.hrd
 	../../tools/r2c_raw resource.rsc
 
-EXTRA_DIST = Makefile.purec
+EXTRA_DIST = Makefile.purec trap_purec.s

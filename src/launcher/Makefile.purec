@@ -1,0 +1,16 @@
+include ../../mincl.purec
+
+CFLAGS = -I../comm -I../common -I../.. -I../lib \
+	 $(INCLUDES) $(DEFINES)
+
+LAUNCHER_OBJS = launch.o launcher.o
+
+all: launcher.prg
+
+launcher.prg: $(LAUNCHER_OBJS) ../lib/oaesis.lib
+	$(LD) -O=$@ $(PCLIBDIR)/crt0.o $(LAUNCHER_OBJS)\
+	  ../lib/oaesis.lib $(PCLIBDIR)/ovdisis.lib \
+	  $(PCLIBDIR)/mintlib.lib
+
+launch.c launch.h: launch.rsc launch.hrd
+	../../tools/r2c_raw launch.rsc

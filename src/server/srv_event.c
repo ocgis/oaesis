@@ -359,12 +359,6 @@ check_mouse_buttons (C_EVNT_MULTI * par,
 /*
 ** Description
 ** Check if the mouse is inside / outside an area
-**
-** 1998-12-13 CG
-** 1998-12-25 CG
-** 1999-01-09 CG
-** 1999-03-15 CG
-** 1999-08-15 CG
 */
 static
 WORD
@@ -375,7 +369,7 @@ check_mouse_motion (WORD           x,
   WORD retval = 0;
 
   if (par->eventin.events & MU_M1) {
-    WORD inside = Misc_inside (&par->eventin.m1r, x, y);
+    WORD inside = srv_inside (&par->eventin.m1r, x, y);
 
     if ((inside && (par->eventin.m1flag == MO_ENTER)) ||
         ((!inside) && (par->eventin.m1flag == MO_LEAVE))) {
@@ -384,7 +378,7 @@ check_mouse_motion (WORD           x,
   }
 
   if (par->eventin.events & MU_M2) {
-    WORD inside = Misc_inside (&par->eventin.m2r, x, y);
+    WORD inside = srv_inside (&par->eventin.m2r, x, y);
 
     if ((inside && (par->eventin.m2flag == MO_ENTER)) ||
         ((!inside) && (par->eventin.m2flag == MO_LEAVE))) {
@@ -398,7 +392,7 @@ check_mouse_motion (WORD           x,
   DEBUG3 ("srv_event.c: Checking menu area");
   if ((par->common.apid == get_top_menu_owner ()) &&
       (par->eventin.events & MU_MENU_BAR)) {
-    if (Misc_inside (&par->eventin.menu_bar, x, y)) {
+    if (srv_inside (&par->eventin.menu_bar, x, y)) {
       retval |= MU_MENU_BAR;
     }
   }

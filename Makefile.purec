@@ -1,0 +1,15 @@
+SUBDIRS = tools src
+
+all: setup subdirs
+
+setup:
+	ln -sf config.h.purec config.h
+	ln -sf ../comm/srv_put_sockets.c src/lib/srv_put.c
+	ln -sf ../comm/srv_get_sockets.c src/server/srv_get.c
+	ln -sf ../common/debug.c src/server/debug.c
+	ln -sf ../common/debug.c src/lib/debug.c
+
+subdirs:
+	for subdir in $(SUBDIRS); do \
+	  $(MAKE) -f Makefile.purec -C $$subdir;\
+	done

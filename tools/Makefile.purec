@@ -1,0 +1,9 @@
+include ../mincl.purec
+
+CFLAGS = $(INCLUDES) $(DEFINES)
+
+all: r2c_raw
+
+r2c_raw: r2c_raw.o
+	$(LD) -O=$@ $(PCLIBDIR)/crt0.o r2c_raw.o \
+	  $(PCLIBDIR)/mintlib.lib

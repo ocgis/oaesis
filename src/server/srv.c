@@ -1186,7 +1186,7 @@ WORD start)          /* Start object.                                       */
       while(rl) {		
         RECT	r2;
 			
-        if(Misc_intersect(&rl->r,r,&r2)) {
+        if(srv_intersect(&rl->r,r,&r2)) {
           /*
             Objc_do_draw(deskbg,start,9,&r2);
             */
@@ -1200,7 +1200,7 @@ WORD start)          /* Start object.                                       */
     while(rl) {		
       RECT	r2;
 		
-      if(Misc_intersect(&rl->r,r,&r2)) {
+      if(srv_intersect(&rl->r,r,&r2)) {
         /*
           Objc_do_draw(win->tree,start,3,&r2);
           */
@@ -3113,7 +3113,7 @@ server (LONG arg) {
 
   Srv_exit_module ();
 
-  Misc_term (0);
+  srv_term (0);
 
   return 0;
 }
@@ -3125,10 +3125,6 @@ server (LONG arg) {
 /*
 ** Description
 ** Initialize server module
-**
-** 1998-12-22 CG
-** 1999-01-09 CG
-** 1999-05-20 CG
 */
 void
 Srv_init_module (WORD no_config) {
@@ -3160,7 +3156,7 @@ Srv_init_module (WORD no_config) {
   
 
   DEBUG3 ("Starting server process");
-  globals.srvpid = (WORD)Misc_fork(server,0,"oAESsrv");
+  globals.srvpid = (WORD)srv_fork(server,0,"oAESsrv");
   DEBUG3 ("Started server process");
 }
 

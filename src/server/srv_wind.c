@@ -228,9 +228,6 @@ srv_wind_update (COMM_HANDLE     handle,
 /*
 ** Description
 ** Implementation of wind_get()
-**
-** 1998-12-07 CG
-** 1999-05-18 CG
 */
 void
 srv_wind_get (C_WIND_GET * msg,
@@ -316,7 +313,7 @@ srv_wind_get (C_WIND_GET * msg,
 	ret->common.retval = 1;
 	
 	while(win->rpos) {
-	  if(Misc_intersect(&win->rpos->r,&win->totsize,&r)) {
+	  if(srv_intersect(&win->rpos->r,&win->totsize,&r)) {
 	    break;
 	  }
 	  
@@ -446,8 +443,6 @@ srv_wind_get (C_WIND_GET * msg,
 
 /*
 ** Exported
-**
-** 1998-12-20 CG
 */
 void
 srv_wind_find (C_WIND_FIND * par,
@@ -457,7 +452,7 @@ srv_wind_find (C_WIND_FIND * par,
   ret->common.retval = 0;
 
   while(l) {
-    if (Misc_inside (&l->win->totsize, par->x, par->y)) {
+    if (srv_inside (&l->win->totsize, par->x, par->y)) {
       ret->common.retval = l->win->id;
       break;
     }

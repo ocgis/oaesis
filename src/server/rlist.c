@@ -591,96 +591,95 @@ RECT  *area,      /* Area to grab parts of.                                 */
 RLIST **src)      /* Source rectangle list.                                 */
 /****************************************************************************/
 {
-	RLIST	*shead = 0L;
+  RLIST	*shead = 0L;
+  
+  while(*src != 0L)
+  {
+    RECT	r;
+    
+    switch(srv_intersect(area,&(*src)->r,&r)) {
+      RLIST	*t;
+      
+    case	1:	/*rectangle is partially covered*/
+      t = *src;
+      *src = (*src)->next;
+      t->next = *dst;
+      *dst = t;
+      
+      
+      if((*dst)->r.x < r.x)
+      {
+	RLIST *rl = alloc();
 	
-	while(*src != 0L)
-	{
-		RECT	r;
-		
-		switch(Misc_intersect(area,&(*src)->r,&r)) {
-			RLIST	*t;
-			
-			case	1:	/*rectangle is partially covered*/
-				t = *src;
-				*src = (*src)->next;
-				t->next = *dst;
-				*dst = t;
-				
-				
-				if((*dst)->r.x < r.x)
-				{
-					RLIST *rl = alloc();
-					
-					rl->next = shead;
-					shead = rl;
-					
-					rl->r.x = (*dst)->r.x;
-					rl->r.y = r.y;
-					rl->r.width = r.x - (*dst)->r.x;
-					rl->r.height = r.height;
-					
-				}
-				
-				if(((*dst)->r.x + (*dst)->r.width)
-					> (r.x + r.width))
-				{
-					RLIST *rl = alloc();
-					
-					rl->next = shead;
-					shead = rl;
-					
-					rl->r.x = r.x + r.width;
-					rl->r.y = r.y;
-					rl->r.width = (*dst)->r.x + (*dst)->r.width
-						- r.x - r.width;
-					rl->r.height = r.height;
-				}
-				
-				if((*dst)->r.y < r.y)
-				{
-					RLIST *rl = alloc();
-					
-					rl->next = shead;
-					shead = rl;
-					
-					rl->r.x = (*dst)->r.x;
-					rl->r.y = (*dst)->r.y;
-					rl->r.width = (*dst)->r.width;
-					rl->r.height = r.y - (*dst)->r.y;
-				}
-				
-				if(((*dst)->r.y + (*dst)->r.height)
-					> (r.y + r.height))
-				{
-					RLIST *rl = alloc();
-					
-					rl->next = shead;
-					shead = rl;
-					
-					rl->r.x = (*dst)->r.x;
-					rl->r.y = r.y + r.height;
-					rl->r.width = (*dst)->r.width;
-					rl->r.height = (*dst)->r.y + (*dst)->r.height
-						- r.y - r.height;
-				}
-				
-				(*dst)->r.x = r.x;
-				(*dst)->r.y = r.y;
-				(*dst)->r.width = r.width;
-				(*dst)->r.height = r.height;
-				break;
-				
-			case	2:	/*rectangle is completely covered*/
-				t = *src;
-				*src = (*src)->next;
-				t->next = *dst;
-				*dst = t;
-				break;
-					
-			default:	/*rectangle is not covered*/
-				src = &(*src)->next;
-		}
-	}
+	rl->next = shead;
+	shead = rl;
 	
-	*src = shead;	/*append the not-used-rectangle list on src*/	
+	rl->r.x = (*dst)->r.x;
+	rl->r.y = r.y;
+	rl->r.width = r.x - (*dst)->r.x;
+	rl->r.height = r.height;
+	
+      }
+      
+      if(((*dst)->r.x + (*dst)->r.width)
+	 > (r.x + r.width))
+      {
+	RLIST *rl = alloc();
+	
+	rl->next = shead;
+	shead = rl;
+	
+	rl->r.x = r.x + r.width;
+	rl->r.y = r.y;
+	rl->r.width = (*dst)->r.x + (*dst)->r.width
+	  - r.x - r.width;
+	rl->r.height = r.height;
+      }
+      
+      if((*dst)->r.y < r.y)
+      {
+	RLIST *rl = alloc();
+	
+	rl->next = shead;
+	shead = rl;
+	
+	rl->r.x = (*dst)->r.x;
+	rl->r.y = (*dst)->r.y;
+	rl->r.width = (*dst)->r.width;
+	rl->r.height = r.y - (*dst)->r.y;
+      }
+      
+      if(((*dst)->r.y + (*dst)->r.height) > (r.y + r.height))
+      {
+	RLIST *rl = alloc();
+	
+	rl->next = shead;
+	shead = rl;
+	
+	rl->r.x = (*dst)->r.x;
+	rl->r.y = r.y + r.height;
+	rl->r.width = (*dst)->r.width;
+	rl->r.height = (*dst)->r.y + (*dst)->r.height
+	  - r.y - r.height;
+      }
+      
+      (*dst)->r.x = r.x;
+      (*dst)->r.y = r.y;
+      (*dst)->r.width = r.width;
+      (*dst)->r.height = r.height;
+      break;
+      
+    case	2:	/*rectangle is completely covered*/
+      t = *src;
+      *src = (*src)->next;
+      t->next = *dst;
+      *dst = t;
+      break;
+      
+    default:	/*rectangle is not covered*/
+      src = &(*src)->next;
+    }
+  }
+	
+  *src = shead;	/*append the not-used-rectangle list on src*/	
 }

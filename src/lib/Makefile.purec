@@ -7,7 +7,7 @@ BINDINGS_OBJS = \
 	aesbind.o
 
 TRAP_OBJS = \
-	trap.o
+	trap_purec.o
 
 LIB_OBJS = \
 	appl.o cursors.o debug.o docalls.o evnt.o evnthndl.o form.o \
@@ -16,8 +16,8 @@ LIB_OBJS = \
 
 all: oaesis.lib oaesis_client.lib
 
-oaesis.lib: $(BINDINGS_OBJS)
-	$(LD) -J -O=$@ $(BINDINGS_OBJS)
+oaesis.lib: $(BINDINGS_OBJS) $(TRAP_OBJS)
+	$(LD) -J -O=$@ $(BINDINGS_OBJS) $(TRAP_OBJS)
 
 oaesis_client.lib: $(LIB_OBJS)
 	$(LD) -J -O=$@ $(LIB_OBJS)
@@ -27,3 +27,4 @@ cursors.c cursors.h: cursors.rsc cursors.hrd
 
 resource.c resource.h: resource.rsc resource.hrd
 	../../tools/r2c_raw resource.rsc
+
