@@ -211,11 +211,11 @@ Menu_bar (AES_PB *apb)
 #define MENU_MODIFY(object,ison,isoff,onstate,state) \
   if(state == isoff) \
   { \
-    OB_STATE_CLEAR(object, state); \
+    OB_STATE_CLEAR(object, onstate); \
   } \
   else if (state == ison) \
   { \
-    OB_STATE_SET(object, state); \
+    OB_STATE_SET(object, onstate); \
   }
 
 
