@@ -1,8 +1,9 @@
-Makefile
-.deps
-.libs
-structtest
+*.pdb
 *.prg
 *.ttp
-*.pdb
+.deps
+.libs
+Makefile
 Makefile.in
+formtest
+structtest
