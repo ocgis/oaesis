@@ -1,6 +1,10 @@
 #ifndef _SRV_INTERFACE_H_
 #define _SRV_INTERFACE_H_
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <vdibind.h>
 
 #include "mesagdef.h"
@@ -381,58 +385,44 @@ typedef union {
   R_FREE          free;
 } R_SRV;
 
+
+#define FIX_ENDIAN(parameters,routine) \
+{ \
+  int    i; \
+  void * walk = parameters; \
+  int    words = parameters->common.words; \
+\
+  for(i = 0; i < words; i++) \
+  { \
+    *(UWORD *)walk = routine##s(*(UWORD *)walk); \
+    ((UWORD *)walk)++; \
+  } \
+}
+
 #define PUT_C_ALL(callname,parameters) \
 { \
-  (parameters)->common.words = C_##callname##_WORDS; \
+  (parameters)->common.words = C_ALL_WORDS + C_##callname##_WORDS; \
   (parameters)->common.apid = apid; \
   (parameters)->common.pid  = getpid(); \
   (parameters)->common.call = SRV_##callname; \
 }
 
-#define HTON_C(parameters) \
-{ \
-  int    i; \
-  void * walk = parameters; \
-  int    words = (C_ALL_WORDS + ((C_ALL *)parameters)->words); \
-\
-  for(i = 0; i < words; i++) \
-  { \
-    *(UWORD *)walk = htons(*(UWORD *)walk); \
-    ((UWORD *)walk)++; \
-  } \
-}
+#ifdef WORDS_BIGENDIAN
+#define HTON(parameters)
+#else
+#define HTON(parameters) FIX_ENDIAN(parameters,hton)
+#endif
 
-#define NTOH_C(parameters) \
-{ \
-  int    i; \
-  void * walk = parameters; \
-  int    words = (C_ALL_WORDS + ntohs(((C_ALL *)parameters)->words)); \
-\
-  for(i = 0; i < words; i++) \
-  { \
-    *(UWORD *)walk = ntohs(*(UWORD *)walk); \
-    ((UWORD *)walk)++; \
-  } \
-}
-
+#ifdef WORDS_BIGENDIAN
+#define NTOH(parameters)
+#else
+#define NTOH(parameters,ntoh)
+#endif
 
 #define PUT_R_ALL(callname,parameters) \
 { \
-  (parameters)->common.words = R_##callname##_WORDS; \
+  (parameters)->common.words = R_ALL_WORDS + R_##callname##_WORDS; \
   (parameters)->common.retval = retval; \
-}
-
-#define HTON_R(parameters) \
-{ \
-  int    i; \
-  void * walk = parameters; \
-  int    words = (R_ALL_WORDS + ((R_ALL *)parameters)->words); \
-\
-  for(i = 0; i < words; i++) \
-  { \
-    *(UWORD *)walk = htons(*(UWORD *)walk); \
-    ((UWORD *)walk)++; \
-  } \
 }
 
 /*

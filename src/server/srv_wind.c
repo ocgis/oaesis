@@ -17,6 +17,7 @@
 
 #include "aesbind.h"
 #include "debug.h"
+#include "srv_comm.h"
 #include "srv_global.h"
 #include "srv_misc.h"
 #include "srv_queue.h"
@@ -88,8 +89,6 @@ lifree (LOCK_INFO     li,
 /*
 ** Description
 ** Get lock
-**
-** 1999-02-06 CG
 */
 inline
 void
@@ -106,7 +105,7 @@ get_lock (COMM_HANDLE handle,
       
       /* Return OK */
       ret.common.retval = 1;
-      Srv_reply (handle, &ret, sizeof (R_WIND_UPDATE));
+      SRV_REPLY(handle, &ret, sizeof (R_WIND_UPDATE));
     } else {
       /* Queue application */
       insert_last (lock_q, lialloc (handle, apid));
@@ -119,7 +118,7 @@ get_lock (COMM_HANDLE handle,
     
     /* Return OK */
     ret.common.retval = 1;
-    Srv_reply (handle, &ret, sizeof (R_WIND_UPDATE));
+    SRV_REPLY(handle, &ret, sizeof (R_WIND_UPDATE));
   }
 }
 
@@ -127,8 +126,6 @@ get_lock (COMM_HANDLE handle,
 /*
 ** Description
 ** Try to return lock
-**
-** 1999-02-06 CG
 */
 inline
 void
@@ -147,7 +144,7 @@ return_lock (COMM_HANDLE handle,
     DEBUG2 ("srv_wind.c: return_lock: appl %d", apid);
     /* Return ok */
     ret.common.retval = 1;
-    Srv_reply (handle, &ret, sizeof (R_WIND_UPDATE));
+    SRV_REPLY(handle, &ret, sizeof (R_WIND_UPDATE));
     
     if (*lock_cnt == 0) {
       /* Give a queued application the lock if there is one */
@@ -161,7 +158,7 @@ return_lock (COMM_HANDLE handle,
   } else {
     /* Return error */
     ret.common.retval = 0;
-    Srv_reply (handle, &ret, sizeof (R_WIND_UPDATE));
+    SRV_REPLY(handle, &ret, sizeof (R_WIND_UPDATE));
   }
 }
 

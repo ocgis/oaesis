@@ -76,6 +76,7 @@
 #include "aesbind.h"
 #include "appl.h"
 #include "debug.h"
+#include "lib_comm.h"
 #include "lib_global.h"
 #include "srv_put.h"
 #include "srv_interface.h"
@@ -300,13 +301,6 @@ get_process_name (int    pid,
 
 /*
 ** Exported
-**
-** 1998-12-28 CG
-** 1999-04-10 CG
-** 1999-08-08 CG
-** 1999-08-15 CG
-** 1999-08-22 CG
-** 1999-08-24 CG
 */
 WORD
 Appl_do_init (GLOBAL_ARRAY * global) {
@@ -340,12 +334,11 @@ Appl_do_init (GLOBAL_ARRAY * global) {
 #endif
   par.appl_name[sizeof (par.appl_name) - 1] = 0;
 
-  HTON_C(&par);
+  CLIENT_SEND_RECV(&par,
+                   sizeof (C_APPL_INIT),
+                   &ret,
+                   sizeof (R_APPL_INIT));
 
-  Client_send_recv (&par,
-                    sizeof (C_APPL_INIT),
-                    &ret,
-                    sizeof (R_APPL_INIT));
   global->apid = ret.apid;	
   global->version = 0x0410;
   global->numapps = -1;

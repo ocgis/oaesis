@@ -43,6 +43,7 @@
 #include "mesagdef.h"
 #include "mintdefs.h"
 #include "srv_appl_info.h"
+#include "srv_comm.h"
 #include "srv_event.h"
 #include "srv_global.h"
 #include "srv_misc.h"
@@ -2787,9 +2788,6 @@ srv_copy_mfdb (MFDB * dst,
 /*
 ** Description
 ** Do a vdi call requested by a client
-**
-** 1999-05-23 CG
-** 1999-05-26 CG
 */
 static
 void
@@ -2852,10 +2850,10 @@ srv_vdi_call (COMM_HANDLE  handle,
     ret.outpar[j] = htons (vpb.intout[i]);
   }
   
-  Srv_reply (handle,
-             &ret,
-             sizeof (R_ALL) +
-             sizeof (WORD) * (15 + j));
+  SRV_REPLY(handle,
+            &ret,
+            sizeof (R_ALL) +
+            sizeof (WORD) * (15 + j));
 }
 
 
@@ -2956,48 +2954,48 @@ server (LONG arg) {
   while (run_server) {
     /* Wait for another call from a client */
     DEBUG3 ("srv.c: Waiting for message from client");
-    handle = Srv_get (&par, sizeof (C_SRV));
+    SRV_GET (&par, sizeof (C_SRV), handle);
     DEBUG3 ("srv.c: Got message from client (%p)", handle);
 
     if (handle != NULL) {
-      NTOH_C(&par);
+      NTOH(&par);
 
       DEBUG3 ("srv.c: Call no %d", par.common.call);
       switch (par.common.call) {
       case SRV_APPL_CONTROL:
         srv_appl_control (&par.appl_control, &ret.appl_control);
         
-        Srv_reply (handle, &ret, sizeof (R_APPL_CONTROL));
+        SRV_REPLY(handle, &ret, sizeof (R_APPL_CONTROL));
         break;
         
       case SRV_APPL_EXIT:
         srv_appl_exit (&par.appl_exit, &ret.appl_exit);
         
-        Srv_reply (handle, &ret, sizeof (R_APPL_EXIT));
+        SRV_REPLY(handle, &ret, sizeof (R_APPL_EXIT));
         break;
         
       case SRV_APPL_FIND:
         srv_appl_find (&par.appl_find, &ret.appl_find);
         
-        Srv_reply (handle, &ret, sizeof (R_APPL_FIND));
+        SRV_REPLY(handle, &ret, sizeof (R_APPL_FIND));
         break;
         
       case SRV_APPL_INIT:
         srv_appl_init (&par.appl_init, &ret.appl_init);
         
-        Srv_reply (handle, &ret, sizeof (R_APPL_INIT));
+        SRV_REPLY(handle, &ret, sizeof (R_APPL_INIT));
         break;
         
       case SRV_APPL_SEARCH:
         srv_appl_search (&par.appl_search, &ret.appl_search);
         
-        Srv_reply (handle, &ret, sizeof (R_APPL_SEARCH));
+        SRV_REPLY(handle, &ret, sizeof (R_APPL_SEARCH));
         break;
         
       case SRV_APPL_WRITE:
         srv_appl_write (&par.appl_write, &ret.appl_write);
         
-        Srv_reply (handle, &ret, sizeof (R_APPL_WRITE));
+        SRV_REPLY(handle, &ret, sizeof (R_APPL_WRITE));
         break;
         
       case SRV_EVNT_MULTI:
@@ -3007,77 +3005,77 @@ server (LONG arg) {
       case SRV_GRAF_MKSTATE :
         srv_graf_mkstate (&par.graf_mkstate, &ret.graf_mkstate);
         
-        Srv_reply (handle, &ret, sizeof (R_GRAF_MKSTATE));
+        SRV_REPLY(handle, &ret, sizeof (R_GRAF_MKSTATE));
         break;
 
       case SRV_GRAF_MOUSE :
         srv_graf_mouse (globals.vid, &par.graf_mouse, &ret.graf_mouse);
         
-        Srv_reply (handle, &ret, sizeof (R_GRAF_MOUSE));
+        SRV_REPLY(handle, &ret, sizeof (R_GRAF_MOUSE));
         break;
 
       case SRV_MENU_BAR:
         srv_menu_bar (&par.menu_bar, &ret.menu_bar);
         
-        Srv_reply (handle, &par, sizeof (R_MENU_BAR));
+        SRV_REPLY(handle, &par, sizeof (R_MENU_BAR));
         break;
         
       case SRV_MENU_REGISTER:
         srv_menu_register (&par.menu_register, &ret.menu_register);
         
-        Srv_reply (handle, &par, sizeof (R_MENU_REGISTER));
+        SRV_REPLY(handle, &par, sizeof (R_MENU_REGISTER));
         break;
         
       case SRV_WIND_CLOSE:
         srv_wind_close (&par.wind_close, &ret.wind_close);
         
-        Srv_reply (handle, &ret, sizeof (R_WIND_CLOSE));
+        SRV_REPLY(handle, &ret, sizeof (R_WIND_CLOSE));
         break;
         
       case SRV_WIND_CREATE:
         srv_wind_create (&par.wind_create, &ret.wind_create);
         
-        Srv_reply (handle, &ret, sizeof (R_WIND_CREATE));
+        SRV_REPLY(handle, &ret, sizeof (R_WIND_CREATE));
         break;
         
       case SRV_WIND_DELETE:
         srv_wind_delete (&par.wind_delete,
                          &ret.wind_delete);
         
-        Srv_reply (handle, &ret, sizeof (R_WIND_DELETE));
+        SRV_REPLY(handle, &ret, sizeof (R_WIND_DELETE));
         break;
         
       case SRV_WIND_FIND:
         srv_wind_find (&par.wind_find,
                        &ret.wind_find);
         
-        Srv_reply (handle, &ret, sizeof (R_WIND_FIND));
+        SRV_REPLY(handle, &ret, sizeof (R_WIND_FIND));
         break;
         
       case SRV_WIND_GET:
         srv_wind_get (&par.wind_get,
                       &ret.wind_get);
         
-        Srv_reply (handle, &ret, sizeof (R_WIND_GET));
+        SRV_REPLY(handle, &ret, sizeof (R_WIND_GET));
         break;
         
       case SRV_WIND_NEW:
         ret.common.retval = 
           srv_wind_new (par.wind_new.common.apid);
         
-        Srv_reply (handle, &ret, sizeof (R_WIND_NEW));
+        SRV_REPLY(handle, &ret, sizeof (R_WIND_NEW));
         break;
         
       case SRV_WIND_OPEN:
         srv_wind_open (&par.wind_open, &ret.wind_open);
         
-        Srv_reply (handle, &ret, sizeof (R_WIND_OPEN));
+        SRV_REPLY(handle, &ret, sizeof (R_WIND_OPEN));
         break;
         
       case SRV_WIND_SET:
         srv_wind_set (&par.wind_set, &ret.wind_set);
         
-        Srv_reply (handle, &ret, sizeof (R_WIND_SET));
+        SRV_REPLY(handle, &ret, sizeof (R_WIND_SET));
         break;
         
       case SRV_WIND_UPDATE:
@@ -3092,20 +3090,20 @@ server (LONG arg) {
 
       case SRV_MALLOC:
         ret.malloc.address = (ULONG)malloc (par.malloc.amount);
-        Srv_reply (handle, &ret, sizeof (R_MALLOC));
+        SRV_REPLY(handle, &ret, sizeof (R_MALLOC));
         break;
 
       case SRV_FREE:
         free ((void *)par.free.address);
 
-        Srv_reply (handle, &ret, sizeof (R_FREE));
+        SRV_REPLY(handle, &ret, sizeof (R_FREE));
         break;
 
       default:
         DB_printf("%s: Line %d:\r\n"
                   "Unknown call %d (0x%x) to server!",
                   __FILE__, __LINE__, par.common.call, par.common.call);
-        Srv_reply (handle, &par, -1);
+        SRV_REPLY(handle, &par, -1);
       }
     }
 

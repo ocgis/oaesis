@@ -11,6 +11,7 @@ LT_VERSION_INFO="-version-info $LT_CURRENT:$LT_REVISION:$LT_AGE"
 
 dnl Check system type
 AC_CANONICAL_SYSTEM
+AC_C_BIGENDIAN
 
 dnl Initialize automake macros
 AM_INIT_AUTOMAKE($PACKAGE, $VERSION, no-define)

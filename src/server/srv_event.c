@@ -23,6 +23,7 @@
 #include "mesagdef.h"
 #include "oconfig.h"
 #include "srv_appl_info.h"
+#include "srv_comm.h"
 #include "srv_event.h"
 #include "srv_get.h"
 #include "srv_misc.h"
@@ -285,8 +286,6 @@ check_for_messages (C_EVNT_MULTI * par,
 /*
 ** Description
 ** Wake an application if it's waiting for a message
-**
-** 1999-04-07 CG
 */
 void
 srv_wake_appl_if_waiting_for_msg (WORD id) {
@@ -297,7 +296,7 @@ srv_wake_appl_if_waiting_for_msg (WORD id) {
                                               &ret);
     
     if (ret.eventout.events != 0) {
-      Srv_reply (apps [id].handle, &ret, sizeof (R_EVNT_MULTI));
+      SRV_REPLY(apps [id].handle, &ret, sizeof (R_EVNT_MULTI));
       
       /* The application is not waiting anymore */
       dequeue_appl (&apps [id]);
@@ -498,13 +497,6 @@ check_timer (C_EVNT_MULTI * par,
 
 /*
 ** Exported
-**
-** 1998-12-08 CG
-** 1998-12-13 CG
-** 1998-12-23 CG
-** 1999-01-29 CG
-** 1999-01-30 CG
-** 1999-03-09 CG
 */
 void
 srv_wait_for_event (COMM_HANDLE    handle,
@@ -546,7 +538,7 @@ srv_wait_for_event (COMM_HANDLE    handle,
   if (ret.eventout.events == 0) {
     queue_appl (handle, par);
   } else {
-    Srv_reply (handle, &ret, sizeof (R_EVNT_MULTI));
+    SRV_REPLY(handle, &ret, sizeof (R_EVNT_MULTI));
   }
 }
 
@@ -555,9 +547,6 @@ srv_wait_for_event (COMM_HANDLE    handle,
 ** Description
 ** Check if a mouse button has been pressed or released and report it to
 ** the right application
-**
-** 1998-12-13 CG
-** 1999-02-05 CG
 */
 static
 void
@@ -585,7 +574,7 @@ handle_mouse_buttons (void) {
                                                  &ret);
 
       if (ret.eventout.events != 0) {
-        Srv_reply (apps [click_owner].handle, &ret, sizeof (R_EVNT_MULTI));
+        SRV_REPLY(apps [click_owner].handle, &ret, sizeof (R_EVNT_MULTI));
 
         /* The application is not waiting anymore */
         dequeue_appl (&apps [click_owner]);
@@ -599,10 +588,6 @@ handle_mouse_buttons (void) {
 ** Description
 ** Check if a key has been pressed or released and report it to
 ** the right application
-**
-** 1999-03-08 CG
-** 1999-08-05 CG
-** 1999-08-11 CG
 */
 static
 void
@@ -651,7 +636,7 @@ handle_keys (WORD vdi_workstation_id) {
                                         &ret);
 
       if (ret.eventout.events != 0) {
-        Srv_reply (apps [topped_appl].handle, &ret, sizeof (R_EVNT_MULTI));
+        SRV_REPLY(apps [topped_appl].handle, &ret, sizeof (R_EVNT_MULTI));
 
         /* The application is not waiting anymore */
         dequeue_appl (&apps [topped_appl]);
@@ -665,9 +650,6 @@ handle_keys (WORD vdi_workstation_id) {
 ** Description
 ** Check if the mouse has been moved and now matches a rectangle for an
 ** waiting application
-**
-** 1998-12-13 CG
-** 1998-12-23 CG
 */
 static
 void
@@ -688,7 +670,7 @@ handle_mouse_motion (void) {
                                                 &this_appl->par,
                                                 &ret);
       if (ret.eventout.events != 0) {
-        Srv_reply (this_appl->handle, &ret, sizeof (R_EVNT_MULTI));
+        SRV_REPLY(this_appl->handle, &ret, sizeof (R_EVNT_MULTI));
 
         /* The application is not waiting anymore */
         dequeue_appl (this_appl);
@@ -705,8 +687,6 @@ handle_mouse_motion (void) {
 /*
 ** Description
 ** Check if any timer events have occured
-**
-** 1999-01-29 CG
 */
 static
 void
@@ -726,7 +706,7 @@ handle_timer (void) {
       ret.eventout.events = check_timer (&this_appl->par,
                                          &ret);
       if (ret.eventout.events != 0) {
-        Srv_reply (this_appl->handle, &ret, sizeof (R_EVNT_MULTI));
+        SRV_REPLY(this_appl->handle, &ret, sizeof (R_EVNT_MULTI));
 
         /* The application is not waiting anymore */
         dequeue_appl (this_appl);
