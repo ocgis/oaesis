@@ -22,25 +22,62 @@
 #include <unistd.h>
 
 #include "debug.h"
+#include "mintdefs.h"
+#include "oconfig.h"
 #include "srv_put.h"
 #include "srv_sockets.h"
 
-static int level = 0;
-static int sockfd;
+typedef struct pid_sockfd_pair
+{
+  int                      pid;
+  int                      sockfd;
+} PID_SOCKFD_PAIR;
+
+
+static PID_SOCKFD_PAIR * pid_sockfd_pair_table;
+
+void
+init_comm_device(void)
+{
+  int i;
+
+  pid_sockfd_pair_table =
+    (PID_SOCKFD_PAIR *)Mxalloc(sizeof(PID_SOCKFD_PAIR) * MAX_NUM_APPS,
+			       GLOBALMEM);
+
+  for(i = 0; i < MAX_NUM_APPS; i++)
+  {
+    pid_sockfd_pair_table[i].pid = -1;
+  }
+}
+
 
 LONG
 Client_open (void)
 {
+  int pid;
+  int i;
+  int empty = -1;
+
   DEBUG1("In Client_open");
-  if(level == 0)
+
+  pid = getpid();
+
+  for(i = 0;
+      (i < MAX_NUM_APPS) && (pid_sockfd_pair_table[i].pid != pid);
+      i++)
   {
-    sockfd = Fopen("u:/dev/oaes_ker", O_RDWR);
-    fprintf(stderr, "sockfd = %d\n", sockfd);
+    if((empty == -1) && (pid_sockfd_pair_table[i].pid == -1))
+    {
+      empty = i;
+    }
   }
 
-  fprintf(stderr, "level = %d\n", level);
-
-  level++;
+  if((i == MAX_NUM_APPS) && (empty != -1))
+  {
+    pid_sockfd_pair_table[empty].pid = pid;
+    pid_sockfd_pair_table[empty].sockfd = Fopen("u:/dev/oaes_ker", O_RDWR);
+  }
 
   return 0;
 }
@@ -53,21 +90,40 @@ LONG
 Client_send_recv (void * in,
                   int    bytes_in,
                   void * out,
-                  int    max_bytes_out) {
-  int numbytes;
+                  int    max_bytes_out)
+{
+  int               i;
+  int               numbytes;
+  int               sockfd;
+  int               pid;
 
-  if ((numbytes = Fwrite(sockfd, bytes_in, in)) < 0)
+  pid = getpid();
+  numbytes = -1;
+
+  for(i = 0;
+      (i < MAX_NUM_APPS) && (pid_sockfd_pair_table[i].pid != pid);
+      i++)
   {
-    DEBUG1("Couldn't write to oaes_ker");
-    exit(-1);
+    ;
   }
 
-  DEBUG3("srv_put_sockets.c: sent numbytes = %d", numbytes);
-  
-  if ((numbytes = Fread(sockfd, max_bytes_out, out)) < 0)
+  if(i < MAX_NUM_APPS)
   {
-    DEBUG1("Couldn't read from oaes_ker");
-    exit(-1);
+    sockfd = pid_sockfd_pair_table[i].sockfd;
+
+    if ((numbytes = Fwrite(sockfd, bytes_in, in)) < 0)
+    {
+      DEBUG1("Couldn't write to oaes_ker");
+      exit(-1);
+    }
+    
+    DEBUG3("srv_put_sockets.c: sent numbytes = %d", numbytes);
+    
+    if ((numbytes = Fread(sockfd, max_bytes_out, out)) < 0)
+    {
+      DEBUG1("Couldn't read from oaes_ker");
+      exit(-1);
+    }
   }
 
   return numbytes;

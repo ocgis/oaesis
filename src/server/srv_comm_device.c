@@ -66,7 +66,7 @@ comm_open(FILEPTR * f)
 
 
   /* Create and initialize internal file handle */
-  f->devinfo = (LONG)KMALLOC(sizeof(FileHandle));
+  FH(f) = (LONG)KMALLOC(sizeof(FileHandle));
   
   FH(f)->bytes_out = 0;
   FH(f)->selected = 0;
@@ -199,10 +199,10 @@ comm_close(FILEPTR * f,
   SPRINTF(deb, "srv_comm_device: close: devinfo = 0x%lx", f->devinfo);
   TRACE(deb);
 
-  if(f->devinfo != 0)
+  if((f->links <= 0) && (FH(f) != 0))
   {
-    KFREE((void *)f->devinfo);
-    f->devinfo = 0;
+    KFREE(FH(f));
+    FH(f) = 0;
   }
 
   return 0;
@@ -291,6 +291,9 @@ comm_init(void)
     sizeof(DEVDRV),
     {0L,0L,0L}
   };
+
+  /* Cheat: Initialize client part */
+  init_comm_device();
 
   comm_device.open = comm_open;
   comm_device.write = comm_write;
