@@ -153,7 +153,7 @@ start_programs(void)
 #ifdef MINT_TARGET /* FIXME for linux */
   bootpath[0] = (get_sysvar(_bootdev) >> 16) + 'a';
 #endif
-  
+
   /* Start shell if it was specified */
   if(Boot_shell != NULL)
   {
@@ -178,13 +178,14 @@ start_programs(void)
   olddta = Fgetdta();
   Fsetdta(&newdta);
   
-  
-  if(Boot_acc_path[0] == '\0')
+  if(Boot_acc_path == NULL)
   {
 #ifdef MINT_TARGET
+    Boot_acc_path = malloc(4);
     Boot_acc_path[0] = (get_sysvar(_bootdev) >> 16) + 'a';
     Boot_acc_path[1] = ':';
     Boot_acc_path[2] = '\\';
+    Boot_acc_path[3] = 0;
 #else
     /* FIXME */
 #endif
