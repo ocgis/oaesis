@@ -1,24 +1,15 @@
-/****************************************************************************
-
- Module
-  srv.c
-  
- Description
-  Window, menu, and application server in oAESis.
-  
- Author(s)
- 	cg (Christer Gustavsson <d2cg@dtek.chalmers.se>)
- 	
- Revision history
- 
-  960623 cg
-   Creation date.
- 
- Copyright notice
-  The copyright to the program code herein belongs to the authors. It may
-  be freely duplicated and distributed without fee, but not charged for.
- 
- ****************************************************************************/
+/*
+** srv.c
+**
+** Copyright 1996 - 1998 Christer Gustavsson <cg@nocrew.org>
+**
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+**  
+** Read the file COPYING for more information.
+*/
 
 /*
 #define SRV_DEBUG
@@ -48,12 +39,12 @@
 #include "oconfig.h"
 #include "debug.h"
 #include "gemdefs.h"
-#include "srv_global.h"
 #include "lxgemdos.h"
 #include "mesagdef.h"
 #include "mintdefs.h"
+#include "srv_event.h"
+#include "srv_global.h"
 #include "srv_misc.h"
-/*#include "objc.h"*/
 #include "resource.h"
 #include "rlist.h"
 #include "srv.h"
@@ -212,15 +203,10 @@ srv_wind_find( /*                                                           */
 C_WIND_FIND *msg);
 /****************************************************************************/
 
-/****************************************************************************
- * srv_wind_get                                                             *
- *  Implementation of wind_get().                                           *
- ****************************************************************************/
+static
 void
-srv_wind_get(  /*                                                           */
-C_WIND_GET * msg,
-R_WIND_GET * ret);
-/****************************************************************************/
+srv_wind_get(C_WIND_GET * msg,
+             R_WIND_GET * ret);
 
 /****************************************************************************
  * srv_wind_new                                                             *
@@ -1414,7 +1400,7 @@ C_APPL_EXIT * par,
 R_APPL_EXIT * ret)
 /****************************************************************************/
 {
-  C_WIND_SET cws = {0,WF_NEWDESK,0,0,0,0};
+  /*C_WIND_SET cws = {0,WF_NEWDESK,0,0,0,0};*/
   C_MENU_BAR c_menu_bar;
 
   /*clean up*/
@@ -3373,16 +3359,16 @@ R_WIND_CREATE * ret)
   ret->common.retval = ws->id;
 }
 
-/****************************************************************************
- * srv_wind_delete                                                          *
- *  Implementation of wind_delete().                                        *
- ****************************************************************************/
-WORD             /* 0 if error or 1 if ok.                                  */
-srv_wind_delete( /*                                                         */
-C_WIND_DELETE * msg,
-R_WIND_DELETE * ret)
-/****************************************************************************/
-{
+/*
+** Description
+** Implementation of wind_delete()
+**
+** 1998-12-07 CG
+*/
+static
+void
+srv_wind_delete (C_WIND_DELETE * msg,
+                 R_WIND_DELETE * ret) {
   WINLIST	**wl;
   
   wl = &win_list;
@@ -3392,81 +3378,80 @@ R_WIND_DELETE * ret)
       break;
     
     wl = &(*wl)->next;
-  };
+  }
   
   if(!(*wl)) {
-    /*no such window found! return*/
-    return 0;
-  };
-  
-  if((*wl)->win->status & WIN_OPEN) {
-    C_WIND_CLOSE c_wind_close;
-
-    c_wind_close.id = msg->id;
-
-    srv_wind_close(&c_wind_close);
-  };
-  
-  delwinelem((*wl)->win->tree);
-  
-  if(msg->id == (win_next - 1)) {
-    WORD	found;
-    WINLIST	*wt = *wl;
-    
-    *wl = (*wl)->next;
-    
-    Mfree(wt->win);
-    Mfree(wt);
-    win_next--;
-    
-    do {
-      WINLIST 	**wlwalk = &win_list;
+    /* No such window found! */
+    ret->common.retval = 0;
+  } else {
+    /* We found the window */
+    if((*wl)->win->status & WIN_OPEN) {
+      C_WIND_CLOSE c_wind_close;
       
-      found = 0;
+      c_wind_close.id = msg->id;
       
-      while(*wlwalk) {
-	if((*wlwalk)->win->id == (win_next - 1))
+      srv_wind_close(&c_wind_close);
+    }
+    
+    delwinelem((*wl)->win->tree);
+    
+    if(msg->id == (win_next - 1)) {
+      WORD	found;
+      WINLIST	*wt = *wl;
+      
+      *wl = (*wl)->next;
+      
+      Mfree(wt->win);
+      Mfree(wt);
+      win_next--;
+      
+      do {
+        WINLIST 	**wlwalk = &win_list;
+        
+        found = 0;
+        
+        while(*wlwalk) {
+          if((*wlwalk)->win->id == (win_next - 1))
 	  {
 	    found = 1;
 	    break;
-	  };
-	
-	wlwalk = &(*wlwalk)->next;
-      };
+	  }
+          
+          wlwalk = &(*wlwalk)->next;
+        }
+        
+        if(!found) {
+          wlwalk = &win_free;
+          
+          while(*wlwalk) {
+            if((*wlwalk)->win->id == (win_next - 1)) {
+              WINLIST	*wltemp = *wlwalk;
+              
+              *wlwalk = (*wlwalk)->next;
+              
+              Mfree(wltemp->win);
+              Mfree(wltemp);
+              
+              win_next--;
+              
+              break;
+            }
+            
+            wlwalk = &(*wlwalk)->next;
+          }
+        }
+      }while(!found && win_next);
+    } else {
+      WINLIST	*wt = *wl;
       
-      if(!found) {
-	wlwalk = &win_free;
-	
-	while(*wlwalk) {
-	  if((*wlwalk)->win->id == (win_next - 1)) {
-	    WINLIST	*wltemp = *wlwalk;
-	    
-	    *wlwalk = (*wlwalk)->next;
-	    
-	    Mfree(wltemp->win);
-	    Mfree(wltemp);
-	    
-	    win_next--;
-	    
-	    break;
-	  };
-	  
-	  wlwalk = &(*wlwalk)->next;
-	};
-      };
+      *wl = (*wl)->next;
       
-    }while(!found && win_next);
+      wt->next = win_free;
+      win_free = wt;
+    }
+    
+    ret->common.retval = 1;
   }
-  else {
-    WINLIST	*wt = *wl;
-    
-    *wl = (*wl)->next;
-    
-    wt->next = win_free;
-    win_free = wt;
-  };
-  
-  ret->common.retval = 1;
 }
 
 /****************************************************************************
@@ -3511,16 +3496,16 @@ C_WIND_FIND *msg)
   return 0;
 }
 
-/****************************************************************************
- * srv_wind_get                                                             *
- *  Implementation of wind_get().                                           *
- ****************************************************************************/
+/*
+** Description
+** Implementation of wind_get()
+**
+** 1998-12-07 CG
+*/
+static
 void
-srv_wind_get(  /*                                                           */
-C_WIND_GET * msg,
-R_WIND_GET * ret)
-/****************************************************************************/
-{
+srv_wind_get (C_WIND_GET * msg,
+              R_WIND_GET * ret) {
   WINSTRUCT	*win;
   
   win = find_wind_description(msg->handle);
@@ -3590,7 +3575,7 @@ R_WIND_GET * ret)
       }
       else {
 	ret->common.retval = 0;
-      };
+      }
       break;
       
     case	WF_FIRSTXYWH:	/*0x000b*/
@@ -3604,26 +3589,25 @@ R_WIND_GET * ret)
 	while(win->rpos) {
 	  if(Misc_intersect(&win->rpos->r,&win->worksize,&r)) {
 	    break;
-	  };
+	  }
 	  
 	  win->rpos = win->rpos->next;
-	};					
+	}					
 	
 	if(!win->rpos) {
 	  ret->parm1 = 0;
 	  ret->parm2 = 0;
 	  ret->parm3 = 0;
 	  ret->parm4 = 0;
-	}
-	else {
+	} else {
 	  win->rpos = win->rpos->next;
 	  
 	  ret->parm1 = r.x;
 	  ret->parm2 = r.y;
 	  ret->parm3 = r.width;
 	  ret->parm4 = r.height;
-	};
-      };
+	}
+      }
       break;
       
     case WF_HSLSIZE: /*0x0f*/
@@ -3656,42 +3640,39 @@ R_WIND_GET * ret)
 	  
 	  if(wl->win == win) {
 	    ret->parm3 = -1;
-	  }
-	  else if(wl) {
+	  } else if(wl) {
 	    while(wl->next) {
 	      if(wl->next->win == win) {
 		ret->parm3 = wl->win->id;
 		break;
-	      };
+	      }
 	      
 	      wl = wl->next;
-	    };
+	    }
 	    
 	    wl = wl->next;
-	  };
+	  }
 	  
 	  if(wl) {
 	    wl = wl->next;
 	    
 	    if(wl) {
 	      ret->parm4 = wl->win->id;
-	    }
-	    else {
+	    } else {
 	      ret->parm4 = -1;
-	    };
+	    }
 						}
 	  else {
 	    ret->parm4 = -1;
-	  };							
-	}
-	else {
+	  }							
+	} else {
 	  ret->parm3 = -1;
 	  ret->parm4 = -1;
-	};
+	}
       }
       else {
 	ret->common.retval = 0;
-      };
+      }
       break;
       
     case WF_ICONIFY: /* 0x1a */
@@ -3700,7 +3681,7 @@ R_WIND_GET * ret)
       }
       else {
 	ret->parm1 = 0;
-      };
+      }
       
       ret->parm2 = globals.icon_width;
       ret->parm3 = globals.icon_height;
@@ -3727,12 +3708,10 @@ R_WIND_GET * ret)
 		__FILE__,__LINE__,msg->mode,msg->mode,
 		msg->handle,msg->mode);
       ret->common.retval = 0;
-    };
-  }
-  else
+    }
+  } else {
     ret->common.retval = 0;
-  
-  return ret;
+  }
 }
 
 /****************************************************************************
@@ -3750,7 +3729,6 @@ R_WIND_OPEN * ret)
   RLIST	       *rl = 0L;
   REDRAWSTRUCT m;
   WORD         owner;
-  WORD         i;
   WORD         wastopped = 0;
 
   ws = find_wind_description (msg->id);
@@ -4152,20 +4130,6 @@ C_PUT_EVENT *msg)
 
 /*
 ** Description
-** This procedure is installed with vex_butv to handle mouse button clicks.
-**
-** 1998-12-06 CG
-*/
-void
-catch_mouse_buttons (int buttons) {
-  DB_printf ("srv.c: catch_mouse_buttons: buttons = %d", buttons);
-  
-  Srv_wake ();
-}
-
-
-/*
-** Description
 ** This is the server itself
 **
 ** 1998-09-26 CG
@@ -4197,8 +4161,6 @@ server (LONG arg) {
   WINSTRUCT *   ws;
   WINLIST *     wl;
 
-  void *        old_button_vector;
-  
   /* Stop warnings from compiler about unused parameters */
   NOT_USED(arg);
   
@@ -4263,7 +4225,7 @@ server (LONG arg) {
                  &r_wind_open);
   
   /* Setup event vectors */
-  Vdi_vex_butv (svid, catch_mouse_buttons, &old_button_vector);
+  init_event_handler (svid);
 
   while(1) {
     
@@ -4272,230 +4234,225 @@ server (LONG arg) {
 #endif
 
     /* Wait for another call from a client */
-    /*
-    DB_printf ("srv.c: Waiting for message from client");
-    */
+    /*DB_printf ("srv.c: Waiting for message from client");*/
     handle = Srv_get (&par, sizeof (C_SRV));
+    /*DB_printf ("srv.c: Got message from client");*/
 
     if (handle == NULL) {
-      DB_printf ("srv.c: server: handle == NULL => event");
-      continue;
-    }
-
-    /*
-    DB_printf ("srv.c: Got message from client");
-    */
+      handle_events ();
+    } else {
 #ifdef SRV_DEBUG
-    DB_printf("Call: %d pid: %d",msg.cr.call,msg.pid);
+      DB_printf("Call: %d pid: %d",msg.cr.call,msg.pid);
 #endif		
-    
-    switch (par.common.call) {
-    case SRV_SHAKE:
-      DB_printf ("I'm fine application %d (process %d)!", apid, client_pid);
-      DB_printf ("How are you doing yourself?");
-      Srv_reply (handle, &par, 0);
-      break;
       
-    case SRV_SHUTDOWN:
-      DB_printf("OK! Nice chatting with you! Bye!");
-      
-      Srv_reply (handle, &par, 0);
-      Vdi_v_clswk(svid);
-      return 0;
-      
-    case SRV_APPL_CONTROL:
-      code = srv_appl_control (&par.appl_control);
-      
-      Srv_reply (handle, &par, code);
-      break;
-      
-    case SRV_APPL_EXIT:
-      srv_appl_exit (&par.appl_exit, &ret.appl_exit);
-      
-      Srv_reply (handle, &ret, sizeof (R_APPL_EXIT));
-      break;
-      
-    case SRV_APPL_FIND:
-      code = srv_appl_find (&par.appl_find);
-      
-      Srv_reply (handle, &par, code);
-      break;
-      
-    case SRV_APPL_INIT:
-      srv_appl_init (&par.appl_init, &ret.appl_init);
-      
-      Srv_reply (handle, &ret, sizeof (R_APPL_INIT));
-      break;
-      
-    case SRV_APPL_SEARCH:
-      code = srv_appl_search (apid, &par.appl_search);
-      
-      Srv_reply (handle, &par, code);
-      break;
-      
-    case SRV_APPL_WRITE:
-      srv_appl_write (&par.appl_write, &ret.appl_write);
-      
-      Srv_reply (handle, &ret, sizeof (R_APPL_WRITE));
-      break;
-      
-    case SRV_CLICK_OWNER:
-      code = 
-	srv_click_owner();
-      
-      Srv_reply (handle, &par, code);
-      break;
-      
-    case SRV_EVNT_MULTI:
-      srv_evnt_multi (&par.evnt_multi, &ret.evnt_multi);
-      
-      Srv_reply (handle, &ret, sizeof (R_EVNT_MULTI));
-      break;
-      
-    case SRV_GET_APPL_INFO:
-      code = 
-	srv_get_appl_info (apid, &par.get_appl_info);
-      
-      Srv_reply (handle, &par, code);
-      break;
-      
-    case SRV_GET_TOP_MENU:
-      code = 
-	srv_get_top_menu (&par.get_top_menu);
-      
-      Srv_reply (handle, &par, code);
-      break;
-      
-    case SRV_GET_VDI_ID :
-      srv_get_vdi_id (&par.appl_exit, &ret.get_vdi_id);
-      
-      Srv_reply (handle, &ret, sizeof (R_GET_VDI_ID));
-      break;
-
-    case SRV_GET_WM_INFO:
-      code = 
-	srv_get_wm_info (&par.get_wm_info);
-      
-      Srv_reply (handle, &par, code);
-      break;
-      
-    case SRV_MENU_BAR:
-      code = 
-	srv_menu_bar (&par.menu_bar);
-      
-      Srv_reply (handle, &par, code);
-      break;
-      
-    case SRV_MENU_REGISTER:
-      code = 
-	srv_menu_register (apid, &par.menu_register);
-      
-      Srv_reply (handle, &par, code);
-      break;
-      
-    case SRV_PUT_EVENT:
-      code = 
-	srv_put_event (apid, &par.put_event);
-      
-      Srv_reply (handle, &par, code);
-      break;
-      
-    case SRV_SHEL_ENVRN:
-      code = 
-	srv_shel_envrn (&par.shel_envrn);
-      
-      Srv_reply (handle, &par, code);
-      break;
-      
-    case SRV_SHEL_WRITE:
-      code = srv_shel_write(apid, &par.shel_write);
-      
-      Srv_reply (handle, &par, code);
-      break;
-      
-    case SRV_WIND_CHANGE:
-      code = 
-	srv_wind_change(&par.wind_change);
-      
-      Srv_reply (handle, &par, code);
-      break;
-      
-    case SRV_WIND_CLOSE:
-      code = 
-	srv_wind_close(&par.wind_close);
-      
-      Srv_reply (handle, &par, code);
-      break;
-      
-    case SRV_WIND_CREATE:
-      srv_wind_create (&par.wind_create, &ret.wind_create);
-      
-      Srv_reply (handle, &ret, sizeof (R_WIND_CREATE));
-      break;
-      
-    case SRV_WIND_DELETE:
-      srv_wind_delete (&par.wind_delete,
-                       &ret.wind_delete);
-      
-      Srv_reply (handle, &ret, sizeof (R_WIND_DELETE));
-      break;
-      
-    case SRV_WIND_DRAW:
-      code = 
-	srv_wind_draw (&par.wind_draw);
-      
-      Srv_reply (handle, &par, code);
-      break;
-      
-    case SRV_WIND_FIND:
-      code = 
-	srv_wind_find(&par.wind_find);
-      
-      Srv_reply (handle, &par, code);
-      break;
-      
-    case SRV_WIND_GET:
-      srv_wind_get (&par.wind_get,
-                    &ret.wind_get);
-      
-      Srv_reply (handle, &ret, sizeof (R_WIND_GET));
-      break;
-      
-    case SRV_WIND_NEW:
-      code = 
-	srv_wind_new(&par.wind_new);
-      
-      Srv_reply (handle, &par, code);
-      break;
-      
-    case SRV_WIND_OPEN:
-      DB_printf ("srv.c: server: srv_wind_open will be called");
-      srv_wind_open (&par.wind_open, &ret.wind_open);
-      
-      Srv_reply (handle, &ret, sizeof (R_WIND_OPEN));
-      DB_printf ("srv.c: server: srv_wind_open reply sent");
-      break;
-      
-    case SRV_WIND_SET:
-      code = 
-	srv_wind_set(apid, &par.wind_set);
-      
-      Srv_reply (handle, &par, code);
-      break;
-      
-    case SRV_WIND_UPDATE:
-      srv_wind_update (&par.wind_update, &ret.wind_update);
-      
-      Srv_reply (handle, &ret, sizeof (R_WIND_UPDATE));
-      break;
-      
-    default:
-      DB_printf("%s: Line %d:\r\n"
-		"Unknown call %d to server!",
-		__FILE__, __LINE__, call);
-      Srv_reply (handle, &par, -1);
-    };
-  };
+      switch (par.common.call) {
+      case SRV_SHAKE:
+        DB_printf ("I'm fine application %d (process %d)!", apid, client_pid);
+        DB_printf ("How are you doing yourself?");
+        Srv_reply (handle, &par, 0);
+        break;
+        
+      case SRV_SHUTDOWN:
+        DB_printf("OK! Nice chatting with you! Bye!");
+        
+        Srv_reply (handle, &par, 0);
+        Vdi_v_clswk(svid);
+        return 0;
+        
+      case SRV_APPL_CONTROL:
+        code = srv_appl_control (&par.appl_control);
+        
+        Srv_reply (handle, &par, code);
+        break;
+        
+      case SRV_APPL_EXIT:
+        srv_appl_exit (&par.appl_exit, &ret.appl_exit);
+        
+        Srv_reply (handle, &ret, sizeof (R_APPL_EXIT));
+        break;
+        
+      case SRV_APPL_FIND:
+        code = srv_appl_find (&par.appl_find);
+        
+        Srv_reply (handle, &par, code);
+        break;
+        
+      case SRV_APPL_INIT:
+        srv_appl_init (&par.appl_init, &ret.appl_init);
+        
+        Srv_reply (handle, &ret, sizeof (R_APPL_INIT));
+        break;
+        
+      case SRV_APPL_SEARCH:
+        code = srv_appl_search (apid, &par.appl_search);
+        
+        Srv_reply (handle, &par, code);
+        break;
+        
+      case SRV_APPL_WRITE:
+        srv_appl_write (&par.appl_write, &ret.appl_write);
+        
+        Srv_reply (handle, &ret, sizeof (R_APPL_WRITE));
+        break;
+        
+      case SRV_CLICK_OWNER:
+        code = 
+          srv_click_owner();
+        
+        Srv_reply (handle, &par, code);
+        break;
+        
+      case SRV_EVNT_MULTI:
+        srv_evnt_multi (&par.evnt_multi, &ret.evnt_multi);
+        
+        Srv_reply (handle, &ret, sizeof (R_EVNT_MULTI));
+        break;
+        
+      case SRV_GET_APPL_INFO:
+        code = 
+          srv_get_appl_info (apid, &par.get_appl_info);
+        
+        Srv_reply (handle, &par, code);
+        break;
+        
+      case SRV_GET_TOP_MENU:
+        code = 
+          srv_get_top_menu (&par.get_top_menu);
+        
+        Srv_reply (handle, &par, code);
+        break;
+        
+      case SRV_GET_VDI_ID :
+        srv_get_vdi_id (&par.get_vdi_id, &ret.get_vdi_id);
+        
+        Srv_reply (handle, &ret, sizeof (R_GET_VDI_ID));
+        break;
+        
+      case SRV_GET_WM_INFO:
+        code = 
+          srv_get_wm_info (&par.get_wm_info);
+        
+        Srv_reply (handle, &par, code);
+        break;
+        
+      case SRV_MENU_BAR:
+        code = 
+          srv_menu_bar (&par.menu_bar);
+        
+        Srv_reply (handle, &par, code);
+        break;
+        
+      case SRV_MENU_REGISTER:
+        code = 
+          srv_menu_register (apid, &par.menu_register);
+        
+        Srv_reply (handle, &par, code);
+        break;
+        
+      case SRV_PUT_EVENT:
+        code = 
+          srv_put_event (apid, &par.put_event);
+        
+        Srv_reply (handle, &par, code);
+        break;
+        
+      case SRV_SHEL_ENVRN:
+        code = 
+          srv_shel_envrn (&par.shel_envrn);
+        
+        Srv_reply (handle, &par, code);
+        break;
+        
+      case SRV_SHEL_WRITE:
+        code = srv_shel_write(apid, &par.shel_write);
+        
+        Srv_reply (handle, &par, code);
+        break;
+        
+      case SRV_WIND_CHANGE:
+        code = 
+          srv_wind_change(&par.wind_change);
+        
+        Srv_reply (handle, &par, code);
+        break;
+        
+      case SRV_WIND_CLOSE:
+        code = 
+          srv_wind_close(&par.wind_close);
+        
+        Srv_reply (handle, &par, code);
+        break;
+        
+      case SRV_WIND_CREATE:
+        srv_wind_create (&par.wind_create, &ret.wind_create);
+        
+        Srv_reply (handle, &ret, sizeof (R_WIND_CREATE));
+        break;
+        
+      case SRV_WIND_DELETE:
+        srv_wind_delete (&par.wind_delete,
+                         &ret.wind_delete);
+        
+        Srv_reply (handle, &ret, sizeof (R_WIND_DELETE));
+        break;
+        
+      case SRV_WIND_DRAW:
+        code = 
+          srv_wind_draw (&par.wind_draw);
+        
+        Srv_reply (handle, &par, code);
+        break;
+        
+      case SRV_WIND_FIND:
+        code = 
+          srv_wind_find(&par.wind_find);
+        
+        Srv_reply (handle, &par, code);
+        break;
+        
+      case SRV_WIND_GET:
+        srv_wind_get (&par.wind_get,
+                      &ret.wind_get);
+        
+        Srv_reply (handle, &ret, sizeof (R_WIND_GET));
+        break;
+        
+      case SRV_WIND_NEW:
+        code = 
+          srv_wind_new(&par.wind_new);
+        
+        Srv_reply (handle, &par, code);
+        break;
+        
+      case SRV_WIND_OPEN:
+        DB_printf ("srv.c: server: srv_wind_open will be called");
+        srv_wind_open (&par.wind_open, &ret.wind_open);
+        
+        Srv_reply (handle, &ret, sizeof (R_WIND_OPEN));
+        DB_printf ("srv.c: server: srv_wind_open reply sent");
+        break;
+        
+      case SRV_WIND_SET:
+        code = 
+          srv_wind_set(apid, &par.wind_set);
+        
+        Srv_reply (handle, &par, code);
+        break;
+        
+      case SRV_WIND_UPDATE:
+        srv_wind_update (&par.wind_update, &ret.wind_update);
+        
+        Srv_reply (handle, &ret, sizeof (R_WIND_UPDATE));
+        break;
+        
+      default:
+        DB_printf("%s: Line %d:\r\n"
+                  "Unknown call %d to server!",
+                  __FILE__, __LINE__, call);
+        Srv_reply (handle, &par, -1);
+      }
+    }
+  }
 }
 
 /****************************************************************************
@@ -4512,10 +4469,6 @@ Srv_init_module(void)  /*                                                   */
 {
   WORD i;
   
-  WINLIST	*wl;
-  
-  WINSTRUCT	*ws;
-
   DB_printf ("In Srv_init_module\n");
   for(i = 0; i < MAX_NUM_APPS; i++) {
     apps[i].id = -1;
@@ -4536,9 +4489,9 @@ Srv_init_module(void)  /*                                                   */
     }
   }
   
-  DB_printf ("Starting server process\n");
+  DB_printf ("Starting server process");
   globals.srvpid = (WORD)Misc_fork(server,0,"oAESsrv");
-  DB_printf ("Started server process\n");
+  DB_printf ("Started server process");
 
   /*
     Srv_shake();

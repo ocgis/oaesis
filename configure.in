@@ -158,8 +158,8 @@ AC_SUBST(OSISINCLUDE)
 AC_SUBST(target_cpu)
 AC_SUBST(target_os)
 
-dnl Set CFLAGS
-CFLAGS="$CFLAGS -Wall -pedantic"
+dnl Set CPPFLAGS
+CPPFLAGS="$CPPFLAGS -Wall"
 
 dnl Setup symbolic links
 AC_LINK_FILES(src/common/debug.c, src/lib/debug.c)

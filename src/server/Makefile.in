@@ -88,24 +88,15 @@ CFLAGS = -I../comm -I../common
 bin_PROGRAMS = oaesis
 
 oaesis_SOURCES = \
-        boot.c debug.c \
-        srv_global.c main.c \
-        rlist.c \
-        srv.c srv_get.c srv_misc.c \
-        vdi.c
-#        resource.c \
+        boot.c debug.c main.c rlist.c srv.c srv_event.c srv_get.c \
+        srv_global.c srv_misc.c vdi.c \
+        srv_event.h
 
-#        boot.h evnthndl.h \
-#        global.h \
-#        lxgemdos.h menu.h mesagdef.h misc.h mousedev.h \
-#        oconfig.h \
-#        objc.h resource.h rlist.h rsrc.h scrp.h shel.h \
-#        version.h vdi.h wind.h
-
-noinst_HEADERS = boot.h lxgemdos.h mousedev.h rlist.h srv.h srv_global.h srv_misc.h
+noinst_HEADERS = \
+        boot.h lxgemdos.h mousedev.h rlist.h srv.h srv_global.h srv_misc.h
 
 EXTRA_oaesis_SOURCES = \
-         mousedev.c
+        mousedev.c
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../../config.h
 CONFIG_CLEAN_FILES = 
@@ -116,8 +107,8 @@ DEFS = @DEFS@ -I. -I$(srcdir) -I../..
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
-oaesis_OBJECTS =  boot.o debug.o srv_global.o main.o rlist.o srv.o \
-srv_get.o srv_misc.o vdi.o
+oaesis_OBJECTS =  boot.o debug.o main.o rlist.o srv.o srv_event.o \
+srv_get.o srv_global.o srv_misc.o vdi.o
 oaesis_LDADD = $(LDADD)
 oaesis_DEPENDENCIES = 
 oaesis_LDFLAGS = 
@@ -134,8 +125,8 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 TAR = tar
 GZIP = --best
 DEP_FILES =  .deps/boot.P .deps/debug.P .deps/main.P .deps/mousedev.P \
-.deps/rlist.P .deps/srv.P .deps/srv_get.P .deps/srv_global.P \
-.deps/srv_misc.P .deps/vdi.P
+.deps/rlist.P .deps/srv.P .deps/srv_event.P .deps/srv_get.P \
+.deps/srv_global.P .deps/srv_misc.P .deps/vdi.P
 SOURCES = $(oaesis_SOURCES) $(EXTRA_oaesis_SOURCES)
 OBJECTS = $(oaesis_OBJECTS)
 

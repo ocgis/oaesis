@@ -2604,7 +2604,7 @@ done
 
 
 
-CFLAGS="$CFLAGS -Wall -pedantic"
+CPPFLAGS="$CPPFLAGS -Wall"
 
 
 
