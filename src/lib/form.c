@@ -634,8 +634,6 @@ Form_do_keybd(WORD     apid,
     internal_kc = kc;
   }
 
-  fprintf(stderr, "internal_kc = 0x%x, kc = 0x%x\n", internal_kc, kc);
-
   switch(internal_kc)
   {
   case 0x0009: /* tab */
