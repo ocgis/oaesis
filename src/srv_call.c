@@ -11,7 +11,13 @@
  	
  ****************************************************************************/
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#ifdef HAVE_MINTBIND_H
 #include <mintbind.h>
+#endif
 
 #include "mintdefs.h"
 #include "srv_call.h"

@@ -1,0 +1,47 @@
+AC_INIT(src/appl.c)
+
+dnl For automake
+PACKAGE=oaesis
+VERSION=0.9
+
+dnl Check system type
+AC_CANONICAL_SYSTEM
+
+dnl Initialize automake macros
+AM_INIT_AUTOMAKE($PACKAGE, $VERSION, no-define)
+
+dnl Make a header based on the things we will find out
+AM_CONFIG_HEADER(config.h)
+
+dnl Check for programs
+AC_ARG_PROGRAM
+AC_PROG_CC
+AC_PROG_INSTALL
+AC_PROG_MAKE_SET
+AC_PROG_RANLIB
+
+dnl Check for libraries
+
+dnl Check for header files
+AC_HEADER_STDC
+AC_CHECK_HEADERS(alloc.h)
+AC_CHECK_HEADERS(basepage.h)
+AC_CHECK_HEADERS(compiler.h)
+AC_CHECK_HEADERS(ioctl.h)
+AC_CHECK_HEADERS(mintbind.h)
+AC_CHECK_HEADERS(process.h)
+AC_CHECK_HEADERS(osbind.h)
+AC_CHECK_HEADERS(support.h)
+AC_CHECK_HEADERS(sysvars.h)
+
+dnl Specify which variables that should be exchanged
+AC_SUBST(PACKAGE)
+AC_SUBST(VERSION)
+AC_SUBST(target_cpu)
+AC_SUBST(target_os)
+
+dnl Set CFLAGS
+CFLAGS="$CFLAGS -Wall"
+
+dnl Specify which files that should be created
+AC_OUTPUT(Makefile src/Makefile)

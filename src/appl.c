@@ -25,6 +25,9 @@
   960228 kkp
    Changed the behaviour of TOPAPPL
 
+  980622 cg
+   Added check for macros defined by autoconf.
+
  Copyright notice
   The copyright to the program code herein belongs to the authors. It may
   be freely duplicated and distributed without fee, but not charged for.
@@ -35,14 +38,28 @@
  * Used interfaces                                                          *
  ****************************************************************************/
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#ifdef HAVE_ALLOC_H
 #include <alloc.h>
+#endif
+
 #include <fcntl.h>
+
+#ifdef HAVE_MINTBIND_H
 #include <mintbind.h>
+#endif
+
 #include <signal.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+
+#ifdef HAVE_SUPPORT_H
 #include <support.h>
+#endif
 
 #include "appl.h"
 #include "debug.h"

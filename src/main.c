@@ -1,11 +1,28 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#ifdef HAVE_MINTBIND_H
 #include <mintbind.h>
+#endif
+
+#ifdef HAVE_OSBIND_H
 #include <osbind.h>
+#endif
+
+#ifdef HAVE_PROCESS_H
 #include <process.h>
+#endif
+
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#ifdef HAVE_SUPPORT_H
 #include <support.h>
+#endif
+
 #include <unistd.h>
 
 #include "debug.h"
@@ -20,7 +37,9 @@
 #include "srv.h"
 #include "version.h"
 
+#ifdef HAVE_SYSVARS_H
 #include	<sysvars.h>
+#endif
 
 void init_aes(WORD nocnf) {
   fprintf(stderr,"Initializing:\r\n");

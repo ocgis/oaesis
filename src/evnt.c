@@ -27,14 +27,33 @@
  * Used interfaces                                                          *
  ****************************************************************************/
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <assert.h>
+
+#ifdef HAVE_BASEPAGE_H
 #include <basepage.h>
+#endif
+
 #include <fcntl.h>
+
+#ifdef HAVE_MINTBIND_H
 #include <mintbind.h>
+#endif
+
+#ifdef HAVE_OSBIND_H
 #include <osbind.h>
+#endif
+
 #include <signal.h>
 #include <stdio.h>
+
+#ifdef HAVE_SUPPORT_H
 #include <support.h>
+#endif
+
 #include <unistd.h>
 
 #include "debug.h"
@@ -48,7 +67,9 @@
 #include "srv.h"
 #include "types.h"
 
+#ifdef HAVE_SYSVARS_H
 #include <sysvars.h>
+#endif
 
 /****************************************************************************
  * Module global variables                                                  *

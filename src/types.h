@@ -205,7 +205,7 @@ typedef struct parm_block {
 }PARMBLK;
 
 typedef struct user_block {
-  int __CDECL (*ub_code)(PARMBLK *parmblock);
+  int CDECL (*ub_code)(PARMBLK *parmblock);
 	LONG        ub_parm;
 }USERBLK;
 

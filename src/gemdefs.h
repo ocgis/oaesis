@@ -1,7 +1,11 @@
 #ifndef _GEMFAST_H
 #define _GEMFAST_H
 
-#ifndef _COMPILER_H
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#ifdef HAVE_COMPILER_H
 # include <compiler.h>
 #endif
 

@@ -32,14 +32,33 @@
  * Used interfaces                                                          *
  ****************************************************************************/
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#ifdef HAVE_ALLOC_H
 #include	<alloc.h>
+#endif
+
+#ifdef HAVE_BASEPAGE_H
 #include	<basepage.h>
+#endif
+
+#ifdef HAVE_MINTBIND_H
 #include	<mintbind.h>
+#endif
+
+#ifdef HAVE_OSBIND_H
 #include	<osbind.h>
+#endif
+
 #include	<signal.h>
 #include	<stdio.h>
 #include	<string.h>
+
+#ifdef HAVE_SUPPORT_H
 #include	<support.h>
+#endif
 
 #include "debug.h"
 #include "evnthndl.h"

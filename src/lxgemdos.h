@@ -1,4 +1,10 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#ifdef HAVE_OSBIND_H
 #include <osbind.h>
+#endif
 
 #include "types.h"
 

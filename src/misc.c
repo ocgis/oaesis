@@ -25,10 +25,24 @@
  * Used interfaces                                                          *
  ****************************************************************************/
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#ifdef HAVE_BASEPAGE_H
 #include <basepage.h>
+#endif
+
 #include <ctype.h>
+
+#ifdef HAVE_IOCTL_H
 #include <ioctl.h>
+#endif
+
+#ifdef HAVE_MINTBIND_H
 #include <mintbind.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -39,7 +53,9 @@
 #include "types.h"
 #include "vdi.h"
 
+#ifdef HAVE_SYSVARS_H
 #include <sysvars.h>
+#endif
 
 /****************************************************************************
  * Public functions                                                         *

@@ -38,12 +38,29 @@ v   Fixed mover grabbing bug; if the mouse was moved during click on
  * Used interfaces                                                          *
  ****************************************************************************/
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#ifdef HAVE_BASEPAGE_H
 #include <basepage.h>
+#endif
+
 #include <errno.h>
 #include <fcntl.h>
+
+#ifdef HAVE_IOCTL_H
 #include <ioctl.h>
+#endif
+
+#ifdef HAVE_MINTBIND_H
 #include <mintbind.h>
+#endif
+
+#ifdef HAVE_OSBIND_H
 #include <osbind.h>
+#endif
+
 #include <signal.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -65,7 +82,9 @@ v   Fixed mover grabbing bug; if the mouse was moved during click on
 #include "vdi.h"
 /*#include "wm/wm.h"*/
 
+#ifdef HAVE_SYSVARS_H
 #include <sysvars.h>
+#endif
 
 /****************************************************************************
  * Macros                                                                   *

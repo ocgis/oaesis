@@ -1,9 +1,27 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#ifdef HAVE_BASEPAGE_H
 #include <basepage.h>
+#endif
+
 #include <fcntl.h>
+
+#ifdef HAVE_IOCTL_H
 #include <ioctl.h>
+#endif
+
 #include <limits.h>
+
+#ifdef HAVE_MINTBIND_H
 #include <mintbind.h>
+#endif
+
+#ifdef HAVE_OSBIND_H
 #include <osbind.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

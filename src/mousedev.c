@@ -38,11 +38,25 @@
  * Used interfaces                                                          *
  ****************************************************************************/
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#ifdef HAVE_BASEPAGE_H
 #include <basepage.h>
+#endif
+
 #include <errno.h>
 #include <fcntl.h>
+
+#ifdef HAVE_IOCTL_H
 #include <ioctl.h>
+#endif
+
+#ifdef HAVE_MINTBIND_H
 #include <mintbind.h>
+#endif
+
 #include <signal.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -56,7 +70,9 @@
 #include "types.h"
 #include "vdi.h"
 
+#ifdef HAVE_SYSVARS_H
 #include <sysvars.h>
+#endif
 
 /****************************************************************************
  * Macros                                                                   *
@@ -96,7 +112,7 @@ static LONG CDECL mouse_open(FILEPTR *f) {
 	NOT_USED(f);
 
 	if(minuse) {
-		return -EACCESS;
+		return -EPERM;
 	};
 
 	mousehead = mousetail = 0;
