@@ -246,16 +246,17 @@ calculate_element_address(RSHDR * rsc,
   switch (type)
   {
   case R_TREE:    /* 0x00 */
-    return ((OARRAY *)(CW_TO_HW(rsc->rsh_trindex) + (LONG)rsc))->o[nr];
+    return (OBJECT *)CL_TO_HL(((OARRAY *)(CW_TO_HW(rsc->rsh_trindex) +
+                                          (LONG)rsc))->o[nr]);
 
   case R_BITBLK:  /* 0x04 */
     return &((BITBLK *)(CW_TO_HW(rsc->rsh_bitblk) + (LONG)rsc))[nr];
 
   case R_STRING:  /* 0x05 */
-    return ((BYTE **)(CW_TO_HW(rsc->rsh_frstr) + (LONG)rsc))[nr];
+    return ((BYTE **)CL_TO_HL(CW_TO_HW(rsc->rsh_frstr) + (LONG)rsc))[nr];
 
   case R_IMAGEDATA:  /* 0x06 */
-    return ((void **)(CW_TO_HW(rsc->rsh_frimg) + (LONG)rsc))[nr];
+    return ((void **)CL_TO_HL(CW_TO_HW(rsc->rsh_frimg) + (LONG)rsc))[nr];
                 
   case R_FRSTR:   /* 0x0f */
     return &((BYTE **)(CW_TO_HW(rsc->rsh_frstr) + (LONG)rsc))[nr];
@@ -307,6 +308,7 @@ Rsrc_do_rcfix(int      vid,
   LARRAY *    frimgwalk;
   CICONBLK ** cicons = NULL;
 
+  DEBUG0("Rsrc_do_rcfix: rsc = %p", rsc);
   /*
   ** Detect previously undetected endian mismatch. This issue has to be
   ** solved in a better way.
@@ -470,13 +472,19 @@ Rsrc_do_rcfix(int      vid,
             (CICON *)HL_TO_CL(CL_TO_HL(cicwalk->col_mask) + monosize);
         }
         
-        DEBUG3 ("Rsrc_do_rcfix: 10");
+        DEBUG3 ("Rsrc_do_rcfix: cicwalk = %p", cicwalk);
         (LONG)s.fd_addr = CL_TO_HL(cicwalk->col_data);
+        DEBUG3 ("Rsrc_do_rcfix: 10.1");
         s.fd_w = CW_TO_HW(cwalk->monoblk.ib_wicon);
+        DEBUG3 ("Rsrc_do_rcfix: 10.2");
         s.fd_h = CW_TO_HW(cwalk->monoblk.ib_hicon);
+        DEBUG3 ("Rsrc_do_rcfix: 10.3");
         s.fd_wdwidth = ((CW_TO_HW(cwalk->monoblk.ib_wicon) +15) >> 4);
+        DEBUG3 ("Rsrc_do_rcfix: 10.4");
         s.fd_stand = 1;
+        DEBUG3 ("Rsrc_do_rcfix: 10.5");
         s.fd_nplanes = CW_TO_HW(cicwalk->num_planes);
+        DEBUG3 ("Rsrc_do_rcfix: 10.6");
         
         d = s;
         d.fd_stand = 0;
@@ -636,13 +644,13 @@ Rsrc_do_rcfix(int      vid,
     treewalk->l[i] = HL_TO_CL(CL_TO_HL(treewalk->l[i]) + (LONG)rsc);
   }    
   
-  DEBUG3 ("Rsrc_do_rcfix: 9");
+  DEBUG3 ("Rsrc_do_rcfix: nstring = %d", CW_TO_HW(rsc->rsh_nstring));
   for (i = 0; i < CW_TO_HW(rsc->rsh_nstring); i++)
   {
     frstrwalk->l[i] = SWAP_LONG(frstrwalk->l[i]);
     frstrwalk->l[i] = HL_TO_CL(CL_TO_HL(frstrwalk->l[i]) + (LONG)rsc);
   }    
-  DEBUG3 ("Rsrc_do_rcfix: 10");
+  DEBUG3 ("Rsrc_do_rcfix: nimages = %d", CW_TO_HW(rsc->rsh_nimages));
   
   for (i = 0; i < CW_TO_HW(rsc->rsh_nimages); i++)
   {
@@ -717,10 +725,10 @@ Rsrc_do_gaddr(RSHDR  *  rshdr,
 {
   if(rshdr)
   {
-    *addr = (OBJECT *)HL_TO_CL(calculate_element_address(rshdr,
-                                                         type,
-                                                         index,
-                                                         is_internal));
+    *addr = calculate_element_address(rshdr,
+                                      type,
+                                      index,
+                                      is_internal);
                 
     if(*addr)
     {

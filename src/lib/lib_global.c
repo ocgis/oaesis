@@ -302,11 +302,7 @@ init_global (WORD physical_vdi_id)
     DEBUG2("lib_global.c: init_global: Calling Rsrc_do_rcfix");
     Rsrc_do_rcfix (physical_vdi_id,
                    (RSHDR *)resource,
-#ifdef WORDS_BIGENDIAN
                    FALSE
-#else
-                   TRUE
-#endif
                    ,
                    TRUE
                    );
@@ -316,7 +312,8 @@ init_global (WORD physical_vdi_id)
                   R_TREE,
                   AICONS,
                   &global_common.aiconstad,
-                  TRUE);
+                  TRUE); 
+    DEBUG3("init_global: 10");
     Rsrc_do_gaddr((RSHDR *)resource,
                   R_TREE,
                   ALERT,
@@ -347,24 +344,24 @@ init_global (WORD physical_vdi_id)
                   TRUE);
     global_common.elemnumber = -1;
  
+    DEBUG3("init_global: 11");
     /* Init mouseforms */
     Rsrc_do_rcfix (physical_vdi_id,
                    (RSHDR *)cursors,
-#ifdef WORDS_BIGENDIAN
                    FALSE
-#else
-                   TRUE
-#endif
                    ,
                    TRUE
                    );
+    DEBUG3("init_global: 12");
     Rsrc_do_gaddr((RSHDR *)cursors,
                   R_TREE,
                   MOUSEFORMS,
                   &global_common.mouseformstad,
                   TRUE);
+    DEBUG3("init_global: 13");
     Graf_init_mouseforms();
     
+    DEBUG3("init_global: 14");
 #ifdef MINT_TARGET
     /* Initialize semaphore used by Shel_do_write */
     Psemaphore(SEM_CREATE, SHEL_WRITE_LOCK, 0);
