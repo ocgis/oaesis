@@ -170,6 +170,11 @@ Form_do (AES_PB *apb) {
 
 /*form_dial 0x0033*/
 
+/*
+** Exported
+**
+** 1998-12-20 CG
+*/
 WORD
 Form_do_dial (WORD   apid,
               WORD   mode,
@@ -213,7 +218,7 @@ Form_do_dial (WORD   apid,
                      TRUE);
 					
         if(status & WIN_DIALOG) {
-          Srv_wind_close(top_window);
+          Wind_do_close (apid, top_window);
 					
           Wind_do_delete (apid,
                           top_window);
@@ -265,8 +270,8 @@ Form_do_dial (WORD   apid,
                    &dummy,
                    TRUE);
 					
-      if(status & WIN_DIALOG) {
-        Srv_wind_close(top_window);
+      if (status & WIN_DIALOG) {
+        Wind_do_close (apid, top_window);
 				
         Wind_do_delete (apid,
                         top_window);

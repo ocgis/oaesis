@@ -224,11 +224,49 @@ Appl_read (AES_PB *apb) {
                                  (void *)apb->addr_in[0]);
 }
 
-/* 0x000c appl_write */
 
-void	Appl_write(AES_PB *apb) {
+/*
+** Exported
+**
+** 1998-12-20 CG
+*/
+WORD
+Appl_do_write (WORD   apid,
+               WORD   addressee,
+               WORD   length,
+               void * m) {
+  C_APPL_WRITE par;
+  R_APPL_WRITE ret;
+
+  par.common.call = SRV_APPL_WRITE;
+  par.common.apid = apid;
+  par.common.pid = getpid ();
+
+  par.addressee = apid;
+  par.length = length;
+  par.is_reference = FALSE;
+  par.msg.event = *(COMMSG *)m; /* FIXME handle msgs larger than 16 bytes */
+	
+  Client_send_recv (&par,
+                    sizeof (C_APPL_WRITE),
+                    &ret,
+                    sizeof (R_APPL_WRITE));
+  
+  return ret.common.retval;
+}
+
+
+/*
+** Exported
+**
+** 1998-12-20 CG
+*/
+void
+Appl_write (AES_PB *apb) {
   apb->int_out[0] =	
-    Srv_appl_write(apb->int_in[0],apb->int_in[1],(void *)apb->addr_in[0]);
+    Appl_do_write (apb->global->apid,
+                   apb->int_in[0],apb->int_in[1],
+                   (void *)apb->addr_in[0]);
 }
 
 

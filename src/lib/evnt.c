@@ -614,6 +614,10 @@ Evnt_do_multi (WORD       apid,
     }
   } else if (ret.eventout.events & MU_BUTTON) {
     DB_printf ("click click");
+    Evhd_handle_button (apid,
+                        ret.eventout.mb,
+                        ret.eventout.mx,
+                        ret.eventout.my);
   }
 
   /*

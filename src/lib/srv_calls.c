@@ -171,27 +171,6 @@ WORD *ap_id)      /* Application id of found application.                   */
 
 
 /****************************************************************************
- * Srv_appl_write                                                           *
- *  Implementation of appl_write().                                         *
- ****************************************************************************/
-WORD            /* 0 if ok, or 1.                                           */
-Srv_appl_write( /*                                                          */
-WORD apid,      /* Id of application to receive message.                    */
-WORD length,    /* Length of message structure.                             */
-void *m)        /* Pointer to message structure.                            */
-/****************************************************************************/
-{
-  C_APPL_WRITE par;
-
-  par.addressee = apid;
-  par.length = length;
-  /*  par.msg = m; <-- Fix this! */
-	
-  return Srv_put (apid, SRV_APPL_WRITE, &par);
-}
-
-
-/****************************************************************************
  * Srv_click_owner                                                          *
  *  Find out which application that "owns" mouse clicks.                    *
  ****************************************************************************/
@@ -320,43 +299,6 @@ BYTE *tail)      /* Command tail.                                           */
 
 
 /****************************************************************************
- * Srv_wind_change                                                          *
- *  Change state of window widget.                                          *
- ****************************************************************************/
-WORD               /* 1 if ok, 0 if error.                                 */
-Srv_wind_change(   /*                                                       */
-WORD id,           /* Window handle.                                        */
-WORD object,       /* Widget to change state for.                           */
-WORD newstate)     /* New state of widget.                                  */
-/****************************************************************************/
-{
-  C_WIND_CHANGE par;
-	
-  par.id = id;
-  par.object = object;
-  par.newstate = newstate;
-	
-  return Srv_put (0, SRV_WIND_CHANGE, &par);
-}
-
-
-/****************************************************************************
- * Srv_wind_close                                                           *
- *  Implementation of wind_close().                                         *
- ****************************************************************************/
-WORD            /* 0 if error or 1 if ok.                                   */
-Srv_wind_close( /*                                                          */
-WORD wid)       /* Identification number of window to close.                */
-/****************************************************************************/
-{
-  C_WIND_CLOSE par;
-	
-  par.id = wid;
-	
-  return Srv_put (0, SRV_WIND_CLOSE, &par);
-}
-
-/****************************************************************************
  * Srv_wind_draw                                                            *
  *  Draw window widgets.                                                    *
  ****************************************************************************/
@@ -372,24 +314,6 @@ WORD object)     /* Object to be drawn (see WF_COLOR modes).                */
   par.object = object;
 	
   return Srv_put (0, SRV_WIND_DRAW, &par);
-}
-
-/****************************************************************************
- * Srv_wind_find                                                            *
- *  Find window on known coordinates.                                       *
- ****************************************************************************/
-WORD           /* Window handle.                                            */
-Srv_wind_find( /*                                                           */
-WORD x,        /* X coordinate.                                             */
-WORD y)        /* Y coordinate.                                             */
-/****************************************************************************/
-{
-  C_WIND_FIND par;
-	
-  par.x = x;
-  par.y = y;
-	
-  return Srv_put (0, SRV_WIND_FIND, &par);
 }
 
 /****************************************************************************

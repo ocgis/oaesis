@@ -22,7 +22,6 @@ enum {
   SRV_PUT_EVENT,
   SRV_SHEL_ENVRN,
   SRV_SHEL_WRITE,
-  SRV_WIND_CHANGE,
   SRV_WIND_CLOSE,
   SRV_WIND_CREATE,
   SRV_WIND_DELETE,
@@ -101,11 +100,11 @@ typedef struct {
     void * ref;
     COMMSG event;
   }msg;
-}C_APPL_WRITE;
+} C_APPL_WRITE;
 
 typedef struct {
   R_ALL common;
-}R_APPL_WRITE;
+} R_APPL_WRITE;
 
 typedef struct {
   WORD retval;
@@ -191,16 +190,14 @@ typedef struct {
 }C_SHEL_WRITE;
 
 typedef struct {
-  WORD id;
-  WORD object;
-  WORD newstate;
-  WORD retval;
-}C_WIND_CHANGE;
- 
+  C_ALL common;
+  WORD  id;
+  WORD  retval;
+} C_WIND_CLOSE;
+
 typedef struct {
-  WORD id;
-  WORD retval;
-}C_WIND_CLOSE;
+  R_ALL common;
+} R_WIND_CLOSE;
 
 typedef struct {
   C_ALL  common;
@@ -230,10 +227,14 @@ typedef struct {
 }C_WIND_DRAW;
 
 typedef struct {
-  WORD x;
-  WORD y;
-  WORD retval;
-}C_WIND_FIND;
+  C_ALL common;
+  WORD  x;
+  WORD  y;
+} C_WIND_FIND;
+
+typedef struct {
+  R_ALL common;
+} R_WIND_FIND;
 
 typedef struct {
   C_ALL common;
@@ -305,7 +306,6 @@ typedef union {
   C_REGISTER_PRG  register_prg;
   C_SHEL_ENVRN    shel_envrn;
   C_SHEL_WRITE    shel_write;
-  C_WIND_CHANGE   wind_change;
   C_WIND_CLOSE    wind_close;
   C_WIND_CREATE   wind_create;
   C_WIND_DELETE   wind_delete;
@@ -316,7 +316,7 @@ typedef union {
   C_WIND_OPEN     wind_open;
   C_WIND_SET      wind_set;
   C_WIND_UPDATE   wind_update;
-}C_SRV;
+} C_SRV;
 
 
 typedef union {
@@ -326,11 +326,13 @@ typedef union {
   R_APPL_WRITE  appl_write;
   R_EVNT_MULTI  evnt_multi;
   R_GET_VDI_ID  get_vdi_id;
+  R_WIND_CLOSE  wind_close;
   R_WIND_CREATE wind_create;
   R_WIND_DELETE wind_delete;
+  R_WIND_FIND   wind_find;
   R_WIND_GET    wind_get;
   R_WIND_OPEN   wind_open;
   R_WIND_UPDATE wind_update;
-}R_SRV;
+} R_SRV;
 
 #endif /* _SRV_INTERFACE_H_ */

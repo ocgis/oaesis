@@ -18,7 +18,21 @@ GLOBAL_ARRAY * global); /* Global array.                                    */
 
 void	Appl_init(AES_PB *apb);		/*0x000a*/
 void	Appl_read(AES_PB *apb);		/*0x000b*/
-void	Appl_write(AES_PB *apb);	/*0x000c*/
+
+/*
+** Description
+** Implementation of appl_write ()
+**
+** 1998-12-20 CG
+*/
+WORD
+Appl_do_write (WORD   apid,
+               WORD   addressee,
+               WORD   length,
+               void * m);
+
+void
+Appl_write (AES_PB *apb);	/*0x000c*/
 
 /****************************************************************************
  * Appl_find                                                                *

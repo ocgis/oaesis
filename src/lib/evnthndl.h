@@ -17,6 +17,18 @@ typedef struct reventlist {
 	struct reventlist	*next;	
 }REVENTLIST;
 
+/*
+** Description
+** Handle button click
+**
+** 1998-12-20 CG
+*/
+void 
+Evhd_handle_button (WORD apid,
+                    WORD newbutton,
+                    WORD x,
+                    WORD y);
+
 /****************************************************************************
  * Evhd_make_rectevent                                                      *
  *  Start reporting of mouse events.                                        *

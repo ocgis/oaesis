@@ -112,9 +112,18 @@ typedef struct window_list {
   WINDOW_STRUCT        ws;
   struct window_list * next;
 } WINDOW_LIST;
+typedef WINDOW_LIST * WINDOW_LIST_REF;
+#define WINDOW_LIST_REF_NIL ((WINDOW_LIST_REF)NULL)
 
 static WORD	elemnumber = -1;
 static WORD	tednumber;
+
+static WORD widgetmap[] = {
+	0,0,WCLOSER,WMOVER,WFULLER,
+	WINFO,0,0,WSIZER,0,
+	WUP,WDOWN,WVSB,WVSLIDER,0,
+	WLEFT,WRIGHT,WHSB,WHSLIDER,WSMALLER
+};
 
 /*calcworksize calculates the worksize or the total size of
 a window. If dir == WC_WORK the worksize will be calculated and 
@@ -926,19 +935,18 @@ Wind_create (AES_PB *apb)
                                    0);
 }
 
+
 /*wind_open 0x0065*/
 
-/****************************************************************************
- * Wind_do_open                                                             *
- *  Implementation of wind_open().                                          *
- ****************************************************************************/
-WORD           /* 0 if error or 1 if ok.                                    */
-Wind_do_open(
-WORD   apid,
-WORD   id,     /* Identification number of window to open.                  */
-RECT * size)   /* Initial size of window.                                   */
-/****************************************************************************/
-{
+/*
+** Exported
+**
+** 1998-12-20 CG
+*/
+WORD
+Wind_do_open (WORD   apid,
+              WORD   id,
+              RECT * size) {
   C_WIND_OPEN par;
   R_WIND_OPEN ret;
   
@@ -953,7 +961,7 @@ RECT * size)   /* Initial size of window.                                   */
   Client_send_recv (&par,
                     sizeof (C_WIND_OPEN),
                     &ret,
-                    sizeof (R_WIND_DELETE));
+                    sizeof (R_WIND_OPEN));
 
   /* Set the size of the window elements */
   Wind_set_size (apid, id, size);
@@ -970,10 +978,44 @@ void Wind_open(AES_PB *apb) {
                                   (RECT *)&apb->int_in[1]);
 }
 
-/*wind_close 0x0066*/
 
-void	Wind_close(AES_PB *apb) {
-	apb->int_out[0] = Srv_wind_close(apb->int_in[0]);
+/*
+** Exported
+**
+** 1998-12-20 CG
+*/
+WORD
+Wind_do_close (WORD apid,
+               WORD wid) {
+  C_WIND_CLOSE par;
+  R_WIND_CLOSE ret;
+  
+  DB_printf ("Wind_do_close entered");
+
+  par.common.call = SRV_WIND_CLOSE;
+  par.common.apid = apid;
+  par.common.pid = getpid ();
+  par.id = wid;
+	
+  Client_send_recv (&par,
+                    sizeof (C_WIND_CLOSE),
+                    &ret,
+                    sizeof (R_WIND_CLOSE));
+
+  DB_printf ("Wind_do_close returned");
+
+  return ret.common.retval;
+}
+
+
+/*
+** Exported
+**
+** 1998-12-20 CG
+*/
+void
+Wind_close (AES_PB *apb) {
+  apb->int_out[0] = Wind_do_close (apb->global->apid, apb->int_in[0]);
 }
 
 
@@ -1113,6 +1155,11 @@ Wind_do_get (WORD   apid,
 }
 
 
+/*
+** Exported
+**
+** 1998-12-20 CG
+*/
 void
 Wind_get (AES_PB *apb)
 {
@@ -1139,10 +1186,45 @@ void	Wind_set(AES_PB *apb) {
 }
 
 
-/*wind_find 0x006a*/
-void	Wind_find(AES_PB *apb) {
-	apb->int_out[0] = Srv_wind_find(apb->int_in[0],apb->int_in[1]);
+/*
+** Exported
+**
+** 1998-12-20 CG
+*/
+WORD
+Wind_do_find (WORD apid,
+              WORD x,
+              WORD y) {
+  C_WIND_FIND par;
+  R_WIND_FIND ret;
+
+  par.common.call = SRV_WIND_FIND;
+  par.common.apid = apid;
+  par.common.pid = getpid ();
+  par.x = x;
+  par.y = y;
+	
+  Client_send_recv (&par,
+                    sizeof (C_WIND_FIND),
+                    &ret,
+                    sizeof (R_WIND_FIND));
+
+  return ret.common.retval;
 }
+
+
+/*
+** Exported
+**
+** 1998-12-20 CG
+*/
+void
+Wind_find (AES_PB *apb) {
+  apb->int_out[0] = Wind_do_find (apb->global->apid,
+                                  apb->int_in[0],
+                                  apb->int_in[1]);
+}
+
 
 /*wind_update 0x006b*/
 
@@ -1202,4 +1284,55 @@ AES_PB *apb)      /* AES parameter block.                                   */
 /****************************************************************************/
 {
 	apb->int_out[0] = Srv_wind_new(apb->global->apid);
+}
+
+
+/*
+** Exported
+**
+** 1998-12-20 CG
+*/
+OBJECT *
+Wind_get_rsrc (WORD apid,
+               WORD id) {
+  GLOBAL_APPL *   globals = get_globals (apid);
+  WINDOW_LIST_REF wl;
+
+  wl = globals->windows;
+
+  /* Find the window structure for our window */
+  while (wl != WINDOW_LIST_REF_NIL) {
+    if (wl->ws.id == id) {
+      return wl->ws.tree;
+    }
+  }
+
+  return NULL;
+}
+
+
+/*
+** Exported
+**
+** 1998-12-20 CG
+*/
+WORD
+Wind_change (WORD apid,
+             WORD id,
+             WORD object,
+             WORD newstate)
+{
+  WINDOW_STRUCT * win = find_window_struct (apid, id);
+	
+  if(win) {
+    if (newstate != win->tree[widgetmap [object]].ob_state) {
+      GLOBAL_COMMON * globals = get_global_common ();
+      win->tree [widgetmap [object]].ob_state = newstate;
+      Wind_redraw_elements (apid, id, &globals->screen, widgetmap [object]);
+    }
+    
+    return 1;
+  }
+  
+  return 0;
 }

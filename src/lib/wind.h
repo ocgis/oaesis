@@ -6,6 +6,29 @@
 
 # define REDRAW_ALL (-1)
 
+
+/*
+** Description
+** Get the window elements resource for a window.
+**
+** 1998-12-20 CG
+*/
+OBJECT *
+Wind_get_rsrc (WORD apid,
+               WORD id);
+
+/*
+** Description
+** Change state of window element
+**
+** 1998-12-20 CG
+*/
+WORD
+Wind_change (WORD apid,
+             WORD id,
+             WORD object,
+             WORD newstate);
+
 /*
 ** Description
 ** Draw window elements of window <id> with a clipping rectangle <clip>.
@@ -14,11 +37,10 @@
 ** 1998-10-11 CG
 */
 void
-Wind_redraw_elements (
-WORD   apid,
-WORD   id,
-RECT * clip,
-WORD   start);
+Wind_redraw_elements (WORD   apid,
+                      WORD   id,
+                      RECT * clip,
+                      WORD   start);
 
 /****************************************************************************
  * Wind_do_create                                                           *
@@ -46,7 +68,19 @@ RECT * size);  /* Initial size of window.                                   */
 /****************************************************************************/
 
 void Wind_open(AES_PB *apb);   /*0x0065*/
-void Wind_close(AES_PB *apb);  /*0x0066*/
+
+/*
+** Description
+** Implementation of wind_close ()
+**
+** 1998-12-20 CG
+*/
+WORD
+Wind_do_close (WORD apid,
+               WORD wid);
+
+void
+Wind_close (AES_PB *apb);  /*0x0066*/
 
 /****************************************************************************
  * Wind_do_delete                                                           *
@@ -78,7 +112,21 @@ Wind_do_get (WORD   apid,
 
 void Wind_get(AES_PB *apb);    /*0x0068*/
 void Wind_set(AES_PB *apb);    /*0x0069*/
-void Wind_find(AES_PB *apb);   /*0x006a*/
+
+/*
+** Description
+** Find window on known coordinates.                                       *
+**
+** 1998-12-20 CG
+*/
+WORD
+Wind_do_find (WORD apid,
+              WORD x,
+              WORD y);
+
+void
+Wind_find (AES_PB *apb);   /*0x006a*/
+
 void Wind_update(AES_PB *apb); /*0x006b*/
 void Wind_calc(AES_PB *apb);   /*0x006c*/
 

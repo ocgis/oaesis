@@ -164,13 +164,6 @@ static OBJC_COLORWORD untop_colour[20] = {
   {BLACK,BLACK,1,7,LWHITE}
 };
 
-static WORD widgetmap[] = {
-	0,0,WCLOSER,WMOVER,WFULLER,
-	WINFO,0,0,WSIZER,0,
-	WUP,WDOWN,WVSB,WVSLIDER,0,
-	WLEFT,WRIGHT,WHSB,WHSLIDER,WSMALLER
-};
-
 /* Physical VDI workstation id */
 static WORD svid;
 
@@ -195,14 +188,10 @@ void
 srv_appl_write (C_APPL_WRITE * msg,
                 R_APPL_WRITE * ret);
 
-/****************************************************************************
- * srv_wind_find                                                            *
- *  Find window on known coordinates.                                       *
- ****************************************************************************/
-WORD           /* Window handle.                                            */
-srv_wind_find( /*                                                           */
-C_WIND_FIND *msg);
-/****************************************************************************/
+static
+void
+srv_wind_find(C_WIND_FIND * par,
+              R_WIND_FIND * ret);
 
 static
 void
@@ -450,6 +439,9 @@ update_appl_menu(void) /*                                                   */
 	
   return topappl;}
 
+/*
+** FIXME
+** Move to lib
 static void set_widget_colour(WINSTRUCT *win,WORD widget,
 			      OBJC_COLORWORD *untop,OBJC_COLORWORD *top) {
   U_OB_SPEC      *ob_spec;
@@ -504,6 +496,7 @@ static void set_widget_colour(WINSTRUCT *win,WORD widget,
     };
   };
 }
+*/
 
 static void packelem(OBJECT *tree,WORD object,WORD left,WORD right,
                      WORD top,WORD bottom) {
@@ -903,14 +896,15 @@ srv_click_owner(void)   /*                                                  */
     WORD        status;
     WORD        owner;
     C_WIND_FIND c_wind_find;
+    R_WIND_FIND r_wind_find;
     C_WIND_GET  c_wind_get;
     R_WIND_GET  r_wind_get;
 
     c_wind_find.x = globals.mouse_x;
     c_wind_find.y = globals.mouse_y;
-    srv_wind_find (&c_wind_find);
+    srv_wind_find (&c_wind_find, &r_wind_find);
     
-    c_wind_get.handle = c_wind_find.retval;
+    c_wind_get.handle = r_wind_find.common.retval;
     c_wind_get.mode = WF_OWNER;
     srv_wind_get (&c_wind_get, &r_wind_get);
     owner = r_wind_get.parm1;
@@ -1602,10 +1596,10 @@ srv_appl_write (C_APPL_WRITE * msg,
 {
   AP_INFO	*ai;
   
-  ai = search_appl_info (msg->addressee);
-  
   DB_printf ("srv.c: srv_appl_write");
 
+  ai = search_appl_info (msg->addressee);
+  
   if (ai != NULL) {
     if (ai->message_size <= (MSG_BUFFER_SIZE - MSG_LENGTH)) {
       if (msg->is_reference) {
@@ -2891,10 +2885,14 @@ static WORD	bottom_window(WORD winid) {
     WORD           i;
     C_APPL_CONTROL c_appl_control;
 
+    /*
+    ** FIXME
+    ** Remove? Move?
     for(i = 0; i <= W_SMALLER; i++) {
       set_widget_colour(ourwl->win,i,&ourwl->win->untop_colour[i],&ourwl->win->top_colour[i]);
       set_widget_colour(newtop,i,&newtop->top_colour[i],&newtop->top_colour[i]);
     };
+    */
     
     draw_wind_elements(ourwl->win,&ourwl->win->totsize,0);
     draw_wind_elements(newtop,&newtop->totsize,0);
@@ -2927,12 +2925,16 @@ static WORD top_window(WORD winid) {
       
       win_vis->win->status &= ~WIN_TOPPED;
       
+      /*
+      ** FIXME
+      ** Move? Remove?
       for(i = 0; i <= W_SMALLER; i++) {
 	set_widget_colour(win_vis->win,i,&win_vis->win->untop_colour[i],
 			  &win_vis->win->top_colour[i]);
       };
       
       draw_wind_elements(win_vis->win,&win_vis->win->totsize,0);
+      */
     };
   }
   else {
@@ -3046,6 +3048,9 @@ static WORD top_window(WORD winid) {
       WORD i;
       C_APPL_CONTROL c_appl_control;
       
+      /*
+      ** FIXME
+      ** Move? Remove?
       for(i = 0; i <= W_SMALLER; i++) {
 	set_widget_colour(oldtop,i,&oldtop->untop_colour[i],
 			  &oldtop->top_colour[i]);
@@ -3055,7 +3060,8 @@ static WORD top_window(WORD winid) {
 	
       draw_wind_elements(ourwl->win,&ourwl->win->totsize,0);
       draw_wind_elements(oldtop,&oldtop->totsize,0);
-      
+      */
+
       c_appl_control.apid = ourwl->win->owner;
       c_appl_control.mode = APC_TOP;
       srv_appl_control(&c_appl_control);
@@ -3065,64 +3071,44 @@ static WORD top_window(WORD winid) {
   return 1;
 }
 
-/****************************************************************************
- * srv_wind_change                                                          *
- *  Change state of window widget.                                          *
- ****************************************************************************/
-static WORD        /* 1 if ok, 0 if error.                                 */
-srv_wind_change(   /*                                                       */
-C_WIND_CHANGE *msg)
-/****************************************************************************/
-{
-  WINSTRUCT *win = find_wind_description(msg->id);
-	
-  if(win) {
-    if(msg->newstate != win->tree[widgetmap[msg->object]].ob_state) {
-      win->tree[widgetmap[msg->object]].ob_state = msg->newstate;
-      draw_wind_elements(win,&globals.screen,widgetmap[msg->object]);
-    };
-    
-    return 1;
-  };
-  
-  return 0;
-}
 
-/****************************************************************************
- * srv_wind_close                                                           *
- *  Implementation of wind_close().                                         *
- ****************************************************************************/
-WORD            /* 0 if error or 1 if ok.                                   */
-srv_wind_close( /*                                                          */
-C_WIND_CLOSE *msg)
-/****************************************************************************/
-{
+/*
+** Description
+** Implementation of wind_close ()
+**
+** 1998-12-20 CG
+*/
+static
+void
+srv_wind_close (C_WIND_CLOSE * par,
+                R_WIND_CLOSE * ret) {
   WINLIST   **wl = &win_vis;
   WINSTRUCT *newtop = NULL;
 	
-  while(*wl) {
-    if((*wl)->win->id == msg->id)
+  while (*wl) {
+    if((*wl)->win->id == par->id) {
       break;
-    
+    }
+
     wl = &(*wl)->next;
-  };
+  }
   
-  if(*wl) {
+  if (*wl) {
     WINLIST      *wp = (*wl)->next;
     REDRAWSTRUCT m;
-    
+
     if(((*wl)->win->status & WIN_TOPPED) && wp) {
       (*wl)->win->status &= ~WIN_TOPPED;
       wp->win->status |= WIN_TOPPED;
       newtop = wp->win;
-    };
+    }
     
-    while(wp) {			
+    while (wp) {			
       RLIST	*rl = NULL;
       RLIST	*tl;
-      
-      Rlist_rectinter(&rl,&wp->win->totsize,&(*wl)->win->rlist);
-      
+
+      Rlist_rectinter (&rl, &wp->win->totsize, &(*wl)->win->rlist);
+
       /* Redraw "new" rectangles of windows below */
       
       if(rl) {
@@ -3138,12 +3124,11 @@ C_WIND_CLOSE *msg)
 	    m.sid = -1;
 	    m.area.x = (*wl)->win->totsize.x - wp->win->totsize.x;
 	    m.area.y = (*wl)->win->totsize.y - wp->win->totsize.y;
-	  }
-	  else {
+	  } else {
 	    m.sid = 0;
 	    m.area.x = (*wl)->win->totsize.x;
 	    m.area.y = (*wl)->win->totsize.y;
-	  };
+	  }
 	  
 	  m.area.width = (*wl)->win->totsize.width;
 	  m.area.height = (*wl)->win->totsize.height;	
@@ -3154,21 +3139,21 @@ C_WIND_CLOSE *msg)
 	  c_appl_write.msg.ref = &m;
 
 	  srv_appl_write (&c_appl_write, &r_appl_write);
-	};
+	}
 	
 	if(wp->win != newtop) {
 	  tl = rl;
 	  
-	  while(tl) {				
+	  while (tl) {				
 	    draw_wind_elemfast(wp->win,&tl->r,0);
 	    
 	    tl = tl->next;
-	  };
-	};
+	  }
+	}
 	
-	Rlist_insert(&wp->win->rlist,&rl);
+	Rlist_insert (&wp->win->rlist, &rl);
 	wp->win->rpos = wp->win->rlist;
-      };		
+      }
       
       wp = wp->next;
     }		
@@ -3183,18 +3168,21 @@ C_WIND_CLOSE *msg)
     if(newtop) {
       WORD i;
       
+      /*
+      ** FIXME
+      ** Move? Remove?
       for(i = 0; i <= W_SMALLER; i++) {
 	set_widget_colour(newtop,i,&newtop->untop_colour[i],
 			  &newtop->top_colour[i]);
       };
       
       draw_wind_elements(newtop,&newtop->totsize,0);
-    };
+      */
+    }
     
-    return 1;
-  }
-  else {
-    return 0;
+    ret->common.retval = 1;
+  } else {
+    ret->common.retval = 0;
   }
 }
 
@@ -3299,10 +3287,12 @@ srv_wind_delete (C_WIND_DELETE * msg,
     /* We found the window */
     if((*wl)->win->status & WIN_OPEN) {
       C_WIND_CLOSE c_wind_close;
-      
+      R_WIND_CLOSE r_wind_close;
+
       c_wind_close.id = msg->id;
       
-      srv_wind_close(&c_wind_close);
+      srv_wind_close (&c_wind_close,
+                      &r_wind_close);
     }
     
     delwinelem((*wl)->win->tree);
@@ -3366,47 +3356,31 @@ srv_wind_delete (C_WIND_DELETE * msg,
   }
 }
 
-/****************************************************************************
- * srv_wind_draw                                                            *
- *  Draw window widgets.                                                    *
- ****************************************************************************/
-static WORD      /* 0 if an error occured, or >0                            */
-srv_wind_draw(   /*                                                         */
-C_WIND_DRAW *msg)
-/****************************************************************************/
-{
-  WINSTRUCT *win = find_wind_description(msg->handle);
-	
-  if(win) {
-    draw_wind_elements(win,&globals.screen,widgetmap[msg->object]);
-    
-    return 1;
-  };
-  
-  return 0;
-}
 
-/****************************************************************************
- * srv_wind_find                                                            *
- *  Find window on known coordinates.                                       *
- ****************************************************************************/
-WORD           /* Window handle.                                            */
-srv_wind_find( /*                                                           */
-C_WIND_FIND *msg)
-/****************************************************************************/
-{
+/*
+** Description
+** Find window on known coordinates
+**
+** 1998-12-20 CG
+*/
+static
+void
+srv_wind_find (C_WIND_FIND * par,
+               R_WIND_FIND * ret) {
   WINLIST *l = win_vis;
-  
+
+  ret->common.retval = 0;
+
   while(l) {
-    if(Misc_inside(&l->win->totsize,msg->x,msg->y)) {
-      return l->win->id;
-    };
+    if (Misc_inside (&l->win->totsize, par->x, par->y)) {
+      ret->common.retval = l->win->id;
+      break;
+    }
     
     l = l->next;
-  };
-  
-  return 0;
+  }
 }
+
 
 /*
 ** Description
@@ -4085,7 +4059,7 @@ server (LONG arg) {
 
   svid = globals.vid;
   DB_printf ("srv.c: Opening vdi workstation");
-  Vdi_v_opnwk(work_in, &svid, work_out);
+  Vdi_v_opnwk (work_in, &svid, work_out);
   DB_printf ("srv.c: Opened vdi workstation: svdi = %d", svid);
 
   /* Initialize desktop background */
@@ -4096,10 +4070,11 @@ server (LONG arg) {
   
   ws->tree = NULL;
   
-  ws->worksize.x = globals.screen.x;
-  ws->worksize.y = globals.screen.y + globals.clheight + 3;
-  ws->worksize.width = globals.screen.width;
-  ws->worksize.height = globals.screen.height - globals.clheight - 3;
+  /* FIXME */
+  ws->worksize.x = 0 /*globals.screen.x*/;
+  ws->worksize.y = 0 /*globals.screen.y + globals.clheight + 3*/;
+  ws->worksize.width = 1024 /*globals.screen.width*/;
+  ws->worksize.height = 768 /*globals.screen.height - globals.clheight - 3*/;
   
   ws->maxsize = ws->totsize = ws->worksize;
   
@@ -4110,6 +4085,7 @@ server (LONG arg) {
   wl->next = win_vis;
   win_vis = wl;
 
+  /* FIXME */
   wl->win->rlist = (RLIST *)Mxalloc(sizeof(RLIST),GLOBALMEM);
   wl->win->rlist->r.x = 0 /*globals.screen.x*/;
   wl->win->rlist->r.y = 0 /*globals.screen.y*/;
@@ -4274,18 +4250,10 @@ server (LONG arg) {
         Srv_reply (handle, &par, code);
         break;
         
-      case SRV_WIND_CHANGE:
-        code = 
-          srv_wind_change(&par.wind_change);
-        
-        Srv_reply (handle, &par, code);
-        break;
-        
       case SRV_WIND_CLOSE:
-        code = 
-          srv_wind_close(&par.wind_close);
+        srv_wind_close (&par.wind_close, &ret.wind_close);
         
-        Srv_reply (handle, &par, code);
+        Srv_reply (handle, &ret, sizeof (R_WIND_CLOSE));
         break;
         
       case SRV_WIND_CREATE:
@@ -4301,18 +4269,11 @@ server (LONG arg) {
         Srv_reply (handle, &ret, sizeof (R_WIND_DELETE));
         break;
         
-      case SRV_WIND_DRAW:
-        code = 
-          srv_wind_draw (&par.wind_draw);
-        
-        Srv_reply (handle, &par, code);
-        break;
-        
       case SRV_WIND_FIND:
-        code = 
-          srv_wind_find(&par.wind_find);
+        srv_wind_find (&par.wind_find,
+                       &ret.wind_find);
         
-        Srv_reply (handle, &par, code);
+        Srv_reply (handle, &ret, sizeof (R_WIND_FIND));
         break;
         
       case SRV_WIND_GET:
