@@ -13,6 +13,7 @@
 ** Read the file COPYING for more information.
 */
 
+#define DEBUGLEVEL 0
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -44,6 +45,7 @@
 #endif
 
 #include "boot.h"
+#include "debug.h"
 #include "launcher.h"
 #include "misc.h"
 
@@ -155,12 +157,20 @@ start_programs(void)
   /* Start shell if it was specified */
   if(Boot_shell != NULL)
   {
+    DEBUG2("Starting shell: %s %d %s",
+           Boot_shell->name,
+           Boot_shell->cmdline[0],
+           &Boot_shell->cmdline[1]);
     shel_write(SWM_LAUNCH, 0, 0, Boot_shell->name, Boot_shell->cmdline);
   }
 
   /* Start applications specified in the configuration file */
   for(run_walk = Boot_runlist; run_walk != NULL; run_walk = run_walk->next)
   {
+    DEBUG2("Starting application: %s %d %s",
+           run_walk->name,
+           run_walk->cmdline[0],
+           &run_walk->cmdline[1]);
     shel_write(SWM_LAUNCH, 0, 0, run_walk->name, run_walk->cmdline);
   }
   
@@ -179,7 +189,9 @@ start_programs(void)
     /* FIXME */
 #endif
   }
-  
+
+  DEBUG2("Starting accessories in %s", Boot_acc_path);
+
   misc_setpath(Boot_acc_path);
   
   found = Fsfirst("*.acc", 0);

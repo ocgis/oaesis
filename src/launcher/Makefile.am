@@ -1,5 +1,5 @@
 CFLAGS = -Wall @CFLAGS@
-INCLUDES = -I../lib
+INCLUDES = -I../common -I../lib
 
 SRCS = \
 	launch.rsc launch.hrd boot.c boot.h launch.c launcher.c launcher.h \
