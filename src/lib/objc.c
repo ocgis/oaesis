@@ -1096,7 +1096,6 @@ drawicon (WORD vid,
   xyarray[5] = y + ib->ib_yicon;
   xyarray[6] = x + ib->ib_xicon + ib->ib_wicon - 1;
   xyarray[7] = y + ib->ib_yicon + ib->ib_hicon - 1;
-
   (LONG)s.fd_addr = (LONG)ib->ib_pmask;
   s.fd_w = ib->ib_wicon;
   s.fd_h = ib->ib_hicon;

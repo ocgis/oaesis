@@ -1,40 +1,18 @@
-/****************************************************************************
-
- Module
-  rsrc.c
-  
- Description
-  Resource handling functions in oAESis.
-  
- Author(s)
-        cg (Christer Gustavsson <d2cg@dtek.chalmers.se>)
-        
- Revision history
- 
-  951224 cg
-   Added standard header.
- 
-  951228 cg
-   Fixed bug in Rsrc_load; if the resource couldn't be loaded no error
-   code was returned.
-   
-  960413 cg
-   Fixed bug in fixobcoord(); changed from signed to unsigned BYTE.
-
- To be done
-   Check if there really are any colour icons in Rsrc_do_rcfix
- 
- Copyright notice
-  The copyright to the program code herein belongs to the authors. It may
-  be freely duplicated and distributed without fee, but not charged for.
- 
- ****************************************************************************/
+/*
+** rsrc.c.h
+**
+** Copyright 1995 - 2000 Christer Gustavsson <cg@nocrew.org>
+**
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+**  
+** Read the file COPYING for more information.
+**
+*/
 
 #define DEBUGLEVEL 0
-
-/****************************************************************************
- * Used interfaces                                                          *
- ****************************************************************************/
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -60,29 +38,14 @@
 #include "shel.h"
 #include "types.h"
 
-/****************************************************************************
- * Macros                                                                   *
- ****************************************************************************/
-
 #define FO_READ 0
 
-/****************************************************************************
- * Typedefs of module global interest                                       *
- ****************************************************************************/
- 
 typedef struct {
   LONG filesize;
   LONG cicon_offset;
   LONG terminator;
 }RSHD_EXT;
 
-/****************************************************************************
- * Module global variables                                                  *
- ****************************************************************************/
-
-/****************************************************************************
- * Local functions (use static!)                                            *
- ****************************************************************************/
 
 #define CONVCOORD(value, chsize) \
             (((value >> 8) & 0xff) + ((value & 0xff) * chsize))
@@ -575,6 +538,17 @@ Rsrc_do_rcfix(WORD     vid,
     (LONG)ibwalk[i].ib_pmask = SWAP_LONG((LONG)ibwalk[i].ib_pmask) + (LONG)rsc;
     (LONG)ibwalk[i].ib_pdata = SWAP_LONG((LONG)ibwalk[i].ib_pdata) + (LONG)rsc;
     (LONG)ibwalk[i].ib_ptext = SWAP_LONG((LONG)ibwalk[i].ib_ptext) + (LONG)rsc;
+    ibwalk[i].ib_char = SWAP_WORD(ibwalk[i].ib_char);
+    ibwalk[i].ib_xchar = SWAP_WORD(ibwalk[i].ib_xchar);
+    ibwalk[i].ib_ychar = SWAP_WORD(ibwalk[i].ib_ychar);
+    ibwalk[i].ib_xicon = SWAP_WORD(ibwalk[i].ib_xicon);
+    ibwalk[i].ib_yicon = SWAP_WORD(ibwalk[i].ib_yicon);
+    ibwalk[i].ib_wicon = SWAP_WORD(ibwalk[i].ib_wicon);
+    ibwalk[i].ib_hicon = SWAP_WORD(ibwalk[i].ib_hicon);
+    ibwalk[i].ib_xtext = SWAP_WORD(ibwalk[i].ib_xtext);
+    ibwalk[i].ib_ytext = SWAP_WORD(ibwalk[i].ib_ytext);
+    ibwalk[i].ib_wtext = SWAP_WORD(ibwalk[i].ib_wtext);
+    ibwalk[i].ib_htext = SWAP_WORD(ibwalk[i].ib_htext);
   }
   DEBUG3 ("Rsrc_do_rcfix: 7");
   
