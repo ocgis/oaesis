@@ -18,7 +18,6 @@
 
 #include <mintbind.h>
 
-#ifdef MINT_TARGET
 /*
 ** Description
 ** Set current working directory
@@ -26,6 +25,7 @@
 int
 misc_setpath(char * dir)
 {
+#ifdef MINT_TARGET
   int    drv, old;
   char * d;
   
@@ -52,7 +52,7 @@ misc_setpath(char * dir)
   }
   
   return 0;
-}
 #else /* MINT_TARGET */
-/* FIXME */
+  return chdir(dir);
 #endif /* MINT_TARGET */
+}
