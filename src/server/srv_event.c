@@ -1,7 +1,7 @@
 /*
 ** srv_event.c
 **
-** Copyright 1998-1999 Christer Gustavsson <cg@nocrew.org>
+** Copyright 1998 - 2000 Christer Gustavsson <cg@nocrew.org>
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -525,13 +525,18 @@ srv_wait_for_event (COMM_HANDLE    handle,
 */
 static
 void
-handle_mouse_buttons (void) {
+handle_mouse_buttons (void)
+{
   /* Did the mouse buttons change? */
-  if (buttons_last != buttons_new) {
-    WORD click_owner = srv_click_owner (x_last, y_last);
-    WORD index = (appl_list [click_owner].mouse_head +
-                  appl_list [click_owner].mouse_size) % MOUSE_BUFFER_SIZE;
-    
+  if (buttons_last != buttons_new)
+  {
+    WORD click_owner;
+    WORD index;
+
+    click_owner = srv_click_owner (x_last, y_last);
+    index = (appl_list [click_owner].mouse_head +
+	     appl_list [click_owner].mouse_size) % MOUSE_BUFFER_SIZE;
+
     appl_list [click_owner].mouse_buffer [index].x = x_last;
     appl_list [click_owner].mouse_buffer [index].y = y_last;
     appl_list [click_owner].mouse_buffer [index].buttons = buttons_new;
@@ -542,7 +547,8 @@ handle_mouse_buttons (void) {
     buttons_last = buttons_new;
 
     /* Wake the application if it's waiting */
-    if (appl_list [click_owner].is_waiting) {
+    if(appl_list [click_owner].is_waiting)
+    {
       R_EVNT_MULTI ret;
       
       /* Reset events before calling check_mouse_buttons! */
@@ -550,7 +556,8 @@ handle_mouse_buttons (void) {
       ret.eventout.events = check_mouse_buttons (&appl_list [click_owner].par,
                                                  &ret);
 
-      if (ret.eventout.events != 0) {
+      if (ret.eventout.events != 0)
+      {
         PUT_R_ALL(EVNT_MULTI, &ret, 0);
         SRV_REPLY(appl_list [click_owner].handle, &ret, sizeof (R_EVNT_MULTI));
 
