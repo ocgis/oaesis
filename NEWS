@@ -1,3 +1,9 @@
+* Version 0.91
+
+** Bugfixes for desktop, mouse clicks and more have been made.
+
+** Some support for emulated programs using otosis + ocpuis has been added.
+
 * Version 0.90
 
 ** oAESis has been converted into a client/server system and can now
