@@ -1,7 +1,7 @@
 /*
 ** aesbind.h
 **
-** Copyright 1998 - 2000 Christer Gustavsson <cg@nocrew.org>
+** Copyright 1998 - 2001 Christer Gustavsson <cg@nocrew.org>
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -308,9 +308,13 @@ typedef struct _mn_set {
 #define WF_NAME           2
 #define WF_INFO           3
 #define WF_WORKXYWH       4
+#define WF_WXYWH         WF_WORKXYWH
 #define WF_CURRXYWH       5
+#define WF_CXYWH         WF_CURRXYWH
 #define WF_PREVXYWH       6
+#define WF_PXYWH         WF_PREVXYWH
 #define WF_FULLXYWH       7
+#define WF_FXYWH         WF_FULLXYWH
 #define WF_HSLIDE         8
 #define WF_VSLIDE         9
 #define WF_TOP           10
