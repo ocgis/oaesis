@@ -324,6 +324,7 @@ handle_arrow_click (WORD apid,
 **
 ** 1998-12-20 CG
 ** 1998-12-25 CG
+** 1999-01-01 CG
 */
 static
 void
@@ -390,7 +391,7 @@ handle_mover_click (WORD apid,
     
     Appl_do_write (apid, owner, 16, &m);
   } else {
-    Graf_do_mouse (FLAT_HAND, NULL);
+    Graf_do_mouse (apid, FLAT_HAND, NULL);
         
     if (FALSE /*globals.realmove*/) { /* FIXME */
       mesag.type = WM_MOVED;
@@ -500,7 +501,7 @@ handle_mover_click (WORD apid,
       Wind_do_update (apid, END_UPDATE);
     }
     
-    Graf_do_mouse(M_RESTORE,NULL);
+    Graf_do_mouse(apid, M_RESTORE,NULL);
   }
         
   Wind_change (apid, win_id, W_NAME, 0);
@@ -613,6 +614,7 @@ handle_sizer_click (WORD apid,
 ** Handle mouse button click on window slider
 **
 ** 1998-12-20 CG
+** 1999-01-01 CG
 */
 static
 void
@@ -641,7 +643,7 @@ handle_slider_click (WORD apid,
 
   WORD widget = (elem == WHSLIDER) ? W_HSLIDE : W_VSLIDE;
 
-  Graf_do_mouse(FLAT_HAND, NULL);
+  Graf_do_mouse (apid, FLAT_HAND, NULL);
 
   Objc_do_offset(tree,elem,(WORD *)&elemrect);
   elemrect.width = tree[elem].ob_width;
@@ -801,7 +803,7 @@ handle_slider_click (WORD apid,
 
   Wind_change (apid, win_id, widget, 0);
 
-  Graf_do_mouse(M_RESTORE, NULL);  
+  Graf_do_mouse (apid, M_RESTORE, NULL);  
 }
 
 

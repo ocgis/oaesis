@@ -352,6 +352,9 @@ main ()
   
   int   work_out[57];
   static OBJECT deskbg [1];
+  char path[] = "/usr/dum";
+  char file[] = "djuro";
+  short exit_button;
   
   WORD  wc, hc, wb, hb;
 
@@ -395,6 +398,8 @@ main ()
   #if 0
   graf_mouse(ARROW,0L);
   #endif
+
+  fsel_exinput (path, file, &exit_button, "Hulabopp");
 
   testwin();
 

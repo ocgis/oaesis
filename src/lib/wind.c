@@ -788,7 +788,6 @@ Wind_redraw_elements (WORD   apid,
     if (globals->desktop_background != NULL) {
       RECT r;
      
-      DB_printf ("=========== before wind_get");
       Wind_do_get (apid,
                    id,
                    WF_FIRSTXYWH,
@@ -1110,6 +1109,7 @@ void Wind_delete(AES_PB *apb) {
 ** Lib part of wind_get
 **
 ** 1998-10-04 CG
+** 1999-01-02 CG
 */
 WORD
 Wind_do_get (WORD   apid,
@@ -1119,24 +1119,28 @@ Wind_do_get (WORD   apid,
              WORD * parm2,
              WORD * parm3,
              WORD * parm4,
-             WORD   in_workarea)
-{
+             WORD   in_workarea) {
   C_WIND_GET par;
   R_WIND_GET ret;
   RECT       workarea;
 
-  /* We can handle some calls without calling the server */
+  /*
+  ** We can handle some calls without calling the server.
+  */
   if (mode == WF_WORKXYWH) {
     WINDOW_STRUCT * ws = find_window_struct (apid, handle);
 
-    if (ws == NULL) {
-      /* An error occurred */
-      return 0;
-    } else {
+    /*
+    ** Return area if we have it. If not just do a server call the normal
+    ** way.
+    */
+    if (ws != NULL) {
       *parm1 = ws->worksize.x;
       *parm2 = ws->worksize.y;
       *parm3 = ws->worksize.width;
       *parm4 = ws->worksize.height;
+
+      /* OK */
       return 1;
     }
   }

@@ -324,6 +324,7 @@ static DIRENTRY *find_entry(DIRDESC *dd,WORD pos) {
 ** Handle file list slider
 **
 ** 1998-12-19 CG
+** 1999-01-01 CG
 */
 static
 void
@@ -361,7 +362,7 @@ slider_handle (WORD      apid,
     ei.m1r.y = global_y;
 
     Evhd_wind_update(apid, BEG_MCTRL);
-    Graf_do_mouse(FLAT_HAND, NULL);
+    Graf_do_mouse (apid, FLAT_HAND, NULL);
     Objc_do_change (apid, tree, FISEL_SLIDER, clip, SELECTED, REDRAW);
 
     while(1) {
@@ -370,7 +371,7 @@ slider_handle (WORD      apid,
       if(eo.events & MU_BUTTON) {
 
         Objc_do_change (apid, tree, FISEL_SLIDER, clip, 0, REDRAW);
-        Graf_do_mouse(M_LAST, NULL);
+        Graf_do_mouse (apid, M_LAST, NULL);
 
         if(eo.mb & RIGHT_BUTTON) {
           dd->pos = oldpos;
@@ -424,6 +425,7 @@ slider_handle (WORD      apid,
 ** Exported
 **
 ** 1998-12-19 CG
+** 1999-01-01 CG
 */
 WORD
 Fsel_do_exinput (WORD   apid,
@@ -445,7 +447,7 @@ Fsel_do_exinput (WORD   apid,
   RECT src,dst;
   GLOBAL_APPL * globals = get_globals (apid);
 
-  Graf_do_mouse(BUSY_BEE, NULL);
+  Graf_do_mouse (apid, BUSY_BEE, NULL);
 
   tree = Rsrc_duplicate(globals->common->fiseltad);	
 	
@@ -462,7 +464,7 @@ Fsel_do_exinput (WORD   apid,
 
   strcpy(oldpath,path);
 
-  Form_do_center (apid, tree,&clip);
+  Form_do_center (apid, tree, &clip);
 
   Objc_do_offset(tree,FISEL_FIRST,(WORD *)&dst);
   dst.width = tree[FISEL_FIRST].ob_width;
@@ -472,19 +474,25 @@ Fsel_do_exinput (WORD   apid,
   src = dst;
   src.y = dst.y + tree[FISEL_FIRST].ob_height;
 
-  Form_do_dial(apid,FMD_START,&clip,&clip);
+  Form_do_dial (apid, FMD_START, &clip, &clip);
+  DB_printf ("fsel.c: Fsel_do_exinput: -2");
 
-  Objc_do_draw (apid, tree,0,9,&clip);
+  Objc_do_draw (globals->vid, tree, 0, 9, &clip);
+  DB_printf ("fsel.c: Fsel_do_exinput: -1");
+  
+  Graf_do_mouse (apid, ARROW, NULL);
+  DB_printf ("fsel.c: Fsel_do_exinput: 0");
 
-  Graf_do_mouse(ARROW, NULL);
+  while (TRUE) {
+    DB_printf ("fsel.c: Fsel_do_exinput: 1");
 
-  while(1) {
     but_chosen = Form_do_do (apid, tree, FISEL_DIRECTORY);
+    DB_printf ("fsel.c: Fsel_do_exinput: 2");
 	
     switch(but_chosen & 0x7fff) {
     case FISEL_OK:
-      if(strcmp(oldpath,path)) {
-        Graf_do_mouse(BUSY_BEE, NULL);
+      if (strcmp (oldpath, path)) {
+        Graf_do_mouse (apid, BUSY_BEE, NULL);
 
         tree[FISEL_OK].ob_state &= ~SELECTED;
         Objc_do_draw (apid, tree,FISEL_OK,9,&clip);
@@ -499,9 +507,9 @@ Fsel_do_exinput (WORD   apid,
         Objc_do_draw (apid, tree,FISEL_SB,9,&clip);	
 				
         strcpy(oldpath,path);
-        Graf_do_mouse(M_LAST, NULL);
+        Graf_do_mouse (apid, M_LAST, NULL);
         break;
-      };
+      }
 			
       /* Fall through... */
 			
@@ -664,7 +672,7 @@ Fsel_do_exinput (WORD   apid,
       strcat(newpath,tmp);
       strcpy(path,newpath);
 
-      Graf_do_mouse(BUSY_BEE, NULL);
+      Graf_do_mouse (apid, BUSY_BEE, NULL);
 
 
       reset_dirdesc(&dd);
@@ -680,8 +688,8 @@ Fsel_do_exinput (WORD   apid,
       Objc_do_draw (apid, tree,FISEL_SB,9,&clip);	
 				
       strcpy(oldpath,path);
-      Graf_do_mouse(M_LAST, NULL);
-    };
+      Graf_do_mouse (apid, M_LAST, NULL);
+    }
     break;
 			
     default:
@@ -698,7 +706,7 @@ Fsel_do_exinput (WORD   apid,
             BYTE newpath[128];
             BYTE *tmp;
 						
-            Graf_do_mouse(BUSY_BEE, NULL);
+            Graf_do_mouse (apid, BUSY_BEE, NULL);
 		
             strcpy(newpath,path);
 							
@@ -732,9 +740,8 @@ Fsel_do_exinput (WORD   apid,
 						
             strcpy(oldpath,path);
 
-            Graf_do_mouse(M_LAST, NULL);
-          }
-          else {
+            Graf_do_mouse (apid, M_LAST, NULL);
+          } else {
             strcpy(file,&dent->name[3]);
 						
             if(((selected - dd.pos) >= 0) &&

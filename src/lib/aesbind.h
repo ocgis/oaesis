@@ -785,8 +785,10 @@ int form_error (int ErrorCode);
 int form_keybd (void *Ktree, int Kobject, int Kobnext,
                                  int Kchar, int *Knxtobject, int *Knxtchar);
 
-int fsel_exinput (char *Path, char *File, int *ExitButton,
-                                   char *Prompt);
+short fsel_exinput (char *  Path,
+                    char *  File,
+                    short * ExitButton,
+                    char *  Prompt);
 int fsel_input (char *Path, char *File, int *ExitButton);
 
 int graf_dragbox (int Sw, int Sh, int Sx, int Sy, int Bx,

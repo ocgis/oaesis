@@ -318,7 +318,12 @@ init_global (WORD nocnf,
   Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,AICONS,&global_common.aiconstad);
   Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,ALERT,&global_common.alerttad);
   Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,DESKBG,&global_common.deskbgtad);
-  Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,FISEL,&global_common.fiseltad);
+  */
+  Rsrc_do_gaddr ((RSHDR *)RESOURCE,
+                 R_TREE,
+                 FISEL,
+                 &global_common.fiseltad);
+  /*
   Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,INFORM,&global_common.informtad);
   Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,MENU,&global_common.menutad);
   Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,MOUSEFORMS,&global_common.mouseformstad);

@@ -282,12 +282,20 @@ drawtext (WORD   vid,
   };
 }
 
-static void
-draw_text (WORD vid,
-           OBJECT *ob,
-           WORD par_x,
-           WORD par_y,
-           WORD is_top) {
+
+/*
+** Description
+** Draw text portion of an object
+**
+** 1998-01-02 CG
+*/
+static
+void
+draw_text (WORD     vid,
+           OBJECT * ob,
+           WORD     par_x,
+           WORD     par_y,
+           WORD     is_top) {
   WORD txteff = 0;
   WORD type = ob->ob_type & 0xff;
   BYTE ctext[100];
@@ -301,13 +309,12 @@ draw_text (WORD vid,
   WORD invertcolour = 0;
   U_OB_SPEC ob_spec;
   GLOBAL_APPL * globals = get_globals (apid);
-	
+
   if(ob->ob_flags & INDIRECT) {
     ob_spec = *ob->ob_spec.indirect;
-  }
-  else {
+  } else {
     ob_spec = ob->ob_spec;
-  };
+  }
 
   /* find the text string to draw */
 	
@@ -370,11 +377,11 @@ draw_text (WORD vid,
 
     bfill = ob_spec.obspec.fillpattern;
     bfill = ob_spec.obspec.interiorcol;
-  };
+  }
 
   /* set font, alignment, color and writemode */
 
-  if(text) {		
+  if (text) {		
     switch(type) {
     case G_TEXT:
     case G_BOXTEXT:
@@ -437,7 +444,8 @@ draw_text (WORD vid,
     case G_TITLE:
       Vdi_vst_font(vid,globals->common->fnt_regul_id);
       Vdi_vst_point(vid,globals->common->fnt_regul_sz,&temp,&temp,&temp,&temp);
-      ty = par_y + ob->ob_y + ((ob->ob_height - globals->common->clheight) / 2);
+      ty =
+        par_y + ob->ob_y + ((ob->ob_height - globals->common->clheight) / 2);
 
       tx = par_x + ob->ob_x;
       Vdi_vst_alignment(vid,0,5,&temp,&temp);
@@ -455,55 +463,56 @@ draw_text (WORD vid,
     case G_BOXCHAR:
       Vdi_vst_font(vid,globals->common->fnt_regul_id);
       Vdi_vst_point(vid,globals->common->fnt_regul_sz,&temp,&temp,&temp,&temp);
-      ty = par_y + ob->ob_y + ((ob->ob_height - globals->common->clheight) / 2);
+      ty =
+        par_y + ob->ob_y + ((ob->ob_height - globals->common->clheight) / 2);
 
       tx = par_x + ob->ob_x + (ob->ob_width >> 1);
       Vdi_vst_alignment(vid,1,5,&temp,&temp);
 
       tcolour = ob_spec.obspec.textcol;
 				
-      if(draw3d) {
+      if (draw3d) {
         writemode = SWRM_TRANS;
-      }
-      else {
+      } else {
         writemode = ob_spec.obspec.textmode;
-      };
+      }
       break;			
 				
     case G_BUTTON:
       Vdi_vst_font(vid,globals->common->fnt_regul_id);
       Vdi_vst_point(vid,globals->common->fnt_regul_sz,&temp,&temp,&temp,&temp);
-      ty = par_y + ob->ob_y + ((ob->ob_height - globals->common->clheight) / 2);
-
+      ty =
+        par_y + ob->ob_y + ((ob->ob_height - globals->common->clheight) / 2);
+      
       tx = par_x + ob->ob_x + (ob->ob_width >> 1);
       Vdi_vst_alignment(vid,1,5,&temp,&temp);
-
+      
       tcolour = BLACK;
-				
+      
       writemode = SWRM_TRANS;
     }
-    };
+    }
 		
 			
     if(ob->ob_state & DISABLED) {
       txteff |= LIGHT;
-    };
+    }
 		
     Vdi_vst_effects(vid,txteff);
-		
+
     if(draw3d) {
       if(ob->ob_state & SELECTED) {
         if(((draw3d == FL3DIND) && ocolours.move_ind) ||
            ((draw3d == FL3DACT) && ocolours.move_act)) {
           tx += D3DOFFS;
           ty += D3DOFFS;
-        };
+        }
 				
         if(((draw3d == FL3DIND) && ocolours.alter_ind) ||
            ((draw3d == FL3DACT) && ocolours.alter_act)) {
           invertcolour = TRUE;
-        };
-      };
+        }
+      }
 			
       if((bcolour == WHITE) && (bfill == 0)) {
         switch(draw3d) {
@@ -521,34 +530,33 @@ draw_text (WORD vid,
         }
 				
         bfill = 7;
-      };
-    }
-    else {
+      }
+    } else {
       if(ob->ob_state & SELECTED) {
         invertcolour = TRUE;
-      };
+      }
 			
       if(bfill == 0) {
         bcolour = WHITE;
-      };
-    };
+      }
+    }
 		
     if(!(bcolour < globals->common->num_pens)) {
       bcolour = BLACK;
-    };
+    }
 		
     if(!(tcolour < globals->common->num_pens)) {
       tcolour = BLACK;
-    };
+    }
 		
     if((tcolour == bcolour) && (bfill == 7)) {
       tcolour = invertcolor(tcolour);
-    };
+    }
 		
     if(invertcolour) {
       tcolour = invertcolor(tcolour);
       bcolour = invertcolor(bcolour);
-    };
+    }
 
     if((writemode == SWRM_REPLACE) && (bcolour != WHITE)) {
       set_write_mode(vid,SWRM_INVTRANS);
@@ -556,15 +564,15 @@ draw_text (WORD vid,
       Vdi_v_gtext(vid,tx,ty,text);
 			
       set_write_mode(vid,SWRM_TRANS);
-    }
-    else {
+    } else {
       set_write_mode(vid,writemode);
-    };
+    }
 		
     Vdi_vst_color(vid,tcolour);
     Vdi_v_gtext(vid,tx,ty,text);
-  };
+  }
 }
+
 
 static void	drawframe(WORD vid,RECT *r,WORD framesize) {
 	WORD incr;
@@ -1206,14 +1214,13 @@ draw_object (WORD     vid,
 	
   if(!Misc_intersect((RECT *)&tree[object].ob_x,&ci,&cu)) {
     return;
-  };
+  }
 
   if(tree[object].ob_flags & INDIRECT) {
     ob_spec = *tree[object].ob_spec.indirect;
-  }
-  else {
+  } else {
     ob_spec = tree[object].ob_spec;
-  };
+  }
 			
   switch(type) {			
   case G_IMAGE: /*0x17*/
@@ -1271,7 +1278,7 @@ draw_object (WORD     vid,
     Vdi_vst_alignment(vid,0,5,&dum,&dum);
     Vdi_v_gtext(vid,tree[object].ob_x + par_x,tree[object].ob_y + par_y,
                 "\x8");
-  };
+  }
 }
 
 static void
@@ -1591,19 +1598,17 @@ void	Objc_delete(AES_PB *apb) {
 
 /*objc_draw	0x002a*/
 
-/****************************************************************************
- * Objc_do_draw                                                             *
- *  Implementation of objc_draw().                                          *
- ****************************************************************************/
-WORD              /* 0 if an error occured, or 1.                           */
-Objc_do_draw(     /*                                                        */
-WORD     vid,
-OBJECT * tree,    /* Resource tree.                                         */
-WORD     object,  /* Start object.                                          */
-WORD     depth,   /* Maximum draw depth.                                    */
-RECT   * clip)    /* Clipping rectangle.                                    */
-/****************************************************************************/
-{
+/*
+** Exported
+**
+** 1999-01-02 CG
+*/
+WORD
+Objc_do_draw (WORD     vid,
+              OBJECT * tree,
+              WORD     object,
+              WORD     depth,
+              RECT   * clip) {
   WORD current = object;
   WORD next = -1;
   
@@ -1613,11 +1618,11 @@ RECT   * clip)    /* Clipping rectangle.                                    */
   
   if((tree == NULL) || (object < 0) || (depth < 0) || (clip == NULL)) {
     return 0;
-  };
+  }
   
   if (Objc_do_offset(tree,object,xy) == 0) {
     return 0;
-  };
+  }
 
   x = xy[0] - tree[object].ob_x;
   y = xy[1] - tree[object].ob_y;
@@ -1646,26 +1651,26 @@ RECT   * clip)    /* Clipping rectangle.                                    */
       if(next != -1) {
 	x += tree[current].ob_x;
 	y += tree[current].ob_y;
-      };
-    };
+      }
+    }
     
     if(((next == -1) || (depth <= 0)) && (current == object)) {
       break;
-    };
+    }
     
     if((depth < 0) || (next == -1) || (tree[current].ob_flags & HIDETREE)) {
       next = tree[current].ob_next;
       
       if(next == -1) {
 	break;
-      };
+      }
       
       while((tree[next].ob_tail == current) && (current != object)) {
 	depth++;
 	
 	if(current == next) {
 	  break;
-	};
+	}
 	
 	current = next;
 	
@@ -1676,23 +1681,22 @@ RECT   * clip)    /* Clipping rectangle.                                    */
 	
 	if(next == -1) {
 	  break;
-	};
-      };
+	}
+      }
       
       if(current == next) {
 	break;
-      };
+      }
       
       if(current != object) {
 	current = next;
-      };
-    }
-    else {
+      }
+    } else {
       depth--;
       
       current = next;
-    };
-  }while(current != object);
+    }
+  } while(current != object);
 
   Vdi_v_show_c (vid,1);
 

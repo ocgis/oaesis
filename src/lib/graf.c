@@ -798,92 +798,99 @@ void    Graf_handle(AES_PB *apb) {
                  ,&apb->int_out[4]);    
 }
 
-/*graf_mouse 0x004e*/
-WORD Graf_do_mouse(WORD mode,MFORM *formptr) {
+
+/*
+** Exported
+**
+** 1999-01-01 CG
+*/
+WORD
+Graf_do_mouse (WORD    apid,
+               WORD    mode,
+               MFORM * formptr) {
   WORD retval = 1;
   MFORM tmp;
+  GLOBAL_APPL * globals = get_globals (apid);
 
-  Psemaphore(SEM_LOCK,GRAFSEM,-1);
-                
-  switch(mode) {
+  switch (mode) {
   case ARROW: /*0x000*/
     last = current;
     current = m_arrow;
-    Vdi_v_hide_c(grafvid);
-    Vdi_vsc_form(grafvid,&m_arrow);
-    Vdi_v_show_c(grafvid,0);
+    Vdi_v_hide_c (globals->vid);
+    Vdi_vsc_form (globals->vid, &m_arrow);
+    Vdi_v_show_c (globals->vid, 0);
     break;
     
   case TEXT_CRSR: /*0x001*/
     last = current;
     current = m_text_crsr;
-    Vdi_v_hide_c(grafvid);
-    Vdi_vsc_form(grafvid,&m_text_crsr);
-    Vdi_v_show_c(grafvid,0);
+    Vdi_v_hide_c (globals->vid);
+    Vdi_vsc_form(globals->vid, &m_text_crsr);
+    Vdi_v_show_c(globals->vid, 0);
     break;
     
   case BUSY_BEE: /*0x002*/
     last = current;
     current = m_busy_bee;
-    Vdi_v_hide_c(grafvid);
-    Vdi_vsc_form(grafvid,&m_busy_bee);
-    Vdi_v_show_c(grafvid,0);
+    Vdi_v_hide_c (globals->vid);
+    Vdi_vsc_form (globals->vid, &m_busy_bee);
+    Vdi_v_show_c (globals->vid, 0);
     break;
     
   case POINT_HAND: /*0x003*/
     last = current;
     current = m_point_hand;
-    Vdi_v_hide_c(grafvid);
-    Vdi_vsc_form(grafvid,&m_point_hand);
-    Vdi_v_show_c(grafvid,0);
+    Vdi_v_hide_c (globals->vid);
+    Vdi_vsc_form (globals->vid, &m_point_hand);
+    Vdi_v_show_c (globals->vid, 0);
     break;
     
   case FLAT_HAND: /*0x004*/
     last = current;
     current = m_flat_hand;
-    Vdi_v_hide_c(grafvid);
-    Vdi_vsc_form(grafvid,&m_flat_hand);
-    Vdi_v_show_c(grafvid,0);
+    Vdi_v_hide_c (globals->vid);
+    Vdi_vsc_form (globals->vid, &m_flat_hand);
+    Vdi_v_show_c (globals->vid, 0);
     break;
     
   case THIN_CROSS: /*0x005*/
     last = current;
     current = m_thin_cross;
-    Vdi_v_hide_c(grafvid);
-    Vdi_vsc_form(grafvid,&m_thin_cross);
-    Vdi_v_show_c(grafvid,0);
+    Vdi_v_hide_c (globals->vid);
+    Vdi_vsc_form (globals->vid, &m_thin_cross);
+    Vdi_v_show_c (globals->vid, 0);
     break;
     
   case THICK_CROSS: /*0x006*/
     last = current;
     current = m_thick_cross;
-    Vdi_v_hide_c(grafvid);
-    Vdi_vsc_form(grafvid,&m_thick_cross);
-    Vdi_v_show_c(grafvid,0);
+    Vdi_v_hide_c (globals->vid);
+    Vdi_vsc_form (globals->vid, &m_thick_cross);
+    Vdi_v_show_c (globals->vid, 0);
     break;
     
   case OUTLN_CROSS: /*0x007*/
     last = current;
     current = m_outln_cross;
-    Vdi_v_hide_c(grafvid);
-    Vdi_vsc_form(grafvid,&m_outln_cross);
-    Vdi_v_show_c(grafvid,0);
+    Vdi_v_hide_c (globals->vid);
+    Vdi_vsc_form (globals->vid, &m_outln_cross);
+    Vdi_v_show_c (globals->vid, 0);
     break;
     
   case USER_DEF :
     last = current;
     current = *formptr;
-    Vdi_v_hide_c(grafvid);
-    Vdi_vsc_form(grafvid,formptr);
-    Vdi_v_show_c(grafvid,0);
+    Vdi_v_hide_c (globals->vid);
+    Vdi_vsc_form (globals->vid, formptr);
+    Vdi_v_show_c (globals->vid, 0);
     break;
     
   case M_OFF    :
-    Vdi_v_hide_c(grafvid);
+    Vdi_v_hide_c (globals->vid);
     break;
                                 
   case M_ON     :
-    Vdi_v_show_c(grafvid,0);
+    Vdi_v_show_c (globals->vid, 0);
     break;
     
   case M_SAVE:
@@ -894,9 +901,9 @@ WORD Graf_do_mouse(WORD mode,MFORM *formptr) {
     last = current;
     current = last_saved;
     
-    Vdi_v_hide_c(grafvid);
-    Vdi_vsc_form(grafvid,&current);
-    Vdi_v_show_c(grafvid,0);
+    Vdi_v_hide_c (globals->vid);
+    Vdi_vsc_form (globals->vid, &current);
+    Vdi_v_show_c (globals->vid, 0);
     
     break;
     
@@ -905,9 +912,9 @@ WORD Graf_do_mouse(WORD mode,MFORM *formptr) {
     current = last;
     last = tmp;
     
-    Vdi_v_hide_c(grafvid);
-    Vdi_vsc_form(grafvid,&current);
-    Vdi_v_show_c(grafvid,0);
+    Vdi_v_hide_c(globals->vid);
+    Vdi_vsc_form(globals->vid, &current);
+    Vdi_v_show_c(globals->vid, 0);
     
     break;                      
     
@@ -917,13 +924,20 @@ WORD Graf_do_mouse(WORD mode,MFORM *formptr) {
     retval = 0;
   };
 
-  Psemaphore(SEM_UNLOCK,GRAFSEM,-1);
-  
   return retval;
 }
 
-void Graf_mouse(AES_PB *apb) {
-  apb->int_out[0] = Graf_do_mouse(apb->int_in[0],(MFORM *)apb->addr_in[0]);
+
+/*
+** Exported
+**
+** 1999-01-01 CG
+*/
+void
+Graf_mouse (AES_PB *apb) {
+  apb->int_out[0] = Graf_do_mouse (apb->global->apid,
+                                   apb->int_in[0],
+                                   (MFORM *)apb->addr_in[0]);
 }
 
 

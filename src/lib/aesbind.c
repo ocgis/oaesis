@@ -118,6 +118,28 @@ evnt_multi (short         Type,
 
 
 short
+fsel_exinput (char *  Path,
+              char *  File,
+              short * ExitButton,
+              char *  Prompt) {
+  aespb.contrl[0] = 91;
+  aespb.contrl[1] = 0;
+  aespb.contrl[2] = 2;
+  aespb.contrl[3] = 3;
+  
+  aespb.addrin[0] = Path;
+  aespb.addrin[1] = File;
+  aespb.addrin[2] = Prompt;
+    
+  aes_call (&aespb);
+  
+  *ExitButton = aespb.intout[1];
+
+  return aespb.intout[0];
+}
+
+
+short
 graf_handle (short * Wchar,
              short * Hchar,
              short * Wbox, 

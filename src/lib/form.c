@@ -174,6 +174,7 @@ Form_do (AES_PB *apb) {
 ** Exported
 **
 ** 1998-12-20 CG
+** 1999-01-02 CG
 */
 WORD
 Form_do_dial (WORD   apid,
@@ -222,8 +223,8 @@ Form_do_dial (WORD   apid,
 					
           Wind_do_delete (apid,
                           top_window);
-        };
-      };
+        }
+      }
 
       id = Wind_do_create(apid,
                           0,
@@ -580,24 +581,29 @@ Form_error (AES_PB * apb) {
 
 /*form_center 0x0036*/
 
+/*
+** Exported
+**
+** 1999-01-02 CG
+*/
 void
 Form_do_center (WORD     apid,
                 OBJECT * tree,
                 RECT   * clip) {
-    WORD pw1, pw2, pw3, pw4;
-
-    Wind_do_get (apid,
-                 0,
-                 WF_WORKXYWH,
-                 &pw1,
-                 &pw2,
-                 &pw3,
-                 &pw4,
-                 TRUE);
-    tree[0].ob_x = pw1 + ((pw3 - tree[0].ob_width) >> 1);
-    tree[0].ob_y = pw2 + ((pw4 - tree[0].ob_height) >> 1);
-	
-	Objc_area_needed(tree,0,clip);
+  WORD pw1, pw2, pw3, pw4;
+  
+  Wind_do_get (apid,
+               0,
+               WF_WORKXYWH,
+               &pw1,
+               &pw2,
+               &pw3,
+               &pw4,
+               TRUE);
+  tree[0].ob_x = pw1 + ((pw3 - tree[0].ob_width) >> 1);
+  tree[0].ob_y = pw2 + ((pw4 - tree[0].ob_height) >> 1);
+  
+  Objc_area_needed (tree, 0, clip);
 }
 
 

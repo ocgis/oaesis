@@ -45,7 +45,16 @@ RECT *r1,         /* Start rectangle.                                       */
 RECT *r2);        /* End rectangle.                                         */
 /****************************************************************************/
 
-WORD Graf_do_mouse(WORD mode,MFORM *formptr);
+/*
+** Description
+** Implementation of graf_mouse().
+**
+** 1999-01-01 CG
+*/
+WORD
+Graf_do_mouse (WORD    apid,
+               WORD    mode,
+               MFORM * formptr);
 
 /*
 ** Description
