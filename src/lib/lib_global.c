@@ -86,8 +86,8 @@ static BYTE versionstring[50];
  * Module local functions                                                   *
  ****************************************************************************/
 
-/* TheBse few functions can only be used if we run TOS/MiNT */
-#ifdef BOBMINT_TARGET
+/* These few functions can only be used if we run TOS/MiNT */
+#if 0 /* FIXME: Remove def MINT_TARGET */
 WORD own_appl_init(void) {
   LONG addr_in[3],
   addr_out[1];
@@ -393,7 +393,7 @@ void	exit_global(void) {
 }
 
 
-#ifdef MINT_TARGET
+#if 0 /* FIXME def MINT_TARGET */
 GLOBAL_COMMON *
 get_global_common (void) {
   return NULL; /* FIXME */

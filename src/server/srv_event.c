@@ -74,10 +74,6 @@ static WORD  y_last = 0;
 static WORD  buttons_new = 0;
 static WORD  buttons_last = 0;
 
-static KEY_EVENT key_buffer[KEY_BUFFER_SIZE];
-static WORD key_buffer_head = 0;
-static WORD key_buffer_tail = 0;
-
 /*
 ** Timer wraparound is not yet handled, but will only be a problem if someone
 ** has a long uptime.
@@ -87,44 +83,17 @@ static ULONG timer_counter = 0;
 static ULONG next_timer_event = MAX_TIMER_COUNT;
 static int   timer_tick_ms; /* Number of milliseconds per tick */
 
-/*
-** Description
-** This procedure is installed with vex_keyv to handle key presses.
-**
-** 1999-03-07 CG
-** 1999-03-08 CG
-** 1999-04-06 CG
-*/
-static
-void
-catch_keys (int state,
-            int ascii,
-            int scan) {
-  /* Queue the keypress */
-  key_buffer[key_buffer_tail].state = state;
-  key_buffer[key_buffer_tail].ascii = ascii;
-  key_buffer[key_buffer_tail].scan = scan;
-  key_buffer_tail = (key_buffer_tail + 1) % KEY_BUFFER_SIZE;
-  DEBUG3 ("srv_event.c: catch_keys: Caught key");
-
-  /* Wake up the server so that it will be able to distribute the event */
-  Srv_wake ();
-}
-
 
 /*
 ** Description
 ** This procedure is installed with vex_butv to handle mouse button clicks.
 **
 ** 1998-12-06 CG
+** 1999-08-05 CG
 */
-static
 void
 catch_mouse_buttons (int buttons) {
   buttons_new = buttons;
-
-  /* Wake up the server so that it will be able to distribute the event */
-  Srv_wake ();
 }
 
 
@@ -133,19 +102,13 @@ catch_mouse_buttons (int buttons) {
 ** This procedure is installed with vex_motv to handle mouse motion.
 **
 ** 1998-12-13 CG
+** 1999-08-05 CG
 */
-static
 void
 catch_mouse_motion (int x,
                     int y) {
-  WORD wake = ((x_new == x_last) && (y_new == y_last));
   x_new = x;
   y_new = y;
-
-  /* Wake up the server so that it will be able to distribute the event */
-  if (wake) {
-    Srv_wake ();
-  }
 }
 
 
@@ -154,21 +117,38 @@ catch_mouse_motion (int x,
 ** This procedure is installed with vex_timv to handle timer clicks
 **
 ** 1999-01-29 CG
+** 1999-08-05 CG
 */
-static
 void
 catch_timer_click (void) {
   /* Another 20 ms has passed */
   timer_counter += timer_tick_ms;
 
   /* Wake server so that it will wake the waiting application */
-  if (timer_counter > next_timer_event) {
+// FIXME
+//  if (timer_counter > next_timer_event) {
     /* Prevent multiple wake calls */
     /*    next_timer_event = MAX_TIMER_COUNT;*/
-    Srv_wake ();
-  }
+//    Srv_wake ();
+//  }
 }
 
+
+
+#ifdef MINT_TARGET
+extern void * newmvec;
+
+#define catch_mouse_motion &newmvec
+
+extern void * newbvec;
+
+#define catch_mouse_buttons &newbvec
+
+extern void * newtvec;
+
+#define catch_timer_click &newtvec
+
+#endif
 
 void * old_button_vector;
 void * old_motion_vector;
@@ -183,10 +163,10 @@ void * old_timer_vector;
 ** 1999-03-07 CG
 ** 1999-03-08 CG
 ** 1999-05-22 CG
+** 1999-08-05 CG
 */
 void
 srv_init_event_handler (WORD vdi_workstation_id) {
-  void * old_key_vector;
   int    i;
 
   /* Reset buffers */
@@ -197,10 +177,6 @@ srv_init_event_handler (WORD vdi_workstation_id) {
     apps [i].key_head = 0;
     apps [i].key_size = 0;
   }
-
-#ifndef MINT_TARGET /* FIXME */
-  /* Setup keyboard handler */
-  vex_keyv (vdi_workstation_id, catch_keys, &old_key_vector);
 
   /* Setup mouse button handler */
   vex_butv (vdi_workstation_id, catch_mouse_buttons, &old_button_vector);
@@ -213,7 +189,11 @@ srv_init_event_handler (WORD vdi_workstation_id) {
             catch_timer_click,
             &old_timer_vector,
             &timer_tick_ms);
-#endif
+
+  /* Setup the string device in sample mode */
+  vsin_mode (vdi_workstation_id,
+	     STRING,
+	     SAMPLE_MODE);
 }
 
 
@@ -442,6 +422,7 @@ check_mouse_motion (WORD           x,
 **
 ** 1999-03-08 CG
 ** 1999-04-06 CG
+** 1999-08-05 CG
 */
 static
 WORD
@@ -454,16 +435,13 @@ check_keys (C_EVNT_MULTI * par,
 
   if (par->eventin.events & MU_KEYBD) {
     if (apps [par->common.apid].key_size > 0) {
-      if ((KEY_BUFFER_HEAD.scan & 0x80) &&
-          (KEY_BUFFER_HEAD.ascii >= 10)) /* FIXME */ {
-        ret->eventout.ks = KEY_BUFFER_HEAD.state;
-        ret->eventout.kc = KEY_BUFFER_HEAD.ascii;
-        
-        DEBUG3 ("srv_event.c: ks = 0x%x  kc = 0x%x",
-                ret->eventout.ks,
-                ret->eventout.kc);
-        retval = MU_KEYBD;
-      }
+      ret->eventout.ks = KEY_BUFFER_HEAD.state;
+      ret->eventout.kc = KEY_BUFFER_HEAD.ascii;
+      
+      DEBUG2 ("srv_event.c: ks = 0x%x  kc = 0x%x",
+	      ret->eventout.ks,
+	      ret->eventout.kc);
+      retval = MU_KEYBD;
 
       /* Update key buffer head */
       apps [par->common.apid].key_head =
@@ -605,21 +583,40 @@ handle_mouse_buttons (void) {
 ** the right application
 **
 ** 1999-03-08 CG
+** 1999-08-05 CG
 */
 static
 void
-handle_keys (void) {
+handle_keys (WORD vdi_workstation_id) {
+  static int echoxy[] = {0,0};
+  int        str[10];
+  int        n_o_keys;
+
+  n_o_keys = vsm_string_raw (vdi_workstation_id,
+			     10,
+			     0,
+			     echoxy,
+			     str);
+  
   /* Has any key events occurred? */
-  if (key_buffer_head != key_buffer_tail) {
+  if (n_o_keys > 0) {
     WORD topped_appl = get_top_appl ();
-    WORD index = (apps [topped_appl].key_head +
-                  apps [topped_appl].key_size) % KEY_BUFFER_SIZE;
+    int  i;
     
-    while (key_buffer_head != key_buffer_tail) {
-      DEBUG3 ("srv_event.c: handle_keys: key => apid %d", topped_appl);
-      apps [topped_appl].key_buffer [index] = key_buffer [key_buffer_head];
+    DEBUG2 ("srv_event.c: handle_keys: %d keys pressed", n_o_keys);
+    
+    for (i = 0; i < n_o_keys; i++) {
+      WORD index = (apps [topped_appl].key_head +
+		    apps [topped_appl].key_size) % KEY_BUFFER_SIZE;
+
+      DEBUG2 ("srv_event.c: handle_keys: key 0x%x => apid %d",
+	      str[i],
+	      topped_appl);
+      apps [topped_appl].key_buffer [index].ascii = str[i] & 0xff;
+      apps [topped_appl].key_buffer [index].scan = (str[i] >> 8) & 0xff;
+      apps [topped_appl].key_buffer [index].state = 0; /* FIXME */
+      
       apps [topped_appl].key_size++;
-      key_buffer_head = (key_buffer_head + 1) % KEY_BUFFER_SIZE;
     }
 
     /* Wake the application if it's waiting */
@@ -656,6 +653,7 @@ handle_mouse_motion (void) {
   if ((x_new != x_last) || (y_new != y_last)) {
     APPL_LIST_REF appl_walk = waiting_appl;
 
+    DEBUG3 ("handle_mouse_motion: Mouse moved!: x = %d y = %d", x_new, y_new);
     while (appl_walk != APPL_LIST_REF_NIL) {
       APPL_LIST_REF this_appl = appl_walk;
       R_EVNT_MULTI  ret;
@@ -727,12 +725,13 @@ handle_timer (void) {
 ** 1998-12-13 CG
 ** 1999-01-29 CG
 ** 1999-03-08 CG
+** 1999-08-05 CG
 */
 void
-srv_handle_events (void) {
+srv_handle_events (WORD vdi_workstation_id) {
   handle_mouse_motion ();
   handle_mouse_buttons ();
-  handle_keys ();
+  handle_keys (vdi_workstation_id);
   handle_timer ();
 }
 

@@ -47,9 +47,10 @@ srv_wait_for_event (COMM_HANDLE    handle,
 ** them to the applictions.
 **
 ** 1998-12-07 CG
+** 1999-08-05 CG
 */
 void
-srv_handle_events (void);
+srv_handle_events (WORD vdi_workstation_id);
 
 /*
 ** Description

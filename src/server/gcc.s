@@ -12,7 +12,8 @@
 	.globl	_aes_call
 	.globl	_old_motion_vector
 	.globl	_old_button_vector
-|	.globl	_Moudev_handler
+	.globl	_catch_mouse_motion
+	.globl	_catch_mouse_buttons
 	.globl	_p_fsel_extern
         .globl _aescall
 
@@ -65,29 +66,25 @@ _set_stack:
 	rts
 
 _newmvec:
-	movel sp,newstack+800
-	lea newstack+800,sp
-	moveml	d0-d2/a0-a2,sp@-
-	lea     pc@(mmov+4),a0
-	movew	d1,a0@+ 	| pass position
-	movew  d0,a0@
-	pea   a0@(-6)
-|	jsr	_Moudev_handler
-	addql		#4,sp		
-	moveml	sp@+,d0-d2/a0-a2
-	movel sp@,sp
+	movel  sp,newstack+800
+	lea    newstack+800,sp
+	moveml d0-d2/a0-a2,sp@-
+	movel  d1,sp@- 	| pass position
+	movel  d0,sp@-
+	jsr    _catch_mouse_motion
+	addql  #8,sp		
+	moveml sp@+,d0-d2/a0-a2
+	movel  sp@,sp
 	rts
 
 _newbvec:
-	movel sp,newstack+800
-	lea newstack+800,sp
-	moveml	d0-d2/a0-a2,sp@-
-	lea     pc@(mbut+6),a0
-	movew	d0,a0@ 	| pass buttons
-	pea   a0@(-6)
-|	jsr	_Moudev_handler
-	addql		#4,sp		|
-	moveml	sp@+,d0-d2/a0-a2
+	movel  sp,newstack+800
+	lea    newstack+800,sp
+	moveml d0-d2/a0-a2,sp@-
+	movel  d0,sp@- 	| pass buttons
+	jsr    _catch_mouse_buttons
+	addql  #4,sp		|
+	moveml sp@+,d0-d2/a0-a2
 	movel  sp@,sp
 	rts
 
@@ -95,9 +92,7 @@ _newtvec:
 	movel sp,newstack+800
 	lea newstack+800,sp
 	moveml	d0-d2/a0-a2,sp@-
-	pea   mtim
-|	jsr	_Moudev_handler
-	addql   #4,sp		|
+	jsr	_catch_timer_click
 	moveml	sp@+,d0-d2/a0-a2
 	movel  sp@,sp
 	rts

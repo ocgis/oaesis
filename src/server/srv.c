@@ -11,7 +11,7 @@
 ** Read the file COPYING for more information.
 */
 
-#define DEBUGLEVEL 2
+#define DEBUGLEVEL 0
 
 /****************************************************************************
  * Used interfaces                                                          *
@@ -2883,6 +2883,7 @@ srv_vdi_call (COMM_HANDLE  handle,
 ** 1999-05-23 CG
 ** 1999-06-10 CG
 ** 1999-06-13 CG
+** 1999-08-05 CG
 */
 static
 WORD
@@ -2980,10 +2981,7 @@ server (LONG arg) {
     handle = Srv_get (&par, sizeof (C_SRV));
     DEBUG3 ("srv.c: Got message from client (%p)", handle);
 
-    if (handle == NULL) {
-      DEBUG3 ("srv.c: calling srv_handle_events");
-      srv_handle_events ();
-    } else {
+    if (handle != NULL) {
       DEBUG3 ("srv.c: Call no %d\n", par.common.call);
       switch (par.common.call) {
       case SRV_APPL_CONTROL:
@@ -3119,6 +3117,9 @@ server (LONG arg) {
         Srv_reply (handle, &par, -1);
       }
     }
+
+    DEBUG3 ("srv.c: calling srv_handle_events");
+    srv_handle_events (globals.vid);
   }
 
   Srv_exit_module ();

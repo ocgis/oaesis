@@ -139,11 +139,10 @@ else
   dnl This is needed for AC_CHECK_HEADERS to find the otosis 
   dnl and the oVDIsis headers
   INCLUDES="$INCLUDES $OTOSIS_CFLAGS"
-
-  dnl Use libtool to create liboaesis, but not for MiNT
-  AM_PROG_LIBTOOL
 fi
 
+dnl Use libtool to create liboaesis, but not for MiNT
+AM_PROG_LIBTOOL
 
 OSISINCLUDE=${includedir}/osis
 

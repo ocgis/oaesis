@@ -18,13 +18,13 @@ Client_open (void) {
   struct sockaddr_in their_addr; /* connector's address information */
 
   if ((he = gethostbyname ("localhost")) == NULL) {  /* get the host info */
-    perror("oaesis: srv_put_sockets.c: Client_send_recv: gethostbyname");
+    perror("oaesis: srv_put_sockets.c: Client_open: gethostbyname");
     exit (-1);
     return -1;
   }
   
   if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-    perror("oaesis: srv_put_sockets.c: Client_send_recv: socket");
+    perror("oaesis: srv_put_sockets.c: Client_open: socket");
     return -1;
   }
   
@@ -35,7 +35,7 @@ Client_open (void) {
   
   if (connect(sockfd, (struct sockaddr *)&their_addr, sizeof(struct sockaddr))
       == -1) {
-    perror("oaesis: srv_put_sockets.c: Client_send_recv: connect");
+    perror("oaesis: srv_put_sockets.c: Client_open: connect");
     exit (-1);
     return -1;
   }  

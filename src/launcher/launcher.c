@@ -257,7 +257,7 @@ updatewait (int wid) {
   lines[0].v_y2 = winy + 100;
 
   while (!quit) {
-    happ = evnt_multi(MU_KEYBD | MU_MESAG | MU_BUTTON,
+    happ = evnt_multi(MU_KEYBD | MU_MESAG | MU_BUTTON | MU_TIMER,
                       0,0,0,0,0,0,0,0,0,0,0,0,0,
                       buffert,0,&x,&y,&knapplage,&tanglage,
                       &tangent,&ant_klick);
@@ -522,14 +522,18 @@ main ()
   fprintf (stderr, "launcher.c: before Pdomain\n");
   /* Pdomain (1); FIXME decide where to put this */
   /* Get application id */
+  fprintf (stderr, "launcher.c: before appl_init\n");
   appl_init();
 
+  fprintf (stderr, "launcher.c: before rsrc_rcfix\n");
   /* Fix resource data */
   rsrc_rcfix (launch);
 
+  fprintf (stderr, "launcher.c: before rsrc_gaddr\n");
   /* Get address of desktop background */
   rsrc_gaddr (R_TREE, DESKBG, &desktop_bg);
 
+  fprintf (stderr, "launcher.c: before wind_set\n");
   /* Set desktop background */
   wind_set (0,
             WF_NEWDESK,
@@ -538,18 +542,20 @@ main ()
             0,
             0);
 
+  fprintf (stderr, "launcher.c: before rsrc_gaddr\n");
   /* Get address of the menu */
   rsrc_gaddr (R_TREE, MENU, &menu);
 
+  fprintf (stderr, "launcher.c: before menu_bar\n");
   /* Install menu */
   menu_bar (menu, MENU_INSTALL);
 
+  fprintf (stderr, "launcher.c: before graf_handle\n");
   vid = graf_handle (&wc, &hc, &wb, &hb);
-  fprintf (stderr, "launcher: vid = %d\n", vid);
+  fprintf (stderr, "launcher.c: vid = %d\n", vid);
   v_opnvwk(work_in,&vid,work_out);
-  fprintf (stderr, "launcher: vid = %d\n", vid);
+  fprintf (stderr, "launcher.c: vid = %d\n", vid);
   num_colors = work_out[39];
-  num_colors = 256;
 
   vsf_interior(vid,1);
 

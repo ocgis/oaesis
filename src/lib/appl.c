@@ -34,7 +34,7 @@
  
  ****************************************************************************/
 
-#define DEBUGLEVEL 0
+#define DEBUGLEVEL 3
 
 /****************************************************************************
  * Used interfaces                                                          *
@@ -226,6 +226,7 @@ Appl_do_init (GLOBAL_ARRAY * global) {
   C_APPL_INIT par;
   R_APPL_INIT ret;
 
+  DEBUG3 ("appl.c: Appl_do_init");
   /* Open connection to server */
   if (Client_open () == -1) {
     return -1;

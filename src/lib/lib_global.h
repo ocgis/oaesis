@@ -139,7 +139,7 @@ init_global (WORD nocnf,
 
 void	exit_global(void);
 
-#ifdef MINT_TARGET
+#if 0 /* FIXME def MINT_TARGET */
 GLOBAL_COMMON * get_global_common (void);
 GLOBAL_APPL   * get_globals (WORD apid);
 #else

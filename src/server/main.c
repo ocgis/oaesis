@@ -11,7 +11,7 @@
 ** Read the file COPYING for more information.
 */
 
-#define DEBUGLEVEL 3
+#define DEBUGLEVEL 0
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -68,7 +68,7 @@ init_aes (WORD nocnf) {
   
 #ifdef MINT_TARGET
   DEBUG3 ("main.c: init_aes: AES trap vector");
-/*  Supexec(link_in);*/
+  Supexec(link_in);
 #endif /* MINT_TARGET */
 }
 
@@ -86,7 +86,7 @@ exit_aes (void) {
   
 #ifdef MINT_TARGET
   DEBUG3 ("main.c: exit_aes: AES trap vector");
-/*  Supexec(link_remove);*/
+  Supexec(link_remove);
 #endif /* MINT_TARGET */
 
   Srv_stop ();
@@ -187,7 +187,7 @@ main (int     argc,
   Misc_setpath ("u:\\");
   */
 
-  sleep (5);
+  sleep (1);
   DB_printf ("main.c: Starting launcher.prg");
   for (i = 0; i < 1; i++) {
     system ("launcher.prg");
