@@ -10,6 +10,8 @@
 # even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 # PARTICULAR PURPOSE.
 
+# hack for cross compiling
+
 
 SHELL = @SHELL@
 
@@ -63,7 +65,6 @@ host_alias = @host_alias@
 host_triplet = @host@
 target_alias = @target_alias@
 target_triplet = @target@
-CC = @CC@
 LD = @LD@
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
@@ -83,23 +84,26 @@ VERSION = @VERSION@
 target_cpu = @target_cpu@
 target_os = @target_os@
 
+CC = cc
+CFLAGS = 
+LDFLAGS = 
+LDLIBS = 
+DEFS = 
+LIBS = 
+
 noinst_PROGRAMS = r2c_raw
+
+r2c_raw_SOURCES = r2c_raw.c
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../config.h
 CONFIG_CLEAN_FILES = 
 PROGRAMS =  $(noinst_PROGRAMS)
 
-
-DEFS = @DEFS@ -I. -I$(srcdir) -I..
 CPPFLAGS = @CPPFLAGS@
-LDFLAGS = @LDFLAGS@
-LIBS = @LIBS@
-r2c_raw_SOURCES = r2c_raw.c
 r2c_raw_OBJECTS =  r2c_raw.o
 r2c_raw_LDADD = $(LDADD)
 r2c_raw_DEPENDENCIES = 
 r2c_raw_LDFLAGS = 
-CFLAGS = @CFLAGS@
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
@@ -112,8 +116,8 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 TAR = tar
 GZIP_ENV = --best
 DEP_FILES =  .deps/r2c_raw.P
-SOURCES = r2c_raw.c
-OBJECTS = r2c_raw.o
+SOURCES = $(r2c_raw_SOURCES)
+OBJECTS = $(r2c_raw_OBJECTS)
 
 all: all-redirect
 .SUFFIXES:
