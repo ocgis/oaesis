@@ -24,7 +24,7 @@
 
 \layout Title
 
-oAESis Specification
+oAESis specification
 \layout Author
 
 Christer Gustavsson
@@ -43,36 +43,79 @@ This document specifies the design of oAESis.
 \layout Subsection
 
 System Overview
+\layout Standard
+
+TBD
 \layout Section
 
 Internal structure
-\layout Subsection
+\layout Standard
 
-Client library
+Internal interfaces and principles are discussed in this section.
 \layout Subsection
 
 Server
+\layout Standard
+
+The server handles things that have to be shared or synchronized between
+ applications.
+ It may be implemented as a device driver or as a standalone process.
+ Services that the server offers shall be quick for it to complete.
+\layout Subsection
+
+Client library
+\layout Standard
+
+The client library is the link between applications and the oAESis server.
 \layout Subsection
 
 Launcher application
+\layout Standard
+
+The launcher application is a GEM application that handles starting of accessori
+es and programs.
 \layout Subsection
 
 Startup sequence
-\layout Section
+\layout Enumerate
 
-Interfaces
+Start server
+\layout Enumerate
+
+Start launcher application
 \layout Subsection
 
-Client API
+Interface between the server and the client library
+\layout Standard
+
+All data passed between the client library and the server shall be in network
+ order.
+ Its size shall be well defined.
+\layout Section
+
+Application interfaces
+\layout Standard
+
+All external interfaces are discussed in this section.
+\layout Subsection
+
+Client library API
 \layout Standard
 
 The client API honors Atari AES as described by The Atari Compendium.
 \layout Subsection
 
-Server / client library interface
+Resources
+\layout Standard
+
+Resource files and resource structures are compatible with Atari AES as
+ described by The Atari Compendium.
 \layout Section
 
 References
+\layout Enumerate
+
+The Atari Compendium
 \layout Section
 
 Terminology
@@ -88,6 +131,12 @@ Client library
 \layout Enumerate
 
 Display
+\layout Enumerate
+
+Network order
+\layout Enumerate
+
+Resource file
 \layout Enumerate
 
 Server
