@@ -71,11 +71,10 @@ min (WORD a,
 
 #define NUM_LINES       10
 
-/*static char progpath[500] = "c:\\*";*/
 #ifdef MINT_TARGET
 static char progpath[500] = "u:\\d\\nytto\\*";
 #else
-static char progpath[500] = "/usr/local/src/osis/ppc-linux"
+static char progpath[500] = "/usr/local/src/osis/ppc-linux";
 #endif
 
 static char progfile[70] = "toswin_w.prg";
