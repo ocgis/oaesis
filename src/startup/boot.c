@@ -60,13 +60,17 @@ get_token(FILE * fp,
           char * token)
 {
   /* Skip whitespace or comments */
-  while(feof(fp) == 0)
+  while(TRUE)
   {
-    char c;
+    int c;
 
     c = fgetc(fp);
 
-    if(c == '#')
+    if(c == EOF)
+    {
+      break;
+    }
+    else if(c == '#')
     {
       char buffer[200];
 
@@ -82,15 +86,20 @@ get_token(FILE * fp,
   }
 
   /* Get token */
-  while(feof(fp) == 0)
+  while(TRUE)
   {
-    char c;
+    int c;
 
     c = fgetc(fp);
 
-    if((c == '#') || isspace(c))
+    if(c == EOF)
+    {
+      break;
+    }
+    else if((c == '#') || isspace(c))
     {
       ungetc(c, fp);
+      break;
     }
     else
     {
@@ -113,14 +122,15 @@ void
 get_value(FILE * fp,
           char * value)
 {
-  int data = 0;
+  int    data = 0;
+  char * tmp_value = value;
   
   /* Scrap spaces after the separator */
-  while(feof(fp) == 0)
+  while(TRUE)
   {
     data = fgetc(fp);
 
-    if(!isspace(data))
+    if((data == EOF) || !isspace(data))
     {
       break;
     }
@@ -132,46 +142,61 @@ get_value(FILE * fp,
     {
     case '"':	/* " data is quoted */
     case '\'':	/* ' */
-      while(feof(fp) == 0)
+      while(TRUE)
       {
-        *value = fgetc(fp);
-        if(*value == data)
+        *tmp_value = fgetc(fp);
+        if(feof(fp) != 0)
+        {
+          break;
+        }
+        else if(*tmp_value == data)
         {
           /* Skip the quote */
           break;
         }
-        else if(*value >= ' ')
+        else if(*tmp_value >= ' ')
         {
-          value++;
+          tmp_value++;
         }
         else
         {
-          ungetc(*value, fp);
+          ungetc(*tmp_value, fp);
           break;
         }
       }
       break;
-      
-    default:	/* value is not quoted */
-      while(feof(fp) == 0)
-      {
-        *value = fgetc(fp);
 
-        if(isspace(*value))
+    case EOF:
+      ;
+      break;
+
+    default:	/* value is not quoted */
+      *tmp_value = data;
+      tmp_value++;
+
+      while(TRUE)
+      {
+        *tmp_value = fgetc(fp);
+
+        if(feof(fp) != 0)
         {
-          ungetc(*value, fp);
+          break;
+        }
+        else if(isspace(*tmp_value))
+        {
+          ungetc(*tmp_value, fp);
           break;
         }
         else
         {
-          value++;
+          tmp_value++;
         }
       }
     }
   }
 
-  *value = 0;
-  DEBUG3("Got value %s",value);
+  *tmp_value = 0;
+  DEBUG3("Got value %s", value);
 }
 
 
@@ -190,8 +215,7 @@ open_config_file(void)
 #ifndef MINT_TARGET
   char * filelist[] =
   {
-    "usr/share/osis/oaesis.cnf",
-    ".oaesisrc",
+    "usr/share/osis/oaesisrc",
     NULL
   };
   char   bootdrive[]="/";	
@@ -213,7 +237,8 @@ open_config_file(void)
   if(home != NULL)
   {
     strcpy(config_path, home);
-    strcat(config_path, "/.oaesisrc");
+    strcat(config_path, "/.osis/oaesisrc");
+    DEBUG2("Trying %s\n", config_path);
     fp = fopen(config_path, "r");
   }		
   
@@ -295,13 +320,13 @@ void Boot_parse_cnf(void)
   }
   else
   {
-    DEBUG2("Beginning parsing the config file");
+    DEBUG2("Beginning parse of config file");
     
     for(;;)
     {
-      get_token(fp,line);
-      
-      if(feof(fp))
+      get_token(fp, line);
+      DEBUG2("Got token: %s", line);
+      if(feof(fp) != 0)
       {
         break;
       }      
@@ -316,6 +341,10 @@ void Boot_parse_cnf(void)
       else if(!strcmp(line,"realslide"))
       {
         check_srv_feature(fp, SRV_VAR_REALSLIDE);
+      }
+      else if(!strcmp(line, "applname"))
+      {
+        check_srv_feature(fp, SRV_VAR_APPLNAME);
       }
       else if(!strcmp(line,"font"))
       {
@@ -372,8 +401,9 @@ void Boot_parse_cnf(void)
       }
       else if(!strcmp(line, "setenv"))
       {
-        get_token(fp,token);
-        get_value(fp,value);
+        get_token(fp, token);
+        DEBUG2("Got token: %s", token);
+        get_value(fp, value);
         launcher_set_environment_variable(token, value);
       }
     }
