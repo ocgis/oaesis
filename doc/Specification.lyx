@@ -1668,7 +1668,7 @@ SRV_MEMORY_GET
 Get memory that was used in server for VDI call.
 \layout Section
 
-Application interfaces
+Interfaces
 \layout Standard
 
 All external interfaces are discussed in this section.
@@ -1685,6 +1685,106 @@ Resources
 
 Resource files and resource structures are compatible with Atari AES as
  described by The Atari Compendium.
+\layout Subsection
+
+Configuration file
+\layout Standard
+
+There is a configuration file called oaesis.cnf that may contain the commands
+ below.
+\layout Subsubsection
+
+#
+\layout Standard
+
+Used for comments.
+\layout Subsubsection
+
+AE_DEBUG
+\layout Subsubsection
+
+AE_VMODE
+\layout Subsubsection
+
+AE_VMODECODE
+\layout Subsubsection
+
+AE_REALMOVE
+\layout Standard
+
+Enable or disable realtime moving of windows.
+\layout Subsubsection
+
+AE_REALSIZE
+\layout Standard
+
+Enable or disable realtime sizing of windows.
+\layout Subsubsection
+
+AE_REALSLIDE
+\layout Standard
+
+Enable or disable realtime sliders for windows.
+\layout Subsubsection
+
+AE_FONTID
+\layout Standard
+
+Set standard font id.
+\layout Subsubsection
+
+AE_PNTSIZE
+\layout Standard
+
+Set standard font size.
+\layout Subsubsection
+
+AE_WIND_APPL
+\layout Subsubsection
+
+AE_TRACE
+\layout Subsubsection
+
+AE_GRAF_GROWBOX
+\layout Standard
+
+Enable or disable graphical output for graf_growbox().
+\layout Subsubsection
+
+AE_GRAF_SHRINKBOX
+\layout Standard
+
+Enable or disable graphical output for graf_shrinkbox().
+\layout Subsubsection
+
+AE_FSEL_SORTED
+\layout Subsubsection
+
+AE_FSEL_EXTERN
+\layout Subsubsection
+
+AE_ACC_PATH
+\layout Standard
+
+Set path to accessories.
+\layout Subsubsection
+
+run
+\layout Standard
+
+Start program at oAESis' startup time.
+\layout Subsubsection
+
+shell
+\layout Standard
+
+Start shell at oAESis' startup time.
+\layout Subsubsection
+
+setenv
+\layout Standard
+
+Set environment variable at oAESis' startup time.
 \layout Section
 
 References
