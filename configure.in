@@ -179,6 +179,7 @@ AC_CHECK_HEADERS(fcntl.h)
 AC_CHECK_HEADERS(ioctl.h)
 AC_CHECK_HEADERS(osbind.h)
 AC_CHECK_HEADERS(sysvars.h)
+AC_CHECK_HEADERS(mint/dcntl.h)
 
 dnl Check for POSIX types
 AC_CHECK_TYPE(int8_t, signed char)
