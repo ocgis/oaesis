@@ -532,7 +532,7 @@ typedef struct objc_colorword {
    unsigned opaque  : 1;
    unsigned pattern : 3;
    unsigned fillc   : 4;
-}OBJC_COLORWORD;
+} __attribute__ ((packed)) OBJC_COLORWORD;
 
 typedef struct text_edinfo
         {
@@ -564,7 +564,7 @@ typedef struct icon_block {
         short   ib_ytext;
         short   ib_wtext;
         short   ib_htext;
-}ICONBLK;
+} __attribute__ ((packed)) ICONBLK;
 
 typedef struct bit_block {
         char    *bi_pdata;  /* ptr to bit forms data  */
@@ -573,7 +573,7 @@ typedef struct bit_block {
         short   bi_x;       /* source x in bit form */
         short   bi_y;       /* source y in bit form */
         short   bi_color;   /* fg color of blt */
-}BITBLK;
+} __attribute__ ((packed)) BITBLK;
 
 typedef struct cicon_data {
         short               num_planes;
@@ -582,12 +582,12 @@ typedef struct cicon_data {
         short               *sel_data;
         short               *sel_mask;
         struct cicon_data       *next_res;
-}CICON;
+} __attribute__ ((packed)) CICON;
         
 typedef struct cicon_blk {
         ICONBLK monoblk;
         CICON   *mainlist;
-}CICONBLK;
+} __attribute__ ((packed)) CICONBLK;
 
 
 typedef struct {
