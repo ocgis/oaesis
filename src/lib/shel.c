@@ -11,7 +11,7 @@
 ** Read the file COPYING for more information.
 */
 
-#define DEBUGLEVEL 3
+#define DEBUGLEVEL 0
 
 #include <sys/stat.h>
 #include <unistd.h>
@@ -30,7 +30,14 @@
 
 #ifdef HAVE_IOCTL_H
 #include <ioctl.h>
-#endif
+#ifdef MINT_TARGET
+#define ploadinfo __ploadinfo
+#endif /* MINT_TARGET */
+#endif /* HAVE_IOCTL_H */
+
+#ifdef HAVE_MINT_DCNTL_H
+#include <mint/dcntl.h>
+#endif /* HAVE_MINT_DCNTL_H */
 
 #include <limits.h>
 
@@ -90,7 +97,7 @@ Shel_do_read(BYTE * name,
     sprintf(pname,"u:\\proc\\%s",newdta.dta_name);
     
     if((fd = Fopen(pname,O_RDONLY)) >= 0) {
-      struct __ploadinfo li;
+      struct ploadinfo li;
       
       li.fnamelen = 128;
       li.cmdlin = tail;

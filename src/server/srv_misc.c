@@ -39,7 +39,14 @@
 
 #ifdef HAVE_IOCTL_H
 #include <ioctl.h>
-#endif
+#ifdef MINT_TARGET
+#define ploadinfo __ploadinfo
+#endif /* MINT_TARGET */
+#endif /* HAVE_IOCTL_H */
+
+#ifdef HAVE_MINT_DCNTL_H
+#include <mint/dcntl.h>
+#endif /* HAVE_MINT_DCNTL_H */
 
 #ifdef HAVE_MINTBIND_H
 #include <mintbind.h>
@@ -297,7 +304,7 @@ BYTE *fname)        /* File name buffer.                                    */
     sprintf(pname,"u:\\proc\\%s",newdta.dta_name);
 		
     if((fd = Fopen(pname,0)) >= 0) {
-      struct __ploadinfo li;
+      struct ploadinfo li;
 			
       li.fnamelen = fnamelen;
       li.cmdlin = cmdlin;
@@ -305,8 +312,8 @@ BYTE *fname)        /* File name buffer.                                    */
 			
       Fcntl((WORD)fd,&li,PLOADINFO);
       Fclose((WORD)fd);
-    };
-  };
+    }
+  }
 	
   Fsetdta(olddta);
 }
