@@ -71,7 +71,7 @@ VERSION = @VERSION@
 target_cpu = @target_cpu@
 target_os = @target_os@
 
-SUBDIRS = src
+SUBDIRS = src test
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = config.h
