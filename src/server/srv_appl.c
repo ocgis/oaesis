@@ -381,45 +381,36 @@ void
 srv_appl_init(C_APPL_INIT * par,
               R_APPL_INIT * ret)
 {
-  AP_INFO * ai;
-  AP_LIST * al;
+  AP_INFO *  ai;
+  AP_LIST *  al;
+  AP_LIST ** awalk = &ap_resvd;
   
   DEBUG2 ("oaesis: srv.c: srv_appl_init: Beginning");
 
-  al = search_mpid(par->common.pid);
+  /* Has an info structure already been reserved? */
+  while(*awalk)
+  {
+    if((*awalk)->ai->pid == par->common.pid)
+    {
+      break;
+    }
+    
+    awalk = &(*awalk)->next;
+  }
   
-  if (al == AP_LIST_REF_NIL) {     
-    /* Has an info structure already been reserved? */
+  if(*awalk)
+  {
+    al = *awalk;
+    *awalk = al->next;
     
-    AP_LIST **awalk = &ap_resvd;
+    al->next = ap_pri;
+    ap_pri = al;
     
-    while(*awalk) {
-      if((*awalk)->ai->pid == par->common.pid)
-      {
-	break;
-      }
-      
-      awalk = &(*awalk)->next;
-    }
-    
-    if(*awalk)
-    {
-      al = *awalk;
-      *awalk = al->next;
-      
-      al->next = ap_pri;
-      ap_pri = al;
-      
-      ai = al->ai;
-    }
-    else
-    {
-      ai = srv_info_alloc (par->common.pid, APP_APPLICATION, 0);
-    }
+    ai = al->ai;
   }
   else
   {
-    ai = al->ai;
+    ai = srv_info_alloc (par->common.pid, APP_APPLICATION, 0);
   }
   
   if(ai)
@@ -442,7 +433,7 @@ srv_appl_init(C_APPL_INIT * par,
     R_MENU_REGISTER r_menu_register;
 
     c_menu_register.common = par->common;
-    c_menu_register.common.apid = ai->id;
+    c_menu_register.register_apid = ai->id;
     sprintf (c_menu_register.title, "  %s", par->appl_name);
     
     srv_menu_register (&c_menu_register, &r_menu_register);
