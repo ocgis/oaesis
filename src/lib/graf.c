@@ -829,6 +829,7 @@ Graf_do_mouse (WORD    apid,
   C_GRAF_MOUSE par;
   R_GRAF_MOUSE ret;
 
+  /* FIXME
   PUT_C_ALL(GRAF_MOUSE, &par);
 
   par.mode = mode;
@@ -840,7 +841,11 @@ Graf_do_mouse (WORD    apid,
 
   return ret.common.retval;
 
+  return 0;
+  */
+
   switch (mode) {
+#if 0 /* FIXME */
   case ARROW: /*0x000*/
     last = current;
     current = m_arrow;
@@ -912,15 +917,15 @@ Graf_do_mouse (WORD    apid,
     vsc_form (globals->vid, formptr);
     v_show_c (globals->vid, 0);
     break;
-    
+#endif                                    
   case M_OFF    :
     v_hide_c (globals->vid);
     break;
-                                
+
   case M_ON     :
     v_show_c (globals->vid, 0);
     break;
-    
+#if 0 /* FIXME */
   case M_SAVE:
     last_saved = current;
     break;
@@ -945,12 +950,12 @@ Graf_do_mouse (WORD    apid,
     v_show_c(globals->vid, 0);
     
     break;                      
-    
+#endif    
   default:
     DB_printf("%s: Line %d: Graf_do_mouse:\r\n"
               "Unknown mode %d\r\n",__FILE__,__LINE__,mode);
     retval = 0;
-  };
+  }
 
   return retval;
 }
