@@ -10,7 +10,7 @@ evnt.o: evnt.c debug.h types.h evnt.h mesagdef.h global.h evnthndl.h \
  gemdefs.h mintdefs.h resource.h srv.h
 evnthndl.o: evnthndl.c debug.h types.h evnt.h mesagdef.h global.h \
  evnthndl.h gemdefs.h graf.h mintdefs.h misc.h mousedev.h objc.h \
- resource.h srv.h vdi.h wmdefs.h
+ resource.h srv.h vdi.h wm/wm.h
 form.o: form.c debug.h types.h evnt.h mesagdef.h global.h evnthndl.h \
  form.h gemdefs.h graf.h mintdefs.h objc.h resource.h srv.h
 fsel.o: fsel.c debug.h types.h evnt.h mesagdef.h global.h form.h \
