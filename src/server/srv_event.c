@@ -298,10 +298,35 @@ check_for_messages (C_EVNT_MULTI * par,
 
 /*
 ** Description
+** Wake an application if it's waiting for a message
+**
+** 1999-04-07 CG
+*/
+void
+srv_wake_appl_if_waiting_for_msg (WORD id) {
+  if (apps [id].is_waiting) {
+    R_EVNT_MULTI ret;
+      
+    ret.eventout.events = check_for_messages (&apps [id].par,
+                                              &ret);
+    
+    if (ret.eventout.events != 0) {
+      Srv_reply (apps [id].handle, &ret, sizeof (R_EVNT_MULTI));
+      
+      /* The application is not waiting anymore */
+      dequeue_appl (&apps [id]);
+    }
+  }
+}
+
+
+/*
+** Description
 ** Check for waiting mouse events
 **
 ** 1998-12-13 CG
 ** 1999-01-30 CG
+** 1999-04-07 CG
 */
 static
 WORD
@@ -312,29 +337,24 @@ check_mouse_buttons (C_EVNT_MULTI * par,
 
   WORD retval = 0;
 
-  if (par->eventin.events & MU_BUTTON) {
-    if (apps [par->common.apid].mouse_size > 0) {
-      if ((MOUSE_BUFFER_HEAD.buttons & par->eventin.bmask) ==
-          par->eventin.bstate) {
-        /*        if (ret->eventout.mc == 0) {*/
-          ret->eventout.mx = MOUSE_BUFFER_HEAD.x;
-          ret->eventout.my = MOUSE_BUFFER_HEAD.y;
-          /*        }*/
-        
-        ret->eventout.mb = MOUSE_BUFFER_HEAD.buttons;
-        ret->eventout.mc = 1; /* FIXME */
-      
-        retval = MU_BUTTON;
-      }
-
-      /* Save the latest values */
-      apps [par->common.apid].mouse_last = MOUSE_BUFFER_HEAD;
-
-      /* Update mouse buffer head */
-      apps [par->common.apid].mouse_head =
-        (apps [par->common.apid].mouse_head + 1) % MOUSE_BUFFER_SIZE;
-      apps [par->common.apid].mouse_size--;
-    }
+  if (apps [par->common.apid].mouse_size > 0) {
+    /*        if (ret->eventout.mc == 0) {*/
+    ret->eventout.mx = MOUSE_BUFFER_HEAD.x;
+    ret->eventout.my = MOUSE_BUFFER_HEAD.y;
+    /*        }*/
+    
+    ret->eventout.mb = MOUSE_BUFFER_HEAD.buttons;
+    ret->eventout.mc = 1; /* FIXME */
+    
+    retval = MU_BUTTON;
+    
+    /* Save the latest values */
+    apps [par->common.apid].mouse_last = MOUSE_BUFFER_HEAD;
+    
+    /* Update mouse buffer head */
+    apps [par->common.apid].mouse_head =
+      (apps [par->common.apid].mouse_head + 1) % MOUSE_BUFFER_SIZE;
+    apps [par->common.apid].mouse_size--;
   }
 
   return retval;

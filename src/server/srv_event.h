@@ -72,4 +72,12 @@ srv_graf_mouse (WORD           vid,
                 C_GRAF_MOUSE * par,
                 R_GRAF_MOUSE * ret);
 
+/*
+** Description
+** Wake an application if it's waiting for a message
+**
+** 1999-04-07 CG
+*/
+void
+srv_wake_appl_if_waiting_for_msg (WORD id);
 #endif /* _SRV_EVENT_H_ */

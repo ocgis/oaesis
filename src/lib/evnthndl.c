@@ -522,6 +522,7 @@ handle_mover_click (WORD apid,
 ** Handle window sizer click
 **
 ** 1998-12-25 CG
+** 1999-04-07 CG
 */
 static
 void
@@ -532,6 +533,7 @@ handle_sizer_click (WORD apid,
   RECT    totsize;
   COMMSG  mesag;
   
+  Wind_do_update (apid, BEG_MCTRL);
   Wind_change (apid, win_id, W_SIZER, SELECTED);
   Wind_do_get (apid,
                win_id,
@@ -616,6 +618,7 @@ handle_sizer_click (WORD apid,
   Wind_do_update (apid, BEG_UPDATE);
   Wind_change (apid, win_id, W_SIZER, 0);
   Wind_do_update (apid, END_UPDATE);
+  Wind_do_update (apid, END_MCTRL);
 }
 
 /*

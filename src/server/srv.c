@@ -1491,6 +1491,7 @@ C_APPL_SEARCH *msg)
 **  Implementation of appl_write().                                         *
 **
 ** 1998-10-04 CG
+** 1999-04-07 CG
 */
 void
 srv_appl_write (C_APPL_WRITE * msg,
@@ -1519,6 +1520,8 @@ srv_appl_write (C_APPL_WRITE * msg,
       ai->message_size += msg->length;
       
       ret->common.retval = 0;
+
+      srv_wake_appl_if_waiting_for_msg (msg->addressee);
     } else {
       ret->common.retval = 1;
     }

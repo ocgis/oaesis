@@ -1444,12 +1444,12 @@ Wind_do_update (WORD apid,
   return ret.common.retval;
 }
 
+
 void
 Wind_update (AES_PB *apb) {
   apb->int_out[0] = Wind_do_update (apb->global->apid,
                                     apb->int_in[0]);
 }
-
 
 
 /*wind_calc 0x006c*/
