@@ -526,7 +526,7 @@ Rsrc_do_rcfix(WORD     vid,
       tiwalk[i].te_font = SWAP_WORD(tiwalk[i].te_font);
       tiwalk[i].te_fontid = SWAP_WORD(tiwalk[i].te_fontid);
       tiwalk[i].te_just = SWAP_WORD(tiwalk[i].te_just);
-      /* FIXME: Check if te_color should be swapped */
+      tiwalk[i].te_color = SWAP_WORD(tiwalk[i].te_color);
       tiwalk[i].te_fontsize = SWAP_WORD(tiwalk[i].te_fontsize);
       tiwalk[i].te_thickness = SWAP_WORD(tiwalk[i].te_thickness);
       tiwalk[i].te_txtlen = SWAP_WORD(tiwalk[i].te_txtlen);
