@@ -287,30 +287,68 @@ AES_PB *apb)      /* Pointer to AES parameter block.                        */
 }
 
 
-/****************************************************************************
- *  Menu_text                                                               *
- *   0x0022 menu_text().                                                    *
- ****************************************************************************/
-void              /*                                                        */
-Menu_text(        /*                                                        */
-AES_PB *apb)      /* Pointer to AES parameter block.                        */
-/****************************************************************************/
-{
-	OBJECT  *ob = (OBJECT *)apb->addr_in[0];
-	TEDINFO *ti;
-	
-	if(ob->ob_flags & INDIRECT) {
-		ti = ob->ob_spec.indirect->tedinfo;
-	}
-	else {
-		ti = ob->ob_spec.tedinfo;
-	};
+/* Menu_text return values */
+#define MENU_TEXT_OK    1
+#define MENU_TEXT_ERROR 0
 
-	strcpy(ti->te_ptext,
-					(BYTE *)apb->addr_in[1]);
-					
-	apb->int_out[0] = 1;
+/*
+** Description
+** Implementation of menu_text()
+*/
+static
+inline
+WORD
+Menu_do_text(OBJECT * tree,
+             WORD     obj,
+             BYTE *   text)
+{
+  TEDINFO * ti;
+
+  switch(tree[obj].ob_type)
+  {
+  case G_TEXT:
+  case G_BOXTEXT:
+  case G_FTEXT:
+  case G_FBOXTEXT:
+    if(tree[obj].ob_flags & INDIRECT)
+    {
+      ti = tree[obj].ob_spec.indirect->tedinfo;
+    }
+    else
+    {
+      ti = tree[obj].ob_spec.tedinfo;
+    }
+    
+    strcpy(ti->te_ptext,
+           text);
+    break;
+
+  case G_STRING:
+  case G_TITLE:
+    strcpy(tree[obj].ob_spec.free_string, text);
+    break;
+
+  default:
+    /* No way to handle objects without a text */
+    return MENU_TEXT_ERROR;
+  }
+
+  return MENU_TEXT_OK;
 }
+
+
+/*
+** Description
+** 0x0022 menu_text()
+*/
+void
+Menu_text(AES_PB * apb)
+{
+  apb->int_out[0] = Menu_do_text((OBJECT *)apb->addr_in[0],
+                                 apb->int_in[0],
+                                 (BYTE *)apb->addr_in[1]);
+}
+
 
 /*
 ** Description
