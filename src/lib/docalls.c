@@ -31,6 +31,7 @@
  ****************************************************************************/
 
 #include <stdio.h>
+#include <unistd.h>
 
 #include "aesbind.h"
 #include "appl.h"
@@ -472,13 +473,14 @@ lib_aes_call(AESPB * apb)
 aes_call(AESPB * apb)
 #endif
 {
-  DEBUG2("Aes call %d (0x%x) %s",
+  DEBUG2("Aes call %d (0x%x) apid %d pid %d",
          apb->contrl[0],
          apb->contrl[0],
-         aescalls[apb->contrl[0]]);
+         ((AES_PB *)apb)->global->apid,
+         getpid());
   
   if(aescalls[apb->contrl[0]].func) {
-    aescalls[apb->contrl[0]].func (apb);
+    aescalls[apb->contrl[0]].func(apb);
   } else {
     if(aescalls[apb->contrl[0]].name) {
       DB_printf("%s: Line %d:\r\n"
@@ -492,10 +494,9 @@ aes_call(AESPB * apb)
     }
   }
   
-#ifdef DCDEBUG
-  if((apb->global->apid != 0) && (apb->contrl[0] != 25)) {
-    DB_printf("/Aes call %d\r\n",apb->contrl[0]);
-  }
-#endif
+  DEBUG2("Returned from aes call %d (0x%x) apid %d pid %d",
+         apb->contrl[0],
+         apb->contrl[0],
+         ((AES_PB *)apb)->global->apid,
+         getpid());
 }
-
