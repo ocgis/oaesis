@@ -13,8 +13,8 @@ DEFS = -D__MINT__
 CFLAGS = -Wall -fomit-frame-pointer $(MODEL) $(DEFS) -bm68k-atari-mint
 ASFLAGS = $(MODEL)
 
-CFILES = appltrec.c evnttest.c formtest.c fcntltst.c lines.c test.c test2.c \
-	test2rsc.c testikbd.c testmenu.c testmen.c trackvdi.c
+CFILES = appltrec.c evnttest.c formtest.c fcntltst.c lines.c performance.c \
+	test.c test2.c test2rsc.c testikbd.c testmenu.c testmen.c trackvdi.c
 
 SFILES = trackvds.s
 

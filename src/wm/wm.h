@@ -1,3 +1,8 @@
+#ifndef __WM_H__
+#define __WM_H__
+
+#include "../types.h"
+
 typedef struct _wminfo {
   WORD CDECL (*get_mouse_event)(EVNTREC *er);
   WORD CDECL (*write_msg)(void *msg);
@@ -16,3 +21,5 @@ typedef struct _wm {
   WORD CDECL   (*draw)(void *win,RECT *clip);
   WORD CDECL   (*click_handler)(void *win,WORD id,WORD but_state);
 }WM;
+
+#endif
