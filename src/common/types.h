@@ -183,7 +183,8 @@ typedef struct dirstruct {
                              on process termination */
 } MINTDIR;
 
-typedef struct devdrv {
+typedef struct devdrv
+{
   LONG CDECL (*open)(FILEPTR *f);
   LONG CDECL (*write)(FILEPTR *f, const BYTE *buf, LONG bytes);
   LONG CDECL (*read)(FILEPTR *f, BYTE *buf, LONG bytes);
@@ -192,7 +193,7 @@ typedef struct devdrv {
   LONG CDECL (*datime)(FILEPTR *f, WORD *timeptr, WORD rwflag);
   LONG CDECL (*close)(FILEPTR *f, WORD pid);
   LONG CDECL (*select)(FILEPTR *f, LONG proc, WORD mode);
-  void CDECL (*unselect)(FILEPTR *f, LONG proc, WORD mode);
+  LONG CDECL (*unselect)(FILEPTR *f, LONG proc, WORD mode);
 
   /* extensions, check dev_descr.drvsize (size of DEVDRV struct) before calling:
    * fast RAW tty byte io  */
