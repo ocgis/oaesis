@@ -1,4 +1,4 @@
-INCLUDES = -I../comm -I../common -I../..
+INCLUDES = -I../comm -I../common -I../.. -I.
 
 BINDINGS_CSRCS = \
 	aesbind.c
