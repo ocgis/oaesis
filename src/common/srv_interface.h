@@ -298,9 +298,8 @@ typedef struct
 
 typedef struct
 {
-  C_ALL    common;
-  WORD     mode;
-  OBJECT * tree; /* FIXME */
+  C_ALL common;
+  WORD  mode;
 }C_MENU_BAR;
 
 #define C_MENU_BAR_WORDS 1
@@ -336,10 +335,9 @@ typedef struct
 {
   C_ALL common;
   WORD  id;
-  WORD  retval;
 } C_WIND_CLOSE;
 
-#define C_WIND_CLOSE_WORDS 2
+#define C_WIND_CLOSE_WORDS 1
 #define C_WIND_CLOSE_LONGS 0
 
 typedef struct
