@@ -192,7 +192,9 @@ void init_global(WORD nocnf) {
   globals.fsel_extern = 0;
   
   if(!nocnf) {
+    /*
     Boot_parse_cnf();
+    */
   };
 
 #ifdef MINT_TARGET
@@ -287,6 +289,7 @@ void init_global(WORD nocnf) {
   strcpy (globals.mousename, "/dev/mouse");
 #endif  
 
+  /*
   Rsrc_do_rcfix(globals.vid,(RSHDR *)RESOURCE);
   
   Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,AICONS,&globals.aiconstad);
@@ -299,9 +302,10 @@ void init_global(WORD nocnf) {
   Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,PMENU,&globals.pmenutad);
   Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,WINDOW,&globals.windowtad);
   Rsrc_do_gaddr((RSHDR *)RESOURCE,R_FRSTR,0,(OBJECT **)&globals.fr_string);
+  */
   
   sprintf(versionstring,"Version %s",VERSIONTEXT);
-  globals.informtad[INFOVERSION].ob_spec.tedinfo->te_ptext = versionstring;
+  /*  globals.informtad[INFOVERSION].ob_spec.tedinfo->te_ptext = versionstring; */
   
   globals.applpid = Pgetpid();
 }

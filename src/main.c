@@ -27,7 +27,6 @@
 
 #include "debug.h"
 #include "evnthndl.h"
-#include "graf.h"
 #include "lxgemdos.h"
 #include "menu.h"
 #include "misc.h"
@@ -61,13 +60,19 @@ void init_aes(WORD nocnf) {
 #endif /* MINT_TARGET */
 
   fprintf(stderr,"Object calls\r\n");
+  /*
   Objc_init_module();
+  */
   
   fprintf(stderr,"Menu calls\r\n");
+  /*
   Menu_init_module();
-  
+  */
+
   fprintf(stderr,"Initializing graf calls\n");
+  /*
   Graf_init_module();
+  */
 
 #ifdef MINT_TARGET  
   fprintf(stderr,"Mouse device\r\n");
@@ -75,8 +80,10 @@ void init_aes(WORD nocnf) {
 #endif /* MINT_TARGET */
 
   fprintf(stderr,"Initializing Event handler\n");
+  /*
   Evhd_init_module();
-  
+  */
+
   fprintf(stderr,"oaesis: main.c: Leaving init_aes\n");
 }
 
@@ -84,13 +91,17 @@ void exit_aes(void) {
   fprintf(stderr,"Exiting:\r\n");
   
   fprintf(stderr,"Event handler\r\n");
-  
+
+  /*  
   Evhd_exit_module();
-  
+  */
+
   fprintf(stderr,"Menu calls\r\n");
 
+  /*
   Menu_exit_module();
-  
+  */
+
 #ifdef MINT_TARGET
   fprintf(stderr,"Mouse device\r\n");
   
@@ -102,9 +113,11 @@ void exit_aes(void) {
 #endif /* MINT_TARGET */
   
   fprintf(stderr,"Object calls\r\n");
-  
+
+  /*
   Objc_exit_module();
-  
+  */
+
   fprintf(stderr,"Global\r\n");
   
   exit_global();
@@ -191,10 +204,14 @@ int main(int argc,BYTE *argv[],BYTE *envp[]) {
   };
   
   init_aes (nocnf);
-  
+
+  /*
   Misc_setpath ("u:\\");
-  
-  sleep (5);
+  */
+
+  fprintf (stderr,"oaesis: sleeping for 60 seconds\n");
+  getchar ();
+  fprintf (stderr,"oaesis: slept for 60 seconds\n");
   /*  Menu_handler(envp); */
   
   exit_aes ();

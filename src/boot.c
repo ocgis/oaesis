@@ -404,7 +404,9 @@ WORD apid)                     /*                                           */
 				
 				param[0] = (BYTE)strlen(&param[1]);
 				
+                                /*
 				Srv_shel_write(apid,SWM_LAUNCH,0,0,program,param);
+                                */
 			}
 			else if(!strcmp(line,"shell")) {
 				BYTE shell[128],param[128];
@@ -419,7 +421,9 @@ WORD apid)                     /*                                           */
 
 				param[0] = (BYTE)strlen(&param[1]);
 				
+                                /*
 				Srv_shel_write(apid,SWM_LAUNCH,0,0,shell,param);
+                                */
 			}
 			else if(!strcmp(line,"setenv")) {
 				BYTE value[300];
@@ -428,8 +432,9 @@ WORD apid)                     /*                                           */
 				get_token(fp,&value[strlen(value)]);
 				get_token(fp,&value[strlen(value)]);
 
+                                /*
 				Srv_shel_write(apid,SWM_ENVIRON,ENVIRON_CHANGE,0,value,NULL);
-				
+				*/
 				get_token(fp,value);
 			};
 		}
@@ -447,7 +452,9 @@ WORD apid)                     /*                                           */
         Boot_acc_path[2] = '\\';
     }
 
+    /*
     Misc_setpath(Boot_acc_path);
+    */
 /*
 	Misc_setpath(bootpath);
 */
@@ -459,7 +466,9 @@ WORD apid)                     /*                                           */
 		
 		sprintf(accname,"%s%s",bootpath,newdta.dta_name);
 		
+                /*
 		Srv_shel_write(apid,SWM_LAUNCHACC,0,0,accname,"");
+                */
 		found = Fsnext();
 	};
 		

@@ -1,4 +1,4 @@
-AC_INIT(src/appl.c)
+AC_INIT(src/Makefile.am)
 
 dnl For automake
 PACKAGE=oaesis
@@ -113,5 +113,14 @@ AC_SUBST(target_os)
 dnl Set CFLAGS
 CFLAGS="$CFLAGS -Wall"
 
+dnl Setup symbolic links
+AC_LINK_FILES(src/debug.c, src/lib/debug.c)
+AC_LINK_FILES(src/global.c, src/lib/global.c)
+AC_LINK_FILES(src/misc.c, src/lib/misc.c)
+AC_LINK_FILES(src/rlist.c, src/lib/rlist.c)
+AC_LINK_FILES(src/comm/srv_get_pmsg.c, src/srv_get.c)
+AC_LINK_FILES(src/comm/srv_put_pmsg.c, src/lib/srv_put.c)
+AC_LINK_FILES(src/vdi.c, src/lib/vdi.c)
+
 dnl Specify which files that should be created
-AC_OUTPUT(Makefile src/Makefile test/Makefile)
+AC_OUTPUT(Makefile src/Makefile src/comm/Makefile src/lib/Makefile test/Makefile)

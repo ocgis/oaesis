@@ -183,7 +183,7 @@ BYTE *envp[])          /* Environment string.                               */
 	       (WORD)(((LONG)globals.deskbgtad) >> 16),
 	       (WORD)((LONG)globals.deskbgtad),0,0);
   
-  Boot_start_programs(mglob.menu_handl_apid);
+  /*  Boot_start_programs(mglob.menu_handl_apid);*/
 							
   /* Start waiting for messages and rect 1 */
   while(!quit) {
