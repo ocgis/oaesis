@@ -135,7 +135,6 @@ Appl_do_init (GLOBAL_ARRAY * global) {
                     sizeof (C_APPL_INIT),
                     &ret,
                     sizeof (R_APPL_INIT));
-  
   global->apid = ret.apid;	
   global->version = 0x0410;
   global->numapps = -1;
@@ -413,5 +412,5 @@ Appl_getinfo(AES_PB *apb) /* AES parameter block.                           */
     DB_printf("%s: Line %d: Appl_getinfo:\r\n"
               "Unknown type %d\r\n",__FILE__,__LINE__,apb->int_in[0]);
     apb->int_out[0] = 0;
-  };
+  }
 }

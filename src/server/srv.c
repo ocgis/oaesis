@@ -267,7 +267,6 @@ WORD alloc_only)    /* Should the structure only be allocated?              */
   al->ai->rshdr = 0L;
 
   /* Message handling initialization */
-  DB_printf ("srv_info_alloc: resetting message buffer for apid %d", al->ai->id);
   al->ai->message_head = 0;
   al->ai->message_size = 0;
   
@@ -3760,9 +3759,7 @@ server (LONG arg) {
     if (handle == NULL) {
       srv_handle_events ();
     } else {
-#ifdef SRV_DEBUG
-      DB_printf("Call: %d pid: %d",msg.cr.call,msg.pid);
-#endif		
+      /*DB_printf("Call: %d apid: %d", par.common.call, par.common.apid);*/
       
       switch (par.common.call) {
       case SRV_SHAKE:

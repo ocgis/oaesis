@@ -176,7 +176,7 @@ init_global (WORD nocnf,
   WORD dum;
   
 
-  fprintf(stderr,"Entering init_global\n");
+  DB_printf ("Entering init_global");
 
 #ifdef MINT_TARGET
   /* Only mess with videomodes if running under MiNT */
@@ -206,6 +206,8 @@ init_global (WORD nocnf,
   global_common.fsel_sorted = 1;
   global_common.fsel_extern = 0;
   
+  DB_printf ("init_global: 2");
+
   if(!nocnf) {
     /*
     Boot_parse_cnf();
@@ -240,6 +242,7 @@ init_global (WORD nocnf,
              physical_vdi_id);
   global_appl.vid = physical_vdi_id;
   Vdi_v_opnvwk (work_in, &global_appl.vid, work_out);
+  DB_printf ("init_global: 3");
   global_common.vid = global_appl.vid; /* Remove global_common.vid */
   DB_printf ("lib_global.c: init_global: vid=%d", global_appl.vid);
 #endif /* MINT_TARGET */

@@ -1,3 +1,19 @@
+/*
+** shel.c
+**
+** Copyright 1999 Christer Gustavsson <cg@nocrew.org>
+**
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+**  
+** Read the file COPYING for more information.
+*/
+
+#include <sys/stat.h>
+#include <unistd.h>
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -31,7 +47,9 @@
 #include "debug.h"
 #include "gemdefs.h"
 /*#include "lxgemdos.h"*/
+#include "lib_global.h"
 #include "lib_misc.h"
+#include "shel.h"
 #include "srv_calls.h"
 #include "types.h"
 
@@ -106,85 +124,166 @@ AES_PB *apb)      /* AES parameter block.                                   */
 	}
 }
 
-/****************************************************************************
- * Shel_do_find                                                             *
- *  Implementation of shel_find().                                          *
- ****************************************************************************/
-WORD              /* 0 if the file was not found or 1.                      */
-Shel_do_find(     /*                                                        */
-BYTE *buf)        /* Buffer where the filename is given and full path       */
-                  /* returned.                                              */
-/****************************************************************************/
-{
-	BYTE name[128];
- 	BYTE tail[128], *p, *q;
-	XATTR xa;
-	
-	strcpy(name,buf);
-	
-	/* we start by checking if the file is in our path */
-	
-	if(Fxattr(0,buf,&xa) == 0)  {
-	/* check if we were passed an absolute path (rather simplistic)
-	 * if this was the case, then _don't_ concat name on the path */
-	 	if (!((name[0] == '\\') ||
-	 	     (name[0] && (name[ 1] == ':')))) {
-			Dgetpath(buf,0);
-			strcat(buf, "\\");
-			strcat(buf, name);
-		};
-		
-		return 1;
-	}
 
-	/*	strlwr(buf);  <-- Add equivalent */
-
-	if(Fxattr(0,buf,&xa) == 0)  {
-	/* check if we were passed an absolute path (rather simplistic)
-	 * if this was the case, then _don't_ concat name on the path */
-	 	if (!((name[0] == '\\') ||
-	 	     (name[0] && (name[ 1] == ':')))) {
-			Dgetpath(buf,0);
-			strcat(buf, "\\");
-			strcat(buf, name);
-		};
-		
-		return 1;
-	}
-
-	Shel_do_read(buf, tail);
-	p = strrchr( buf, '\\');
-	if(p) {
-		strcpy( p+1, name);
-		if(Fxattr(0, buf, &xa) == 0) 
-			return 1;
-	
-		q = strrchr( name, '\\');
-
-		if(q) {
-			strcpy(p, q);
-			if(Fxattr(0, buf, &xa) == 0) {
-				return 1;
-			}
-			else {
-				(void)0; /* <--search the PATH enviroment */
-			}
-		}
-	}
-		
-	return 0;
+/*
+** Description
+** Implementation of shel_find () for MiNT
+**
+** 1999-03-14 CG
+*/
+static
+WORD
+Shel_do_find_mint (BYTE * buf) {
+  BYTE name[128];
+  BYTE tail[128], *p, *q;
+  XATTR xa;
+  
+  strcpy(name,buf);
+  
+  /* we start by checking if the file is in our path */
+  
+  if(Fxattr(0,buf,&xa) == 0)  {
+    /* check if we were passed an absolute path (rather simplistic)
+     * if this was the case, then _don't_ concat name on the path */
+    if (!((name[0] == '\\') ||
+          (name[0] && (name[ 1] == ':')))) {
+      Dgetpath(buf,0);
+      strcat(buf, "\\");
+      strcat(buf, name);
+    };
+    
+    return SHEL_FIND_OK;
+  }
+  
+  /*	strlwr(buf);  <-- Add equivalent */
+  
+  if(Fxattr(0,buf,&xa) == 0)  {
+    /* check if we were passed an absolute path (rather simplistic)
+     * if this was the case, then _don't_ concat name on the path */
+    if (!((name[0] == '\\') ||
+          (name[0] && (name[ 1] == ':')))) {
+      Dgetpath(buf,0);
+      strcat(buf, "\\");
+      strcat(buf, name);
+    };
+    
+    return SHEL_FIND_OK;
+  }
+  
+  Shel_do_read(buf, tail);
+  p = strrchr( buf, '\\');
+  if(p) {
+    strcpy( p+1, name);
+    if(Fxattr(0, buf, &xa) == 0) 
+      return SHEL_FIND_OK;
+    
+    q = strrchr( name, '\\');
+    
+    if(q) {
+      strcpy(p, q);
+      if(Fxattr(0, buf, &xa) == 0) {
+        return SHEL_FIND_OK;
+      }
+      else {
+        (void)0; /* <--search the PATH enviroment */
+      }
+    }
+  }
+  
+  return SHEL_FIND_ERROR;
 }
 
-/****************************************************************************
- * Shel_find                                                                *
- *  0x007c shel_find().                                                     *
- ****************************************************************************/
-void              /*                                                        */
-Shel_find(        /*                                                        */
-AES_PB *apb)      /* AES parameter block.                                   */
-/****************************************************************************/
-{
-	apb->int_out[0] = Shel_do_find((BYTE *)apb->addr_in[0]);
+
+/*
+** Description
+** Implementation of shel_find () for Unix
+**
+** 1999-03-14 CG
+*/
+static
+WORD
+Shel_do_find_unix (BYTE * buf) {
+  BYTE        name[128];
+  BYTE        tail[128];
+  BYTE *      p;
+  BYTE *      q;
+  struct stat st;
+
+  strcpy (name, buf);
+  
+  /* we start by checking if the file is in our current working directory */
+  
+  if (stat (buf, &st) == 0)  {
+    /* check if we were passed an absolute path (rather simplistic)
+     * if this was the case, then _don't_ concat name on the path */
+    if (!(name[0] == '/')) {
+      char buf2[200];
+
+      if (getcwd (buf2, 200) == NULL) {
+        return SHEL_FIND_ERROR;
+      }
+
+      sprintf (buf, "%s/%s", buf2, name);
+    }
+    
+    return SHEL_FIND_OK;
+  }
+  
+  Shel_do_read (buf, tail);
+  p = strrchr( buf, '/');
+
+  if (p) {
+    strcpy (p + 1, name);
+
+    if (stat (buf, &st) == 0) {
+      return SHEL_FIND_OK;
+    }
+    
+    q = strrchr( name, '/');
+    
+    if (q) {
+      strcpy (p, q);
+      if (stat (buf, &st) == 0) {
+        return SHEL_FIND_OK;
+      }
+      else {
+        (void)0; /* <--search the PATH enviroment */
+      }
+    }
+  }
+  
+  return SHEL_FIND_ERROR;
+}
+
+
+/*
+** Exported
+**
+** 1999-03-14 CG
+*/
+WORD
+Shel_do_find (WORD   apid,
+              BYTE * buf) {
+  GLOBAL_APPL * globals = get_globals (apid);
+
+  if (globals->use_mint_paths) {
+    return Shel_do_find_mint (buf);
+  } else {
+    return Shel_do_find_unix (buf);
+  }
+}
+
+
+/*
+** Exported
+** 0x007c shel_find()
+**
+** 1999-03-14 CG
+*/
+void
+Shel_find (AES_PB * apb) {
+	apb->int_out[0] =
+          Shel_do_find (apb->global->apid, (BYTE *)apb->addr_in[0]);
 }
 
 /****************************************************************************
@@ -196,6 +295,6 @@ Shel_envrn(       /*                                                        */
 AES_PB *apb)      /* AES parameter block.                                   */
 /****************************************************************************/
 {
-	apb->int_out[0] = Srv_shel_envrn((BYTE **)apb->addr_in[0],
-																		(BYTE *)apb->addr_in[1]);
+  apb->int_out[0] = Srv_shel_envrn((BYTE **)apb->addr_in[0],
+                                   (BYTE *)apb->addr_in[1]);
 }

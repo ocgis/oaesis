@@ -60,8 +60,8 @@ min (WORD a,
 #define NUM_LINES       10
 
 /*static char progpath[500] = "c:\\*";*/
-static char progpath[500] = "/opt/osis/bin/*";
-static char progfile[70] = "";
+static char progpath[500] = "/usr/local/src/osis/cvs/otermis/src/*";
+static char progfile[70] = "toswin_w.prg";
 
 /*
 ** Description

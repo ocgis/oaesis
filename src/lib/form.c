@@ -327,10 +327,8 @@ Form_do_alert (WORD   apid,
   WORD	 textwidth = 0,buttonwidth = 0;
   GLOBAL_APPL * globals = get_globals (apid);
 	
-  DB_printf ("form.c: Form_do_alert: 1");
   Graf_do_handle(&cwidth,&cheight,&width,&height);
 	
-  DB_printf ("form.c: Form_do_alert: 2");
   strcpy(s,alertstring);
 	
   while(s[i] != '[')
@@ -359,7 +357,6 @@ Form_do_alert (WORD   apid,
     i++;
   };
 	
-  DB_printf ("form.c: Form_do_alert: 3");
   s[i] = 0;
 	
   while(s[i] != '[')
@@ -380,21 +377,16 @@ Form_do_alert (WORD   apid,
 		
   s[i] = 0;
 	
-  DB_printf ("form.c: Form_do_alert: 4");
   tree = (OBJECT *)Mxalloc((2 + no_butts + no_rows) * sizeof(OBJECT)
                            ,PRIVATEMEM);
 	
-  DB_printf ("form.c: Form_do_alert: 4a");
   ti = (TEDINFO *)Mxalloc(no_rows * sizeof(TEDINFO),PRIVATEMEM);
 	
-  DB_printf ("form.c: Form_do_alert: 4b");
   memcpy(&tree[0],&globals->common->alerttad[0],sizeof(OBJECT));
 	
-  DB_printf ("form.c: Form_do_alert: 4c");
   tree[0].ob_head = -1;
   tree[0].ob_tail = -1;
 	
-  DB_printf ("form.c: Form_do_alert: 4d");
   for(i = 0; i < no_rows; i ++) {
     memcpy(&tree[1 + i],&globals->common->alerttad[AL_TEXT],sizeof(OBJECT));
     memcpy(&ti[i],globals->common->alerttad[AL_TEXT].ob_spec.tedinfo
@@ -418,7 +410,6 @@ Form_do_alert (WORD   apid,
     do_objc_add(tree,0,i + 1);
   };
 
-  DB_printf ("form.c: Form_do_alert: 5");
   for(i = 0; i < no_butts; i ++) {
     memcpy(&tree[1 + i + no_rows],&globals->common->alerttad[AL_BUTTON],sizeof(OBJECT));
 	
@@ -443,7 +434,6 @@ Form_do_alert (WORD   apid,
     do_objc_add(tree,0,i + 1 + no_rows);
   };
 	
-  DB_printf ("form.c: Form_do_alert: 6");
   memcpy(&tree[1 + no_butts + no_rows],&globals->common->alerttad[AL_ICON],sizeof(OBJECT));
 
   do_objc_add(tree,0,1 + no_butts + no_rows);
@@ -473,7 +463,6 @@ Form_do_alert (WORD   apid,
     tree[1 + no_butts + no_rows].ob_flags |= HIDETREE;		
   };
 		
-  DB_printf ("form.c: Form_do_alert: 7");
   buttonwidth += 2;
 
   if(def) {
@@ -549,8 +538,6 @@ Form_do_error (WORD apid,
   BYTE	*sp = s;
   GLOBAL_APPL * globals = get_globals (apid);
 
-  DB_printf ("form.c: Form_do_error: Entered");
-
   switch(error)
   {
   case	FERR_FILENOTFOUND:
@@ -579,8 +566,6 @@ Form_do_error (WORD apid,
     sprintf(s,globals->common->fr_string[ERROR_GENERAL],error);
   };
 	
-  DB_printf ("form.c: Form_do_error: Calling Form_do_alert");
-
   return Form_do_alert (apid, 1, sp);
 }
 

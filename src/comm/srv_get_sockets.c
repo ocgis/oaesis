@@ -229,16 +229,16 @@ Srv_get (void * in,
     return NULL;
   }
 
-  /* The handle should be selected the next call */
-  handle_walk->next = selectable_handles;
-  selectable_handles = handle_walk;
-
   /* Receive data */
   if ((err = recv (handle_walk->fd, in, max_bytes_in, 0)) == -1) {
     perror ("oaesis: Srv_get: recv");
     return NULL;
   }
   /*  DB_printf ("srv_get_sockets.c: length = %d %d", err, count++);*/
+
+  /* The handle should be selected the next call */
+  handle_walk->next = selectable_handles;
+  selectable_handles = handle_walk;
 
   return handle_walk;
 }

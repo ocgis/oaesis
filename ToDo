@@ -1,0 +1,2 @@
+- Check mint emulation flag when loading resource files in rsrc.c and make
+  sure that case insensitivity is used when it should.

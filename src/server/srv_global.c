@@ -188,9 +188,11 @@ srv_init_global (WORD nocnf) {
   /* Install segmentation fault handler */
   signal (SIGSEGV, handle_signal);
   signal (SIGILL, handle_signal);
+  signal (SIGTRAP, handle_signal);
   signal (SIGBUS, handle_signal);
   signal (SIGFPE, handle_signal);
   signal (SIGSTKFLT, handle_signal);
+  signal (SIGPIPE, handle_signal);
 
   Vdi_v_opnwk (work_in, &globals.vid, work_out);
 

@@ -3,18 +3,23 @@
 
 #include	"types.h"
 
-/****************************************************************************
- * Shel_do_find                                                             *
- *  Implementation of shel_find()                                           *
- ****************************************************************************/
-WORD              /* 0 if the file was not found or 1.                      */
-Shel_do_find(     /*                                                        */
-BYTE *buf);       /* Buffer where the filename is given and full path       */
-                  /* returned.                                              */
-/****************************************************************************/
 
 void Shel_read(AES_PB *apb);	/*0x0078*/
 void Shel_write(AES_PB *apb); /*0x0079*/
+
+
+#define SHEL_FIND_ERROR 0
+#define SHEL_FIND_OK    1
+
+/*
+** Description
+** Implementation of shel_find()
+**
+** 1999-03-14 CG
+*/
+WORD
+Shel_do_find (WORD   apid,
+              BYTE * buf);
 
 /****************************************************************************
  * Shel_find                                                                *

@@ -745,7 +745,6 @@ extern short _global[];
 #define	_AESmaxchar   (_global[13])
 #define	_AESminchar   (_global[14])
 
-#define gl_apid       _AESapid
 #define gl_ap_version _AESversion
 
 extern void  aes_call (AESPB * aespb);

@@ -43,7 +43,9 @@
 #endif
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 #include "debug.h"
@@ -99,14 +101,20 @@ fix_object_coordinates (OBJECT *ob) {
   ob->ob_height = dumchar[6] + ((WORD)dumchar[7]) * globals->clheight;
 
   return  0;
-};
+}
 
 
+/*
+** Description
+** Load a resource file that is found in the path
+**
+** 1999-03-14 CG
+*/
 static
 RSHDR *
-loadrsc (WORD apid,
-         WORD vid,
-         BYTE *filename) {
+Rsrc_do_load_mint (WORD   apid,
+                   WORD   vid,
+                   BYTE * filename) {
   LONG    fnr;
   BYTE    namebuf[200];
   LONG    flen;
@@ -114,25 +122,29 @@ loadrsc (WORD apid,
   RSHDR   *rsc;
 
   strcpy( namebuf, filename);
-  if (!Shel_do_find(namebuf)) {
-    DB_printf("Could not find %s",namebuf);
+  if (Shel_do_find (apid, namebuf) == SHEL_FIND_ERROR) {
+    DB_printf("rsrc.c: loadrsc: Could not find %s",namebuf);
                 
     return NULL;
-  };
+  }
 
   fnr = Fopen( namebuf, FO_READ);
 
   if(fnr < 0) {
+    DB_printf("rsrc.c: loadrsc: Could not open %s",namebuf);
+
     return NULL;
-  };
+  }
         
   flen = Fseek(0,(WORD)fnr,SEEK_END);
         
   rsc = (RSHDR *)Mxalloc(flen,GLOBALMEM);
 
   if(!rsc) {
+    DB_printf("rsrc.c: loadrsc: Could not malloc memory for %s",namebuf);
+
     return NULL;
-  };
+  }
         
   Fseek(0,(WORD)fnr,SEEK_SET);    
   Fread((WORD)fnr,flen,rsc);
@@ -141,6 +153,84 @@ loadrsc (WORD apid,
   Rsrc_do_rcfix (vid, rsc);
         
   return rsc;
+}
+
+
+/*
+** Description
+** Load a resource file that is found in the path
+**
+** 1999-03-14 CG
+*/
+static
+RSHDR *
+Rsrc_do_load_unix (WORD   apid,
+                   WORD   vid,
+                   BYTE * filename) {
+  int         fnr;
+  BYTE        namebuf[200];
+  RSHDR *     rsc;
+  struct stat st;
+
+  strcpy( namebuf, filename);
+  if (Shel_do_find (apid, namebuf) == SHEL_FIND_ERROR) {
+    DB_printf("rsrc.c: loadrsc: Could not find %s",namebuf);
+                
+    return NULL;
+  }
+
+  fnr = open (namebuf, 0);
+
+  if (fnr < 0) {
+    DB_printf ("rsrc.c: Rsrc_do_load_unix: Could not open %s", namebuf);
+
+    return NULL;
+  }
+
+  if (fstat (fnr, &st) == -1) {
+    DB_printf ("rsrc.c: Rsrc_do_load_unix: Could not stat %s", namebuf);
+  }
+
+  rsc = (RSHDR *)malloc (st.st_size);
+
+  if (rsc == NULL) {
+    DB_printf ("rsrc.c: loadrsc: Could not malloc memory for %s",namebuf);
+
+    return NULL;
+  }
+        
+  if (read (fnr, rsc, st.st_size) == -1) {
+    DB_printf ("rsrc.c: loadrsc: Could not read from %s",namebuf);
+
+    return NULL;
+  }
+  
+  close(fnr);
+
+  Rsrc_do_rcfix (vid, rsc);
+        
+  return rsc;
+}
+
+
+/*
+** Description
+** Load a resource file that is found in the path
+**
+** 1999-03-14 CG
+*/
+static
+RSHDR *
+Rsrc_do_load (WORD   apid,
+              WORD   vid,
+              BYTE * filename) {
+  GLOBAL_APPL * globals = get_globals (apid);
+
+  if (globals->use_mint_paths) {
+    return Rsrc_do_load_mint (apid, vid, filename);
+  } else {
+    return Rsrc_do_load_unix (apid, vid, filename);
+  }
 }
 
 
@@ -352,28 +442,26 @@ RSHDR  * rsc)     /* Resource structure to fix.                             */
 ** Exported
 **
 ** 1998-12-20 CG
+** 1999-03-14 CG
 */
 void
 Rsrc_load (AES_PB *apb)  /*0x006e*/ {
   RSHDR *       rsc;
   GLOBAL_APPL * globals = get_globals (apb->global->apid);
-        
-  rsc = loadrsc (apb->global->apid,
-                 globals->vid,
-                 (BYTE *)apb->addr_in[0]);
 
-  apb->global->rscfile = (OBJECT **)((LONG)rsc->rsh_trindex + (LONG)rsc);
-  apb->global->rshdr = (RSHDR *)rsc;
+  rsc = Rsrc_do_load (apb->global->apid,
+                      globals->vid,
+                      (BYTE *)apb->addr_in[0]);
+  
+  if (rsc != NULL) {
+    apb->global->rscfile = (OBJECT **)((LONG)rsc->rsh_trindex + (LONG)rsc);
+    apb->global->rshdr = (RSHDR *)rsc;
+    globals->rshdr = (RSHDR *)rsc;
 
-  if(rsc) {
-    /*
-    apb->global->int_info->rshdr = rsc;
-    */
     apb->int_out[0] = 1;
-  }
-  else {
+  } else {
     apb->int_out[0] = 0;
-  };
+  }
 }
 
 
