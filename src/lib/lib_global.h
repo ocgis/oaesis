@@ -141,12 +141,7 @@ init_global_appl (int    apid,
 
 void	exit_global(void);
 
-#ifdef MINT_TARGET
 GLOBAL_APPL   * get_globals (WORD apid);
-#else
-extern GLOBAL_APPL global_appl;
-#define get_globals(apid) (&global_appl)
-#endif
 
 extern GLOBAL_COMMON global_common;
 #define get_global_common() (&global_common)

@@ -71,12 +71,8 @@
 
 GLOBAL_COMMON global_common;
 
-#ifdef MINT_TARGET
 /* FIXME: allocate when needed */
 GLOBAL_APPL globals_appl[256];
-#else
-GLOBAL_APPL   global_appl;
-#endif
 
 char *p_fsel_extern = (char *)&global_common.fsel_extern;
 static WORD global[15];
@@ -180,169 +176,185 @@ WORD own_graf_handle(void) {
 ** Initialize global variables, open vdi workstation etc
 */
 void
-init_global (WORD physical_vdi_id) {
-  int work_in[] = {1,1,1,1,1,1,1,1,1,1,2};
-  int work_out[57];
-  int dum;
-  int temp_vid;
+init_global (WORD physical_vdi_id)
+{
+  int        work_in[] = {1,1,1,1,1,1,1,1,1,1,2};
+  int        work_out[57];
+  int        dum;
+  int        temp_vid;
+  static int is_inited = FALSE;
 
-  DEBUG3 ("Entering init_global");
-
+  /* Only initialize globals if they haven't been initialized before */
+  if(!is_inited)
+  {
+    is_inited = TRUE;
+    
+    DEBUG3 ("Entering init_global");
+    
 #if 0 /* FIXME def MINT_TARGET */
-  /* Only mess with videomodes if running under MiNT */
-  if(globals.video == 0x00030000L) {
-    fprintf(stderr,"VsetMode\r\n");
-    oldmode = globals.vmode = 3;
-    oldmodecode = globals.vmodecode = VsetMode(-1);
-    fprintf(stderr,"/VsetMode\r\n");
-  }
-  else {
-    oldmode = globals.vmode = Getrez();
-  };
-#endif /* MINT_TARGET */
-  
-  global_common.mouse_owner = -1;
-  global_common.realmove = 0;
-  global_common.realsize = 0;
-  global_common.realslide = 0;
-  global_common.fnt_regul_id = -1;
-  global_common.fnt_regul_sz = -1;
-  global_common.icon_width = 48;
-  global_common.icon_height = 56;
-  global_common.wind_appl = 1;
-  global_common.graf_mbox = 1;
-  global_common.graf_growbox = 1;
-  global_common.graf_shrinkbox = 1;
-  global_common.fsel_sorted = 1;
-  global_common.fsel_extern = 0;
-  
-  DEBUG3 ("init_global: 2");
-
-#if 0 /* FIXME : Remove? def MINT_TARGET */
-  fprintf(stderr,"appl_init()\r\n");
-  own_appl_init();
-  fprintf(stderr,"/appl_init()\r\n");
-
-  if(open_physical_ws) {	
-    printf("No other AES found. Opening own Workstation.\r\n");
-    work_in[0] = 5;
-    v_opnwk(work_in,&global_common.vid,work_out);
-
-    if(global_common.video == 0x00030000L) {
-      VsetScreen(NULL, NULL, global_common.vmode, global_common.vmodecode);
+    /* Only mess with videomodes if running under MiNT */
+    if(globals.video == 0x00030000L) {
+      fprintf(stderr,"VsetMode\r\n");
+      oldmode = globals.vmode = 3;
+      oldmodecode = globals.vmodecode = VsetMode(-1);
+      fprintf(stderr,"/VsetMode\r\n");
     }
     else {
-      VsetScreen((void*)-1, (void *)-1, global_common.vmode, global_common.vmodecode);
+      oldmode = globals.vmode = Getrez();
     };
-  } else {
-    printf("Other AES detected.\r\n");
-    global_common.vid = own_graf_handle();
-    v_clrwk(global_common.vid);
-  }
+#endif /* MINT_TARGET */
+    
+    global_common.mouse_owner = -1;
+    global_common.realmove = 0;
+    global_common.realsize = 0;
+    global_common.realslide = 0;
+    global_common.fnt_regul_id = -1;
+    global_common.fnt_regul_sz = -1;
+    global_common.icon_width = 48;
+    global_common.icon_height = 56;
+    global_common.wind_appl = 1;
+    global_common.graf_mbox = 1;
+    global_common.graf_growbox = 1;
+    global_common.graf_shrinkbox = 1;
+    global_common.fsel_sorted = 1;
+    global_common.fsel_extern = 0;
+    
+    DEBUG3 ("init_global: 2");
+    
+#if 0 /* FIXME : Remove? def MINT_TARGET */
+    fprintf(stderr,"appl_init()\r\n");
+    own_appl_init();
+    fprintf(stderr,"/appl_init()\r\n");
+    
+    if(open_physical_ws)
+    {
+      printf("No other AES found. Opening own Workstation.\r\n");
+      work_in[0] = 5;
+      v_opnwk(work_in,&global_common.vid,work_out);
+      
+      if(global_common.video == 0x00030000L)
+      {
+        VsetScreen(NULL, NULL, global_common.vmode, global_common.vmodecode);
+      }
+      else
+      {
+        VsetScreen((void*)-1, (void *)-1, global_common.vmode, global_common.vmodecode);
+      }
+    }
+    else
+    {
+      printf("Other AES detected.\r\n");
+      global_common.vid = own_graf_handle();
+      v_clrwk(global_common.vid);
+    }
 #endif
-
-  global_common.physical_vdi_id = physical_vdi_id;
-  DEBUG2 ("lib_global.c: init_global: calling vq_extnd");
-  vq_extnd (physical_vdi_id, 0, work_out);
-
-  
-  global_common.screen.x = 0;
-  global_common.screen.y = 0;
-  global_common.screen.width = work_out[0] + 1;
-  global_common.screen.height = work_out[1] + 1;
-
-  global_common.num_pens = work_out[13];
-  
-  vq_extnd (physical_vdi_id, 1, work_out);
-  global_common.num_planes = work_out[4];
-
-  /* setup systemfont information */
-  
-  if(global_common.screen.height >= 400) {
-    global_common.fnt_regul_id = 1;
-    global_common.fnt_regul_sz = 13;
-  } else {
-    global_common.fnt_regul_id = 1;
-    global_common.fnt_regul_sz = 9;
-  }
-  
-  global_common.fnt_small_id = global_common.fnt_regul_id;
-  global_common.fnt_small_sz = global_common.fnt_regul_sz / 2;
-  
-  vst_font (physical_vdi_id, global_common.fnt_regul_id);
-  vst_point (physical_vdi_id,
-	     global_common.fnt_regul_sz,
-	     &dum,
-	     &dum,
-	     &dum,
-	     &dum);
-  
-  global_common.arrowrepeat = 100;
-  
-  DEBUG2 ("lib_global.c: init_global: calling vqt_attributes");
-  vqt_attributes (physical_vdi_id, work_out);
-  
-  global_common.blwidth = work_out[8] + 3;
-  global_common.blheight = work_out[9] + 3;
-  global_common.clwidth = work_out[8];
-  global_common.clheight = work_out[9];
-  
-  global_common.bswidth = work_out[8] / 2 + 3;
-  global_common.bsheight = work_out[9] / 2 + 3;
-  global_common.cswidth = work_out[8] / 2;
-  global_common.csheight = work_out[9] / 2;
-  
-  global_common.time = 0L;
-
+    
+    global_common.physical_vdi_id = physical_vdi_id;
+    DEBUG2 ("lib_global.c: init_global: calling vq_extnd");
+    vq_extnd (physical_vdi_id, 0, work_out);
+    
+    
+    global_common.screen.x = 0;
+    global_common.screen.y = 0;
+    global_common.screen.width = work_out[0] + 1;
+    global_common.screen.height = work_out[1] + 1;
+    
+    global_common.num_pens = work_out[13];
+    
+    vq_extnd (physical_vdi_id, 1, work_out);
+    global_common.num_planes = work_out[4];
+    
+    /* setup systemfont information */
+    
+    if(global_common.screen.height >= 400)
+    {
+      global_common.fnt_regul_id = 1;
+      global_common.fnt_regul_sz = 13;
+    }
+    else
+    {
+      global_common.fnt_regul_id = 1;
+      global_common.fnt_regul_sz = 9;
+    }
+    
+    global_common.fnt_small_id = global_common.fnt_regul_id;
+    global_common.fnt_small_sz = global_common.fnt_regul_sz / 2;
+    
+    vst_font (physical_vdi_id, global_common.fnt_regul_id);
+    vst_point (physical_vdi_id,
+               global_common.fnt_regul_sz,
+               &dum,
+               &dum,
+               &dum,
+               &dum);
+    
+    global_common.arrowrepeat = 100;
+    
+    DEBUG2 ("lib_global.c: init_global: calling vqt_attributes");
+    vqt_attributes (physical_vdi_id, work_out);
+    
+    global_common.blwidth = work_out[8] + 3;
+    global_common.blheight = work_out[9] + 3;
+    global_common.clwidth = work_out[8];
+    global_common.clheight = work_out[9];
+    
+    global_common.bswidth = work_out[8] / 2 + 3;
+    global_common.bsheight = work_out[9] / 2 + 3;
+    global_common.cswidth = work_out[8] / 2;
+    global_common.csheight = work_out[9] / 2;
+    
+    global_common.time = 0L;
+    
 #ifndef MINT_TARGET
-  global_common.callback_handler = oaesis_callback;
+    global_common.callback_handler = oaesis_callback;
 #endif
-
-  DEBUG2("lib_global.c: init_global: Calling Rsrc_do_rcfix");
-  Rsrc_do_rcfix (physical_vdi_id,
-                 (RSHDR *)resource,
+    
+    DEBUG2("lib_global.c: init_global: Calling Rsrc_do_rcfix");
+    Rsrc_do_rcfix (physical_vdi_id,
+                   (RSHDR *)resource,
 #ifdef WORDS_BIGENDIAN
-                 FALSE
+                   FALSE
 #else
-                 TRUE
+                   TRUE
 #endif
-                 );
-  DEBUG2("lib_global.c: init_global: Called Rsrc_do_rcfix");
-
-  Rsrc_do_gaddr ((RSHDR *)resource, R_TREE, AICONS, &global_common.aiconstad);
-  Rsrc_do_gaddr ((RSHDR *)resource, R_TREE, ALERT, &global_common.alerttad);
-  Rsrc_do_gaddr ((RSHDR *)resource,
-                 R_TREE,
-                 FISEL,
-                 &global_common.fiseltad);
-  /*
-  Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,MOUSEFORMS,&global_common.mouseformstad);
-  */
-
-  Rsrc_do_gaddr ((RSHDR *)resource,
-                 R_TREE,
-                 PMENU,
-                 &global_common.pmenutad);
-  Rsrc_do_gaddr ((RSHDR *)resource,
-                 R_FRSTR,
-                 0,
-                 (OBJECT **)&global_common.fr_string);
-  
-  sprintf(versionstring,"Version %s",VERSIONTEXT);
-  /*  global_common.informtad[INFOVERSION].ob_spec.tedinfo->te_ptext = versionstring; */
-
-  /* Initialize window elements and resource counters */
-  Rsrc_do_gaddr((RSHDR *)resource,
-                R_TREE,
-                WINDOW,
-                &global_common.windowtad);
-  global_common.elemnumber = -1;
-
+                   );
+    DEBUG2("lib_global.c: init_global: Called Rsrc_do_rcfix");
+    
+    Rsrc_do_gaddr ((RSHDR *)resource, R_TREE, AICONS, &global_common.aiconstad);
+    Rsrc_do_gaddr ((RSHDR *)resource, R_TREE, ALERT, &global_common.alerttad);
+    Rsrc_do_gaddr ((RSHDR *)resource,
+                   R_TREE,
+                   FISEL,
+                   &global_common.fiseltad);
+    /*
+      Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,MOUSEFORMS,&global_common.mouseformstad);
+    */
+    
+    Rsrc_do_gaddr ((RSHDR *)resource,
+                   R_TREE,
+                   PMENU,
+                   &global_common.pmenutad);
+    Rsrc_do_gaddr ((RSHDR *)resource,
+                   R_FRSTR,
+                   0,
+                   (OBJECT **)&global_common.fr_string);
+    
+    sprintf(versionstring,"Version %s",VERSIONTEXT);
+    /*  global_common.informtad[INFOVERSION].ob_spec.tedinfo->te_ptext = versionstring; */
+    
+    /* Initialize window elements and resource counters */
+    Rsrc_do_gaddr((RSHDR *)resource,
+                  R_TREE,
+                  WINDOW,
+                  &global_common.windowtad);
+    global_common.elemnumber = -1;
+    
 #ifdef MINT_TARGET
-  /* Initialize semaphore used by Shel_do_write */
-  Psemaphore(SEM_CREATE, SHEL_WRITE_LOCK, 0);
-  Psemaphore(SEM_UNLOCK, SHEL_WRITE_LOCK, 0);
+    /* Initialize semaphore used by Shel_do_write */
+    Psemaphore(SEM_CREATE, SHEL_WRITE_LOCK, 0);
+    Psemaphore(SEM_UNLOCK, SHEL_WRITE_LOCK, 0);
 #endif
+  }
 }
 
 
@@ -428,20 +440,15 @@ exit_global(void)
 }
 
 
-#ifdef MINT_TARGET
-
 /*
 ** Description
 ** Return reference to application global AES variables
-**
-** 1999-08-08 CG
 */
 GLOBAL_APPL *
-get_globals (WORD apid) {
+get_globals (WORD apid)
+{
   return &globals_appl[apid];
 }
-
-#endif /* MINT_TARGET */
 
 
 #ifndef MINT_TARGET
