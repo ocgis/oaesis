@@ -1,37 +1,18 @@
-/****************************************************************************
-
- Module
-  global.c
-  
- Description
-  Variables of global interest in oAESis.
-  
- Author(s)
-  cg (Christer Gustavsson <d2cg@dtek.chalmers.se>)
-  jps (Jan Paul Schmidt <Jan.P.Schmidt@mni.fh-giessen.de>)
-
- Revision history
- 
-  960103 cg
-   Added standard header. 
-
-  960507 jps
-   Added globals.realslide initialisation.
-
-  960816 jps
-   Initialisation of some new variables
-
- Copyright notice
-  The copyright to the program code herein belongs to the authors. It may
-  be freely duplicated and distributed without fee, but not charged for.
- 
- ****************************************************************************/
+/*
+** lib_global.h
+**
+** Copyright 1996 - 2000 Christer Gustavsson <cg@nocrew.org>
+** Copyright 1996 Jan Paul Schmidt <Jan.P.Schmidt@mni.fh-giessen.de>
+**
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+**  
+** Read the file COPYING for more information.
+*/
 
 #define DEBUGLEVEL 0
-
-/****************************************************************************
- * Used interfaces                                                          *
- ****************************************************************************/
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -51,10 +32,10 @@
 #include <vdibind.h>
 
 #include "aesbind.h"
-/*#include "boot.h"*/
+#include "cursors.h"
 #include "debug.h"
+#include "graf.h"
 #include "lib_global.h"
-/*#include "lxgemdos.h"*/
 #include "oaesis.h"
 #include "oconfig.h"
 #include "resource.h"
@@ -335,10 +316,7 @@ init_global (WORD physical_vdi_id)
                    R_TREE,
                    FISEL,
                    &global_common.fiseltad);
-    /*
-      Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,MOUSEFORMS,&global_common.mouseformstad);
-    */
-    
+
     Rsrc_do_gaddr ((RSHDR *)resource,
                    R_TREE,
                    PMENU,
@@ -357,6 +335,21 @@ init_global (WORD physical_vdi_id)
                   WINDOW,
                   &global_common.windowtad);
     global_common.elemnumber = -1;
+ 
+    /* Init mouseforms */
+    Rsrc_do_rcfix (physical_vdi_id,
+                   (RSHDR *)cursors,
+#ifdef WORDS_BIGENDIAN
+                   FALSE
+#else
+                   TRUE
+#endif
+                   );
+    Rsrc_do_gaddr((RSHDR *)cursors,
+                  R_TREE,
+                  MOUSEFORMS,
+                  &global_common.mouseformstad);
+    Graf_init_mouseforms();
     
 #ifdef MINT_TARGET
     /* Initialize semaphore used by Shel_do_write */

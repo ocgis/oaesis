@@ -1,38 +1,15 @@
-/****************************************************************************
-
- Module
-  graf.c
-  
- Description
-  Dynamic graphical routines in oAESis.
-  
- Author(s)
-  cg (Christer Gustavsson <d2cg@dtek.chalmers.se>)
-
- Revision history
- 
-  960103 cg
-   Added standard header.
-  
-  960424 cg
-   Implemented graf_{grow,move}box.
- 
-  960501 cg
-   Fixed bug in graf_mouse() in the M_LAST and M_RESTORE code.
-
-  960816 jps
-   All this graf settings variables checks.
-
-   
- Copyright notice
-  The copyright to the program code herein belongs to the authors. It may
-  be freely duplicated and distributed without fee, but not charged for.
- 
- ****************************************************************************/
-
-/****************************************************************************
- * Used interfaces                                                          *
- ****************************************************************************/
+/*
+** graf.c
+**
+** Copyright 1996 - 2000 Christer Gustavsson <cg@nocrew.org>
+**
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+**  
+** Read the file COPYING for more information.
+*/
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -50,6 +27,7 @@
 #include <unistd.h>
 
 #include "aesbind.h"
+#include "cursors.h"
 #include "debug.h"
 #include "evnt.h"
 #include "evnthndl.h"
@@ -65,25 +43,12 @@
 #include "types.h"
 #include "wind.h"
 
-/****************************************************************************
- * Macros                                                                   *
- ****************************************************************************/
-
 #define GRAF_STEPS 15
-
-#define GRAFSEM 0x6f475246 /* 'oGRF' */
-
-/****************************************************************************
- * Module global variables                                                  *
- ****************************************************************************/
 
 static MFORM m_arrow,m_text_crsr,m_busy_bee,m_point_hand,m_flat_hand,
              m_thin_cross,m_thick_cross,m_outln_cross;
 static MFORM current,last,last_saved;
 
-/****************************************************************************
- * Local functions (use static!)                                            *
- ****************************************************************************/
 
 /*
 ** Description
@@ -112,25 +77,21 @@ icon2mform(MFORM  *  mf,
 }
 
 
-/****************************************************************************
- * Public functions                                                         *
- ****************************************************************************/
- 
-/* FIXME: remove this routine */
-void Graf_init_module(void) {   
-  /*
-  int work_in[] = {1,7,1,1,1,1,1,1,1,1,2};
-  int work_out[57];
+void
+Graf_init_mouseforms(void)
+{
+  GLOBAL_COMMON * globals;
 
-  icon2mform (&m_arrow, &globals->common->mouseformstad[MARROW]);
-  icon2mform (&m_text_crsr, &globals->common->mouseformstad[MTEXT_CRSR]);
-  icon2mform (&m_busy_bee, &globals->common->mouseformstad[MBUSY_BEE]);
-  icon2mform (&m_point_hand, &globals->common->mouseformstad[MPOINT_HAND]);
-  icon2mform (&m_flat_hand, &globals->common->mouseformstad[MFLAT_HAND]);
-  icon2mform (&m_thin_cross, &globals->common->mouseformstad[MTHIN_CROSS]);
-  icon2mform (&m_thick_cross, &globals->common->mouseformstad[MTHICK_CROSS]);
-  icon2mform (&m_outln_cross, &globals->common->mouseformstad[MOUTLN_CROSS]);
-  */
+  globals = get_global_common();
+
+  icon2mform(&m_arrow, &globals->mouseformstad[MARROW]);
+  icon2mform(&m_text_crsr, &globals->mouseformstad[MTEXT_CRSR]);
+  icon2mform(&m_busy_bee, &globals->mouseformstad[MBUSY_BEE]);
+  icon2mform(&m_point_hand, &globals->mouseformstad[MPOINT_HAND]);
+  icon2mform(&m_flat_hand, &globals->mouseformstad[MFLAT_HAND]);
+  icon2mform(&m_thin_cross, &globals->mouseformstad[MTHIN_CROSS]);
+  icon2mform(&m_thick_cross, &globals->mouseformstad[MTHICK_CROSS]);
+  icon2mform(&m_outln_cross, &globals->mouseformstad[MOUTLN_CROSS]);
 
   current = m_arrow;
   last = m_arrow;
@@ -852,15 +813,18 @@ Graf_handle(AES_PB *apb) {
 ** Exported
 */
 WORD
-Graf_do_mouse (WORD    apid,
-               WORD    mode,
-               MFORM * formptr) {
+Graf_do_mouse(WORD    apid,
+              WORD    mode,
+              MFORM * formptr)
+{
   WORD retval = 1;
   MFORM tmp;
-  GLOBAL_APPL * globals = get_globals (apid);
+  GLOBAL_APPL * globals;
 
   C_GRAF_MOUSE par;
   R_GRAF_MOUSE ret;
+
+  globals = get_globals (apid);
 
   /* FIXME
   PUT_C_ALL(GRAF_MOUSE, &par);
@@ -877,8 +841,8 @@ Graf_do_mouse (WORD    apid,
   return 0;
   */
 
-  switch (mode) {
-#if 0 /* FIXME */
+  switch (mode)
+  {
   case ARROW: /*0x000*/
     last = current;
     current = m_arrow;
@@ -950,7 +914,7 @@ Graf_do_mouse (WORD    apid,
     vsc_form (globals->vid, formptr);
     v_show_c (globals->vid, 0);
     break;
-#endif                                    
+
   case M_OFF    :
     v_hide_c (globals->vid);
     break;
