@@ -1,7 +1,23 @@
+/*
+** objc.h
+**
+** Copyright 1995 - 2001 Christer Gustavsson <cg@nocrew.org>
+**
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+**  
+** Read the file COPYING for more information.
+**
+*/
+
 #ifndef	__OBJC__
 #define	__OBJC__
 
-#include	"types.h"
+#include "types.h"
+
+#include "lib_global.h"
 
 #define BUTTONFRAME   2
 #define DEFBUTFRAME   3
@@ -20,14 +36,41 @@
 #define	FILLCOLOR	1
 
 /* Object handling macros */
-#define OB_FLAGS(ob)             (ob)->ob_flags
-#define OB_FLAGS_SET(ob,flags)   (ob)->ob_flags |= flags
-#define OB_FLAGS_CLEAR(ob,flags) (ob)->ob_flags &= ~(flags)
+#define OB_TYPE(ob)              CW_TO_HW((ob)->ob_type)
+#define OB_TYPE_PUT(ob,val)      (ob)->ob_type = HW_TO_CW(val)
 
-#define OB_STATE(ob)             (ob)->ob_state
-#define OB_STATE_SET(ob,state)   (ob)->ob_state |= state
-#define OB_STATE_CLEAR(ob,state) (ob)->ob_state &= ~(state)
-#define OB_STATE_PUT(ob,state)   (ob)->ob_state = state
+#define OB_FLAGS(ob)             CW_TO_HW((ob)->ob_flags)
+#define OB_FLAGS_SET(ob,flags)   (ob)->ob_flags |= HW_TO_CW(flags)
+#define OB_FLAGS_CLEAR(ob,flags) (ob)->ob_flags &= ~(HW_TO_CW(flags))
+
+#define OB_NEXT(ob)              CW_TO_HW((ob)->ob_next)
+#define OB_NEXT_PUT(ob,val)      (ob)->ob_next = HW_TO_CW(val)
+
+#define OB_HEAD(ob)              CW_TO_HW((ob)->ob_head)
+#define OB_HEAD_PUT(ob,val)      (ob)->ob_head = HW_TO_CW(val)
+
+#define OB_TAIL(ob)              CW_TO_HW((ob)->ob_tail)
+#define OB_TAIL_PUT(ob,val)      (ob)->ob_tail = HW_TO_CW(val)
+
+#define OB_STATE(ob)             CW_TO_HW((ob)->ob_state)
+#define OB_STATE_SET(ob,state)   (ob)->ob_state |= HW_TO_CW(state)
+#define OB_STATE_CLEAR(ob,state) (ob)->ob_state &= ~(HW_TO_CW(state))
+#define OB_STATE_PUT(ob,state)   (ob)->ob_state = HW_TO_CW(state)
+
+#define OB_SPEC(ob)              CL_TO_HL((ob)->ob_spec.index)
+#define OB_SPEC_PUT(ob,val)      (ob)->ob_spec.index = HL_TO_CL(val)
+
+#define OB_X(ob)                 CW_TO_HW((ob)->ob_x)
+#define OB_X_PUT(ob,val)         (ob)->ob_x = HW_TO_CW(val)
+
+#define OB_Y(ob)                 CW_TO_HW((ob)->ob_y)
+#define OB_Y_PUT(ob,val)         (ob)->ob_y = HW_TO_CW(val)
+
+#define OB_WIDTH(ob)             CW_TO_HW((ob)->ob_width)
+#define OB_WIDTH_PUT(ob,val)     (ob)->ob_width = HW_TO_CW(val)
+
+#define OB_HEIGHT(ob)            CW_TO_HW((ob)->ob_height)
+#define OB_HEIGHT_PUT(ob,val)    (ob)->ob_height = HW_TO_CW(val)
 
 void do_objc_add(OBJECT *t,WORD p,WORD c);
 
