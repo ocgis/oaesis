@@ -78,6 +78,7 @@ extern void prgstart(); /* In gcc.s or purec.s FIXME: make .h-file */
 ** Description
 ** Implementation of shel_read
 */
+#ifdef MINT_TARGET
 static
 WORD
 Shel_do_read(BYTE * name,
@@ -121,6 +122,16 @@ Shel_do_read(BYTE * name,
   
   return retval;
 }
+#else /* not MINT_TARGET */
+static
+WORD
+Shel_do_read(BYTE * name,
+             BYTE * tail)
+{
+  /* FIXME: Implement */
+  return 1;
+}
+#endif /* MINT_TARGET */
 
 
 /*0x0078 shel_read*/
