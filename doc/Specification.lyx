@@ -1711,6 +1711,92 @@ Client library API
 \layout Standard
 
 The client API honors Atari AES as described by The Atari Compendium.
+\layout Subsubsection
+
+Emulation
+\layout Standard
+
+For emulation purposes the library oaesis_be32 shall be built.
+ The following formats shall be used for the library:
+\layout Paragraph
+
+AES parameter block
+\layout Subparagraph
+
+Byte order
+\layout Standard
+
+Big endian
+\layout Subparagraph
+
+Word length
+\layout Standard
+
+16 bits
+\layout Subparagraph
+
+Address length
+\layout Standard
+
+32 bits
+\layout Paragraph
+
+Message structure used by evnt_mesag
+\layout Subparagraph
+
+Byte order
+\layout Standard
+
+Big endian
+\layout Subparagraph
+
+Word length
+\layout Standard
+
+16 bits
+\layout Subsubsection
+
+Native
+\layout Standard
+
+The library oaesis shall be built for use by native applications.
+ The following formats shall be used for the library:
+\layout Paragraph
+
+AES parameter block
+\layout Subparagraph
+
+Byte order
+\layout Standard
+
+Native
+\layout Subparagraph
+
+Word length
+\layout Standard
+
+Native
+\layout Subparagraph
+
+Address length
+\layout Standard
+
+Native
+\layout Paragraph
+
+Message structure used by evnt_mesag
+\layout Subparagraph
+
+Byte order
+\layout Standard
+
+Native
+\layout Subparagraph
+
+Word length
+\layout Standard
+
+16 bits
 \layout Subsection
 
 Resources
