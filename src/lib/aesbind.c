@@ -145,6 +145,21 @@ evnt_dclick (int new,
 
 
 int
+evnt_keybd(void)
+{
+  OPCODE = 20;
+  NO_INTIN = 0;
+  NO_ADRIN = 0;
+  NO_INTOUT = 1;
+  NO_ADDROUT = 0;
+
+  aes_call(&aespb);
+
+  return aespb.intout[0];
+}
+
+
+int
 evnt_mesag (short msg[])
 {
   OPCODE = 23;

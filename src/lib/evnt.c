@@ -68,20 +68,26 @@
 static WORD	clicktime = 200;
 
 
-/*0x0014 evnt_keybd*/
-
-void	Evnt_keybd(AES_PB *apb) {
-  EVNTREC	e;
+/*
+** Description
+** Implementation of evnt_keybd
+*/
+void
+Evnt_keybd(AES_PB * apb)
+{
+  EVENTIN	ei;
+  EVENTOUT	eo;
+  COMMSG	buf;
   
-  while(TRUE) {
-    /*    Fread(apb->global->int_info->eventpipe,sizeof(EVNTREC),&e);*/
-    
-    if(e.ap_event == APPEVNT_KEYBOARD) {
-      apb->int_out[0] = (WORD)(e.ap_value >> 16);
-      break;
-    };
-  };
+  CHECK_APID(apb->global->apid);
+
+  ei.events = MU_KEYBD;
+  
+  Evnt_do_multi(apb->global->apid, &ei, &buf, &eo, 0, DONT_HANDLE_MENU_BAR);
+  
+  apb->int_out[0] = eo.kc;
 }
+
 
 /*0x0015 evnt_button*/
 
