@@ -16,7 +16,6 @@
 #define _AESBIND_H_
 
 #ifdef __GNUC__
-#error Gnu C
 #define PACKED __attribute__ ((packed))
 #else
 #define PACKED
