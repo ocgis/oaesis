@@ -45,4 +45,11 @@ void
 launcher_set_environment_variable(char * variable,
                                   char * value);
 
+/*
+** Description
+** Main routine of the launcher
+*/
+int
+launcher_main(void);
+
 #endif /* __LAUNCHER_H__ */
