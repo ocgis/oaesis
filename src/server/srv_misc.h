@@ -1,9 +1,26 @@
+/*
+** srv_misc.h
+**
+** Copyright 1999 Christer Gustavsson <cg@nocrew.org>
+**
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+**  
+** Read the file COPYING for more information.
+*/
+
 #include	"types.h"
 
 LONG srv_fork(WORD (*func)(LONG),LONG arg,BYTE *name);
 
 #define max(a,b) ((a > b) ? a : b)
 #define min(a,b) ((a < b) ? a : b)
+
+#define INTS2LONG(a,b) (((((LONG)a)<<16)&0xffff0000L)|(((LONG)b)&0xffff))
+#define MSW(a) ((unsigned short)((unsigned long)(a) >> 16))
+#define LSW(a) ((unsigned short)((unsigned long)(a) & 0xffffUL))
 
 WORD srv_get_cookie(LONG code,LONG *value);
 

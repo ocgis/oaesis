@@ -40,6 +40,31 @@ extern WINLIST * win_list;
 extern WINLIST * win_free;
 extern WORD	 win_next;
 
+
+/*
+** Description
+** Implementation of wind_close ()
+*/
+void
+srv_wind_close (C_WIND_CLOSE * par,
+                R_WIND_CLOSE * ret);
+
+/*
+** Description
+** Implementation of wind_create()
+*/
+void
+srv_wind_create(C_WIND_CREATE * msg,
+                R_WIND_CREATE * ret);
+
+/*
+** Description
+** Implementation of wind_delete()
+*/
+void
+srv_wind_delete (C_WIND_DELETE * msg,
+                 R_WIND_DELETE * ret);
+
 /*
 ** Description
 ** Find window on known coordinates
@@ -59,6 +84,29 @@ srv_wind_find (C_WIND_FIND * par,
 void
 srv_wind_get (C_WIND_GET * msg,
               R_WIND_GET * ret);
+
+/*
+** Description
+** Implementation of wind_new()
+*/
+WORD
+srv_wind_new(WORD apid);
+
+/*
+** Description
+** Implementation of wind_open ()
+*/
+void
+srv_wind_open (C_WIND_OPEN * msg,
+               R_WIND_OPEN * ret);
+
+/*
+** Description
+** Server part of wind_set ()
+*/
+void
+srv_wind_set(C_WIND_SET * msg,
+             R_WIND_SET * ret);
 
 /*
 ** Description
@@ -101,4 +149,13 @@ winalloc(void);
 void
 srv_init_windows(void);
 
+/*
+** Description
+** Try to top window
+*/
+WORD
+top_window (WORD winid);
+
+WINSTRUCT *
+find_wind_description(WORD id);
 #endif /* _SRV_WIND_H_ */
