@@ -37,6 +37,15 @@ if test x$enable_launcher_as_prg = xyes ; then
 fi
 AM_CONDITIONAL(LAUNCHER_AS_PRG, test x$enable_launcher_as_prg = xyes)
 
+dnl Checks for special network libraries.
+AC_CHECK_FUNCS(socket, , AC_CHECK_LIB(socket, socket))
+AC_CHECK_FUNCS(gethostbyname, , AC_CHECK_LIB(nsl, gethostbyname))
+
+dnl If we're on Solaris, it seems to need to link with -lcurses too.
+case "$target_os" in
+  solaris*) AC_CHECK_LIB(curses, main);;
+esac
+
 if test x$with_ovdisis = xyes ; then
   AC_MSG_ERROR([
 *** Directory must be specified for --with-ovdisis])
