@@ -20,7 +20,7 @@
    menu_ienable() implemented in Menu_ienable().
    menu_icheck() implemented in Menu_icheck().
    menu_tnormal() implemented in Menu_tnormal().
-  960306 kkp   The menu structure integrated with AP_INFO.    
+  960306 kkp   The menu structure integrated with AP_INFO.    
  Copyright notice
   The copyright to the program code herein belongs to the authors. It may
   be freely duplicated and distributed without fee, but not charged for.
@@ -75,7 +75,7 @@ typedef struct menureg {
 	WORD apid;            /*Owner of entry       */
 	BYTE *name;           /*Application name     */
 	
-	struct menureg *mn_next; /*Pointer to next entry*/}MENUREG;
+	struct menureg *mn_next; /*Pointer to next entry*/}MENUREG;
 
 /****************************************************************************
  * Module global variables                                                  *
@@ -160,7 +160,7 @@ BYTE *envp[])          /* Environment string.                               */
 							&globals.deskbgtad[0].ob_width,
 							&globals.deskbgtad[0].ob_height);
 
-	Srv_wind_set(mglob.menu_handl_apid,0,WF_NEWDESK,(WORD)(((LONG)globals.deskbgtad) >> 16),((WORD)globals.deskbgtad),0,0);
+	Srv_wind_set(mglob.menu_handl_apid,0,WF_NEWDESK,(WORD)(((LONG)globals.deskbgtad) >> 16),(WORD)((LONG)globals.deskbgtad),0,0);
 
 	Boot_start_programs(mglob.menu_handl_apid);
 							
@@ -388,3 +388,4 @@ AES_PB *apb)      /* Pointer to AES parameter block.                        */
 	apb->int_out[0] = Srv_menu_register(apb->int_in[0],
 													(BYTE *)apb->addr_in[0]);
 }
+

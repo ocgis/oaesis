@@ -6,6 +6,8 @@
 	.globl  _newtvec
 	.globl _vdicall
 	.globl _accstart
+	.globl _VsetScreen
+	.globl _VsetMode
 
 	.globl	_h_aes_call
 	.globl	_oldmvec
@@ -57,7 +59,6 @@ _newmvec:
 	addql		#4,sp		
 	moveml	sp@+,d0-d2/a0-a2
 	movel sp@,sp
-|	movel newstack+800,sp
 	rts
 
 _newbvec:
@@ -71,7 +72,6 @@ _newbvec:
 	addql		#4,sp		|
 	moveml	sp@+,d0-d2/a0-a2
 	movel  sp@,sp
-|	movel newstack+800,sp
 	rts
 
 _newtvec:
@@ -80,10 +80,9 @@ _newtvec:
 	moveml	d0-d2/a0-a2,sp@-
 	pea   mtim
 	jsr	_Moudev_handler
-	addql		#4,sp		|
+	addql   #4,sp		|
 	moveml	sp@+,d0-d2/a0-a2
 	movel  sp@,sp
-|	movel newstack+800,sp
 	rts
 
 _vdicall:
@@ -100,6 +99,23 @@ _accstart:
 	movel a1,a0@(16)
 	movel a0@(8),a1
 	jmp a1@
+
+_VsetScreen:
+	movew sp@(16),sp@-
+	movew sp@(16),sp@-
+	movel sp@(16),sp@-
+	movel sp@(16),sp@-
+	movew #0x05,sp@-
+	trap  #14
+	lea   sp@(14),sp
+	rts
+		
+_VsetMode:
+	movew sp@(4),sp@-
+	movew #0x58,sp@-
+	trap  #14
+	addql #4,sp
+	rts
 
 mmov:
 	.word 0,2,0,0

@@ -434,7 +434,7 @@ static WORD widgetmap[] = {
 
 static WORD svid;
 
-static BYTE **environ;
+static BYTE **environ;
 static AP_LIST *ap_pri = NULL;
 static WINLIST *win_vis = NULL;
 
@@ -723,7 +723,7 @@ WORD                   /* Top application id.                               */
 update_appl_menu(void) /*                                                   */
 /****************************************************************************/
 {
-	AP_LIST *mwalk;	WORD    rwalk;
+	AP_LIST *mwalk;	WORD    rwalk;
 	WORD    topappl;
 	
 	topappl = get_top_appl();
@@ -732,8 +732,8 @@ update_appl_menu(void) /*                                                   */
 	rwalk = PMENU_FIRST;
 	
 	while(mwalk) {
-		strcpy(globals.pmenutad[rwalk].ob_spec.free_string,mwalk->ai->name);
-		if(mwalk->ai->id == topappl) {			globals.pmenutad[rwalk].ob_state |= CHECKED;
+		strcpy(globals.pmenutad[rwalk].ob_spec.free_string,mwalk->ai->name);
+		if(mwalk->ai->id == topappl) {			globals.pmenutad[rwalk].ob_state |= CHECKED;
 		}
 		else {
 			globals.pmenutad[rwalk].ob_state &= ~CHECKED;
@@ -742,7 +742,7 @@ update_appl_menu(void) /*                                                   */
 		globals.pmenutad[rwalk].ob_flags &= ~HIDETREE;
 		globals.pmenutad[rwalk].ob_state &= ~DISABLED;
 
-		mwalk = mwalk->mn_next;		rwalk++;
+		mwalk = mwalk->mn_next;		rwalk++;
 	};
 	
 	if(globals.accmenu) {
@@ -757,8 +757,8 @@ update_appl_menu(void) /*                                                   */
 	mwalk = globals.accmenu;
 	
 	while(mwalk) {
-		strcpy(globals.pmenutad[rwalk].ob_spec.free_string,mwalk->ai->name);
-		if(mwalk->ai->id == topappl) {			globals.pmenutad[rwalk].ob_state |= CHECKED;
+		strcpy(globals.pmenutad[rwalk].ob_spec.free_string,mwalk->ai->name);
+		if(mwalk->ai->id == topappl) {			globals.pmenutad[rwalk].ob_state |= CHECKED;
 		}
 		else {
 			globals.pmenutad[rwalk].ob_state &= ~CHECKED;
@@ -767,14 +767,14 @@ update_appl_menu(void) /*                                                   */
 		globals.pmenutad[rwalk].ob_flags &= ~HIDETREE;
 		globals.pmenutad[rwalk].ob_state &= ~DISABLED;
 
-		mwalk = mwalk->mn_next;		rwalk++;
+		mwalk = mwalk->mn_next;		rwalk++;
 	};
 
 	globals.pmenutad[rwalk].ob_flags |= HIDETREE;
 	
 	globals.pmenutad[0].ob_height = globals.pmenutad[rwalk].ob_y;
 	
-	return topappl;}
+	return topappl;}
 
 static void set_widget_colour(WINSTRUCT *win,WORD widget,OBJC_COLORWORD *untop,OBJC_COLORWORD *top) {
 	U_OB_SPEC      *ob_spec;
@@ -1340,17 +1340,17 @@ unregister_menu(  /*                                                        */
 WORD apid)        /* Application id.                                        */
 /****************************************************************************/
 {
-	AP_LIST **mwalk;	
+	AP_LIST **mwalk;	
 	mwalk = &globals.applmenu;
 	
 	while(*mwalk) {
-		if((*mwalk)->ai->id == apid) {			*mwalk = (*mwalk)->mn_next;			break;
-		};		mwalk = &(*mwalk)->mn_next;	};
+		if((*mwalk)->ai->id == apid) {			*mwalk = (*mwalk)->mn_next;			break;
+		};		mwalk = &(*mwalk)->mn_next;	};
 	mwalk = &globals.accmenu;
 	
 	while(*mwalk) {
-		if((*mwalk)->ai->id == apid) {			*mwalk = (*mwalk)->mn_next;			break;
-		};		mwalk = &(*mwalk)->mn_next;	};
+		if((*mwalk)->ai->id == apid) {			*mwalk = (*mwalk)->mn_next;			break;
+		};		mwalk = &(*mwalk)->mn_next;	};
 }
 
 static void redraw_menu_bar(void) {
@@ -1487,22 +1487,22 @@ WORD apid,         /* Application id, or -1.                                */
 BYTE *title)       /* Title to register application under.                  */
 /****************************************************************************/
 {
-	AP_LIST **mwalk;	AP_LIST *ap;	WORD    n_menu = apid;	
+	AP_LIST **mwalk;	AP_LIST *ap;	WORD    n_menu = apid;	
 	ap = search_apid(apid);
 	
 	if(!ap) {
 		return -1;
 	};
 	
-/* if the menu have been registered then unlink it again */		if(ap->ai->type & APP_ACCESSORY) {
+/* if the menu have been registered then unlink it again */		if(ap->ai->type & APP_ACCESSORY) {
 		mwalk = &globals.accmenu;
 	}
 	else {
-		mwalk = &globals.applmenu;		};
+		mwalk = &globals.applmenu;		};
 	
-	while(*mwalk) {		if(*mwalk == ap) {
-			*mwalk = (*mwalk)->mn_next;			break;		};
-				mwalk = &(*mwalk)->mn_next;	}/* now find a new position to enter the menu */	
+	while(*mwalk) {		if(*mwalk == ap) {
+			*mwalk = (*mwalk)->mn_next;			break;		};
+				mwalk = &(*mwalk)->mn_next;	}/* now find a new position to enter the menu */	
 	if(ap->ai->type & APP_ACCESSORY) {
 		mwalk = &globals.accmenu;
 	}
@@ -1514,8 +1514,8 @@ BYTE *title)       /* Title to register application under.                  */
 		if(stricmp((*mwalk)->ai->name, title) > 0) {
 			break;
 		};
-				mwalk = &(*mwalk)->mn_next;	};/* insert the menu */	
-	ap->mn_next = *mwalk;	*mwalk = ap;			strncpy(ap->ai->name,title,20);	
+				mwalk = &(*mwalk)->mn_next;	};/* insert the menu */	
+	ap->mn_next = *mwalk;	*mwalk = ap;			strncpy(ap->ai->name,title,20);	
 	update_appl_menu();
 
 	return n_menu;
@@ -1568,7 +1568,7 @@ WORD mode)          /* What to do.                                          */
 		else {
 			DB_printf("Killing %d",apid);
 			
-			Pkill(ai->pid,SIGKILL);
+			(void)Pkill(ai->pid,SIGKILL);
 		
 			srv_appl_exit(apid);
 		};
@@ -1603,7 +1603,7 @@ WORD apid)      /* Application id.                                          */
 	srv_wind_new(apid);
 	apinfofree(apid);
 
-	update_appl_menu();
+	update_appl_menu();
 	return 1;
 }
 
@@ -1962,21 +1962,82 @@ WORD apid)        /* Id of application.                                     */
 	return lasttop;
 }
 
-static void del_env(const BYTE *strng) {	BYTE **var;	BYTE *name;	LONG len = 0;	if (!environ) return;/* find the length of "tag" in "tag=value" */	for (name = (char *)strng; *name && (*name != '='); name++)		len++;/* find the tag in the environment */	for (var = environ; (name = *var) != NULL; var++) {		if(!strncmp(name, strng, len) && name[len] == '=') {			break;
-		};	}/* if it's found, move all the other environment variables down by 1 to   delete it */	if(name) {
-		Mfree(name);
-				while (name) {			name = var[1];			*var++ = name;		}	}}static WORD putenv(const BYTE *strng) {	WORD i = 0;	BYTE **e;	del_env(strng);	if(!environ) {		e = (BYTE **)Mxalloc(2*sizeof(BYTE *),GLOBALMEM);
-	}	else {		while(environ[i]) i++ ;		e = (BYTE **)Mxalloc((i+2)*sizeof(BYTE *),GLOBALMEM);		if (!e) {			return -1;		}		bcopy(environ, e,(i + 1) * sizeof(BYTE *));		Mfree(environ);
-		environ = e;	}
-		if(!e) {		return -1;
-	};	environ = e;	environ[i] = (BYTE *)Mxalloc(strlen(strng) + 1,GLOBALMEM);
-	strcpy(environ[i],strng);	environ[i+1] = 0;	return 0;}
-static BYTE *getenv(const char *tag) {	BYTE **var;	BYTE *name;	LONG len = strlen(tag);
-	if(strrchr(tag,'=')) {
-		len--;
-	};
-	if (!environ) return 0;	for (var = environ; (name = *var) != 0; var++) {		if (!strncmp(name, tag, len) && name[len] == '=')			return name+len+1;	}
-		return 0;}
+static void del_env(const BYTE *strng) {
+  BYTE **var;
+  BYTE *name;
+  LONG len = 0;
+  
+  if (!environ)
+    return; /* find the length of "tag" in "tag=value" */
+  
+  for (name = (char *)strng; *name && (*name != '='); name++)
+    len++; /* find the tag in the environment */
+
+  for (var = environ; (name = *var) != NULL; var++) {
+    if(!strncmp(name, strng, len) && name[len] == '=') {
+      break;
+    };
+  } /* if it's found, move all the other environment variables down by 1 to
+       delete it */
+  
+  if(name) {
+    Mfree(name);
+    
+    while (name) {
+      name = var[1];
+      *var++ = name;
+    }
+  }
+}
+
+static WORD srv_putenv(const BYTE *strng) {
+  WORD i = 0;
+  BYTE **e;
+  del_env(strng);
+  if(!environ) {
+    e = (BYTE **)Mxalloc(2*sizeof(BYTE *),GLOBALMEM);
+  }
+  else {
+    while(environ[i]) 
+      i++;
+    e = (BYTE **)Mxalloc((i+2)*sizeof(BYTE *),GLOBALMEM);
+    if (!e) {
+      return -1;
+    }
+    
+    bcopy(environ, e,(i + 1) * sizeof(BYTE *));
+    Mfree(environ);
+    environ = e;
+  }
+  
+  if(!e) {
+    return -1;
+  };
+  
+  environ = e;
+  environ[i] = (BYTE *)Mxalloc(strlen(strng) + 1,GLOBALMEM);
+  strcpy(environ[i],strng);
+  environ[i+1] = 0;
+  return 0;
+}
+
+static BYTE *srv_getenv(const char *tag) {
+  BYTE **var;
+  BYTE *name;
+  LONG len = strlen(tag);
+	
+  if(strrchr(tag,'=')) {
+    len--;
+  };
+  if (!environ) return 0;
+  
+  for (var = environ; (name = *var) != 0; var++) {
+    if (!strncmp(name, tag, len) && name[len] == '=')
+      return name+len+1;
+  }
+  return 0;
+}
+
 /****************************************************************************
  * srv_shel_envrn                                                           *
  *  Implementation of shel_envrn().                                         *
@@ -1987,7 +2048,7 @@ BYTE **value,    /* Return address.                                         */
 BYTE *name)      /* Name of variable to find.                               */
 /****************************************************************************/
 {
-	*value = getenv(name);
+	*value = srv_getenv(name);
 
 	return 1;
 }
@@ -2196,7 +2257,7 @@ BYTE *tail)      /* Command tail.                                           */
 	case SWM_ENVIRON: /* - AES environment */
 		switch(wisgr) {
 		case ENVIRON_CHANGE:
-			putenv(cmd);
+			srv_putenv(cmd);
 			r = 1;
 			break;
 			
@@ -3155,7 +3216,7 @@ static WORD	top_window(WORD winid) {
 /****************************************************************************
  * srv_wind_change                                                          *
  *  Change state of window widget.                                          *
- ****************************************************************************
+ ****************************************************************************/
 static WORD        /* 1 if ok, 0 if error.                                 */
 srv_wind_change(   /*                                                       */
 WORD id,           /* Window handle.                                        */
@@ -4903,7 +4964,7 @@ BYTE *tail)      /* Command tail.                                           */
 /****************************************************************************
  * Srv_wind_change                                                          *
  *  Change state of window widget.                                          *
- ****************************************************************************
+ ****************************************************************************/
 WORD               /* 1 if ok, 0 if error.                                 */
 Srv_wind_change(   /*                                                       */
 WORD id,           /* Window handle.                                        */
@@ -5212,3 +5273,4 @@ WORD    length)   /* Length of message.                                     */
 	
 	return par.retval;
 }
+

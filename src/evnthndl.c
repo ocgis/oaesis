@@ -74,7 +74,7 @@
 #define EVHD_APID     (-2)
 #define EVHD_WAITTIME 200
 
-#define MOUSE_SEM 'oMOU'
+#define MOUSE_SEM 0x6f4d4f55L  /*'oMOU'*/
 
 /****************************************************************************
  * Module global variables                                                  *
@@ -1173,12 +1173,12 @@ static WORD	handle_drop_down(WORD menubox,WORD title) {
 						nmenu[entry].ob_state &= ~SELECTED;
 		
 						if(nmenu == globals.pmenutad) {
-							AP_LIST *mr;							WORD    walk = entry - PMENU_FIRST;
+							AP_LIST *mr;							WORD    walk = entry - PMENU_FIRST;
 						
 							mr = globals.applmenu;
 						
 							while(walk && mr) {
-								mr = mr->mn_next;								walk--;
+								mr = mr->mn_next;								walk--;
 							};
 							
 							if(walk) {
@@ -1186,7 +1186,7 @@ static WORD	handle_drop_down(WORD menubox,WORD title) {
 								mr = globals.accmenu;
 
 								while(walk && mr) {
-									mr = mr->mn_next;									walk--;
+									mr = mr->mn_next;									walk--;
 								};
 							};
 							
@@ -1205,9 +1205,9 @@ static WORD	handle_drop_down(WORD menubox,WORD title) {
 									m.length = 0;
 
 									if(mr->ai->type & APP_APPLICATION) {
-										Srv_appl_control(mr->ai->id,APC_TOP);									}
+										Srv_appl_control(mr->ai->id,APC_TOP);									}
 									else { /* Accessory */
-										m.msg0 = mr->ai->id;										m.msg1 = mr->ai->id;										m.type = AC_OPEN;
+										m.msg0 = mr->ai->id;										m.msg1 = mr->ai->id;										m.type = AC_OPEN;
 									
 										Srv_appl_write(m.msg0, 16, &m);
 									};
@@ -1460,9 +1460,9 @@ static WORD evnt_handler(LONG arg) {
     	else if(er.ap_value == 0x4a1f000cL) {
     		DB_printf("Killing oAESis");
     		
-    		Pkill(globals.srvpid,SIGQUIT);
-    		Pkill(globals.applpid,SIGQUIT);
-    		Pkill(globals.evntpid,SIGQUIT);
+    		(void)Pkill(globals.srvpid,SIGQUIT);
+    		(void)Pkill(globals.applpid,SIGQUIT);
+    		(void)Pkill(globals.evntpid,SIGQUIT);
     	}
     	else if(er.ap_value == 0x1910000cL) {
     		DB_printf("Event handler OK.");

@@ -85,7 +85,7 @@ void	exit_aes(void) {
 }
 
 
-int main(int argc,char *argv[],char *envp[]) {
+int main(int argc,BYTE *argv[],BYTE *envp[]) {
 	WORD physical = 0;
 	WORD i;
 	LONG mintval;
@@ -117,7 +117,7 @@ int main(int argc,char *argv[],char *envp[]) {
 	printf("\r\nMiNT version %ld.%02ld detected\r\n",mintval >> 8,mintval & 0xff);
 
 	globals.video = 0;
-	Misc_get_cookie('_VDO',&globals.video);
+	Misc_get_cookie(0x5f56444fL/*'_VDO'*/,&globals.video);
 
 	switch(globals.video >> 16) {
 	case 0x00:
@@ -158,6 +158,6 @@ int main(int argc,char *argv[],char *envp[]) {
 	exit_aes();
 
 	return 0;
-};
+}
 
 
