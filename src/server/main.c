@@ -131,7 +131,16 @@ void exit_aes(void) {
 }
 
 
-int main(int argc,BYTE *argv[],BYTE *envp[]) {
+/*
+** Description
+** Main routine of the oaesis server
+**
+** 1998-12-28 CG
+*/
+int
+main (int     argc,
+      BYTE ** argv,
+      BYTE ** envp) {
   WORD nocnf = 0;
   WORD i;
 
@@ -213,21 +222,13 @@ int main(int argc,BYTE *argv[],BYTE *envp[]) {
   Misc_setpath ("u:\\");
   */
 
-  fprintf (stderr,"oaesis: starting lines.prg\n");
   for (i = 0; i < 1; i++) {
-    system ("lines.prg");
+    system ("launcher.prg");
   }
 
-  fprintf (stderr,"oaesis: lines.prg finished\n");
   /*  Menu_handler(envp); */
   
   exit_aes ();
   
   return 0;
 }
-
-/*
-** Revision history
-** 1998-09-20 CG
-**            Added some debug output to init_aes
-*/

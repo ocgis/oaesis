@@ -65,7 +65,6 @@ static WORD buttons_last = 0;
 static
 void
 catch_mouse_buttons (int buttons) {
-  DB_printf ("srv.c: catch_mouse_buttons: buttons = %d", buttons);
   buttons_new = buttons;
 
   /* Wake up the server so that it will be able to distribute the event */

@@ -37,27 +37,28 @@
 #endif
 
 #ifdef HAVE_ALLOC_H
-#include	<alloc.h>
+#include <alloc.h>
 #endif
 
 #ifdef HAVE_BASEPAGE_H
-#include	<basepage.h>
+#include <basepage.h>
 #endif
 
 #ifdef HAVE_MINTBIND_H
-#include	<mintbind.h>
+#include <mintbind.h>
 #endif
 
 #ifdef HAVE_OSBIND_H
-#include	<osbind.h>
+#include <osbind.h>
 #endif
 
-#include	<signal.h>
-#include	<stdio.h>
-#include	<string.h>
+#include <signal.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
 #ifdef HAVE_SUPPORT_H
-#include	<support.h>
+#include <support.h>
 #endif
 
 #include <unistd.h>
@@ -81,6 +82,7 @@
 /****************************************************************************
  * Macros                                                                   *
  ****************************************************************************/
+#define INTS2LONG(a,b) (((((LONG)a)<<16)&0xffff0000L)|(((LONG)b)&0xffff))
 
 #define IMOVER 0x8000  /* Used with set_win_elem() to make icon window */
 
@@ -115,14 +117,14 @@ typedef struct window_list {
 typedef WINDOW_LIST * WINDOW_LIST_REF;
 #define WINDOW_LIST_REF_NIL ((WINDOW_LIST_REF)NULL)
 
-static WORD	elemnumber = -1;
-static WORD	tednumber;
+static WORD     elemnumber = -1;
+static WORD     tednumber;
 
 static WORD widgetmap[] = {
-	0,0,WCLOSER,WMOVER,WFULLER,
-	WINFO,0,0,WSIZER,0,
-	WUP,WDOWN,WVSB,WVSLIDER,0,
-	WLEFT,WRIGHT,WHSB,WHSLIDER,WSMALLER
+        0,0,WCLOSER,WMOVER,WFULLER,
+        WINFO,0,0,WSIZER,0,
+        WUP,WDOWN,WVSB,WVSLIDER,0,
+        WLEFT,WRIGHT,WHSB,WHSLIDER,WSMALLER
 };
 
 /*calcworksize calculates the worksize or the total size of
@@ -136,17 +138,17 @@ calcworksize (WORD apid,
               RECT *orig,
               RECT *new,
               WORD dir) {
-  WORD	bottomsize = 1;
-  WORD	headsize = 1;
-  WORD	leftsize = 1;
-  WORD	rightsize = 1;
-  WORD	topsize;
+  WORD  bottomsize = 1;
+  WORD  headsize = 1;
+  WORD  leftsize = 1;
+  WORD  rightsize = 1;
+  WORD  topsize;
   GLOBAL_COMMON * globals_common = get_global_common ();
-	
+        
   if((HSLIDE | LFARROW | RTARROW) & elem) {
     bottomsize = globals_common->windowtad[WLEFT].ob_height + (D3DSIZE << 1);
   };
-	
+        
   if((CLOSER | MOVER | FULLER | NAME) & elem) {
     topsize = globals_common->windowtad[WMOVER].ob_height + (D3DSIZE << 1);
   }
@@ -156,7 +158,7 @@ calcworksize (WORD apid,
   else {
     topsize = 0;
   };
-	
+        
   if(INFO & elem) {
     headsize = topsize + globals_common->windowtad[WINFO].ob_height + 2 * D3DSIZE;
   }
@@ -166,11 +168,11 @@ calcworksize (WORD apid,
     else
       headsize = 1;
   };
-	
+        
   if((LFARROW | HSLIDE | RTARROW) & elem) {
     bottomsize = globals_common->windowtad[WLEFT].ob_height + (D3DSIZE << 1);
   };
-	
+        
   if(((bottomsize < globals_common->windowtad[WLEFT].ob_height) && (SIZER & elem))
      || ((VSLIDE | UPARROW | DNARROW) & elem))
   {
@@ -197,13 +199,14 @@ calcworksize (WORD apid,
 **
 ** 1998-10-11 CG
 ** 1998-12-25 CG
+** 1999-01-01 CG
 */
 static
-void
+WORD
 Wind_set_size (WORD   apid,
                WORD   id,
                RECT * size) {
-  WORD	dx,dy,dw,dh;
+  WORD  dx,dy,dw,dh;
   GLOBAL_APPL * globals = get_globals (apid);
   WINDOW_LIST * wl;
 
@@ -244,21 +247,21 @@ Wind_set_size (WORD   apid,
       wl->ws.tree[WSMALLER].ob_x += dw;
       
       wl->ws.tree[WDOWN].ob_x += dw;
-      wl->ws.tree[WDOWN].ob_y += dh;	
+      wl->ws.tree[WDOWN].ob_y += dh;    
       
       wl->ws.tree[WSIZER].ob_x += dw;
-      wl->ws.tree[WSIZER].ob_y += dh;	
+      wl->ws.tree[WSIZER].ob_y += dh;   
       
       wl->ws.tree[WRIGHT].ob_x += dw;
-      wl->ws.tree[WRIGHT].ob_y += dh;	
+      wl->ws.tree[WRIGHT].ob_y += dh;   
       
-      wl->ws.tree[WLEFT].ob_y += dh;	
+      wl->ws.tree[WLEFT].ob_y += dh;    
       
       wl->ws.tree[WVSB].ob_x += dw;
-      wl->ws.tree[WVSB].ob_height += dh;	
+      wl->ws.tree[WVSB].ob_height += dh;        
       
       wl->ws.tree[WHSB].ob_y += dh;
-      wl->ws.tree[WHSB].ob_width += dw;	
+      wl->ws.tree[WHSB].ob_width += dw; 
       
       wl->ws.tree[WINFO].ob_width += dw;
       
@@ -287,6 +290,9 @@ Wind_set_size (WORD   apid,
       Wind_redraw_elements (apid, id, size, 0);
     }
   }
+
+  /* OK */
+  return 1;
 }
 
 
@@ -298,7 +304,7 @@ winalloc (WORD apid) {
   WINDOW_LIST * wl;
   GLOBAL_APPL * globals = get_globals (apid);
 
-  /*	
+  /*    
         if(win_free) {
         wl = win_free;
         win_free = win_free->next;
@@ -310,10 +316,10 @@ winalloc (WORD apid) {
   /*
     };
     */
-	
+        
   wl->next = globals->windows;
   globals->windows = wl;
-	
+        
   return &wl->ws;
 }
 
@@ -338,41 +344,41 @@ allocate_window_elements (void) {
   DB_printf ("wind.c: allocate_window_elements: globals->windowtad=0x%x", globals->windowtad);
   while(elemnumber == -1) {
     switch (globals->windowtad[i].ob_type) {
-    case	G_TEXT		:
-    case	G_BOXTEXT	:
-    case	G_FTEXT		:
-    case	G_FBOXTEXT	:
+    case        G_TEXT          :
+    case        G_BOXTEXT       :
+    case        G_FTEXT         :
+    case        G_FBOXTEXT      :
       tnr++;
     }
-		
+                
     if (globals->windowtad[i].ob_flags & LASTOB)
     {
       elemnumber = i + 1;
       tednumber = tnr;
     }
-		
+                
     i++;
   }
-	
+        
   DB_printf ("wind.c: allocate_window_elements: 2");
 
   size = sizeof(OBJECT) * elemnumber + sizeof(TEDINFO) * tednumber;
-	
+        
   t = (OBJECT *)Mxalloc(size,GLOBALMEM);
-	
+        
   DB_printf ("wind.c: allocate_window_elements: 3");
 
   if(t != NULL) {
     ti = (TEDINFO *)&t[elemnumber];
-		
+                
     memcpy(t,globals->windowtad,sizeof(OBJECT) * elemnumber);
-		
+                
     for(i = 0; i < elemnumber; i++) {
       switch(globals->windowtad[i].ob_type) {
-      case	G_TEXT		:
-      case	G_BOXTEXT	:
-      case	G_FTEXT		:
-      case	G_FBOXTEXT	:
+      case      G_TEXT          :
+      case      G_BOXTEXT       :
+      case      G_FTEXT         :
+      case      G_FBOXTEXT      :
         t[i].ob_spec.tedinfo = ti;
         memcpy(ti, globals->windowtad[i].ob_spec.tedinfo, sizeof(TEDINFO));
         ti++;
@@ -381,7 +387,7 @@ allocate_window_elements (void) {
   };
 
   DB_printf ("wind.c: allocate_window_elements: 4");
-	
+        
   return t;
 }
 
@@ -407,7 +413,7 @@ packelem (OBJECT * tree,
     else {
       tree[object].ob_x = tree[left].ob_x + tree[left].ob_width + D3DSIZE * 2;
     };
-		
+                
     if(right == 0) {
       tree[object].ob_width = tree[0].ob_width - tree[object].ob_x - D3DSIZE;
     }
@@ -421,7 +427,7 @@ packelem (OBJECT * tree,
     }
     else {
       tree[object].ob_x = tree[left].ob_x + tree[left].ob_width + D3DSIZE * 2;
-    };		
+    };          
   }
   else if(right != -1) {
     if(right == 0) {
@@ -431,8 +437,8 @@ packelem (OBJECT * tree,
       tree[object].ob_x = tree[right].ob_x - tree[object].ob_width - D3DSIZE * 2;
     };
   };
-	
-	
+        
+        
   if((top != -1) && (bottom != -1)) {
     if(top == 0) {
       tree[object].ob_y = D3DSIZE;
@@ -440,7 +446,7 @@ packelem (OBJECT * tree,
     else {
       tree[object].ob_y = tree[top].ob_y + tree[top].ob_height + D3DSIZE * 2;
     };
-		
+                
     if(bottom == 0) {
       tree[object].ob_height = tree[0].ob_height - tree[object].ob_y - D3DSIZE;
     }
@@ -454,7 +460,7 @@ packelem (OBJECT * tree,
     }
     else {
       tree[object].ob_y = tree[top].ob_y + tree[top].ob_height + D3DSIZE * 2;
-    };		
+    };          
   }
   else if(bottom != -1) {
     if(bottom == 0) {
@@ -463,7 +469,7 @@ packelem (OBJECT * tree,
     else {
       tree[object].ob_y = tree[bottom].ob_y - tree[object].ob_height - D3DSIZE * 2;
     };
-  };	
+  };    
 }
 
 
@@ -484,50 +490,50 @@ set_win_elem (OBJECT *tree,
   if((HSLIDE | LFARROW | RTARROW) & elem) {
     bottomsize = tree[WLEFT].ob_height + (D3DSIZE << 1);
   };
-	
+        
   if((LFARROW | HSLIDE | RTARROW) & elem) {
     bottomsize = tree[WLEFT].ob_height + (D3DSIZE << 1);
   };
-	
+        
   if(((bottomsize == 0) && (SIZER & elem))
      || ((VSLIDE | UPARROW | DNARROW) & elem)) {
     rightsize = tree[WSIZER].ob_width + (D3DSIZE << 1);
   };
-	
+        
   if(CLOSER & elem) {
-    tree[WCLOSER].ob_flags &= ~HIDETREE;	
-		
+    tree[WCLOSER].ob_flags &= ~HIDETREE;        
+                
     packelem(tree,WCLOSER,0,-1,0,-1);
     left = WCLOSER;
-  }	
+  }     
   else {
     tree[WCLOSER].ob_flags |= HIDETREE;
   }
-	
+        
   if(FULLER & elem) {
-    tree[WFULLER].ob_flags &= ~HIDETREE;	
-		
+    tree[WFULLER].ob_flags &= ~HIDETREE;        
+                
     packelem(tree,WFULLER,-1,0,0,-1);
     right = WFULLER;
-  }	
+  }     
   else {
     tree[WFULLER].ob_flags |= HIDETREE;
   }
-		
+                
   if(SMALLER & elem) {
-    tree[WSMALLER].ob_flags &= ~HIDETREE;	
-		
+    tree[WSMALLER].ob_flags &= ~HIDETREE;       
+                
     packelem(tree,WSMALLER,-1,right,0,-1);
     right = WSMALLER;
-  }	
+  }     
   else {
     tree[WSMALLER].ob_flags |= HIDETREE;
   }
-		
+                
   if(MOVER & elem) {
     tree[WMOVER].ob_flags &= ~HIDETREE;
     tree[TFILLOUT].ob_flags |= HIDETREE;
-		
+                
     tree[WMOVER].ob_height = tree[WCLOSER].ob_height;
     tree[WMOVER].ob_spec.tedinfo->te_font = IBM;
 
@@ -547,12 +553,12 @@ set_win_elem (OBJECT *tree,
       tree[TFILLOUT].ob_flags |= HIDETREE;
     };
   };
-	
+        
   if(INFO & elem) {
     tree[WINFO].ob_flags &= ~HIDETREE;
 
     packelem(tree,WINFO,0,0,top,-1);
-    top = WINFO;		
+    top = WINFO;                
   }
   else {
     tree[WINFO].ob_flags |= HIDETREE;
@@ -563,7 +569,7 @@ set_win_elem (OBJECT *tree,
 
   if(elem & UPARROW) {
     tree[WUP].ob_flags &= ~HIDETREE;
-		
+                
     packelem(tree,WUP,-1,0,top,-1);
     top = WUP;
   }
@@ -573,17 +579,17 @@ set_win_elem (OBJECT *tree,
 
   if(SIZER & elem) {
     tree[WSIZER].ob_flags &= ~HIDETREE;
-    tree[SFILLOUT].ob_flags |= HIDETREE;	
-		
+    tree[SFILLOUT].ob_flags |= HIDETREE;        
+                
     packelem(tree,WSIZER,-1,0,-1,0);
     bottom = right = WSIZER;
-  }	
+  }     
   else {
     tree[WSIZER].ob_flags |= HIDETREE;
-		
+                
     if((bottomsize > 0) && (rightsize > 0)) {
       tree[SFILLOUT].ob_flags &= ~HIDETREE;
-			
+                        
       packelem(tree,SFILLOUT,-1,0,-1,0);
       bottom = right = SFILLOUT;
     }
@@ -591,75 +597,75 @@ set_win_elem (OBJECT *tree,
       tree[SFILLOUT].ob_flags |= HIDETREE;
     }
   }
-	
+        
   if(elem & DNARROW) {
     tree[WDOWN].ob_flags &= ~HIDETREE;
 
     packelem(tree,WDOWN,-1,0,-1,bottom);
-    bottom = WDOWN;		
+    bottom = WDOWN;             
   }
   else {
     tree[WDOWN].ob_flags |= HIDETREE;
   };
-	
+        
   if(elem & VSLIDE) {
     tree[WVSB].ob_flags &= ~HIDETREE;
 
-    packelem(tree,WVSB,-1,0,top,bottom);		
+    packelem(tree,WVSB,-1,0,top,bottom);                
   }
   else
   {
     tree[WVSB].ob_flags |= HIDETREE;
   }
-	
+        
   if(!(VSLIDE & elem) && (rightsize > 0))
   {
     tree[RFILLOUT].ob_flags &= ~HIDETREE;
 
-    packelem(tree,RFILLOUT,-1,0,top,bottom);		
+    packelem(tree,RFILLOUT,-1,0,top,bottom);            
   }
   else {
     tree[RFILLOUT].ob_flags |= HIDETREE;
   }
-	
+        
   if(LFARROW & elem) {
     tree[WLEFT].ob_flags &= ~HIDETREE;
-		
+                
     packelem(tree,WLEFT,0,-1,-1,0);
     left = WLEFT;
   }
   else {
     tree[WLEFT].ob_flags |= HIDETREE;
   }
-	
+        
   if(RTARROW & elem) {
     tree[WRIGHT].ob_flags &= ~HIDETREE;
-		
+                
     packelem(tree,WRIGHT,-1,right,-1,0);
     right = WRIGHT;
   }
   else {
     tree[WRIGHT].ob_flags |= HIDETREE;
   };
-	
+        
   if(elem & HSLIDE) {
     tree[WHSB].ob_flags &= ~HIDETREE;
-		
+                
     packelem(tree,WHSB,left,right,-1,0);
   }
   else {
     tree[WHSB].ob_flags |= HIDETREE;
   }
-	
+        
   if(!(HSLIDE & elem) && (bottomsize > 0)) {
     tree[BFILLOUT].ob_flags &= ~HIDETREE;
-		
+                
     packelem(tree,BFILLOUT,left,right,-1,0);
   }
   else {
     tree[BFILLOUT].ob_flags |= HIDETREE;
   };
-	
+        
   if(IMOVER & elem) {
     tree[WMOVER].ob_flags &= ~HIDETREE;
     tree[WMOVER].ob_height = /*globals.csheight*/ + 2;
@@ -702,14 +708,14 @@ create_new_window_struct (WORD apid,
 
     /*
     ai = internal_appl_info(msg->common.apid);
-		
+                
     if(ai) {
       ws->tree[WAPP].ob_spec.tedinfo->te_ptext =
-	(char *)Mxalloc(strlen(&ai->name[2]) + 1,GLOBALMEM);
+        (char *)Mxalloc(strlen(&ai->name[2]) + 1,GLOBALMEM);
       strcpy(ws->tree[WAPP].ob_spec.tedinfo->te_ptext,&ai->name[2]);
       
       if(globals->common->wind_appl == 0) {
-	ws->tree[WAPP].ob_spec.tedinfo->te_ptext[0] = 0;
+        ws->tree[WAPP].ob_spec.tedinfo->te_ptext[0] = 0;
       };
     };
     */
@@ -724,7 +730,7 @@ create_new_window_struct (WORD apid,
                   &ws->totsize,
                   &ws->worksize,
                   WC_WORK);
-		
+                
     /*
     for(i = 0; i <= W_SMALLER; i++) {
       ws->top_colour[i] = top_colour[i];
@@ -767,6 +773,7 @@ find_window_struct (WORD apid,
 ** If <id> is REDRAW_ALL all windows of the application will be redrawn.
 **
 ** 1998-10-11 CG
+** 1999-01-01 CG
 */
 void
 Wind_redraw_elements (WORD   apid,
@@ -776,50 +783,92 @@ Wind_redraw_elements (WORD   apid,
   GLOBAL_APPL * globals = get_globals (apid);
   WINDOW_LIST * wl = globals->windows;
   
-  while (wl) {
-    if (wl->ws.id == id) {
-      if(wl->ws.tree != NULL) {
-        RECT r;
-
-        Wind_do_get (apid,
-                     wl->ws.id,
-                     WF_FIRSTXYWH,
-                     &r.x,
-                     &r.y,
-                     &r.width,
-                     &r.height,
-                     FALSE);
-
-        /* Loop while there are more rectangles to redraw */
-        while (!((r.width == 0) && (r.height == 0))) {
-          RECT	r2;
+  /* Handle desktop separately */
+  if (id == 0) {
+    if (globals->desktop_background != NULL) {
+      RECT r;
+     
+      DB_printf ("=========== before wind_get");
+      Wind_do_get (apid,
+                   id,
+                   WF_FIRSTXYWH,
+                   &r.x,
+                   &r.y,
+                   &r.width,
+                   &r.height,
+                 FALSE);
+      
+      /* Loop while there are more rectangles to redraw */
+      while (!((r.width == 0) && (r.height == 0))) {
+        RECT  r2;
+        
+        if(Misc_intersect(&r, clip, &r2)) {
+          Objc_do_draw (globals->vid,
+                        globals->desktop_background,
+                        start,
+                        3,
+                        &r2);
+        }
+        
+        if (Wind_do_get (apid,
+                         id,
+                         WF_NEXTXYWH,
+                         &r.x,
+                         &r.y,
+                         &r.width,
+                         &r.height,
+                         FALSE) == 0) {
+          /* An error occurred in Wind_do_get */
+          break;
+        }
+      }
+    }
+  } else { /* Window handle != 0 */
+    while (wl) {
+      if (wl->ws.id == id) {
+        if(wl->ws.tree != NULL) {
+          RECT r;
           
-          if(Misc_intersect(&r, clip, &r2)) {
-            Objc_do_draw (globals->vid, wl->ws.tree, start, 3, &r2);
-          }
+          Wind_do_get (apid,
+                       wl->ws.id,
+                       WF_FIRSTXYWH,
+                       &r.x,
+                       &r.y,
+                       &r.width,
+                       &r.height,
+                       FALSE);
           
-          if (Wind_do_get (apid,
-                           wl->ws.id,
-                           WF_NEXTXYWH,
-                           &r.x,
-                           &r.y,
-                           &r.width,
-                           &r.height,
+          /* Loop while there are more rectangles to redraw */
+          while (!((r.width == 0) && (r.height == 0))) {
+            RECT  r2;
+            
+            if(Misc_intersect(&r, clip, &r2)) {
+              Objc_do_draw (globals->vid, wl->ws.tree, start, 3, &r2);
+            }
+            
+            if (Wind_do_get (apid,
+                             wl->ws.id,
+                             WF_NEXTXYWH,
+                             &r.x,
+                             &r.y,
+                             &r.width,
+                             &r.height,
                            FALSE) == 0) {
-            /* An error occurred in Wind_do_get */
-            break;
+              /* An error occurred in Wind_do_get */
+              break;
+            }
           }
+        }
+        
+        /* Get out of the loop if only one window was supposed to be redrawn */
+        if (!(id == REDRAW_ALL)) {
+          break;
         }
       }
       
-      /* Get out of the loop if only one window was supposed to be redrawn */
-      if (!(id == REDRAW_ALL)) {
-        break;
-      }
+      /* Continue with the next window */
+      wl = wl->next;
     }
-
-    /* Continue with the next window */
-    wl = wl->next;
   }
 }
 
@@ -849,7 +898,7 @@ WORD   status)   /* Status of window.                                       */
   par.elements = elements;
   par.maxsize = *maxsize;
   par.status = status;
-	
+        
   count = Client_send_recv (&par,
                             sizeof (C_WIND_CREATE),
                             &ret,
@@ -865,7 +914,7 @@ WORD   status)   /* Status of window.                                       */
   ws->id = ret.common.retval;
 
   ws->status = status;
-	
+        
   ws->maxsize = *maxsize;
 
   ws->vslidepos = 1;
@@ -895,11 +944,11 @@ WORD   status)   /* Status of window.                                       */
     
     if(ai) {
       ws->tree[WAPP].ob_spec.tedinfo->te_ptext =
-	(char *)Mxalloc(strlen(&ai->name[2]) + 1,GLOBALMEM);
+        (char *)Mxalloc(strlen(&ai->name[2]) + 1,GLOBALMEM);
       strcpy(ws->tree[WAPP].ob_spec.tedinfo->te_ptext,&ai->name[2]);
       
       if(globals.wind_appl == 0) {
-	ws->tree[WAPP].ob_spec.tedinfo->te_ptext[0] = 0;
+        ws->tree[WAPP].ob_spec.tedinfo->te_ptext[0] = 0;
       };
     };
     */
@@ -910,7 +959,7 @@ WORD   status)   /* Status of window.                                       */
     ws->totsize.height = ws->tree[0].ob_height;
     
     calcworksize (apid, ws->elements, &ws->totsize, &ws->worksize, WC_WORK);
-		
+                
     for(i = 0; i <= W_SMALLER; i++) {
       ws->top_colour[i] = global_common->top_colour[i];
       ws->untop_colour[i] = global_common->untop_colour[i];
@@ -927,7 +976,7 @@ WORD   status)   /* Status of window.                                       */
 
 void
 Wind_create (AES_PB *apb)
-{	
+{       
   apb->int_out[0] = Wind_do_create(apb->global->apid,
                                    apb->int_in[0],
                                    (RECT *)&apb->int_in[1],
@@ -956,7 +1005,7 @@ Wind_do_open (WORD   apid,
   par.common.pid = getpid ();
   par.id = id;
   par.size = *size;
-	
+        
   Client_send_recv (&par,
                     sizeof (C_WIND_OPEN),
                     &ret,
@@ -995,7 +1044,7 @@ Wind_do_close (WORD apid,
   par.common.apid = apid;
   par.common.pid = getpid ();
   par.id = wid;
-	
+        
   Client_send_recv (&par,
                     sizeof (C_WIND_CLOSE),
                     &ret,
@@ -1035,7 +1084,7 @@ WORD wid)        /* Identification number of window to close.               */
   par.common.apid = apid;
   par.common.pid = getpid ();
   par.id = wid;
-	
+        
   Client_send_recv (&par,
                     sizeof (C_WIND_DELETE),
                     &ret,
@@ -1112,7 +1161,7 @@ Wind_do_get (WORD   apid,
   par.common.pid = getpid ();
   par.handle = handle;
   par.mode = mode;
-	
+        
 
   /* Loop until we get the data we need (needed for WF_{FIRST,NEXT}XYWH */
   while (TRUE) {
@@ -1149,7 +1198,7 @@ Wind_do_get (WORD   apid,
   *parm2 = ret.parm2;
   *parm3 = ret.parm3;
   *parm4 = ret.parm4;
-	
+        
   return ret.common.retval;
 }
 
@@ -1174,9 +1223,75 @@ Wind_get (AES_PB *apb)
 
 
 /*
+** Description
+** Set the name or the info string of a window
+**
+** 1998-12-26 CG
+** 1999-01-01 CG
+*/
+WORD
+Wind_set_name_or_info (WORD   apid,
+                       WORD   id,
+                       WORD   mode,
+                       BYTE * str) {
+  WORD object = (mode == WF_NAME) ? WMOVER : WINFO;
+  WINDOW_STRUCT * win = find_window_struct (apid, id);
+
+  if (win != NULL) {
+    if (win->tree != NULL) {
+      win->tree[object].ob_spec.tedinfo->te_ptext =
+        (BYTE *)malloc (strlen (str));
+      
+      strcpy (win->tree[object].ob_spec.tedinfo->te_ptext, str);
+      
+      Wind_redraw_elements (apid, id, &win->totsize, widgetmap [object]);
+
+      return 1;
+    }
+  }
+
+  return 0;
+}
+      
+
+/*
+** Description
+** Set desktop background
+**
+** 1999-01-01 CG
+*/
+static
+WORD
+Wind_set_desktop_background (WORD     apid,
+                             OBJECT * tree) {
+  GLOBAL_APPL * globals = get_globals (apid);
+
+  DB_printf ("wind.c: Wind_set_desktop_background: tree = 0x%x %d %d %d %d",
+             tree,
+             globals->common->screen.x,
+             globals->common->screen.y,
+             globals->common->screen.width,
+             globals->common->screen.height);
+
+  globals->desktop_background = tree;
+
+  /* Adjust the size of the resource to the size of the desktop */
+  if (tree != NULL) {     
+    if(tree->ob_y + tree->ob_height < globals->common->screen.height) {
+      tree->ob_y = globals->common->screen.height - tree->ob_height;
+    }
+  }
+
+  /* Return OK */
+  return 1;
+}
+
+
+/*
 ** Exported
 **
 ** 1998-12-25 CG
+** 1999-01-01 CG
 */
 WORD
 Wind_do_set (WORD apid,
@@ -1189,29 +1304,49 @@ Wind_do_set (WORD apid,
   C_WIND_SET par;
   R_WIND_SET ret;
   
-  par.common.call = SRV_WIND_SET;
-  par.common.apid = apid;
-  par.common.pid = getpid ();
+  switch (mode) {
+  case WF_NAME :
+  case WF_INFO :
+    ret.common.retval = 1;
+    break;
 
-  par.handle = handle;
-  par.mode = mode;
-  
-  par.parm1 = parm1;
-  par.parm2 = parm2;
-  par.parm3 = parm3;
-  par.parm4 = parm4;
-  
-  Client_send_recv (&par,
-                    sizeof (C_WIND_SET),
-                    &ret,
-                    sizeof (R_WIND_SET));
+  default:
+    par.common.call = SRV_WIND_SET;
+    par.common.apid = apid;
+    par.common.pid = getpid ();
+    
+    par.handle = handle;
+    par.mode = mode;
+    
+    par.parm1 = parm1;
+    par.parm2 = parm2;
+    par.parm3 = parm3;
+    par.parm4 = parm4;
+    
+    Client_send_recv (&par,
+                      sizeof (C_WIND_SET),
+                      &ret,
+                      sizeof (R_WIND_SET));
+  }
 
   /* FIXME
   ** Check the retval if the server operation went ok
   */
   switch (mode) {
+  case WF_NAME :
+  case WF_INFO :
+    return Wind_set_name_or_info (apid,
+                                  handle,
+                                  mode,
+                                  (BYTE *)INTS2LONG (parm1,
+                                                     parm2));
+
   case WF_CURRXYWH :
-    Wind_set_size (apid, handle, (RECT *)&par.parm1);
+    return Wind_set_size (apid, handle, (RECT *)&par.parm1);
+    
+  case WF_NEWDESK :
+    return Wind_set_desktop_background (apid,
+                                         (OBJECT *)INTS2LONG (parm1, parm2));
   }
 
   return ret.common.retval;
@@ -1252,7 +1387,7 @@ Wind_do_find (WORD apid,
   par.common.pid = getpid ();
   par.x = x;
   par.y = y;
-	
+        
   Client_send_recv (&par,
                     sizeof (C_WIND_FIND),
                     &ret,
@@ -1293,7 +1428,7 @@ Wind_do_update (WORD apid,
   par.common.apid = apid;
   par.common.pid = getpid ();
   par.mode = mode;
-	
+        
   Client_send_recv (&par,
                     sizeof (C_WIND_UPDATE),
                     &ret,
@@ -1316,7 +1451,7 @@ Wind_calc (AES_PB *apb) {
   calcworksize (apb->global->apid,
                 apb->int_in[1],
                 (RECT *)&apb->int_in[2],
-		(RECT *)&apb->int_out[1],
+                (RECT *)&apb->int_out[1],
                 apb->int_in[0]);
   
   apb->int_out[0] = 1;
@@ -1331,7 +1466,7 @@ Wind_new(         /*                                                        */
 AES_PB *apb)      /* AES parameter block.                                   */
 /****************************************************************************/
 {
-	apb->int_out[0] = Srv_wind_new(apb->global->apid);
+        apb->int_out[0] = Srv_wind_new(apb->global->apid);
 }
 
 
@@ -1371,7 +1506,7 @@ Wind_change (WORD apid,
              WORD newstate)
 {
   WINDOW_STRUCT * win = find_window_struct (apid, id);
-	
+        
   if(win) {
     if (newstate != win->tree[widgetmap [object]].ob_state) {
       GLOBAL_COMMON * globals = get_global_common ();

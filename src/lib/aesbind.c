@@ -231,10 +231,11 @@ wind_open (short WindowHandle,
 short
 wind_set (short WindowHandle,
           short What,
-          ...)
+          short parm1,
+          short parm2,
+          short parm3,
+          short parm4)
 {
-  va_list p;
-
   aespb.contrl[0] = 105;
   aespb.contrl[1] = 6;
   aespb.contrl[2] = 1;
@@ -244,15 +245,11 @@ wind_set (short WindowHandle,
   aespb.intin[0] = WindowHandle;
   aespb.intin[1] = What;
 
-  va_start(p,What);
-	
-  aespb.intin[2] = va_arg(p,int);
-  aespb.intin[3] = va_arg(p,int);
-  aespb.intin[4] = va_arg(p,int);
-  aespb.intin[5] = va_arg(p,int);
+  aespb.intin[2] = parm1;
+  aespb.intin[3] = parm2;
+  aespb.intin[4] = parm3;
+  aespb.intin[5] = parm4;
 	    
-  va_end(p);
-
   aes_call (&aespb);
 
   return aespb.intout[0];

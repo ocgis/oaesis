@@ -162,6 +162,7 @@ WORD own_graf_handle(void) {
 ** Initialize global variables, open vdi workstation etc
 **
 ** 1998-11-15 CG
+** 1999-01-01 CG
 */
 void
 init_global (WORD nocnf,
@@ -341,6 +342,9 @@ init_global (WORD nocnf,
              global_common.windowtad);
 
   global_common.applpid = Pgetpid();
+
+  /* There is no default desktop background */
+  global_appl.desktop_background = NULL;
 
   global_appl.common = &global_common;
 }

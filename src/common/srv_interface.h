@@ -98,8 +98,9 @@ typedef struct {
   WORD  length;
   WORD  is_reference; /* != 0 => msg.ref is a pointer to the buffer */
   union {
-    void * ref;
-    COMMSG event;
+    void *       ref;
+    COMMSG       event;
+    REDRAWSTRUCT redraw;
   }msg;
 } C_APPL_WRITE;
 

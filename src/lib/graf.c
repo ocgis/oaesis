@@ -152,6 +152,7 @@ void Graf_exit_module(void) {
 **
 ** 1998-12-20 CG
 ** 1998-12-25 CG
+** 1998-12-26 CG
 */
 WORD
 Graf_do_rubberbox (WORD   apid,
@@ -209,6 +210,7 @@ Graf_do_rubberbox (WORD   apid,
     return 1;
   }
 
+  Vdi_vsl_color (globals->vid, BLACK);
   Vdi_vswr_mode (globals->vid, MD_XOR);
   Vdi_vsl_type (globals->vid, DOTTED);
 
@@ -315,6 +317,7 @@ Graf_rubberbox (AES_PB *apb) {
 **
 ** 1998-12-20 CG
 ** 1998-12-25 CG
+** 1998-12-26 CG
 */
 WORD
 Graf_do_dragbox (WORD   apid,
@@ -368,6 +371,7 @@ Graf_do_dragbox (WORD   apid,
     return 1;
   }
 
+  Vdi_vsl_color (globals->vid, BLACK);
   Vdi_vswr_mode (globals->vid, MD_XOR);
   Vdi_vsl_type (globals->vid, DOTTED);
 

@@ -98,6 +98,7 @@ typedef struct global_appl {
   GLOBAL_COMMON * common;
   WORD            vid;
   void          * windows;
+  OBJECT        * desktop_background;
 }GLOBAL_APPL;
 
 /*

@@ -1599,8 +1599,6 @@ srv_appl_write (C_APPL_WRITE * msg,
 {
   AP_INFO	*ai;
   
-  DB_printf ("srv.c: srv_appl_write");
-
   ai = search_appl_info (msg->addressee);
   
   if (ai != NULL) {
@@ -1620,7 +1618,6 @@ srv_appl_write (C_APPL_WRITE * msg,
       }
       
       ai->message_size += msg->length;
-      DB_printf ("srv.c: srv_appl_write: message_size = %d  ai = 0x%x  apid = %d", ai->message_size, ai, ai->id);
       
       ret->common.retval = 0;
     } else {
@@ -1633,86 +1630,152 @@ srv_appl_write (C_APPL_WRITE * msg,
 }
 
 
-/****************************************************************************
- * update_deskbg                                                            *
- *  Update all of the desk background.                                      *
- ****************************************************************************/
-void                     /*                                                 */
-update_deskbg(void)      /*                                                 */
-/****************************************************************************/
-{
-	WINSTRUCT *win;
+/* Description
+** Get the id of the application that owns the desktop
+**
+** 1999-01-01 CG
+*/
+static
+WORD
+get_desktop_owner_id (void) {
+  AP_INFO_REF ai;
+  
+  ai = search_appl_info (DESK_OWNER);
+  
+  if (ai != AP_INFO_REF_NIL) {
+    return ai->id;
+  }
 
-	win = find_wind_description(0);
-	draw_wind_elements(win,&globals.screen,0);
+  /* The default is the first application */
+  return 0;
 }
 
-/****************************************************************************
- * get_deskbg                                                               *
- *  Get the resource tree of the top desktop.                               *
- ****************************************************************************/
-static OBJECT *   /* Resource tree, or NULL.                                */
-get_deskbg(void)  /*                                                        */
-/****************************************************************************/
-{
-	OBJECT  *retval = NULL;
-	AP_INFO *ai;
-		
-	ai = search_appl_info(DESK_OWNER);
-		
-	if(ai) {
-		retval = ai->deskbg;
-	};
-		
-	return retval;
+
+/*
+** Description
+** Update all of the desk background
+**
+** 1999-01-01 CG
+*/
+void
+update_desktop_background (void) {
+  C_APPL_WRITE c_appl_write;
+  R_APPL_WRITE r_appl_write;
+  
+  c_appl_write.msg.redraw.type = WM_REDRAW;
+  
+  c_appl_write.msg.redraw.sid = 0;
+ 
+  c_appl_write.msg.redraw.length = 0;
+  c_appl_write.msg.redraw.wid = 0;
+  
+  /* FIXME
+  ** Use globals instead
+  */
+  c_appl_write.msg.redraw.area.x = 0;
+  c_appl_write.msg.redraw.area.y = 0;
+  c_appl_write.msg.redraw.area.width = 1024;
+  c_appl_write.msg.redraw.area.height = 768;
+  
+  c_appl_write.addressee = get_desktop_owner_id ();
+  c_appl_write.length = MSG_LENGTH;
+  c_appl_write.is_reference = FALSE;
+  srv_appl_write (&c_appl_write, &r_appl_write);
+
+  DB_printf ("srv.c: update_desktop_background: sent WM_REDRAW to appl %d",
+             c_appl_write.addressee);
 }
 
-/****************************************************************************
- * set_deskbg                                                               *
- *  Set the resource tree of the desktop of an application                  *
- ****************************************************************************/
-static WORD       /* 0 if ok or -1.                                         */
-set_deskbg(       /*                                                        */
-WORD apid,        /* Id of application.                                     */
-OBJECT *tree)     /* Resource tree.                                         */
-/****************************************************************************/
-{
-	OBJECT *deskbg,*olddeskbg = apps[apid].deskbg;
-	
-	if(apps[apid].id != -1) {
-		apps[apid].deskbg = tree;
 
-		deskbg = get_deskbg();
-	
-		if(((deskbg == tree) && (deskbg != olddeskbg)) || !tree) {
-			update_deskbg();
-		};
-	
-		return 0;
-	};
-
-	return -1;
+/*
+** Description
+** Get the resource tree of the top desktop
+**
+** 1999-01-01 CG
+*/
+static
+OBJECT *
+get_deskbg (void) {
+  OBJECT  *retval = NULL;
+  AP_INFO *ai;
+  
+  ai = search_appl_info (DESK_OWNER);
+  
+  if(ai) {
+    retval = ai->deskbg;
+  }
+		
+  return retval;
 }
 
-/****************************************************************************
- * top_appl                                                                 *
- *  Top application.                                                        *
- ****************************************************************************/
-static WORD       /* Previously topped application.                         */
-top_appl(         /*                                                        */
-WORD apid)        /* Id of application.                                     */
-/****************************************************************************/
-{
-  AP_LIST **al;
-  OBJECT  *deskbg = NULL;
-  WORD    deskbgcount = 0;
-  WORD    lasttop;
+
+/*
+** Description
+** Update the owner of the desktop window
+**
+** 1999-01-01 CG
+*/
+static
+void
+update_desktop_owner (void) {
+  WINSTRUCT *win = find_wind_description (0);
+  
+  if (win != NULL) {
+    win->owner = get_desktop_owner_id ();
+  }
+}
+
+
+/*
+** Description
+** Set the resource tree of the desktop of an application
+**
+** 1999-01-01 CG
+*/
+static
+WORD
+set_desktop_background (WORD     apid,
+                        OBJECT * tree) {
+  OBJECT * deskbg;
+  OBJECT * olddeskbg = apps[apid].deskbg;
+  
+  if(apps[apid].id != -1) {
+    apps[apid].deskbg = tree;
+    
+    deskbg = get_deskbg ();
+    
+    if(((deskbg == tree) && (deskbg != olddeskbg)) || !tree) {
+      update_desktop_background ();
+    }
+
+    update_desktop_owner ();
+    
+    return 0;
+  }
+
+  return -1;
+}
+
+
+/*
+** Description
+** Place application on top
+**
+** 1999-01-01 CG
+*/
+static
+WORD
+top_appl (WORD apid) {
+  AP_LIST ** al;
+  OBJECT  *  deskbg = NULL;
+  WORD       deskbgcount = 0;
+  WORD       lasttop;
   
   lasttop = ap_pri->ai->id;
   al = &ap_pri;
   
-  while(*al) {
-    if((*al)->ai->id == apid) {
+  while (*al) {
+    if ((*al)->ai->id == apid) {
       AP_LIST *tmp = *al;
       
       *al = (*al)->next;
@@ -1723,24 +1786,25 @@ WORD apid)        /* Id of application.                                     */
       deskbg = tmp->ai->deskbg;
       
       break;
-    };
+    }
     
     if((*al)->ai->deskbg) {
       deskbgcount++;
     }
     
     al = &(*al)->next;
-  };
+  }
   
   if(deskbg && deskbgcount) {
-    update_deskbg();
-  };
+    update_desktop_background ();
+  }
   
   update_appl_menu();
   redraw_menu_bar();
   
   return lasttop;
 }
+
 
 static void del_env(const BYTE *strng) {
   BYTE **var;
@@ -2365,6 +2429,7 @@ WORD id)                /* Identification number of window.                 */
 ** Change the size of a window
 **
 ** 1998-12-25 CG
+** 1999-01-01 CG
 */
 static
 WORD
@@ -2569,21 +2634,7 @@ changewinsize (WINSTRUCT * win,
 	  
 	  rlwalk = rltheirnew;
 	  
-	  while(rlwalk) {
-	    m.area.width = rlwalk->r.width;
-	    m.area.height = rlwalk->r.height;
-	    
-	    m.area.x = rlwalk->r.x;
-	    m.area.y = rlwalk->r.y;
-	   
-            /* FIXME
-	    draw_wind_elemfast(wlwalk->win,&m.area,0);
-	    */
-
-	    rlwalk = rlwalk->next;
-	  }				
-	  
-	  if (rltheirnew && !(wlwalk->win->status & WIN_DESKTOP)) {
+	  if (rltheirnew) {
 	    C_APPL_WRITE c_appl_write;
             R_APPL_WRITE r_appl_write;
 
@@ -2695,14 +2746,6 @@ changewinsize (WINSTRUCT * win,
 	
 	rl2 = rd;
 	
-	while(rl2) {
-          /* FIXME
-          draw_wind_elemfast(wl->win,&rl2->r,0);
-	  */
-	  
-	  rl2 = rl2->next;
-	}
-	
 	m.type = WM_REDRAW;
 	
 	if(FALSE /*globals.realmove*/) { /* FIXME */
@@ -2713,7 +2756,7 @@ changewinsize (WINSTRUCT * win,
 	
 	m.length = 0;
 
-	if (rd && !(wl->win->status & WIN_DESKTOP)) {
+	if (rd) {
 	  C_APPL_WRITE c_appl_write;
           R_APPL_WRITE r_appl_write;
           
@@ -3828,80 +3871,58 @@ srv_wind_update (C_WIND_UPDATE * msg,
 ** Server part of wind_set ()
 **
 ** 1998-12-25 CG
+** 1998-12-26 CG
+** 1999-01-01 CG
 */
 static
 void
 srv_wind_set (C_WIND_SET * msg,
               R_WIND_SET * ret) {
-  WINSTRUCT	*win;
+  WINSTRUCT * win;
   
   win = find_wind_description(msg->handle);
   
   if(win) {
-    switch(msg->mode) {	
-    case	WF_NAME	:	/*0x0002*/
-    case	WF_INFO	:	/*0x0003*/
-      {
-	WORD object = (msg->mode == WF_NAME) ? WMOVER : WINFO;
-	BYTE *str = (BYTE *)INTS2LONG(msg->parm1,msg->parm2);
-	
-	if(win->tree) {
-	  Mfree(win->tree[object].ob_spec.tedinfo->te_ptext);
-	  
-	  win->tree[object].ob_spec.tedinfo->te_ptext =
-	    (BYTE *)Mxalloc(strlen(str) + 1,GLOBALMEM);
-	  
-	  strcpy(win->tree[object].ob_spec.tedinfo->te_ptext,str);
-	  
-	  draw_wind_elements(win,&win->totsize,object);
-	  
-	  ret->common.retval = 1;
-	} else {
-	  ret->common.retval = 0;
-	}
-      }
+    switch (msg->mode) {        
+    case WF_NAME        :       /*0x0002*/
+    case WF_INFO        :       /*0x0003*/
+      DB_printf ("srv.c: srv_wind_set: no support for mode %d in server",
+                 msg->mode);
       break;
       
     case WF_CURRXYWH: /*0x0005*/
       ret->common.retval = changewinsize (win, (RECT *)&msg->parm1, svid, 0);
       break;
 
-    case	WF_HSLIDE: /*0x08*/
+    case WF_HSLIDE: /*0x08*/
       ret->common.retval = changeslider(win,1,HSLIDE,msg->parm1,-1);
       break;
 
-    case	WF_VSLIDE: /*0x09*/
+    case WF_VSLIDE: /*0x09*/
       ret->common.retval = changeslider(win,1,VSLIDE,msg->parm1,-1);
       break;
 
-    case	WF_TOP	:	/*0x000a*/
+    case WF_TOP  :       /*0x000a*/
       ret->common.retval = top_window(msg->handle);
       break;
 
     case WF_NEWDESK: /*0x000e*/
-      {
-	OBJECT *tree = (OBJECT *)INTS2LONG(msg->parm1, msg->parm2);
-	
-	if (tree) {	
-	  if(tree->ob_y + tree->ob_height < globals.screen.height) {
-	    tree->ob_y =
-	      globals.screen.height - tree->ob_height;
-	  }
-	}
-	
-	if (set_deskbg (msg->common.apid, tree) == 0) {
-	  ret->common.retval = 1;
-	} else {
-	  ret->common.retval = 0;
-	}
+    {
+      OBJECT *tree = (OBJECT *)INTS2LONG(msg->parm1, msg->parm2);
+      
+      if (set_desktop_background (msg->common.apid, tree) == 0) {
+        ret->common.retval = 1;
+      } else {
+        ret->common.retval = 0;
       }
-      break;
+    }
+    break;
 
-    case	WF_HSLSIZE: /*0x0f*/
+    case WF_HSLSIZE: /*0x0f*/
       ret->common.retval = changeslider(win,1,HSLIDE,-1,msg->parm1);
       break;
 
-    case	WF_VSLSIZE: /*0x10*/
+    case WF_VSLSIZE: /*0x10*/
       ret->common.retval = changeslider(win,1,VSLIDE,-1,msg->parm1);
       break;
       
@@ -3919,9 +3940,9 @@ srv_wind_set (C_WIND_SET * msg,
 
     case WF_BEVENT: /*0x18*/
       if(msg->parm1 & 1) {
-	win->status |= WIN_UNTOPPABLE;
+        win->status |= WIN_UNTOPPABLE;
       } else {
-	win->status &= ~WIN_UNTOPPABLE;
+        win->status &= ~WIN_UNTOPPABLE;
       }
       
       ret->common.retval = 1;
@@ -3948,11 +3969,11 @@ srv_wind_set (C_WIND_SET * msg,
 
     default:
       DB_printf("%s: Line %d: srv_wind_set:\r\n"
-		"Unknown mode %d",__FILE__,__LINE__,msg->mode);
+                "Unknown mode %d",__FILE__,__LINE__,msg->mode);
       ret->common.retval = 0;
     }
   } else {
-    ret->common.retval = 0;	
+    ret->common.retval = 0;     
   }
 }
 

@@ -20,7 +20,7 @@
 #define APC_TOP     12
 #define APC_HIDENOT 13
 
-		/* appl_getinfo modes */
+                /* appl_getinfo modes */
 #define AES_LARGEFONT   0
 #define AES_SMALLFONT   1
 #define AES_SYSTEM      2
@@ -33,7 +33,7 @@
 #define AES_SHELL      10
 #define AES_WINDOW     11
 
-		/* appl_getinfo return values */
+                /* appl_getinfo return values */
 #define SYSTEM_FONT     0
 #define OUTLINE_FONT    1
 
@@ -44,32 +44,32 @@
 #define AESLANG_ITALIAN 5
 #define AESLANG_SWEDISH 6
 
-		/* appl_read modes */
+                /* appl_read modes */
 #define APR_NOWAIT     -1
 
-		/* appl_search modes */
+                /* appl_search modes */
 #define APP_FIRST       0
 #define APP_NEXT        1
 
-		/* appl_search return values*/
+                /* appl_search return values*/
 #define APP_SYSTEM      0x01
 #define APP_APPLICATION 0x02
 #define APP_ACCESSORY   0x04
 #define APP_SHELL       0x08
 
-		/* appl_trecord types */
+                /* appl_trecord types */
 #define APPEVNT_TIMER    0
 #define APPEVNT_BUTTON   1
 #define APPEVNT_MOUSE    2
-#define APPEVNT_KEYBOARD 3		
+#define APPEVNT_KEYBOARD 3              
 
-		/* struct used by appl_trecord and appl_tplay */
+                /* struct used by appl_trecord and appl_tplay */
 typedef struct pEvntrec {
    long ap_event;
    long ap_value;
 }EVNTREC;
-		
-		/* evnt_button flags */
+                
+                /* evnt_button flags */
 #define LEFT_BUTTON     0x0001
 #define RIGHT_BUTTON    0x0002
 #define MIDDLE_BUTTON   0x0004
@@ -79,11 +79,11 @@ typedef struct pEvntrec {
 #define K_CTRL          0x0004
 #define K_ALT           0x0008
 
-		/* evnt_dclick flags */
+                /* evnt_dclick flags */
 #define EDC_INQUIRE     0
 #define EDC_SET         1
 
-		/* event message values */
+                /* event message values */
 #define MN_SELECTED   10
 #define WM_REDRAW     20
 #define WM_TOPPED     21
@@ -108,7 +108,7 @@ typedef struct pEvntrec {
 #define AP_TFAIL      51
 #define AP_RESCHG     57
 
-		/* Xcontrol messages */
+                /* Xcontrol messages */
 #define CT_UPDATE     50
 #define CT_MOVE       51
 #define CT_NEWTOP     52
@@ -121,25 +121,25 @@ typedef struct pEvntrec {
 #define SH_WDRAW         72
 #define CH_EXIT          80   /* should this be 90 like in the compendium?*/
 
-		/* evnt_mouse modes */
+                /* evnt_mouse modes */
 #define MO_ENTER 0
 #define MO_LEAVE 1
 
-		/* evnt_multi flags */
-#define MU_KEYBD	0x0001
-#define MU_BUTTON	0x0002
-#define MU_M1		0x0004
-#define MU_M2		0x0008
-#define MU_MESAG	0x0010
-#define MU_TIMER	0x0020
+                /* evnt_multi flags */
+#define MU_KEYBD        0x0001
+#define MU_BUTTON       0x0002
+#define MU_M1           0x0004
+#define MU_M2           0x0008
+#define MU_MESAG        0x0010
+#define MU_TIMER        0x0020
 
-		/* form_dial opcodes */
+                /* form_dial opcodes */
 #define FMD_START       0
 #define FMD_GROW        1
 #define FMD_SHRINK      2
 #define FMD_FINISH      3
 
-		/* form_error modes */
+                /* form_error modes */
 #define FERR_FILENOTFOUND   2
 #define FERR_PATHNOTFOUND   3
 #define FERR_NOHANDLES      4
@@ -151,40 +151,40 @@ typedef struct pEvntrec {
 #define FERR_DELETEDIR     16
 #define FERR_NOFILES       18
 
-		/* fsel_(ex)input return values*/
+                /* fsel_(ex)input return values*/
 #define FSEL_CANCEL         0
 #define FSEL_OK             1
-		
-		/* menu_attach modes */
+                
+                /* menu_attach modes */
 #define ME_INQUIRE      0
 #define ME_ATTACH       1
 #define ME_REMOVE       2
 
-		/* menu_attach attributes */
+                /* menu_attach attributes */
 #define SCROLL_NO       0
 #define SCROLL_YES      1
 
-		/* menu_bar modes */
+                /* menu_bar modes */
 #define MENU_REMOVE     0
 #define MENU_INSTALL    1
 #define MENU_INQUIRE   -1
 
-		/* menu_icheck modes */
+                /* menu_icheck modes */
 #define UNCHECK         0
 #define CHECK           1
 
-		/* menu_ienable modes */
+                /* menu_ienable modes */
 #define DISABLE         0
 #define ENABLE          1
 
-		/* menu_istart modes */
+                /* menu_istart modes */
 #define MIS_GETALIGN    0
 #define MIS_SETALIGN    1
 
-		/* menu_popup modes */
+                /* menu_popup modes */
 #define SCROLL_LISTBOX -1
 
-		/* menu_register modes */
+                /* menu_register modes */
 #define REG_NEWNAME    -1
 
 /* menu_tnormal modes */
@@ -215,7 +215,7 @@ typedef struct _mn_set {
 /* shel_get modes */
 #define SHEL_BUFSIZE (-1)
 
-		/* shel_write modes */
+                /* shel_write modes */
 #define SWM_LAUNCH     0
 #define SWM_LAUNCHNOW  1
 #define SWM_LAUNCHACC  3
@@ -226,7 +226,7 @@ typedef struct _mn_set {
 #define SWM_NEWMSG     9
 #define SWM_AESMSG    10
 
-		/* shel_write flags */
+                /* shel_write flags */
 #define SW_PSETLIMIT 0x0100
 #define SW_PRENICE   0x0200
 #define SW_DEFDIR    0x0400
@@ -240,7 +240,7 @@ typedef struct _mn_set {
 #define ENVIRON_CHANGE 1
 #define ENVIRON_COPY   2
 
-		/* rsrc_gaddr structure types */
+                /* rsrc_gaddr structure types */
 #define R_TREE       0 
 #define R_OBJECT     1
 #define R_TEDINFO    2
@@ -253,7 +253,7 @@ typedef struct _mn_set {
 #define R_TEPTMPLT   9
 #define R_TEPVALID  10
 #define R_IBPMASK   11 
-#define R_IBPDATA   12	
+#define R_IBPDATA   12  
 #define R_IBPTEXT   13
 #define R_BIPDATA   14
 #define R_FRSTR     15
@@ -261,7 +261,7 @@ typedef struct _mn_set {
 
 
 
-		/* Window Attributes */
+                /* Window Attributes */
 #define NAME         0x0001
 #define CLOSER       0x0002
 #define FULLER       0x0004
@@ -276,11 +276,11 @@ typedef struct _mn_set {
 #define HSLIDE       0x0800
 #define SMALLER      0x4000
 
-		/* wind_create flags */
+                /* wind_create flags */
 #define WC_BORDER     0
 #define WC_WORK       1
 
-		/* wind_get flags */
+                /* wind_get flags */
 #define WF_KIND           1
 #define WF_NAME           2
 #define WF_INFO           3
@@ -312,7 +312,7 @@ typedef struct _mn_set {
 #define WF_WINX          22360
 #define WF_WINXCFG       22361
 
-		/* window elements	*/
+                /* window elements      */
 #define W_BOX        0
 #define W_TITLE      1
 #define W_CLOSER     2
@@ -334,17 +334,17 @@ typedef struct _mn_set {
 #define W_HELEV     18
 #define W_SMALLER   19
 
-		/* arrow message	*/
-#define WA_UPPAGE 	0
-#define WA_DNPAGE 	1
-#define WA_UPLINE 	2
-#define WA_DNLINE 	3
-#define WA_LFPAGE 	4
-#define WA_RTPAGE 	5
-#define WA_LFLINE 	6
-#define WA_RTLINE 	7
+                /* arrow message        */
+#define WA_UPPAGE       0
+#define WA_DNPAGE       1
+#define WA_UPLINE       2
+#define WA_DNLINE       3
+#define WA_LFPAGE       4
+#define WA_RTPAGE       5
+#define WA_LFLINE       6
+#define WA_RTLINE       7
 
-		/* wind_update flags */
+                /* wind_update flags */
 #define END_UPDATE 0
 #define BEG_UPDATE 1
 #define END_MCTRL  2
@@ -354,8 +354,8 @@ typedef struct _mn_set {
 #define ARROW            0
 #define TEXT_CRSR        1
 #define BEE              2
-#define BUSY_BEE       BEE		/* alias */
-#define BUSYBEE        BEE		/* alias */
+#define BUSY_BEE       BEE              /* alias */
+#define BUSYBEE        BEE              /* alias */
 #define HOURGLASS        2
 #define POINT_HAND       3
 #define FLAT_HAND        4
@@ -375,15 +375,15 @@ typedef struct _mn_set {
 #define MAX_LEN   81     /* max string length */
 #define MAX_DEPTH  8     /* max depth of search or draw */
 
-/* inside fill patterns	*/
-#define IP_HOLLOW	0
-#define IP_1PATT	1
-#define IP_2PATT	2
-#define IP_3PATT	3
-#define IP_4PATT	4
-#define IP_5PATT	5
-#define IP_6PATT	6
-#define IP_SOLID	7
+/* inside fill patterns */
+#define IP_HOLLOW       0
+#define IP_1PATT        1
+#define IP_2PATT        2
+#define IP_3PATT        3
+#define IP_4PATT        4
+#define IP_5PATT        5
+#define IP_6PATT        6
+#define IP_SOLID        7
 
 /* normal graphics drawing modes */
 #define MD_REPLACE 1
@@ -391,7 +391,7 @@ typedef struct _mn_set {
 #define MD_XOR     3
 #define MD_ERASE   4
 
-		/* bit blt rules */
+                /* bit blt rules */
 #define ALL_WHITE   0
 #define S_AND_D     1
 #define S_AND_NOTD  2
@@ -402,7 +402,7 @@ typedef struct _mn_set {
 #define S_OR_D      7
 #define NOT_SORD    8
 #define NOT_SXORD   9
-#define D_INVERT	 10
+#define D_INVERT         10
 #define NOT_D      10
 #define S_OR_NOTD  11
 #define NOT_S      12
@@ -410,14 +410,14 @@ typedef struct _mn_set {
 #define NOT_SANDD  14
 #define ALL_BLACK  15
 
-		/* font types */
+                /* font types */
 #define GDOS_PROP   0
 #define GDOS_MONO   1
 #define GDOS_BITM   2
 #define IBM         3
 #define SMALL       5
 
-		/* object types */
+                /* object types */
 #define G_BOX      20
 #define G_TEXT     21
 #define G_BOXTEXT  22
@@ -523,76 +523,60 @@ typedef struct objc_colorword {
 }OBJC_COLORWORD;
 
 typedef struct text_edinfo
-	{
-	char *te_ptext;      /* ptr to text */
-	char *te_ptmplt;     /* ptr to template */
-	char *te_pvalid;     /* ptr to validation chrs. */
-	short	te_font;       /* font */
-	short	te_fontid;     /* font id */
-	short	te_just;       /* justification */
-	short	te_color;      /* color information word */
-	short	te_fontsize;   /* font size */
-	short	te_thickness;  /* border thickness */
-	short	te_txtlen;     /* length of text string */
-	short	te_tmplen;     /* length of template string */
-	} TEDINFO;
+        {
+        char *te_ptext;      /* ptr to text */
+        char *te_ptmplt;     /* ptr to template */
+        char *te_pvalid;     /* ptr to validation chrs. */
+        short   te_font;       /* font */
+        short   te_fontid;     /* font id */
+        short   te_just;       /* justification */
+        short   te_color;      /* color information word */
+        short   te_fontsize;   /* font size */
+        short   te_thickness;  /* border thickness */
+        short   te_txtlen;     /* length of text string */
+        short   te_tmplen;     /* length of template string */
+        } TEDINFO;
 
 typedef struct icon_block {
-	short	*ib_pmask;
-	short	*ib_pdata;
-	char 	*ib_ptext;
-	short	ib_char;
-	short	ib_xchar;
-	short	ib_ychar;
-	short	ib_xicon;
-	short	ib_yicon;
-	short	ib_wicon;
-	short	ib_hicon;
-	short	ib_xtext;
-	short	ib_ytext;
-	short	ib_wtext;
-	short	ib_htext;
+        short   *ib_pmask;
+        short   *ib_pdata;
+        char    *ib_ptext;
+        short   ib_char;
+        short   ib_xchar;
+        short   ib_ychar;
+        short   ib_xicon;
+        short   ib_yicon;
+        short   ib_wicon;
+        short   ib_hicon;
+        short   ib_xtext;
+        short   ib_ytext;
+        short   ib_wtext;
+        short   ib_htext;
 }ICONBLK;
 
 typedef struct bit_block {
-	char 	*bi_pdata;  /* ptr to bit forms data  */
-	short	bi_wb;      /* width of form in bytes */
-	short	bi_hl;      /* height in lines */
-	short	bi_x;       /* source x in bit form */
-	short	bi_y;       /* source y in bit form */
-	short	bi_color;   /* fg color of blt */
+        char    *bi_pdata;  /* ptr to bit forms data  */
+        short   bi_wb;      /* width of form in bytes */
+        short   bi_hl;      /* height in lines */
+        short   bi_x;       /* source x in bit form */
+        short   bi_y;       /* source y in bit form */
+        short   bi_color;   /* fg color of blt */
 }BITBLK;
 
 typedef struct cicon_data {
-	short	            num_planes;
-	short	            *col_data;
-	short	            *col_mask;
-	short	            *sel_data;
-	short	            *sel_mask;
-	struct cicon_data	*next_res;
+        short               num_planes;
+        short               *col_data;
+        short               *col_mask;
+        short               *sel_data;
+        short               *sel_mask;
+        struct cicon_data       *next_res;
 }CICON;
-	
+        
 typedef struct cicon_blk {
-	ICONBLK monoblk;
-	CICON   *mainlist;
+        ICONBLK monoblk;
+        CICON   *mainlist;
 }CICONBLK;
 
-#ifndef __TCC_COMPAT__
-typedef struct object
-	{
-	short	ob_next;	/* -> object's next sibling	  	  */
-	short	ob_head;	/* -> head of object's children 	  */
-	short	ob_tail;	/* -> tail of object's children 	  */
-	unsigned short ob_type;	/* type of object			  */
-	unsigned short ob_flags;/* flags				  */
-	unsigned short ob_state;/* state				  */
-	unsigned long  ob_spec;	/* object-specific data			  */
-	short	ob_x;		/* upper left corner of object 		  */
-	short	ob_y;		/* upper left corner of object 		  */
-	short	ob_width; 	/* width of obj				  */
-	short	ob_height;	/* height of obj			  */
-	} OBJECT;
-#else
 
 typedef struct {
     unsigned int character   :  8;
@@ -604,37 +588,36 @@ typedef struct {
     unsigned int interiorcol :  4;
 } bfobspec;
 
-struct user_block;	/* forward declaration */
+struct user_block;      /* forward declaration */
 
 typedef union __u_ob_spec {
-	TEDINFO           *tedinfo;
-	long              index;
-	char              *free_string;
+        TEDINFO           *tedinfo;
+        long              index;
+        char              *free_string;
    union __u_ob_spec *indirect;
-	bfobspec          obspec;
-	BITBLK            *bitblk;
-	ICONBLK           *iconblk;
-	CICONBLK          *ciconblk;
-	struct user_block *userblk;
-/*	APPLBLK           *applblk;
-	char              *string;	*/
+        bfobspec          obspec;
+        BITBLK            *bitblk;
+        ICONBLK           *iconblk;
+        CICONBLK          *ciconblk;
+        struct user_block *userblk;
+/*      APPLBLK           *applblk;
+        char              *string;      */
 } U_OB_SPEC;
 
 typedef struct object
-	{
-	short	ob_next;	/* -> object's next sibling	  	  */
-	short	ob_head;	/* -> head of object's children 	  */
-	short	ob_tail;	/* -> tail of object's children 	  */
-	unsigned short ob_type;	/* type of object			  */
-	unsigned short ob_flags;/* flags				  */
-	unsigned short ob_state;/* state				  */
-	U_OB_SPEC      ob_spec;	/* object-specific data			  */
-	short	ob_x;		/* upper left corner of object 		  */
-	short	ob_y;		/* upper left corner of object 		  */
-	short	ob_width; 	/* width of obj				  */
-	short	ob_height;	/* height of obj			  */
-	} OBJECT;
-#endif
+{
+  short ob_next;        /* -> object's next sibling               */
+  short ob_head;        /* -> head of object's children           */
+  short ob_tail;        /* -> tail of object's children           */
+  unsigned short ob_type;       /* type of object                         */
+  unsigned short ob_flags;/* flags                                */
+  unsigned short ob_state;/* state                                */
+  U_OB_SPEC      ob_spec;       /* object-specific data                   */
+  short ob_x;           /* upper left corner of object            */
+  short ob_y;           /* upper left corner of object            */
+  short ob_width;       /* width of obj                           */
+  short ob_height;      /* height of obj                          */
+} OBJECT;
 
 typedef struct parm_block {
    OBJECT *pb_tree;
@@ -647,12 +630,9 @@ typedef struct parm_block {
 }PARMBLK;
 
 typedef struct user_block {
-#ifdef __TCC_COMPAT__
         int /*__CDECL*/ (*ub_code)(PARMBLK *parmblock);
-#else
-        int /*__CDECL*/ (*ub_code)(void *parmblock); /* really PARMBLK *parmblock */
-#endif
-	long ub_parm;
+
+        long ub_parm;
 }USERBLK;
 
 /* Alternative to USERBLK, as found in Atari Compendium */
@@ -662,27 +642,27 @@ typedef struct appl_blk {
    long  ab_parm;
 }APPLBLK;
 
-						/* used in RSCREATE.C	*/
+                                                /* used in RSCREATE.C   */
 typedef struct rshdr
 {
-	short		rsh_vrsn;
-	unsigned short	rsh_object;
-	unsigned short	rsh_tedinfo;
-	unsigned short	rsh_iconblk;	/* list of ICONBLKS		*/
-	unsigned short	rsh_bitblk;
-	unsigned short	rsh_frstr;	
-	unsigned short	rsh_string;
-	unsigned short	rsh_imdata;	/* image data			*/
-	unsigned short	rsh_frimg;	
-	unsigned short	rsh_trindex;
-	short		rsh_nobs;	/* counts of various structs	*/
-	short		rsh_ntree;
-	short		rsh_nted;
-	short		rsh_nib;
-	short		rsh_nbb;
-	short		rsh_nstring;
-	short		rsh_nimages;
-	unsigned short	rsh_rssize;	/* total bytes in resource	*/
+        short           rsh_vrsn;
+        unsigned short  rsh_object;
+        unsigned short  rsh_tedinfo;
+        unsigned short  rsh_iconblk;    /* list of ICONBLKS             */
+        unsigned short  rsh_bitblk;
+        unsigned short  rsh_frstr;      
+        unsigned short  rsh_string;
+        unsigned short  rsh_imdata;     /* image data                   */
+        unsigned short  rsh_frimg;      
+        unsigned short  rsh_trindex;
+        short           rsh_nobs;       /* counts of various structs    */
+        short           rsh_ntree;
+        short           rsh_nted;
+        short           rsh_nib;
+        short           rsh_nbb;
+        short           rsh_nstring;
+        short           rsh_nimages;
+        unsigned short  rsh_rssize;     /* total bytes in resource      */
 } RSHDR;
 
 
@@ -702,19 +682,19 @@ typedef struct _menu
                            0  - The menu will not scroll
                            !0 - The menu will scroll if the number of menu
                                 items exceed the menu scroll height. The 
-				non-zero value is the object at which 
-				scrolling will begin.  This will allow one
-				to have a menu in which the scrollable region
-				is only a part of the whole menu.  The value
-				must be a menu item in the menu.
-				
+                                non-zero value is the object at which 
+                                scrolling will begin.  This will allow one
+                                to have a menu in which the scrollable region
+                                is only a part of the whole menu.  The value
+                                must be a menu item in the menu.
+                                
                                 menu_settings can be used to change the menu
                                 scroll height. 
 
                          NOTE: If the scroll field status is !0, the menu
                                items must consist entirely of G_STRINGS. */
     short   mn_keystate; /* The CTRL, ALT, SHIFT Key state at the time the
-			    mouse button was pressed. */
+                            mouse button was pressed. */
 }MENU_T;
 
 typedef MENU_T MENU;
@@ -726,7 +706,7 @@ typedef struct
         int     m_x;
         int     m_y;
         int     m_w;
-        int	m_h;
+        int     m_h;
 } MOBLK;
 
 typedef struct {
@@ -739,34 +719,34 @@ typedef struct {
 }AESPB;
 
 typedef struct _shelw {
-	char *newcmd;
-	long psetlimit;
-	long prenice;
-	char *defdir;
-	char *env;
+        char *newcmd;
+        long psetlimit;
+        long prenice;
+        char *defdir;
+        char *env;
 }SHELW;
 
 extern void  aes_call (AESPB * aespb);
 
 extern short appl_exit (void);
-int	appl_find (const char *Name);
-int	appl_getinfo (int type, int *out1, int *out2,
+int     appl_find (const char *Name);
+int     appl_getinfo (int type, int *out1, int *out2,
                                     int *out3, int *out4);
 extern short appl_init (void);
-int	appl_read (int ApId, int Length, void *ApPbuff);
-int	appl_search (int mode, char *fname, int *type,
+int     appl_read (int ApId, int Length, void *ApPbuff);
+int     appl_search (int mode, char *fname, int *type,
                                    int *ap_id);
-int	appl_tplay (void *Mem, int Num, int Scale);
-int	appl_trecord (void *Mem, int Count);
-int	appl_write (int ApId, int Length, void *ApPbuff);
+int     appl_tplay (void *Mem, int Num, int Scale);
+int     appl_trecord (void *Mem, int Count);
+int     appl_write (int ApId, int Length, void *ApPbuff);
 
-int	evnt_button (int Clicks, int WhichButton,
+int     evnt_button (int Clicks, int WhichButton,
                                    int WhichState, int *Mx, int *My,
                                    int *ButtonState, int *KeyState); 
-int	evnt_dclick (int ToSet, int SetGet);
-int	evnt_keybd (void);
-int	evnt_mesag (int MesagBuf[]);
-int	evnt_mouse (int EnterExit, int InX, int InY,
+int     evnt_dclick (int ToSet, int SetGet);
+int     evnt_keybd (void);
+int     evnt_mesag (int MesagBuf[]);
+int     evnt_mouse (int EnterExit, int InX, int InY,
                                   int InW, int InH, int *OutX, int *OutY, 
                                   int *ButtonState, int *KeyState); 
 extern short evnt_multi (short         Type,
@@ -791,7 +771,7 @@ extern short evnt_multi (short         Type,
                          short *       KeyState,
                          short *       Key,
                          short *       ReturnCount);
-int	evnt_timer (unsigned long Interval);
+int     evnt_timer (unsigned long Interval);
 
 int form_alert (int DefButton, char *Str);
 int form_button (void *Btree, int Bobject, int Bclicks,
@@ -846,63 +826,58 @@ int menu_text (void *Tree, int Item, char *Text);
 int menu_tnormal (void *Tree, int Item, int NormalFlag);
 
 
-int	objc_add (void *Tree, int Parent, int Child);
-int	objc_change (void *Tree, int Object, int Res, int Cx,
-				     int Cy, int Cw, int Ch, int NewState,
-				     int Redraw);
-int	objc_delete (void *Tree, int Object);
-int	objc_draw (void *Tree, int Start, int Depth, int Cx,
-				   int Cy, int Cw, int Ch);
-#ifdef __TCC_GEMLIB__
-int	objc_edit (void *Tree, int Object, int Char, int *Index,
-				   int Kind); 
-#else
-int	objc_edit (void *Tree, int Object, int Char, int Index,
-				   int Kind, int *NewIndex); 
-#endif
-int	objc_find (void *Tree, int Start, int Depth, int Mx,
-				   int My);
-int	objc_offset (void *Tree, int Object, int *X, int *Y);
-int	objc_order (void *Tree, int Object, int NewPos);
-int	objc_sysvar (int mode, int which, int in1, int in2, int *out1, int *out2);
+int     objc_add (void *Tree, int Parent, int Child);
+int     objc_change (void *Tree, int Object, int Res, int Cx,
+                                     int Cy, int Cw, int Ch, int NewState,
+                                     int Redraw);
+int     objc_delete (void *Tree, int Object);
+int     objc_draw (void *Tree, int Start, int Depth, int Cx,
+                                   int Cy, int Cw, int Ch);
+int     objc_edit (void *Tree, int Object, int Char, int Index,
+                                   int Kind, int *NewIndex); 
+int     objc_find (void *Tree, int Start, int Depth, int Mx,
+                                   int My);
+int     objc_offset (void *Tree, int Object, int *X, int *Y);
+int     objc_order (void *Tree, int Object, int NewPos);
+int     objc_sysvar (int mode, int which, int in1, int in2, int *out1, int *out2);
 
-int	rsrc_free (void);
-int	rsrc_gaddr (int Type, int Index, void *Address);
-int	rsrc_load (char *Name);
-int	rsrc_obfix (void *Tree, int Index);
-int	rsrc_rcfix (void *rc_header);
-int	rsrc_saddr (int Type, int Index, void *Address);
+int     rsrc_free (void);
+int     rsrc_gaddr (int Type, int Index, void *Address);
+int     rsrc_load (char *Name);
+int     rsrc_obfix (void *Tree, int Index);
+int     rsrc_rcfix (void *rc_header);
+int     rsrc_saddr (int Type, int Index, void *Address);
 
-int	scrp_clear (void);
-int	scrp_read (char *Scrappath);
-int	scrp_write (char *Scrappath);
+int     scrp_clear (void);
+int     scrp_read (char *Scrappath);
+int     scrp_write (char *Scrappath);
 
-int	shel_envrn (char *result, char *param);
-int	shel_find (char *buf);
-int 	shel_get (char *Buf, int Len);
-int 	shel_put (char *Buf, int Len);
-int	shel_read (char *Command, char *Tail);
-int	shel_write (int Exit, int Graphic, int Aes,
-				    char *Command, char *Tail);
+int     shel_envrn (char *result, char *param);
+int     shel_find (char *buf);
+int     shel_get (char *Buf, int Len);
+int     shel_put (char *Buf, int Len);
+int     shel_read (char *Command, char *Tail);
+int     shel_write (int Exit, int Graphic, int Aes,
+                                    char *Command, char *Tail);
 
-int	wind_calc (int Type, int Parts, int InX, int InY,
+int     wind_calc (int Type, int Parts, int InX, int InY,
            int InW, int InH, int *OutX, int *OutY,
-				   int *OutW, int *OutH);  
+                                   int *OutW, int *OutH);  
 extern short wind_close (short WindowHandle);
 extern short wind_create (short Parts,
                           short Wx,
                           short Wy,
                           short Ww,
                           short Wh); 
-int	wind_delete (int WindowHandle);
-int	wind_find (int X, int Y);
+int     wind_delete (int WindowHandle);
+int     wind_find (int X, int Y);
 extern short wind_get (short   WindowHandle,
                        short   What,
                        short * W1,
                        short * W2,
                        short * W3,
                        short * W4); 
-void	wind_new (void);
+void    wind_new (void);
 extern short wind_open (short WindowHandle,
                         short Wx,
                         short Wy,
@@ -910,7 +885,10 @@ extern short wind_open (short WindowHandle,
                         short Wh);
 extern short wind_set (short WindowHandle,
                        short What,
-                       ...);
+                       short parm1,
+                       short parm2,
+                       short parm3,
+                       short parm4);
 extern short wind_update (short Code);
 
 #endif /* _AESBIND_H_ */

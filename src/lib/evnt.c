@@ -575,6 +575,7 @@ WORD     level)      /* Number of times the function has been called by     */
 ** 1998-10-11 CG
 ** 1998-12-13 CG
 ** 1998-12-19 CG
+** 1999-01-01 CG
 */
 void
 Evnt_do_multi (WORD       apid,
@@ -609,7 +610,6 @@ Evnt_do_multi (WORD       apid,
   if (ret.eventout.events & MU_MESAG) {
     if (ret.msg.type == WM_REDRAW) {
       /* Redraw window borders */
-
       Wind_redraw_elements (apid, ret.msg.msg0, (RECT *)&ret.msg.msg1, 0);
     }
   } else if (ret.eventout.events & MU_BUTTON) {
