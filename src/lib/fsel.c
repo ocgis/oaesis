@@ -199,9 +199,7 @@ static WORD set_path(BYTE *pattern,DIRDESC *dd) {
 		strcpy(path,".\\");
 	};
 	
-        DB_printf ("fsel.c: set_path: calling Dopendir path = %s", path);
 	d = Dopendir(path,0);
-        DB_printf ("fsel.c: set_path: Dopendir returned %ld", d);
 	
 	if((d & 0xff000000L) != 0xff000000L) {
 		BYTE name[50];
@@ -258,22 +256,32 @@ static WORD set_path(BYTE *pattern,DIRDESC *dd) {
 	};
 }
 
-static void reset_dirdesc(DIRDESC *dd) {
-	DIRENTRY *dwalk = dd->dent;
-	
-	while(dwalk) {
-		DIRENTRY *tmp = dwalk;
-		
-		dwalk = dwalk->next;
 
-		Mfree(tmp->name);
-		Mfree(tmp);
-	};
-	
-	dd->dent = NULL;
-	dd->pos = 0;
-	dd->num_files = 0;
+/*
+** Description
+** FIXME
+**
+** 1999-01-25 CG
+*/
+static
+void
+reset_dirdesc (DIRDESC *dd) {
+  DIRENTRY *dwalk = dd->dent;
+  
+  while (dwalk) {
+    DIRENTRY *tmp = dwalk;
+    
+    dwalk = dwalk->next;
+    
+    Mfree(tmp->name);
+    Mfree(tmp);
+  }
+  
+  dd->dent = NULL;
+  dd->pos = 0;
+  dd->num_files = 0;
 }
+
 
 static void get_files(OBJECT *t,DIRDESC *dd) {
 	WORD i = dd->pos;
@@ -486,19 +494,14 @@ Fsel_do_exinput (WORD   apid,
   src.y = dst.y + tree[FISEL_FIRST].ob_height;
 
   Form_do_dial (apid, FMD_START, &clip, &clip);
-  DB_printf ("fsel.c: Fsel_do_exinput: -2");
 
   Objc_do_draw (globals->vid, tree, 0, 9, &clip);
-  DB_printf ("fsel.c: Fsel_do_exinput: -1");
   
   Graf_do_mouse (apid, ARROW, NULL);
-  DB_printf ("fsel.c: Fsel_do_exinput: 0");
 
   while (TRUE) {
-    DB_printf ("fsel.c: Fsel_do_exinput: 1");
 
     but_chosen = Form_do_do (apid, tree, FISEL_DIRECTORY);
-    DB_printf ("fsel.c: Fsel_do_exinput: 2");
 	
     switch(but_chosen & 0x7fff) {
     case FISEL_OK:
@@ -716,7 +719,7 @@ Fsel_do_exinput (WORD   apid,
           if(dent->type & S_IFDIR) {
             BYTE newpath[128];
             BYTE *tmp;
-						
+
             Graf_do_mouse (apid, BUSY_BEE, NULL);
 		
             strcpy(newpath,path);
@@ -735,11 +738,9 @@ Fsel_do_exinput (WORD   apid,
 
             Objc_do_change (globals->vid, tree,obj,&clip,
                             tree[obj].ob_state &= ~SELECTED,REDRAW);		
-
             reset_dirdesc(&dd);
             set_path(path,&dd);
             directory_sort(&dd, globals->common->fsel_sorted);
-
 
             Objc_area_needed(tree,FISEL_DIRECTORY,&area);	
             Objc_do_draw (globals->vid, tree,0,9,&area);	

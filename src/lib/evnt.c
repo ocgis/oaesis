@@ -619,8 +619,9 @@ Evnt_do_multi (WORD       apid,
       /* Redraw window borders */
       Wind_redraw_elements (apid, ret.msg.msg0, (RECT *)&ret.msg.msg1, 0);
     }
-  } else if (ret.eventout.events & MU_BUTTON) {
-    DB_printf ("click click");
+  }
+
+  if (ret.eventout.events & MU_BUTTON) {
     Evhd_handle_button (apid,
                         ret.eventout.mb,
                         ret.eventout.mx,

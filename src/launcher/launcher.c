@@ -56,7 +56,7 @@ min (WORD a,
 
 #define NUM_LINES       10
 
-static char progpath[500] = "u:\\";
+static char progpath[500] = "c:\\";
 static char progfile[70] = "";
 
 /*

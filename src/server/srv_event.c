@@ -43,6 +43,7 @@ typedef struct appl_list {
   MOUSE_EVENT   mouse_buffer [MOUSE_BUFFER_SIZE];
   WORD          mouse_head;
   WORD          mouse_size;
+  ULONG         timer_event;
   APPL_LIST_REF prev;
   APPL_LIST_REF next;
 } APPL_LIST;
@@ -50,12 +51,21 @@ typedef struct appl_list {
 static APPL_LIST_REF waiting_appl = APPL_LIST_REF_NIL;
 static APPL_LIST     apps [MAX_NUM_APPS];
 
-static WORD x_new = 0;
-static WORD x_last = 0;
-static WORD y_new = 0;
-static WORD y_last = 0;
-static WORD buttons_new = 0;
-static WORD buttons_last = 0;
+static WORD  x_new = 0;
+static WORD  x_last = 0;
+static WORD  y_new = 0;
+static WORD  y_last = 0;
+static WORD  buttons_new = 0;
+static WORD  buttons_last = 0;
+
+/*
+** Timer wraparound is not yet handled, but will only be a problem if someone
+** has a long uptime.
+*/
+#define MAX_TIMER_COUNT 0xffffffff
+static ULONG timer_counter = 0;
+static ULONG next_timer_event = MAX_TIMER_COUNT;
+static WORD  timer_tick_ms; /* Number of milliseconds per tick */
 
 /*
 ** Description
@@ -95,15 +105,38 @@ catch_mouse_motion (int x,
 
 
 /*
+** Description
+** This procedure is installed with vex_timv to handle timer clicks
+**
+** 1999-01-29 CG
+*/
+static
+void
+catch_timer_click (void) {
+  /* Another 20 ms has passed */
+  timer_counter += timer_tick_ms;
+
+  /* Wake server so that it will wake the waiting application */
+  if (timer_counter > next_timer_event) {
+    /* Prevent multiple wake calls */
+    /*    next_timer_event = MAX_TIMER_COUNT;*/
+    Srv_wake ();
+  }
+}
+
+
+/*
 ** Exported
 **
 ** 1998-12-07 CG
 ** 1998-12-13 CG
+** 1999-01-29 CG
 */
 void
 srv_init_event_handler (WORD vdi_workstation_id) {
   void * old_button_vector;
   void * old_motion_vector;
+  void * old_timer_vector;
   int    i;
 
   /* Reset buffers */
@@ -116,8 +149,14 @@ srv_init_event_handler (WORD vdi_workstation_id) {
   /* Setup mouse button handler */
   Vdi_vex_butv (vdi_workstation_id, catch_mouse_buttons, &old_button_vector);
 
-  /* Setup mpuse motion handler */
+  /* Setup mouse motion handler */
   Vdi_vex_motv (vdi_workstation_id, catch_mouse_motion, &old_motion_vector);
+
+  /* Setup timer handler */
+  Vdi_vex_timv (vdi_workstation_id,
+                catch_timer_click,
+                &old_timer_vector,
+                &timer_tick_ms);
 }
 
 
@@ -301,11 +340,34 @@ check_mouse_motion (WORD           x,
 
 
 /*
+** Description
+** Check for timer event
+**
+** 1999-01-29 CG
+*/
+static
+WORD
+check_timer (C_EVNT_MULTI * par,
+             R_EVNT_MULTI * ret) {
+  WORD retval = 0;
+
+  if (par->eventin.events & MU_TIMER) {
+    if (apps[par->common.apid].timer_event <= timer_counter) {
+      return MU_TIMER;
+    }
+  }
+
+  return retval;
+}
+
+
+/*
 ** Exported
 **
 ** 1998-12-08 CG
 ** 1998-12-13 CG
 ** 1998-12-23 CG
+** 1999-01-29 CG
 */
 void
 srv_wait_for_event (COMM_HANDLE    handle,
@@ -315,12 +377,6 @@ srv_wait_for_event (COMM_HANDLE    handle,
   /* Are there any waiting messages? */
   ret.eventout.events = check_for_messages (par, &ret);
 
-  /* FIXME
-  ** Cheat for now and always return MU_TIMER if the application
-  ** sends MU_TIMER in
-  */
-  ret.eventout.events |= (MU_TIMER & par->eventin.events);
-
   /* Look for waiting mouse events */
   ret.eventout.events |= check_mouse_buttons (par, &ret);
 
@@ -329,6 +385,17 @@ srv_wait_for_event (COMM_HANDLE    handle,
                                              y_new,
                                              par,
                                              &ret);
+
+  /* Check for timer event */
+  apps[par->common.apid].timer_event =
+    timer_counter + (par->eventin.hicount << 16) + par->eventin.locount;
+
+  if (apps[par->common.apid].timer_event < next_timer_event) {
+    next_timer_event = apps[par->common.apid].timer_event;
+  }
+
+  ret.eventout.events |= check_timer (par, &ret);
+
   /*
   ** If there were waiting events we return immediately and if not we
   ** queue the application in the waiting list.
@@ -425,15 +492,56 @@ handle_mouse_motion (void) {
 
 
 /*
+** Description
+** Check if any timer events have occured
+**
+** 1999-01-29 CG
+*/
+static
+void
+handle_timer (void) {
+  /* Has any timer events at all occurred? */
+  if (timer_counter > next_timer_event) {
+    APPL_LIST_REF appl_walk = waiting_appl;
+
+    next_timer_event = MAX_TIMER_COUNT;
+
+    while (appl_walk != APPL_LIST_REF_NIL) {
+      APPL_LIST_REF this_appl = appl_walk;
+      R_EVNT_MULTI  ret;
+
+      appl_walk = appl_walk->next;
+
+      ret.eventout.events = check_timer (&this_appl->par,
+                                         &ret);
+      if (ret.eventout.events != 0) {
+        Srv_reply (this_appl->handle, &ret, sizeof (R_EVNT_MULTI));
+
+        /* The application is not waiting anymore */
+        dequeue_appl (this_appl);
+      } else {
+        /* Update next timer event */
+        if (this_appl->timer_event < next_timer_event) {
+          next_timer_event = this_appl->timer_event;
+        }
+      }
+    }
+  }
+}
+
+
+/*
 ** Exported
 **
 ** 1998-12-07 CG
 ** 1998-12-13 CG
+** 1999-01-29 CG
 */
 void
 srv_handle_events (void) {
   handle_mouse_motion ();
   handle_mouse_buttons ();
+  handle_timer ();
 }
 
 
