@@ -12,7 +12,7 @@
 ** Read the file COPYING for more information.
 */
 
-#define DEBUGLEVEL 3
+#define DEBUGLEVEL 0
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
