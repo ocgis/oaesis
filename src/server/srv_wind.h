@@ -1,7 +1,7 @@
 /*
 ** srv_wind.h
 **
-** Copyright 1999 Christer Gustavsson <cg@nocrew.org>
+** Copyright 1999 - 2000 Christer Gustavsson <cg@nocrew.org>
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -117,6 +117,13 @@ srv_wind_set(C_WIND_SET * msg,
 void
 srv_wind_update (COMM_HANDLE     handle,
                  C_WIND_UPDATE * msg);
+
+/*
+** Description
+** Free locks that an exited application has
+*/
+void
+srv_wind_update_clear(WORD apid);
 
 /*
 ** Description

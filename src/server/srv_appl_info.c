@@ -1,7 +1,7 @@
 /*
 ** srv_appl_info.c
 **
-** Copyright 1998 Christer Gustavsson <cg@nocrew.org>
+** Copyright 1998 - 2000 Christer Gustavsson <cg@nocrew.org>
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -27,17 +27,6 @@ AP_LIST_REF ap_pri = NULL;
 AP_INFO_REF
 get_appl_info (AP_LIST_REF element) {
   return element->ai;
-}
-
-
-/*
-** Exported
-**
-** 1998-12-08 CG
-*/
-AP_LIST_REF
-next_appl_list_element (AP_LIST_REF element) {
-  return element->next;
 }
 
 
@@ -81,6 +70,30 @@ search_mpid(WORD pid)
   {
     if( al->ai->pid == pid) 
 			break;
+    al = al->next;
+  }
+  return al;	
+}
+
+
+/*
+** Description
+** Find communication handle and return AP_LIST entry for it
+*/
+AP_LIST_REF
+search_comm_handle(COMM_HANDLE handle)
+{
+  AP_LIST_REF al;
+  
+  al = ap_pri;
+  
+  while(al) 
+  {
+    if( al->ai->handle == handle)
+    {
+      break;
+    }
+
     al = al->next;
   }
   return al;	

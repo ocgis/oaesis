@@ -1,7 +1,7 @@
 /*
 ** srv_appl.h
 **
-** Copyright 1999 Christer Gustavsson <cg@nocrew.org>
+** Copyright 1999 - 2000 Christer Gustavsson <cg@nocrew.org>
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -11,6 +11,7 @@
 ** Read the file COPYING for more information.
 */
 
+#include "srv_get.h"
 #include "srv_interface.h"
 
 /* Internal appl_control() modes */
@@ -47,7 +48,8 @@ srv_appl_find(C_APPL_FIND * msg,
 ** appl_init help call
 */
 void
-srv_appl_init(C_APPL_INIT * par,
+srv_appl_init(COMM_HANDLE   handle,
+              C_APPL_INIT * par,
               R_APPL_INIT * ret);
 
 /*

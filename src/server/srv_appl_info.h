@@ -1,7 +1,7 @@
 /*
 ** srv_appl_info.h
 **
-** Copyright 1998 Christer Gustavsson <cg@nocrew.org>
+** Copyright 1998 - 2000 Christer Gustavsson <cg@nocrew.org>
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -15,6 +15,7 @@
 #define _SRV_APPL_INFO_H_
 
 #include "oconfig.h"
+#include "srv_get.h"
 #include "types.h"
 
 /* appl_* related */
@@ -35,6 +36,7 @@ typedef struct ap_list * AP_LIST_REF;
 
 typedef struct ap_info
 {
+  COMM_HANDLE handle;    /* Communication handle                            */
   WORD        id;        /* Application id                                  */
   WORD        pid;       /* Process id of the main process of the app       */
   SRV_FEATURE deskbg;    /* Tells if application has installed a desktop    */
@@ -95,6 +97,13 @@ search_apid(WORD apid);
 */
 AP_LIST_REF
 search_mpid(WORD pid);
+
+/*
+** Description
+** Find communication handle and return AP_LIST entry for it
+*/
+AP_LIST_REF
+search_comm_handle(COMM_HANDLE handle);
 
 /*
 ** Description

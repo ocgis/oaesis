@@ -1,7 +1,7 @@
 /*
 ** srv_appl.c
 **
-** Copyright 1999 Christer Gustavsson <cg@nocrew.org>
+** Copyright 1999 - 2000 Christer Gustavsson <cg@nocrew.org>
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -215,6 +215,9 @@ srv_appl_exit (C_APPL_EXIT * par,
   unregister_menu(par->common.apid);
   /*  srv_wind_set(par->common.apid,&cws);*/
   srv_wind_new(par->common.apid);
+
+  srv_wind_update_clear(par->common.apid);
+
   apinfofree(par->common.apid);
 
   PUT_R_ALL(APPL_EXIT, ret, 1);
@@ -296,9 +299,10 @@ srv_appl_find(C_APPL_FIND * msg,
 */
 static
 AP_INFO *
-srv_info_alloc(WORD pid,
-               WORD type,
-               WORD alloc_only)
+srv_info_alloc(COMM_HANDLE handle,
+               WORD        pid,
+               WORD        type,
+               WORD        alloc_only)
 {
   AP_LIST	*al;
   
@@ -326,6 +330,7 @@ srv_info_alloc(WORD pid,
   al->ai->type = type;
   al->ai->newmsg = 0;
   al->ai->killtries = 0;
+  al->ai->handle = handle;
  
   /* Message handling initialization */
   al->ai->message_head = 0;
@@ -357,7 +362,8 @@ srv_appl_reserve(C_APPL_RESERVE * par,
   AP_INFO_REF ai;
   WORD        ap_id;
 
-  ai = srv_info_alloc(par->pid,
+  ai = srv_info_alloc(COMM_HANDLE_NIL,
+                      par->pid,
                       par->type,
                       TRUE);
 
@@ -379,7 +385,8 @@ srv_appl_reserve(C_APPL_RESERVE * par,
 ** appl_init help call
 */
 void
-srv_appl_init(C_APPL_INIT * par,
+srv_appl_init(COMM_HANDLE   handle,
+              C_APPL_INIT * par,
               R_APPL_INIT * ret)
 {
   AP_INFO *  ai;
@@ -403,15 +410,18 @@ srv_appl_init(C_APPL_INIT * par,
   {
     al = *awalk;
     *awalk = al->next;
-    
+
     al->next = ap_pri;
     ap_pri = al;
     
     ai = al->ai;
+
+    /* The communication handle was not known by the reserving application */
+    ai->handle = handle;
   }
   else
   {
-    ai = srv_info_alloc (par->common.pid, APP_APPLICATION, 0);
+    ai = srv_info_alloc(handle, par->common.pid, APP_APPLICATION, 0);
   }
   
   if(ai)

@@ -206,7 +206,9 @@ srv_call(COMM_HANDLE handle,
     break;
     
   case SRV_APPL_INIT:
-    srv_appl_init (&par->appl_init, &ret.appl_init);
+    srv_appl_init (handle,
+                   &par->appl_init,
+                   &ret.appl_init);
     TRACE("Replying for srv_appl_init");
     SRV_REPLY(handle, &ret, sizeof (R_APPL_INIT));
     TRACE("Replyed for srv_appl_init");
@@ -353,11 +355,37 @@ srv_call(COMM_HANDLE handle,
     SRV_REPLY(handle, &ret, sizeof(R_MEMORY_GET));
     break;
 
+  case SRV_CONN_LOST:
+    {
+      AP_LIST_REF al;
+
+      al = search_comm_handle(handle);
+
+      if(al != AP_LIST_REF_NIL)
+      {
+        AP_INFO_REF ai;
+
+        ai = get_appl_info(al);
+
+        if(ai != AP_INFO_REF_NIL)
+        {
+          C_APPL_EXIT c_appl_exit;
+          R_APPL_EXIT r_appl_exit;
+
+          c_appl_exit.common.apid = ai->id;
+
+          srv_appl_exit(&c_appl_exit,
+                        &r_appl_exit);
+        }
+      }
+    }
+    break;
+
   default:
     DEBUG1("%s: Line %d:\r\n"
            "Unknown call %d (0x%x) to server!",
            __FILE__, __LINE__, par->common.call, par->common.call);
-    SRV_REPLY(handle, par, -1); /* FIXME */
+    SRV_REPLY(handle, par, sizeof(R_ALL)); /* FIXME */
   }
 
   TRACE("srv_call returned");

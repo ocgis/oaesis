@@ -236,30 +236,47 @@ return_lock(COMM_HANDLE handle,
             WORD        apid,
             WORD *      lock,
             WORD *      lock_cnt,
-            QUEUE       lock_q)
+            QUEUE       lock_q,
+            WORD        return_all)
 {
   R_WIND_UPDATE ret;
 
-  if ((*lock_cnt > 0) && (*lock == apid)) {
+  if ((*lock_cnt > 0) && (*lock == apid))
+  {
     LOCK_INFO li;
-    
-    (*lock_cnt)--;
+
+    if(return_all)
+    {
+      *lock_cnt = 0;
+    }
+    else
+    {
+      (*lock_cnt)--;
+    }
 
     DEBUG2 ("srv_wind.c: return_lock: appl %d", apid);
     /* Return ok */
     PUT_R_ALL(WIND_UPDATE, &ret, 1);
-    SRV_REPLY(handle, &ret, sizeof (R_WIND_UPDATE));
+
+    if(!return_all)
+    {
+      SRV_REPLY(handle, &ret, sizeof (R_WIND_UPDATE));
+    }
     
-    if (*lock_cnt == 0) {
+    if(*lock_cnt == 0)
+    {
       /* Give a queued application the lock if there is one */
       li = pop_first (lock_q);
       
-      if (li != LOCK_INFO_NIL) {
+      if (li != LOCK_INFO_NIL)
+      {
         lifree (li, &handle, &apid);
         get_lock (handle, apid, lock, lock_cnt, lock_q);
       }
     }
-  } else {
+  }
+  else if(!return_all)
+  {
     /* Return error */
     PUT_R_ALL(WIND_UPDATE, &ret, 0);
     SRV_REPLY(handle, &ret, sizeof (R_WIND_UPDATE));
@@ -900,23 +917,53 @@ changewinsize (WINSTRUCT * win,
 }
 
 
+
+static WORD   update_lock = 0;
+static WORD   update_cnt = 0;
+static QUEUE  update_q = NULL;
+static QUEUE  mouse_q;
+
+
 /*
-** Exported
-**
-** 1998-10-04 CG
-** 1999-02-06 CG
+** Description
+** Free locks that an exited application has
 */
 void
-srv_wind_update (COMM_HANDLE     handle,
-                 C_WIND_UPDATE * msg) {
-  static WORD   update_lock = 0;
-  static WORD   update_cnt = 0;
-  static QUEUE  update_q = NULL;
-  static QUEUE  mouse_q;
+srv_wind_update_clear(WORD apid)
+{
+  if (update_q == NULL)
+  {
+    update_q = allocate_queue ();
+    mouse_q = allocate_queue ();
+  }
 
+  return_lock(COMM_HANDLE_NIL,
+              apid,
+              &update_lock,
+              &update_cnt,
+              update_q,
+              TRUE);
+
+  return_lock(COMM_HANDLE_NIL,
+              apid,
+              &mouse_lock,
+              &mouse_cnt,
+              mouse_q,
+              TRUE);
+}
+
+
+/*
+** Exported
+*/
+void
+srv_wind_update(COMM_HANDLE     handle,
+                C_WIND_UPDATE * msg)
+{
   DEBUG2 ("srv_wind.c: srv_wind_update: mode = %d", msg->mode);
 
-  if (update_q == NULL) {
+  if (update_q == NULL)
+  {
     update_q = allocate_queue ();
     mouse_q = allocate_queue ();
   }
@@ -936,7 +983,8 @@ srv_wind_update (COMM_HANDLE     handle,
                  msg->common.apid,
                  &update_lock,
                  &update_cnt,
-                 update_q);
+                 update_q,
+                 FALSE);
     break;
   
   case BEG_MCTRL | 0x100:
@@ -953,7 +1001,8 @@ srv_wind_update (COMM_HANDLE     handle,
                  msg->common.apid,
                  &mouse_lock,
                  &mouse_cnt,
-                 mouse_q);
+                 mouse_q,
+                 FALSE);
     break;
     
   default: /* FIXME */
