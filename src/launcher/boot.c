@@ -136,6 +136,65 @@ launcher_set_environment_variable(char * variable,
   /* FIXME: Implement */
 }
 
+#ifdef MINT_TARGET
+/*
+** Description
+** Start accessories under MiNT
+*/
+static
+void
+start_accessories(void)
+{
+  _DTA   newdta;
+  _DTA * olddta;
+  int    found;
+  char   bootpath[] = "c:\\";
+  
+  /* Start accessories */
+  olddta = Fgetdta();
+  Fsetdta(&newdta);
+  
+  if(Boot_acc_path == NULL)
+  {
+    Boot_acc_path = malloc(4);
+    Boot_acc_path[0] = (get_sysvar(_bootdev) >> 16) + 'a';
+    Boot_acc_path[1] = ':';
+    Boot_acc_path[2] = '\\';
+    Boot_acc_path[3] = 0;
+  }
+
+  DEBUG2("Starting accessories in %s", Boot_acc_path);
+
+  misc_setpath(Boot_acc_path);
+  
+  found = Fsfirst("*.acc", 0);
+  
+  while(found == 0)
+  {
+    char accname[128];
+    
+    sprintf(accname, "%s%s", bootpath, newdta.dta_name);
+    shel_write(SWM_LAUNCHACC, 0, 0, accname, "");
+
+    found = Fsnext();
+  }
+  
+  Fsetdta(olddta);
+}
+#else
+/*
+** Description
+** Start accessories under Unix
+*/
+static
+void
+start_accessories(void)
+{
+  fprintf(stderr,
+          "Accessory starting needs to be implemented for this "
+          "architecture!\n");
+}
+#endif
 
 /*
 ** Description
@@ -144,10 +203,6 @@ launcher_set_environment_variable(char * variable,
 void
 start_programs(void)
 {
-  _DTA newdta, *olddta;
-  int  found;
-  char bootpath[] = "c:\\";
-  
   BOOT_PROGRAM * run_walk;
   
 #ifdef MINT_TARGET /* FIXME for linux */
@@ -173,39 +228,6 @@ start_programs(void)
            &run_walk->cmdline[1]);
     shel_write(SWM_LAUNCH, 0, 0, run_walk->name, run_walk->cmdline);
   }
-  
-  /* Start accessories */
-  olddta = Fgetdta();
-  Fsetdta(&newdta);
-  
-  if(Boot_acc_path == NULL)
-  {
-#ifdef MINT_TARGET
-    Boot_acc_path = malloc(4);
-    Boot_acc_path[0] = (get_sysvar(_bootdev) >> 16) + 'a';
-    Boot_acc_path[1] = ':';
-    Boot_acc_path[2] = '\\';
-    Boot_acc_path[3] = 0;
-#else
-    /* FIXME */
-#endif
-  }
 
-  DEBUG2("Starting accessories in %s", Boot_acc_path);
-
-  misc_setpath(Boot_acc_path);
-  
-  found = Fsfirst("*.acc", 0);
-  
-  while(found == 0)
-  {
-    char accname[128];
-    
-    sprintf(accname, "%s%s", bootpath, newdta.dta_name);
-    shel_write(SWM_LAUNCHACC, 0, 0, accname, "");
-
-    found = Fsnext();
-  }
-  
-  Fsetdta(olddta);
+  start_accessories();
 }
