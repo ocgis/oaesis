@@ -107,9 +107,9 @@ typedef struct window_struct {
   WORD hslidesize;    /*size of the horizontal slider*/
   WORD vslidesize;   /*size of the vertical slider*/
   
-  OBJC_COLORWORD top_colour[20];
-  OBJC_COLORWORD untop_colour[20];
-  WORD           own_colour;
+  WORD top_colour[20];
+  WORD untop_colour[20];
+  WORD own_colour;
 } WINDOW_STRUCT;
 
 typedef struct window_list {
