@@ -44,9 +44,14 @@
 #include "config.h"
 #endif
 
+#ifdef HAVE_MINT_DCNTL_H
+#include <mint/dcntl.h>
+#else
 #ifdef MINT_TARGET
 #include <ioctl.h>
-#endif
+#define ploadinfo __ploadinfo
+#endif /* MINT_TARGET */
+#endif /* HAVE_MINT_DCNTL_H */
 
 #ifdef HAVE_ALLOC_H
 #include <alloc.h>
@@ -311,8 +316,6 @@ vdi_tunnel(VDIPB * vpb)
 /*
 ** Description
 ** Get program name and command line
-**
-** 1999-08-22 CG
 */
 static
 void
@@ -334,7 +337,7 @@ get_loadinfo (WORD   pid,
     sprintf(pname,"u:\\proc\\%s",newdta.dta_name);
 		
     if((fd = Fopen(pname,0)) >= 0) {
-      struct __ploadinfo li;
+      struct ploadinfo li;
 			
       li.fnamelen = fnamelen;
       li.cmdlin = cmdlin;
