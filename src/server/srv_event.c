@@ -14,6 +14,7 @@
 #define DEBUGLEVEL 0
 
 #include <stdlib.h>
+#include <vdibind.h>
 
 #include "debug.h"
 #include "gemdefs.h"
@@ -24,7 +25,6 @@
 #include "srv_get.h"
 #include "srv_misc.h"
 #include "srv_wind.h"
-#include "vdi.h"
 
 
 /* MOUSE_EVENT is used for storing mouse events */
@@ -176,6 +176,7 @@ catch_timer_click (void) {
 ** 1999-01-29 CG
 ** 1999-03-07 CG
 ** 1999-03-08 CG
+** 1999-05-22 CG
 */
 void
 srv_init_event_handler (WORD vdi_workstation_id) {
@@ -195,19 +196,19 @@ srv_init_event_handler (WORD vdi_workstation_id) {
   }
 
   /* Setup keyboard handler */
-  Vdi_vex_keyv (vdi_workstation_id, catch_keys, &old_key_vector);
+  vex_keyv (vdi_workstation_id, catch_keys, &old_key_vector);
 
   /* Setup mouse button handler */
-  Vdi_vex_butv (vdi_workstation_id, catch_mouse_buttons, &old_button_vector);
+  vex_butv (vdi_workstation_id, catch_mouse_buttons, &old_button_vector);
 
   /* Setup mouse motion handler */
-  Vdi_vex_motv (vdi_workstation_id, catch_mouse_motion, &old_motion_vector);
+  vex_motv (vdi_workstation_id, catch_mouse_motion, &old_motion_vector);
 
   /* Setup timer handler */
-  Vdi_vex_timv (vdi_workstation_id,
-                catch_timer_click,
-                &old_timer_vector,
-                &timer_tick_ms);
+  vex_timv (vdi_workstation_id,
+            catch_timer_click,
+            &old_timer_vector,
+            &timer_tick_ms);
 }
 
 
@@ -755,6 +756,7 @@ srv_graf_mkstate (C_GRAF_MKSTATE * par,
 ** Exported
 **
 ** 1999-01-03 CG
+** 1999-05-22 CG
 */
 void
 srv_graf_mouse (WORD           vid,
@@ -762,11 +764,11 @@ srv_graf_mouse (WORD           vid,
                 R_GRAF_MOUSE * ret) {
   switch (par->mode) {
   case M_ON :
-    Vdi_v_show_c (vid, 0);
+    v_show_c (vid, 0);
     break;
     
   case M_OFF :
-    Vdi_v_hide_c (vid);
+    v_hide_c (vid);
     break;
   }
 }

@@ -46,6 +46,7 @@
 #include <signal.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <vdibind.h>
 
 #include "boot.h"
 #include "debug.h"
@@ -55,7 +56,6 @@
 /*#include "resource.h"*/
 /*#include "rsrc.h"*/
 #include "types.h"
-#include "vdi.h"
 #include "version.h"
 
 /****************************************************************************
@@ -157,11 +157,12 @@ WORD own_graf_handle(void) {
 ** Close vdi workstation if we get a segmentation fault
 **
 ** 1999-01-16 CG
+** 1999-05-22 CG
 */
 static
 void
 handle_signal (int s) {
-  Vdi_v_clswk (globals.vid);
+  v_clswk (globals.vid);
 
   DB_printf ("srv_global.c: handle_signal: Got signal %d", s);
 
@@ -179,12 +180,13 @@ handle_signal (int s) {
 ** 1999-01-09 CG
 ** 1999-01-16 CG
 ** 1999-03-28 CG
+** 1999-05-22 CG
 */
 void
 srv_init_global (WORD nocnf) {
-  WORD work_in[] = {1,1,1,1,1,1,1,1,1,1,2};
-  WORD work_out[57];
-  WORD dum;
+  int work_in[] = {1,1,1,1,1,1,1,1,1,1,2};
+  int work_out[57];
+  int dum;
 
   /* Install segmentation fault handler */
   signal (SIGSEGV, handle_signal);
@@ -200,9 +202,9 @@ srv_init_global (WORD nocnf) {
   signal (SIGQUIT, handle_signal);
   signal (SIGTERM, handle_signal);
 
-  Vdi_v_opnwk (work_in, &globals.vid, work_out);
+  v_opnwk (work_in, &globals.vid, work_out);
 
-  Vdi_vq_extnd(globals.vid,0,work_out);
+  vq_extnd(globals.vid,0,work_out);
   
   globals.screen.x = 0;
   globals.screen.y = 0;
@@ -224,8 +226,8 @@ srv_init_global (WORD nocnf) {
   globals.fnt_small_id = globals.fnt_regul_id;
   globals.fnt_small_sz = globals.fnt_regul_sz / 2;
   
-  Vdi_vst_font(globals.vid, globals.fnt_regul_id);
-  Vdi_vst_point(globals.vid,globals.fnt_regul_sz,&dum,&dum,&dum,&dum);
+  vst_font(globals.vid, globals.fnt_regul_id);
+  vst_point(globals.vid,globals.fnt_regul_sz,&dum,&dum,&dum,&dum);
   
   globals.applmenu = NULL;
   globals.accmenu = NULL;
@@ -236,7 +238,7 @@ srv_init_global (WORD nocnf) {
   
   globals.arrowrepeat = 100;
   
-  Vdi_vqt_attributes(globals.vid,work_out);
+  vqt_attributes(globals.vid,work_out);
   
   globals.blwidth = work_out[8] + 3;
   globals.blheight = work_out[9] + 3;
@@ -261,6 +263,7 @@ srv_init_global (WORD nocnf) {
 ** Exported
 **
 ** 1999-01-09 CG
+** 1999-05-22 CG
 */
 void
 srv_exit_global (void) {
@@ -273,10 +276,10 @@ srv_exit_global (void) {
       VsetScreen((void *)-1, (void *)-1, oldmode, oldmodecode);
     };
     
-    Vdi_v_clswk(globals.vid);
+    v_clswk (globals.vid);
     own_appl_exit();
   };
 #else
-  Vdi_v_clswk (globals.vid);
+  v_clswk (globals.vid);
 #endif
 }

@@ -86,9 +86,9 @@ VERSION = @VERSION@
 target_cpu = @target_cpu@
 target_os = @target_os@
 
-EXTRA_DIST = debug.c vdi.c
+EXTRA_DIST = debug.c
 
-noinst_HEADERS = debug.h gemdefs.h mesagdef.h mintdefs.h oconfig.h srv_interface.h types.h version.h vdi.h
+noinst_HEADERS = debug.h gemdefs.h mesagdef.h mintdefs.h oconfig.h srv_interface.h types.h version.h
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../../config.h
 CONFIG_CLEAN_FILES = 

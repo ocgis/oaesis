@@ -334,15 +334,13 @@ typedef struct {
 typedef struct {
   C_ALL common;
   WORD  contrl[15];
-  WORD  intin[132];
-  WORD  ptsin[145];
+  WORD  inpar[132+145];
 } C_VDI_CALL;
 
 typedef struct {
   R_ALL common;
   WORD  contrl[15];
-  WORD  intout[140];
-  WORD  ptsout[145];
+  WORD  outpar[140+145];
 } R_VDI_CALL;
 
 typedef union {

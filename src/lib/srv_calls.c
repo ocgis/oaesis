@@ -60,7 +60,6 @@
 #include "srv_interface.h"
 #include "srv_put.h"
 #include "types.h"
-#include "vdi.h"
 
 
 /****************************************************************************

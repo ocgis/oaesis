@@ -48,13 +48,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <vdibind.h>
 
 #include "gemdefs.h"
 #include "srv_global.h"
 #include "lxgemdos.h"
 #include "srv_misc.h"
 #include "types.h"
-#include "vdi.h"
 
 #ifdef HAVE_SYSVARS_H
 #include <sysvars.h>
@@ -174,22 +174,22 @@ RECT *dst,        /* Where to the area is to be copied.                     */
 RECT *src)        /* The original area.                                     */
 /****************************************************************************/
 {
-	MFDB	mfdbd,mfdbs;
-	WORD	koordl[8];
-	
-	mfdbd.fd_addr = 0L;
-	mfdbs.fd_addr = 0L;
-	
-	koordl[0] = src->x;
-	koordl[1] = src->y + src->height - 1;
-	koordl[2] = src->x + src->width - 1;
-	koordl[3] = src->y;
-	koordl[4] = dst->x;
-	koordl[5] = dst->y + dst->height - 1;
-	koordl[6] = dst->x + dst->width - 1;
-	koordl[7] = dst->y;
-	
-	Vdi_vro_cpyfm(vid,S_ONLY,koordl,&mfdbs,&mfdbd);
+  MFDB mfdbd, mfdbs;
+  int  koordl[8];
+  
+  mfdbd.fd_addr = 0L;
+  mfdbs.fd_addr = 0L;
+  
+  koordl[0] = src->x;
+  koordl[1] = src->y + src->height - 1;
+  koordl[2] = src->x + src->width - 1;
+  koordl[3] = src->y;
+  koordl[4] = dst->x;
+  koordl[5] = dst->y + dst->height - 1;
+  koordl[6] = dst->x + dst->width - 1;
+  koordl[7] = dst->y;
+  
+  vro_cpyfm(vid,S_ONLY,koordl,&mfdbs,&mfdbd);
 }
 
 

@@ -257,7 +257,7 @@ updatewait (int wid) {
   lines[0].v_y2 = winy + 100;
 
   while (!quit) {
-    happ = evnt_multi(MU_KEYBD | MU_MESAG | MU_BUTTON,
+    happ = evnt_multi(MU_KEYBD | MU_MESAG | MU_BUTTON | MU_TIMER,
                       0,0,0,0,0,0,0,0,0,0,0,0,0,
                       buffert,0,&x,&y,&knapplage,&tanglage,
                       &tangent,&ant_klick);

@@ -11,7 +11,7 @@
 ** Read the file COPYING for more information.
 */
 
-#define DEBUGLEVEL 1
+#define DEBUGLEVEL 0
 
 #include <stdlib.h>
 

@@ -7,7 +7,7 @@
 #define	STKSIZE	4096
 
 typedef struct globalvars {
-  WORD    vid;	      /* physical vdi id of the screen */
+  int     vid;	      /* physical vdi id of the screen */
   WORD    vmode;
   WORD    vmodecode;
   LONG    video;

@@ -56,6 +56,7 @@
 #include <mintbind.h>
 #endif
 
+#include <netinet/in.h>
 #include <signal.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -126,26 +127,54 @@ Appl_do_read (WORD   apid,
 ** Tunnel a vdi call to the oaesis server
 **
 ** 1999-05-16 CG
+** 1999-05-22 CG
 */
 static
 void
 vdi_tunnel (VDIPB * vpb) {
   C_VDI_CALL par;
   R_VDI_CALL ret;
+  int        i;
+  int        j;
 
-  par.common.call = SRV_VDI_CALL;
-  memcpy (&par.contrl, vpb->contrl, sizeof (WORD) * 15);
-  memcpy (&par.intin, vpb->intin, sizeof (WORD) * 132);
-  memcpy (&par.ptsin, vpb->ptsin, sizeof (WORD) * 145);
+  par.common.call = htons (SRV_VDI_CALL);
+  
+  /* Copy contrl array */
+  for (i = 0; i < 15; i++) {
+    par.contrl[i] = htons (vpb->contrl[i]);
+  }
+
+  /* Copy ptsin parameters */
+  for (i = 0, j = 0; i < (vpb->contrl[1] * 2); i++, j++) {
+    par.inpar[j] = htons (vpb->ptsin[i]);
+  }
+
+  /* Copy intin parameters */
+  for (i = 0; i < vpb->contrl[3]; i++, j++) {
+    par.inpar[j] = htons (vpb->intin[i]);
+  }
 
   Client_send_recv (&par,
-                    sizeof (C_VDI_CALL),
+                    sizeof (C_ALL) +
+                    sizeof (WORD) *
+                    (15 + (vpb->contrl[1] * 2) + vpb->contrl[3]),
                     &ret,
                     sizeof (R_VDI_CALL));
 
-  memcpy (vpb->intout, &ret.intout, sizeof (WORD) * 140);
-  memcpy (vpb->ptsout, &ret.ptsout, sizeof (WORD) * 145);
-  memcpy (vpb->contrl, &ret.contrl, sizeof (WORD) * 15);
+  /* Copy contrl array */
+  for (i = 0; i < 15; i++) {
+    vpb->contrl[i] = ntohs (ret.contrl[i]);
+  }
+
+  /* Copy ptsout parameters */
+  for (i = 0, j = 0; i < (vpb->contrl[2] * 2); i++, j++) {
+    vpb->ptsout[i] = ntohs (ret.outpar[j]);
+  }
+
+  /* Copy intout parameters */
+  for (i = 0; i < vpb->contrl[4]; i++, j++) {
+    vpb->intout[i] = ntohs (ret.outpar[j]);
+  }
 }
 #endif /* TUNNEL_VDI_CALLS */
 

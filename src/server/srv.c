@@ -29,10 +29,12 @@
 #include <mintbind.h>
 #endif
 
+#include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <string.h>
+#include <vdibind.h>
 
 #include "oconfig.h"
 #include "debug.h"
@@ -52,7 +54,6 @@
 #include "srv_interface.h"
 #include "srv_wind.h"
 #include "types.h"
-#include "vdi.h"
 
 
 /****************************************************************************
@@ -2295,6 +2296,7 @@ WORD id)                /* Identification number of window.                 */
 **
 ** 1998-12-25 CG
 ** 1999-01-01 CG
+** 1999-05-22 CG
 */
 static
 WORD
@@ -2407,7 +2409,7 @@ changewinsize (WINSTRUCT * win,
 	  
 	  rlwalk = rlmove;
 	  
-	  Vdi_v_hide_c(vid);
+	  v_hide_c (vid);
 	  
           /*
           ** FIXME
@@ -2415,8 +2417,8 @@ changewinsize (WINSTRUCT * win,
           ** returning which rectangles are moveable to the client.
           */
 	  while (rlwalk) {
-	    MFDB	mfdbd,mfdbs;
-	    WORD	koordl[8];
+	    MFDB mfdbd, mfdbs;
+	    int  koordl[8];
 	    
 	    mfdbd.fd_addr = 0L;
 	    mfdbs.fd_addr = 0L;
@@ -2430,12 +2432,12 @@ changewinsize (WINSTRUCT * win,
 	    koordl[2] = koordl[6] - dx;
 	    koordl[3] = koordl[7] - dy;
 	    
-	    Vdi_vro_cpyfm(vid,S_ONLY,koordl,&mfdbs,&mfdbd);
+	    vro_cpyfm (vid, S_ONLY, koordl, &mfdbs, &mfdbd);
 	    
 	    rlwalk = rlwalk->next;
 	  }
 	  
-	  Vdi_v_show_c(vid,1);
+	  v_show_c (vid, 1);
 	  
 	  /* update rectangles that are not moveable */
 	  
@@ -3769,7 +3771,7 @@ server (LONG arg) {
 
   DEBUG3 ("srv.c: Show mouse cursor");
   /* Show mouse cursor */
-  Vdi_v_show_c (globals.vid, 1);
+  v_show_c (globals.vid, 1);
 
   while (TRUE) {
     /* Wait for another call from a client */
@@ -3958,18 +3960,49 @@ server (LONG arg) {
 
       case SRV_VDI_CALL:
       {
-        VDIPB vpb;
+        static VDIPARBLK e_vdiparblk;
+        static VDIPB     vpb = { e_vdiparblk.contrl,
+                                 e_vdiparblk.intin, e_vdiparblk.ptsin,
+                                 e_vdiparblk.intout, e_vdiparblk.ptsout };
+        int i;
+        int j;
 
-        vpb.contrl = &par.vdi_call.contrl;
-        vpb.intin = &par.vdi_call.intin;
-        vpb.ptsin = &par.vdi_call.ptsin;
-        vpb.intout = &ret.vdi_call.intout;
-        vpb.ptsout = &ret.vdi_call.ptsout;
+        /* Copy contrl array */
+        for (i = 0; i < 15; i++) {
+          vpb.contrl[i] = ntohs (par.vdi_call.contrl[i]);
+        }
+
+        /* Copy ptsin array */
+        for (i = 0, j = 0; i < (vpb.contrl[1] * 2); i++, j++) {
+          vpb.ptsin[i] = ntohs (par.vdi_call.inpar[j]);
+        }
+
+        /* Copy intin array */
+        for (i = 0; i < vpb.contrl[3]; i++, j++) {
+          vpb.intin[i] = ntohs (par.vdi_call.inpar[j]);
+        }
+
         vdi_call (&vpb);
-        memcpy (&ret.vdi_call.contrl,
-                &par.vdi_call.contrl,
-                sizeof (WORD) * 15);;
-        Srv_reply (handle, &ret, sizeof (R_VDI_CALL));
+
+        /* Copy contrl array */
+        for (i = 0; i < 15; i++) {
+          ret.vdi_call.contrl[i] = htons (vpb.contrl[i]);
+        }
+
+        /* Copy ptsout array */
+        for (i = 0, j = 0; i < (vpb.contrl[2] * 2); i++, j++) {
+          ret.vdi_call.outpar[j] = htons (vpb.ptsout[i]);
+        }
+
+        /* Copy intout array */
+        for (i = 0; i < vpb.contrl[4]; i++, j++) {
+          ret.vdi_call.outpar[j] = htons (vpb.intout[i]);
+        }
+
+        Srv_reply (handle,
+                   &ret,
+                   sizeof (R_ALL) +
+                   sizeof (WORD) * (15 + 2 * vpb.contrl[2] + vpb.contrl[4]));
       }
       break;
 
@@ -4023,13 +4056,9 @@ Srv_init_module (WORD no_config) {
   }
   
 
-  DB_printf ("Starting server process");
+  DEBUG3 ("Starting server process");
   globals.srvpid = (WORD)Misc_fork(server,0,"oAESsrv");
-  DB_printf ("Started server process");
-
-  /*
-    Srv_shake();
-    */
+  DEBUG3 ("Started server process");
 }
 
 
