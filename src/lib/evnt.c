@@ -322,6 +322,7 @@ void	Evnt_timer(AES_PB *apb) {
 ** 1999-03-21 CG
 ** 1999-04-10 CG
 ** 1999-05-24 CG
+** 1999-08-20 CG
 */
 void
 Evnt_do_multi (WORD       apid,
@@ -386,7 +387,8 @@ Evnt_do_multi (WORD       apid,
                                         ret.eventout.my,
 					par.eventin.bclicks,
                                         par.eventin.bmask,
-                                        par.eventin.bstate);
+                                        par.eventin.bstate,
+					&ret.eventout.mc);
     }
 
     if (ret.eventout.events & (MU_KEYBD | MU_M1 | MU_M2 | MU_TIMER)) {

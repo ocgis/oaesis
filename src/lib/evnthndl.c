@@ -682,26 +682,96 @@ handle_slider_click (WORD     apid,
 
 /*
 ** Description
+** Count number of clicks in a time set by evnt_dclick ()
+**
+** 1999-08-20 CG
+*/
+static
+WORD
+count_clicks (WORD apid,
+	      WORD bclicks,
+	      WORD bmask,
+	      WORD bstate) {
+  WORD           clicks_out = 0;
+  static EVENTIN ei = {
+    MU_BUTTON | MU_TIMER,
+    0,
+    0,
+    0,
+    0,
+    {0,0,0,0},
+    0,
+    {0,0,0,0},
+    200,
+    0
+  };
+
+  EVENTOUT eo;
+  COMMSG   buffer;
+
+  while (bclicks > 0) {
+    /* When this routine is entered the state will be true */
+    ei.bmask = bmask;
+    ei.bstate = (~bstate) & bmask;
+    Evnt_do_multi (apid, &ei, &buffer, &eo, 0, DONT_HANDLE_MENU_BAR);
+    
+    if ((eo.events & MU_BUTTON) == 0) {
+      break;
+    }
+    
+    ei.bmask = bmask;
+    ei.bstate = bstate;
+    Evnt_do_multi (apid, &ei, &buffer, &eo, 0, DONT_HANDLE_MENU_BAR);
+    
+    if (eo.events & MU_BUTTON) {
+      bclicks--;
+      clicks_out++;
+    } else {
+      break;
+    }
+  }
+
+  if (clicks_out > 0) {
+    DEBUG2 ("evnthndl.c: count_clicks = %d", clicks_out);
+  }
+
+  return clicks_out;
+}
+
+
+/*
+** Description
 ** Check user click against pattern
 **
 ** FIXME: Count number of clicks and return them
 **
 ** 1999-05-24 CG
 ** 1999-08-17 CG
+** 1999-08-20 CG
 */
 static
 WORD
-handle_user_click (WORD mouse_button,
-		   WORD bclicks,
-                   WORD bmask,
-                   WORD bstate) {
+handle_user_click (WORD   apid,
+		   WORD   mouse_button,
+		   WORD   bclicks,
+                   WORD   bmask,
+                   WORD   bstate,
+		   WORD * mc) {
   if (bclicks & 0x100) {
     if (mouse_button & bmask) {
+      *mc = *mc + count_clicks (apid,
+				(bclicks & 0xff) - *mc,
+				bmask & mouse_button,
+				mouse_button);
       return MU_BUTTON;
     } else {
       return 0;
     }
   } else if ((mouse_button & bmask) == bstate) {
+    *mc = *mc + count_clicks (apid,
+			      bclicks - *mc,
+			      bmask,
+			      bstate);
     return MU_BUTTON;
   } else {
     return 0;
@@ -715,28 +785,28 @@ handle_user_click (WORD mouse_button,
 **
 ** 1999-05-24 CG
 ** 1999-08-17 CG
+** 1999-08-20 CG
 */
 static
 WORD
-handle_window_element_click (WORD apid,
-                             WORD win_id,
-                             WORD owner,
-                             WORD top,
-                             WORD mouse_button,
-                             WORD mouse_x,
-                             WORD mouse_y,
-			     WORD bclicks,
-			     WORD bmask,
-			     WORD bstate) {
+handle_window_element_click (WORD   apid,
+                             WORD   win_id,
+                             WORD   owner,
+                             WORD   top,
+                             WORD   mouse_button,
+                             WORD   mouse_x,
+                             WORD   mouse_y,
+			     WORD   bclicks,
+			     WORD   bmask,
+			     WORD   bstate,
+			     WORD * mc) {
   WORD     obj;
   OBJECT * tree;
   COMMSG   mesag;
   
-  DEBUG2 ("evnthndl.c: Click on window element");
   tree = Wind_get_rsrc (apid, win_id);
   obj = Objc_do_find (tree, 0, 9, mouse_x, mouse_y, 0);
   
-  DEBUG2 ("evnthndl.c: obj = %d\n", obj);
   switch(obj) {         
   case WCLOSER :
     if (Graf_do_watchbox (apid, tree, WCLOSER, SELECTED, 0)) {
@@ -807,9 +877,7 @@ handle_window_element_click (WORD apid,
     
   case WAPP:            
   case WMOVER:
-    DEBUG2 ("evnthndl.c: calling handle_mover_click");
     handle_mover_click (apid, win_id, mouse_x, mouse_y);
-    DEBUG2 ("evnthndl.c: returned from handle_mover_click");
     return 0;
     
   case WLEFT:
@@ -896,10 +964,12 @@ handle_window_element_click (WORD apid,
     }
   }
   
-  return handle_user_click (mouse_button,
+  return handle_user_click (apid,
+			    mouse_button,
 			    bclicks,
 			    bmask,
-			    bstate);
+			    bstate,
+			    mc);
 }
 
 
@@ -912,20 +982,19 @@ handle_window_element_click (WORD apid,
 ** 1999-05-16 CG
 ** 1999-05-24 CG
 ** 1999-08-17 CG
+** 1999-08-20 CG
 */
 WORD
-Evhd_handle_button (WORD apid,
-                    WORD mouse_button,
-                    WORD mouse_x,
-                    WORD mouse_y,
-		    WORD bclicks,
-                    WORD bmask,
-                    WORD bstate) {
+Evhd_handle_button (WORD   apid,
+                    WORD   mouse_button,
+                    WORD   mouse_x,
+                    WORD   mouse_y,
+		    WORD   bclicks,
+                    WORD   bmask,
+                    WORD   bstate,
+		    WORD * mc) {
   EVNTREC     er;
 
-  DEBUG2 ("evnthndl.c: Entering Evhd_handle_button");
-  DEBUG2 ("evnthndl.c: apid = %d mb = %d mx = %d my = %d bclicks = %x bmask = %d bstate = %d",
-	  apid, mouse_button, mouse_x, mouse_y, bclicks, bmask, bstate);
   if (mouse_button & LEFT_BUTTON) {
     WORD     win_id;
     WORD     owner;
@@ -956,24 +1025,30 @@ Evhd_handle_button (WORD apid,
 
     if (status & (WIN_DESKTOP | WIN_DIALOG)) {
       /* Return the click to the user */
-      return handle_user_click (mouse_button,
+      return handle_user_click (apid,
+				mouse_button,
 				bclicks,
                                 bmask,
-                                bstate);
+                                bstate,
+				mc);
     } else if (Misc_inside (&worksize, mouse_x, mouse_y)) {
       if((status & (WIN_UNTOPPABLE | WIN_ICONIFIED)) == WIN_UNTOPPABLE) {
         /* Return the click to the user */
-        return handle_user_click (mouse_button,
+        return handle_user_click (apid,
+				  mouse_button,
 				  bclicks,
                                   bmask,
-                                  bstate);
+                                  bstate,
+				  mc);
       } else {
         COMMSG      m;
         
-        return handle_user_click (mouse_button,
+        return handle_user_click (apid,
+				  mouse_button,
 				  bclicks,
                                   bmask,
-                                  bstate);
+                                  bstate,
+				  mc);
 
         /* FIXME!! */
         if((status & WIN_ICONIFIED) &&
@@ -1021,10 +1096,12 @@ Evhd_handle_button (WORD apid,
           Appl_do_write (apid, owner,16,&m);
           return 0;
         } else {
-          return handle_user_click (mouse_button,
+          return handle_user_click (apid,
+				    mouse_button,
 				    bclicks,
                                     bmask,
-                                    bstate);
+                                    bstate,
+				    mc);
         }
       }
     } else { /* Click on a window element */
@@ -1037,13 +1114,16 @@ Evhd_handle_button (WORD apid,
                                           mouse_y,
 					  bclicks,
 					  bmask,
-					  bstate);
+					  bstate,
+					  mc);
     }
   } else { /* not handle & LEFT_BUTTON */
-    return handle_user_click (mouse_button,
+    return handle_user_click (apid,
+			      mouse_button,
 			      bclicks,
                               bmask,
-                              bstate);
+                              bstate,
+			      mc);
   }
 }
 

@@ -817,7 +817,7 @@ srv_appl_init(C_APPL_INIT * par,
   AP_INFO	*ai;
   AP_LIST	*al;
   
-  fprintf (stderr, "oaesis: srv.c: srv_appl_init: Beginning\n");
+  DEBUG2 ("oaesis: srv.c: srv_appl_init: Beginning\n");
 
   al = search_mpid(par->common.pid);
   
@@ -852,9 +852,8 @@ srv_appl_init(C_APPL_INIT * par,
   if(ai) {
     ret->apid = ai->id;
 
-    fprintf (stderr,
-             "oaesis: srv.c: srv_appl_init: apid=%d\n",
-             (int)ret->apid);
+    DEBUG2 ("oaesis: srv.c: srv_appl_init: apid=%d\n",
+	    (int)ret->apid);
   } else {
     ret->apid = -1;
   }
