@@ -127,7 +127,9 @@ comm_read(FILEPTR * f,
   if(FH(f)->bytes_out == 0)
   {
     TRACE("Put in IO_Q");
+    FH(f)->queued = 1;
     SLEEP(IO_Q, (LONG)f);
+    FH(f)->queued = 0;
   }
 
   TRACE("srv_comm_device: read: 2");
@@ -242,26 +244,18 @@ Srv_reply(COMM_HANDLE handle,
 	  void *      out,
 	  WORD        bytes_out)
 {
-  TRACE("Srv_reply: 1");
   memcpy(FH(handle)->buf_out, out, bytes_out);
-  TRACE("Srv_reply: 2");
   FH(handle)->bytes_out = bytes_out;
 
-  TRACE("Srv_reply: 3");
   /* Wake waiting process */
   if(FH(handle)->queued)
   {
-    TRACE("Srv_reply: 4");
     WAKE(IO_Q, (LONG)handle);
-    TRACE("Srv_reply: 5");
   }
   else if(FH(handle)->selected)
   {
-    TRACE("Srv_reply: 6");
     WAKESELECT(FH(handle)->selecting_proc);
-    TRACE("Srv_reply: 7");
   }
-  TRACE("Srv_reply: 8");
 }
 
 
