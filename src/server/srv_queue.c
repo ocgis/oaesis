@@ -80,6 +80,7 @@ free_queue (QUEUE q) {
 ** Description
 ** Allocate a new element
 */
+static
 inline
 ELEMENT
 ealloc (QUEUE q) {
@@ -101,6 +102,7 @@ ealloc (QUEUE q) {
 ** Description
 ** Free an element
 */
+static
 inline
 void
 efree (QUEUE   q,

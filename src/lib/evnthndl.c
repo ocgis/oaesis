@@ -1085,6 +1085,7 @@ Evhd_handle_button (WORD   apid,
                                   bstate,
 				  mc);
 
+#if 0
         /* FIXME!! */
         if((status & WIN_ICONIFIED) &&
            (Evnt_waitclicks(evntglbl.mousefd,LEFT_BUTTON,LEFT_BUTTON,1,
@@ -1138,6 +1139,7 @@ Evhd_handle_button (WORD   apid,
                                     bstate,
 				    mc);
         }
+#endif
       }
     } else { /* Click on a window element */
       return handle_window_element_click (apid,

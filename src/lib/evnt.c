@@ -85,102 +85,6 @@
 
 static WORD	clicktime = 200;
 
-/****************************************************************************
- * Local functions (use static!)                                            *
- ****************************************************************************/
-
-static LONG waitforinput(LONG timeout,LONG *rhnd) {
-  LONG l = timeout >> 15;
-  LONG t = timeout & 0x7fffL;
-  LONG fs;
-  LONG rlhnd;
-  
-  DEBUG3 ("Fselect in waitforinput");
-  while(l) {
-    rlhnd = *rhnd;
-    
-    fs = Fselect(0x7fff,&rlhnd,NULL,0L);
-    
-    if(fs) {
-      *rhnd = rlhnd;
-      return fs;
-    };
-    
-    l--;
-  };
-  
-  rlhnd = *rhnd;
-  
-  fs = Fselect((WORD)t,&rlhnd,NULL,0L);
-  *rhnd = rlhnd;
-  return fs;
-}
-
-LONG eventselect(WORD events,LONG time,LONG *fhl) {
-  if(events & MU_TIMER) {
-    if(time <= 0) {
-      DEBUG3 ("Fselect in eventselect");
-      return Fselect(1,fhl,0L,0L);
-    }
-    else {	
-      return waitforinput(time,fhl);
-    };
-  }
-  else {
-    DEBUG3 ("Fselect in eventselect");
-    return Fselect(0,fhl,0L,0L);
-  };			
-}
-
-/****************************************************************************
- * Public functions                                                         *
- ****************************************************************************/
-
-/****************************************************************************
- * Evnt_waitclicks                                                          *
- *  Wait for mouse button clicks.                                           *
- ****************************************************************************/
-WORD             /* Number of clicks that were counted.                     */
-Evnt_waitclicks( /*                                                         */
-WORD eventpipe,  /* Event message pipe.                                     */
-WORD bstate,     /* Button state to wait for.                               */
-WORD bmask,      /* Button mask.                                            */
-WORD clicks,     /* Maximum number of clicks.                               */
-WORD laststate)  /* Previous mouse button state.                            */
-/****************************************************************************/
-{
-  WORD    clickcount = 0;
-  EVNTREC er;
-  WORD    extrawait = 1;
-  
-  while(clicks) {
-    LONG fhl = (1L << eventpipe);
-    
-    if((extrawait = Fselect(clicktime,&fhl,0L,0L)) > 0) {
-      Fread(eventpipe,sizeof(EVNTREC),&er);
-      
-      if(er.ap_event == APPEVNT_BUTTON) {
-	if(((er.ap_value ^ laststate) & bmask) &&
-	   ((bmask & er.ap_value) == bstate)) {
-	  clicks--;
-	  clickcount++;
-	};
-	
-	laststate = (WORD)er.ap_value;
-      };
-    }
-    else {
-      break;
-    };
-	};
-  
-  if((clicks == 0) || extrawait) {
-    (void)Fselect(clicktime,0L,0L,0L);
-  };
-  
-  return clickcount;
-}
-
 
 /*0x0014 evnt_keybd*/
 
@@ -259,12 +163,11 @@ void	Evnt_mouse(AES_PB *apb) {
 */
 void
 Evnt_mesag (AES_PB *apb) {
-  COMMSG    e;
-  WORD      i;
-
   /*
   ** FIXME
   ** Call evnt_multi instead
+  COMMSG    e;
+  WORD      i;
   SRV_APPL_INFO appl_info;
 	
   Srv_get_appl_info(apb->global->apid,&appl_info);
@@ -397,6 +300,8 @@ Evnt_do_multi (WORD       apid,
 
   *eventout = ret.eventout;
   eventout->events = events_out;
+
+  DEBUG3("Evnt_do_multi: events_ot = 0x%x", events_out);
 }
 
 

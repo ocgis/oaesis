@@ -118,10 +118,10 @@ icon2mform(MFORM  *  mf,
  
 /* FIXME: remove this routine */
 void Graf_init_module(void) {   
+  /*
   int work_in[] = {1,7,1,1,1,1,1,1,1,1,2};
   int work_out[57];
 
-  /*
   icon2mform (&m_arrow, &globals->common->mouseformstad[MARROW]);
   icon2mform (&m_text_crsr, &globals->common->mouseformstad[MTEXT_CRSR]);
   icon2mform (&m_busy_bee, &globals->common->mouseformstad[MBUSY_BEE]);

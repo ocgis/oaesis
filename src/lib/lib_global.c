@@ -27,7 +27,7 @@
  
  ****************************************************************************/
 
-#define DEBUGLEVEL 2
+#define DEBUGLEVEL 0
 
 /****************************************************************************
  * Used interfaces                                                          *
@@ -75,7 +75,9 @@ GLOBAL_COMMON global_common;
 GLOBAL_APPL globals_appl[256];
 
 char *p_fsel_extern = (char *)&global_common.fsel_extern;
+#if 0
 static WORD global[15];
+#endif
 
 /****************************************************************************
  * Module global variables                                                  *
@@ -182,10 +184,12 @@ WORD own_graf_handle(void) {
 void
 init_global (WORD physical_vdi_id)
 {
+#if 0
+  int        temp_vid;
   int        work_in[] = {1,1,1,1,1,1,1,1,1,1,2};
+#endif
   int        work_out[57];
   int        dum;
-  int        temp_vid;
   static int is_inited = FALSE;
 
   /* Only initialize globals if they haven't been initialized before */

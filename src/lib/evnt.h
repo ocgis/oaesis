@@ -3,18 +3,6 @@
 #include	"mesagdef.h"
 #include	"types.h"
 
-/****************************************************************************
- * Evnt_waitclicks                                                          *
- *  Wait for mouse button clicks.                                           *
- ****************************************************************************/
-WORD             /* Number of clicks that were counted.                     */
-Evnt_waitclicks( /*                                                         */
-WORD eventpipe,  /* Event message pipe.                                     */
-WORD bstate,     /* Button state to wait for.                               */
-WORD bmask,      /* Button mask.                                            */
-WORD clicks,     /* Maximum number of clicks.                               */
-WORD laststate); /* Previous mouse button state.                            */
-/****************************************************************************/
 
 /* Description
 ** Implementation of evnt_button.                                          *
