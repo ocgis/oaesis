@@ -42,15 +42,15 @@ static RLIST *free_rlist = 0L;
  ****************************************************************************/
 
 static RLIST *alloc(void) {
-	RLIST *blk = free_rlist;
-	
-	if(blk) {
-		free_rlist = free_rlist->next;
-		
-		return blk;
-	};
-	
-	return Mxalloc(sizeof(RLIST),GLOBALMEM);
+  RLIST *blk = free_rlist;
+  
+  if(blk) {
+    free_rlist = free_rlist->next;
+    
+    return blk;
+  };
+  
+  return (RLIST *)Mxalloc(sizeof(RLIST),GLOBALMEM);
 }
 
 static void free(RLIST *blk) {

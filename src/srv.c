@@ -1603,16 +1603,17 @@ srv_appl_exit(  /*                                                          */
 WORD apid)      /* Application id.                                          */
 /****************************************************************************/
 {
-	/*clean up*/
+  /*clean up*/
 
-	srv_menu_bar(apid,NULL,MENU_REMOVE);
-	unregister_menu(apid);
-	srv_wind_set(apid,0,WF_NEWDESK,0,0,0,0);
-	srv_wind_new(apid);
-	apinfofree(apid);
-
-	update_appl_menu();
-	return 1;
+  srv_menu_bar(apid,NULL,MENU_REMOVE);
+  unregister_menu(apid);
+  srv_wind_set(apid,0,WF_NEWDESK,0,0,0,0);
+  srv_wind_new(apid);
+  apinfofree(apid);
+  
+  update_appl_menu();
+  
+  return 1;
 }
 
 /****************************************************************************
@@ -1624,147 +1625,147 @@ srv_appl_find(    /*                                                        */
 BYTE *fname)      /* File name of application to seek.                      */
 /****************************************************************************/
 {
-	AP_LIST *al;
-	LONG    w;
-	_DTA    *olddta,newdta;
-	BYTE    pname[ 30];
-
-	w = (LONG)fname & 0xffff0000l;
-	if(w == 0xffff0000l) {
-	/* convert MiNT to AES pid */
-		al = search_mpid((WORD)((LONG)fname));
-		
-		if(al) {
-			return al->ai->id;
-		};
-		
-		return -1;
-	}
-	
-	if ( w == 0xfffe0000l)
-	{
-	/* convert from AES to MINT pid */
-		al = search_apid((WORD)((LONG)fname));
-		if(al)
-			return al->ai->pid;
-		return -1;
-	}
-
-/* Now find the pid of process with the passed name */
-	olddta = Fgetdta();
-
-	Fsetdta( &newdta);
-	w = -1;
-	sprintf(pname, "u:\\proc\\%s.*", fname);
-
-	if(Fsfirst(pname, 0) == 0) {
-		w = atoi(&newdta.dta_name[9]);
-	};
-
-	Fsetdta(olddta);
-
-/* map the MINT-pid to aes */
-	if(w != -1) {
-		al = search_mpid((WORD)w);
-
-		if(al) {
-			return al->ai->id;
-		};
-	};
-	
-	return -1;
+  AP_LIST *al;
+  LONG    w;
+  _DTA    *olddta,newdta;
+  BYTE    pname[ 30];
+  
+  w = (LONG)fname & 0xffff0000l;
+  if(w == 0xffff0000l) {
+    /* convert MiNT to AES pid */
+    al = search_mpid((WORD)((LONG)fname));
+    
+    if(al) {
+      return al->ai->id;
+    };
+    
+    return -1;
+  }
+  
+  if ( w == 0xfffe0000l)
+    {
+      /* convert from AES to MINT pid */
+      al = search_apid((WORD)((LONG)fname));
+      if(al)
+	return al->ai->pid;
+      return -1;
+    }
+  
+  /* Now find the pid of process with the passed name */
+  olddta = Fgetdta();
+  
+  Fsetdta( &newdta);
+  w = -1;
+  sprintf(pname, "u:\\proc\\%s.*", fname);
+  
+  if(Fsfirst(pname, 0) == 0) {
+    w = atoi(&newdta.dta_name[9]);
+  };
+  
+  Fsetdta(olddta);
+  
+  /* map the MINT-pid to aes */
+  if(w != -1) {
+    al = search_mpid((WORD)w);
+    
+    if(al) {
+      return al->ai->id;
+    };
+  };
+  
+  return -1;
 }
 
 static void srv_appl_init(WORD pid,C_APPL_INIT *par) {
-	AP_INFO	*ai;
-	AP_LIST	*al;
-
-	al = search_mpid(pid);
-
-	if(!al) {     
-		/* Has an info structure already been reserved? */
-		
-		AP_LIST **awalk = &ap_resvd;
-		
-		while(*awalk) {
-			if((*awalk)->ai->pid == pid) {
-				break;
-			};
-			
-			awalk = &(*awalk)->next;
-		};
-		
-		if(*awalk) {
-			al = *awalk;
-			*awalk = al->next;
-	
-			al->next = ap_pri;
-			ap_pri = al;
-			
-			ai = al->ai;
-		}
-		else {
-			ai = srv_info_alloc(pid,APP_APPLICATION,0);
-		};
-	}
-	else {
-		ai = al->ai;
-	};
-
-	if(ai) {
-		if(par->msghandle) {
-			ai->msgpipe = par->msghandle;
-		};
-		
-		if(par->eventhandle) {
-			ai->eventpipe = par->eventhandle;
-		};
-
-		strcpy(ai->msgname,par->msgname);
-		strcpy(ai->eventname,par->eventname);
-		
-		ai->vid = par->vid;
-
-		par->global->apid = ai->id;	
-
-		par->global->version = 0x0410;
-		par->global->numapps = -1;
-		par->global->apid = ai->id;
-		par->global->appglobal = 0L;
-		par->global->rscfile = 0L;
-		par->global->rshdr = 0L;
-		par->global->resvd1 = 0;
-		par->global->resvd2 = 0;
-		par->global->int_info = ai;
-		par->global->maxchar = 0;
-		par->global->minchar = 0;
-	}
-	else {
-		par->global->apid = -1;
-	};
-	
-	if(par->global->apid >= 0) {
-		BYTE fname[128],cmdlin[128],menuentry[21],*tmp;
-		
-		Misc_get_loadinfo(pid,128,cmdlin,fname);
-
-		strcpy(menuentry,"  ");
-		
-		tmp = strrchr(fname,'\\');
-		
-		if(tmp) {
-			tmp++;
-		}
-		else {
-			tmp = fname;
-		};
-		
-		strncat(menuentry,tmp,20);
-	 
-	 	if(ai->type & APP_APPLICATION) {
-			srv_menu_register(ai->id, menuentry);
-		};
-	};
+  AP_INFO	*ai;
+  AP_LIST	*al;
+  
+  al = search_mpid(pid);
+  
+  if(!al) {     
+    /* Has an info structure already been reserved? */
+    
+    AP_LIST **awalk = &ap_resvd;
+    
+    while(*awalk) {
+      if((*awalk)->ai->pid == pid) {
+	break;
+      };
+      
+      awalk = &(*awalk)->next;
+    };
+    
+    if(*awalk) {
+      al = *awalk;
+      *awalk = al->next;
+      
+      al->next = ap_pri;
+      ap_pri = al;
+      
+      ai = al->ai;
+    }
+    else {
+      ai = srv_info_alloc(pid,APP_APPLICATION,0);
+    };
+  }
+  else {
+    ai = al->ai;
+  };
+  
+  if(ai) {
+    if(par->msghandle) {
+      ai->msgpipe = par->msghandle;
+    };
+    
+    if(par->eventhandle) {
+      ai->eventpipe = par->eventhandle;
+    };
+    
+    strcpy(ai->msgname,par->msgname);
+    strcpy(ai->eventname,par->eventname);
+    
+    ai->vid = par->vid;
+    
+    par->global->apid = ai->id;	
+    
+    par->global->version = 0x0410;
+    par->global->numapps = -1;
+    par->global->apid = ai->id;
+    par->global->appglobal = 0L;
+    par->global->rscfile = 0L;
+    par->global->rshdr = 0L;
+    par->global->resvd1 = 0;
+    par->global->resvd2 = 0;
+    par->global->int_info = ai;
+    par->global->maxchar = 0;
+    par->global->minchar = 0;
+  }
+  else {
+    par->global->apid = -1;
+  };
+  
+  if(par->global->apid >= 0) {
+    BYTE fname[128],cmdlin[128],menuentry[21],*tmp;
+    
+    Misc_get_loadinfo(pid,128,cmdlin,fname);
+    
+    strcpy(menuentry,"  ");
+    
+    tmp = strrchr(fname,'\\');
+    
+    if(tmp) {
+      tmp++;
+    }
+    else {
+      tmp = fname;
+    };
+    
+    strncat(menuentry,tmp,20);
+    
+    if(ai->type & APP_APPLICATION) {
+      srv_menu_register(ai->id, menuentry);
+    };
+  };
 }
 
 /****************************************************************************

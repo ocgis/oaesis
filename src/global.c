@@ -47,6 +47,7 @@
 WORD appl_init(void);
 WORD appl_exit(void);
 WORD graf_handle(WORD *,WORD *,WORD *,WORD *);
+extern WORD _global[];
 
 /****************************************************************************
  * Global variables                                                         *
@@ -58,9 +59,9 @@ GLOBALVARS	globals;
  * Module global variables                                                  *
  ****************************************************************************/
 
-static WORD	open_physical_ws = 0; /* Set this to 1 if you want to
-                                     start oAESis without running
-                                     GEM. */
+static WORD open_physical_ws = 0; /* Set this to 1 if you want to
+				     start oAESis without running
+				     GEM. */
 
 static BYTE versionstring[50];
 
@@ -75,20 +76,15 @@ void init_global(WORD physical) {
   WORD work_out[57];
   WORD dum;
   
-  fprintf(stderr,"init_global 1\r\n");
 
   if(globals.video == 0x00030000L) {
     oldmode = globals.vmode = 3;
-    DB_printf("Getting old modecode\n");
     oldmodecode = globals.vmodecode = VsetMode(-1);
-    DB_printf("Got old modecode = 0x%x\n",oldmodecode);
   }
   else {
     oldmode = globals.vmode = Getrez();
   };
   
-  fprintf(stderr,"init_global 2\r\n");
-
   globals.mouse_owner = -1;
   globals.realmove = 0;
   globals.realsize = 0;
@@ -99,11 +95,11 @@ void init_global(WORD physical) {
   globals.icon_height = 56;
   globals.wind_appl = 1;
   
-  fprintf(stderr,"init_global 3\r\n");
-
   Boot_parse_cnf();
   
-  fprintf(stderr,"init_global 4\r\n");
+  _global[2] = -1;
+  appl_init();
+  DB_printf("_AESapid=%d\r\n",_global[2]);
 
   open_physical_ws = physical;
   
@@ -125,7 +121,7 @@ void init_global(WORD physical) {
     DB_printf("Vmode=%4x",VsetMode(-1));
   }
   else {
-    WORD	dum;
+    WORD dum;
     
     appl_init();
     globals.vid = graf_handle(&dum,&dum,&dum,&dum);
