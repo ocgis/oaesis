@@ -19,6 +19,8 @@ else                             # USE_LIBTOOL
 launcher_prg_LDADD  = ../lib/liboaesis.a
 endif                            # USE_LIBTOOL
 
+BUILT_SOURCES = launch.c launch.h
+
 launch.c launch.h: launch.rsc launch.hrd
 	../../tools/r2c_raw launch.rsc
 
