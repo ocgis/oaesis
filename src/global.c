@@ -97,9 +97,11 @@ void init_global(WORD physical) {
   
   Boot_parse_cnf();
   
+/*
   _global[2] = -1;
   appl_init();
   DB_printf("_AESapid=%d\r\n",_global[2]);
+*/
 
   open_physical_ws = physical;
   
@@ -108,17 +110,9 @@ void init_global(WORD physical) {
     
     work_in[0] = 5;
 
-    DB_printf("v_opnwk\n");
- 
     Vdi_v_opnwk(work_in,&globals.vid,work_out);
 
-    DB_printf("VsetScreen mode=%d modecode=%x\n",globals.vmode,globals.vmodecode);
-   
     VsetScreen(NULL,NULL,globals.vmode,globals.vmodecode);
-    
-    DB_printf("/VsetScreen\n");
-
-    DB_printf("Vmode=%4x",VsetMode(-1));
   }
   else {
     WORD dum;
@@ -137,8 +131,6 @@ void init_global(WORD physical) {
   globals.screen.height = work_out[1] + 1;
   
   globals.num_pens = work_out[13];
-  
-  DB_printf("width=%d height=%d num_pens=%d",globals.screen.width,globals.screen.height,globals.num_pens);
   
   /* setup systemfont information */
   

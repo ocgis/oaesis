@@ -1421,7 +1421,6 @@ static void handle_menu(void) {
 
   switch(hm_buffer.action) {
   case HM_NO:
-    DB_printf("No action!\r\n");
     break;
 
   case HM_KILL:
