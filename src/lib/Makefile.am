@@ -14,7 +14,8 @@ TRAP_SRCS = \
 LIB_SRCS = \
 	resource.c appl.c cursors.c lib_debug.c docalls.c evnt.c evnthndl.c \
 	form.c fsel.c graf.c lib_comm.h lib_global.c lib_mem.c lib_mem.h \
-	lib_misc.c menu.c objc.c rsrc.c scrp.c shel.c srv_put.c wind.c
+	lib_misc.c lib_strace.c lib_strace.h menu.c objc.c rsrc.c scrp.c \
+	shel.c srv_put.c wind.c
 
 if USE_LIBTOOL
 
