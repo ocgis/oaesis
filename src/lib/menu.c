@@ -1,37 +1,21 @@
-/****************************************************************************
-
- Module
-  menu.c
-  
- Description
-  Menu routines used in oAESis.
-  
- Author(s)
- 	cg     (Christer Gustavsson <d2cg@dtek.chalmers.se>)
- 	marbud (Martin Budsj” <marbud@tripnet.se>) 
-
- Revision history
- 
-  951226 cg
-   Concatenated menu_lib.c and menu_srv.c into menu.c.
-   Added standard header.
-
-  960101 cg
-   menu_ienable() implemented in Menu_ienable().
-   menu_icheck() implemented in Menu_icheck().
-   menu_tnormal() implemented in Menu_tnormal().
-  960306 kkp   The menu structure integrated with AP_INFO.    
- Copyright notice
-  The copyright to the program code herein belongs to the authors. It may
-  be freely duplicated and distributed without fee, but not charged for.
- 
- ****************************************************************************/
+/*
+** menu.c
+**
+** Copyright 1996 - 2000 Christer Gustavsson <cg@nocrew.org>
+** Copyright 1996 Martin Budsjö <marbud@nocrew.org>
+** Copyright 1996 Klaus Pedersen <kkp@gamma.dou.dk>
+**
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+**  
+** Read the file COPYING for more information.
+**
+*/
 
 #define DEBUGLEVEL 0
 
-/****************************************************************************
- * Used interfaces                                                          *
- ****************************************************************************/
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -392,3 +376,184 @@ Menu_register(AES_PB * apb)
                                      (BYTE *)apb->addr_in[0]);
 }
 
+
+
+static
+int
+wait_for_selection(int      apid,
+                   OBJECT * mn_tree,
+                   int    * sel_obj,
+                   RECT *   clip)
+{
+  EVENTIN       ei =
+  {
+    MU_BUTTON | MU_M1,
+    1,           /* One click                         */
+    LEFT_BUTTON, /* Only check left button            */
+    LEFT_BUTTON, /* Return when the button is pressed */
+    MO_LEAVE,
+    {0,0,0,0},
+    0,
+    {0,0,0,0},
+    0,
+    0
+  };
+  COMMSG        buffer;
+  EVENTOUT      eo;
+  WORD          xy[2];
+  GLOBAL_APPL * globals = get_globals(apid);
+  int           new_sel;
+
+  while(TRUE)
+  {
+    Objc_do_offset(mn_tree, *sel_obj, xy);
+
+    ei.m1r.x = xy[0];
+    ei.m1r.y = xy[1];
+    ei.m1r.width = mn_tree[*sel_obj].ob_width;
+    ei.m1r.height = mn_tree[*sel_obj].ob_height;
+
+    Evnt_do_multi(apid, &ei, &buffer, &eo, 0, DONT_HANDLE_MENU_BAR);
+
+    if(eo.events & MU_BUTTON)
+    {
+      new_sel = *sel_obj;
+
+      Objc_do_change(globals->vid,
+                     mn_tree,
+                     *sel_obj,
+                     clip,
+                     (~SELECTED) & OB_STATE(&mn_tree[*sel_obj]),
+                     NO_DRAW);
+      break;
+    }
+
+    if(eo.events & MU_M1)
+    {
+      new_sel = Objc_do_find(mn_tree, 0, 9, eo.mx, eo.my, 0);
+      
+      if(new_sel == -1)
+      {
+        break;
+      }
+      
+      Objc_do_change(globals->vid,
+                     mn_tree,
+                     *sel_obj,
+                     clip,
+                     (~SELECTED) & OB_STATE(&mn_tree[*sel_obj]),
+                     REDRAW);
+      
+      *sel_obj = new_sel;
+      
+      Objc_do_change(globals->vid,
+                     mn_tree,
+                     *sel_obj,
+                     clip,
+                     SELECTED | OB_STATE(&mn_tree[*sel_obj]),
+                     REDRAW);
+
+      eo.events &= ~MU_M1;
+    }
+
+    if(eo.events)
+    {
+      DEBUG0("menu.c: wait_for_selection: Unhandled event: %x!",
+             eo.events);
+    }
+  }
+
+  return new_sel;
+}
+
+
+/*
+** Description
+** Implementation of menu_popup()
+*/
+static
+int
+Menu_do_popup(int    apid,
+              MENU * menu,
+              int    xpos,
+              int    ypos,
+              MENU * mdata)
+{
+  WORD          xy[2];
+  RECT          clip;
+  GLOBAL_APPL * globals = get_globals(apid);
+  int           sel_obj;
+  int           retval;
+
+  /* First we calculate the current coordinates of the "hot" object... */
+  Objc_do_offset(menu->mn_tree, menu->mn_item, xy);
+
+  /* ... then we adjust the position of the root object, ... */
+  menu->mn_tree[0].ob_x += xpos - xy[0];
+  menu->mn_tree[0].ob_y += ypos - xy[1];
+
+  /* ... calculate the area we need ... */
+  Objc_area_needed(menu->mn_tree, 0, &clip);
+
+  /* ... and set the default item */
+  sel_obj = menu->mn_item;
+
+  Objc_do_change(globals->vid,
+                 menu->mn_tree,
+                 sel_obj,
+                 &clip,
+                 SELECTED | OB_STATE(&menu->mn_tree[sel_obj]),
+                 NO_DRAW);
+
+  /*Lock screen and get exclusive mouse control */
+  /* FIXME: make sure we don't lock anything up */
+  Wind_do_update(apid, BEG_MCTRL);
+  Wind_do_update(apid, BEG_UPDATE);
+  
+  /* Reserve the area we need... */
+  Form_do_dial(apid, FMD_START, &clip, &clip);
+
+  /* ... and draw the popup */
+  Objc_do_draw(globals->vid, menu->mn_tree, 0, 9, &clip);
+
+  if(wait_for_selection(apid, menu->mn_tree, &sel_obj, &clip) != -1)
+  {
+    mdata->mn_tree     = menu->mn_tree;
+    mdata->mn_menu     = menu->mn_menu;
+    mdata->mn_item     = sel_obj;
+    mdata->mn_scroll   = menu->mn_scroll;
+    mdata->mn_keystate = menu->mn_keystate;
+
+    retval = 1;
+  }
+  else
+  {
+    retval = 0;
+  }
+
+  /* Release the screen area */
+  Form_do_dial(apid, FMD_FINISH, &clip, &clip);
+
+  /* Release screen and mouse */
+  Wind_do_update(apid, END_UPDATE);
+  Wind_do_update(apid, END_MCTRL);
+
+  return retval;
+}
+
+
+/*
+** Description
+** 0x0024 menu_popup
+*/
+void
+Menu_popup(AES_PB * apb)
+{
+  CHECK_APID(apb->global->apid);
+
+  apb->int_out[0] = Menu_do_popup(apb->global->apid,
+                                  (MENU *)apb->addr_in[0],
+                                  apb->int_in[0],
+                                  apb->int_in[1],
+                                  (MENU *)apb->addr_in[1]);
+}
