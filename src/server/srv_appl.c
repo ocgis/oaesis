@@ -38,7 +38,8 @@ static AP_LIST *ap_resvd = NULL;
 */
 static
 WORD
-top_appl (WORD apid) {
+top_appl (WORD apid)
+{
   AP_LIST ** al;
   OBJECT  *  deskbg = NULL;
   WORD       deskbgcount = 0;
@@ -47,14 +48,17 @@ top_appl (WORD apid) {
   DEBUG2 ("srv.c: top_appl: apid = %d", apid);
   lasttop = ap_pri->ai->id;
 
-  if (lasttop != apid) {
+  if (lasttop != apid)
+  {
     WINLIST * wl;
 
     /* Find the first window of the application and top it */
     wl = win_list;
 
-    while (wl) {
-      if (wl->win->owner == apid) {
+    while (wl)
+    {
+      if (wl->win->owner == apid)
+      {
         top_window (wl->win->id);
         break;
       }
@@ -64,8 +68,10 @@ top_appl (WORD apid) {
 
     al = &ap_pri;
     
-    while (*al) {
-      if ((*al)->ai->id == apid) {
+    while(*al)
+    {
+      if ((*al)->ai->id == apid)
+      {
         AP_LIST *tmp = *al;
         
         *al = (*al)->next;
@@ -78,15 +84,23 @@ top_appl (WORD apid) {
         break;
       }
       
-      if ((*al)->ai->deskbg) {
+      if((*al)->ai->deskbg)
+      {
         deskbgcount++;
       }
       
       al = &(*al)->next;
     }
     
-    if(deskbg && deskbgcount) {
-      update_desktop_background ();
+    if(deskbg && deskbgcount)
+    {
+      /*
+      ** The desktop owner only needs to be updated if there are other
+      ** applications with desktop background and one of them were
+      ** in top before this call. The same goes for the background.
+      */
+      update_desktop_owner();
+      update_desktop_background();
     }
     
     redraw_menu_bar();

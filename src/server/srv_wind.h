@@ -158,4 +158,12 @@ top_window (WORD winid);
 
 WINSTRUCT *
 find_wind_description(WORD id);
+
+/*
+** Description
+** Update the owner of the desktop window
+*/
+void
+update_desktop_owner(void);
+
 #endif /* _SRV_WIND_H_ */
