@@ -12,6 +12,9 @@
 /* Define if you have the <compiler.h> header file.  */
 #undef HAVE_COMPILER_H
 
+/* Define if you have the <fcntl.h> header file.  */
+#undef HAVE_FCNTL_H
+
 /* Define if you have the <ioctl.h> header file.  */
 #undef HAVE_IOCTL_H
 
