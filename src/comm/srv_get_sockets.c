@@ -87,9 +87,11 @@ void
 Srv_reply (void * handle,
            void * out,
            WORD   bytes_out) {
-  fprintf (stderr,
-           "oaesis: srv_get_sockets.c: Srv_reply: bytes_out=%d\n",
-           bytes_out);
+ /*
+   DB_printf ("srv_get_sockets.c: Srv_reply: bytes_out=%d\n",
+   bytes_out);
+   */
+
   if (send (new_fd, out, bytes_out, 0) == -1) {
     perror ("oaesis: Srv_reply: send");
     return;

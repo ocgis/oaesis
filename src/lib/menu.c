@@ -54,6 +54,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "appl.h"
 /*#include "boot.h"*/
 #include "debug.h"
 #include "evnt.h"
@@ -70,6 +71,7 @@
 #include "rsrc.h"
 #include "srv_calls.h"
 #include "types.h"
+#include "wind.h"
 
 #ifdef HAVE_SYSVARS_H
 #include <sysvars.h>
@@ -139,7 +141,7 @@ void                   /*                                                   */
 Menu_exit_module(void) /*                                                   */
 /****************************************************************************/
 {
-  do_appl_exit(mglob.menu_handl_apid);
+  Appl_do_exit(mglob.menu_handl_apid);
 }
 
 
@@ -161,7 +163,7 @@ BYTE * envp[])         /* Environment string.                               */
 
   fprintf (stderr, "oaesis: menu.c: Entering Menu_handler\n");
 
-  mglob.menu_handl_apid = do_appl_init(&global_array);
+  mglob.menu_handl_apid = Appl_do_init (&global_array);
   
   Srv_get_appl_info(mglob.menu_handl_apid,&appl_info);
   
@@ -175,11 +177,13 @@ BYTE * envp[])         /* Environment string.                               */
 
   Srv_menu_bar(mglob.menu_handl_apid,globals->common->menutad,MENU_INSTALL);
   
-  Srv_wind_get(0,WF_CURRXYWH,
-	       &globals->common->deskbgtad[0].ob_x,
-	       &globals->common->deskbgtad[0].ob_y,
-	       &globals->common->deskbgtad[0].ob_width,
-	       &globals->common->deskbgtad[0].ob_height);
+  Wind_do_get (mglob.menu_handl_apid,
+               0,
+               WF_CURRXYWH,
+               &globals->common->deskbgtad[0].ob_x,
+               &globals->common->deskbgtad[0].ob_y,
+               &globals->common->deskbgtad[0].ob_width,
+               &globals->common->deskbgtad[0].ob_height);
   
   Srv_wind_set(mglob.menu_handl_apid,0,WF_NEWDESK,
 	       (WORD)(((LONG)globals->common->deskbgtad) >> 16),
@@ -261,7 +265,7 @@ BYTE * envp[])         /* Environment string.                               */
 	case MENU_OAESIS:
 	  switch(msg.item) {
 	  case MENU_INFO:
-	    Form_do_center(globals->common->informtad,&f);
+	    Form_do_center (apid, globals->common->informtad, &f);
 	    Form_do_dial(mglob.menu_handl_apid,
 			 FMD_START,&f,&f);
 	    Objc_do_draw (apid, globals->common->informtad,0,9,&f);

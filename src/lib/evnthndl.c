@@ -259,7 +259,7 @@ static void localize_mousevalues(void) {
   */
 }
 
-static void handle_arrow_click(WORD win_id,WORD object,WORD msg) {
+static void handle_arrow_click (WORD apid, WORD win_id,WORD object,WORD msg) {
   COMMSG    mesag;
   EVNTREC   er;
   WORD      owner;
@@ -277,7 +277,7 @@ static void handle_arrow_click(WORD win_id,WORD object,WORD msg) {
     Srv_wind_change(win_id,object,SELECTED);
   };
   
-  Srv_wind_get(win_id,WF_OWNER,&owner,&dummy,&dummy,&dummy);
+  Wind_do_get (apid, win_id,WF_OWNER,&owner,&dummy,&dummy,&dummy);
   
   do {
     if(get_evntpacket(&er,0 /*globals.arrowrepeat*/) == 0) {
@@ -297,7 +297,7 @@ static void handle_arrow_click(WORD win_id,WORD object,WORD msg) {
   Evhd_wind_update(EVHD_APID,END_MCTRL);
 }
 
-static void handle_mover_click(WORD win_id) {
+static void handle_mover_click(WORD apid, WORD win_id) {
   WORD      dummy;
   WORD      owner;
   WORD      top;
@@ -307,7 +307,7 @@ static void handle_mover_click(WORD win_id) {
   EVNTREC   er;
   COMMSG    mesag;
   
-  Srv_wind_get(win_id,WF_OWNER,&owner,&dummy,&top,&dummy);
+  Wind_do_get (apid, win_id,WF_OWNER,&owner,&dummy,&top,&dummy);
   
   Srv_wind_change(win_id,W_NAME,SELECTED); 
   
@@ -359,7 +359,7 @@ static void handle_mover_click(WORD win_id) {
       mesag.length = 0;
       mesag.msg0 = win_id;
       
-      Srv_wind_get(win_id,WF_CURRXYWH,
+      Wind_do_get (apid, win_id,WF_CURRXYWH,
 		   &mesag.msg1,&mesag.msg2,&mesag.msg3,&mesag.msg4);
       
       do {
@@ -419,7 +419,7 @@ static void handle_mover_click(WORD win_id) {
       
       Evhd_wind_update(Pgetpid(),BEG_UPDATE);
 
-      Srv_wind_get(win_id,WF_CURRXYWH,
+      Wind_do_get (apid, win_id,WF_CURRXYWH,
 		   &winsize.x,&winsize.y,&winsize.width,&winsize.height);
 		
       /*
@@ -649,7 +649,7 @@ static void handle_slider_click(WORD win_id, WORD elem,WORD owner,
 }
 
 
-static void handle_button(WORD newbutton) {
+static void handle_button (WORD apid, WORD newbutton) {
   EVNTREC er;
   WORD    changed = newbutton ^ 0 /*globals.mouse_button*/;
   
@@ -677,8 +677,8 @@ static void handle_button(WORD newbutton) {
       
       win_id = Srv_wind_find(mouse_x,mouse_y);
       tree = Srv_get_wm_info(win_id);
-      Srv_wind_get(win_id,WF_OWNER,&owner,&status,&top,&dummy);      
-      Srv_wind_get(win_id,WF_WORKXYWH,
+      Wind_do_get (apid, win_id,WF_OWNER,&owner,&status,&top,&dummy);      
+      Wind_do_get (apid, win_id,WF_WORKXYWH,
 		   &worksize.x,&worksize.y,&worksize.width,&worksize.height);
       
       if(status & WIN_DESKTOP) {
@@ -714,7 +714,7 @@ static void handle_button(WORD newbutton) {
 	      m.sid = 0;
 	      m.length = 0;
 	      m.msg0 = win_id;
-	      Srv_wind_get(win_id,WF_UNICONIFY,&m.msg1,&m.msg2,
+	      Wind_do_get (apid, win_id,WF_UNICONIFY,&m.msg1,&m.msg2,
 			   &m.msg3,&m.msg4);
 
 	      Srv_appl_write(owner,(WORD)sizeof(COMMSG),&m);
@@ -840,7 +840,7 @@ static void handle_button(WORD newbutton) {
 	      RECT totsize;
 	      
 	      Srv_wind_change(win_id,W_SIZER,SELECTED);
-	      Srv_wind_get(win_id,WF_CURRXYWH,&totsize.x,&totsize.y,
+	      Wind_do_get (apid, win_id,WF_CURRXYWH,&totsize.x,&totsize.y,
 			   &totsize.width,&totsize.height);
 	      
 	      if(0 /*globals.realsize*/) {
@@ -929,23 +929,23 @@ static void handle_button(WORD newbutton) {
 				
 	  case WAPP:	        
 	  case WMOVER:
-	    handle_mover_click(win_id);
+	    handle_mover_click (apid, win_id);
 	    break;
 	        
 	  case WLEFT:
-	    handle_arrow_click(win_id,W_LFARROW,WA_LFLINE);
+	    handle_arrow_click (apid, win_id,W_LFARROW,WA_LFLINE);
 	    break;
 		
 	  case WRIGHT:
-	    handle_arrow_click(win_id,W_RTARROW,WA_RTLINE);
+	    handle_arrow_click (apid, win_id,W_RTARROW,WA_RTLINE);
 	    break;
 		
 	  case WUP:
-	    handle_arrow_click(win_id,W_UPARROW,WA_UPLINE);
+	    handle_arrow_click (apid, win_id,W_UPARROW,WA_UPLINE);
 	    break;
 		
 	  case WDOWN:
-	    handle_arrow_click(win_id,W_DNARROW,WA_DNLINE);
+	    handle_arrow_click (apid, win_id,W_DNARROW,WA_DNLINE);
 	    break;
 	    
 	  case WHSB:
@@ -957,10 +957,10 @@ static void handle_button(WORD newbutton) {
 	      };
 	
 	      if(mouse_x > xy[0]) {
-		handle_arrow_click(win_id,0,WA_RTPAGE);
+		handle_arrow_click (apid, win_id,0,WA_RTPAGE);
 	      }
 	      else {
-		handle_arrow_click(win_id,0,WA_LFPAGE);
+		handle_arrow_click (apid, win_id,0,WA_LFPAGE);
 	      };
 	    };
 	    break;
@@ -974,10 +974,10 @@ static void handle_button(WORD newbutton) {
 	      };
 	      
 	      if(mouse_y > xy[1]) {
-		handle_arrow_click(win_id,0,WA_DNPAGE);
+		handle_arrow_click (apid, win_id,0,WA_DNPAGE);
 	      }
 	      else {
-		handle_arrow_click(win_id,0,WA_UPPAGE);
+		handle_arrow_click (apid, win_id,0,WA_UPPAGE);
 	      };
 	    };
 	    break;
@@ -1026,8 +1026,8 @@ static void handle_button(WORD newbutton) {
       RECT worksize;
 	    
       wid = Srv_wind_find(mouse_x,mouse_y);
-      Srv_wind_get(wid,WF_OWNER,&owner,&status,&dummy,&dummy);
-      Srv_wind_get(wid,WF_WORKXYWH,
+      Wind_do_get (apid, wid,WF_OWNER,&owner,&status,&dummy,&dummy);
+      Wind_do_get (apid, wid,WF_WORKXYWH,
 		   &worksize.x,&worksize.y,&worksize.width,&worksize.height);
  
  
@@ -1368,8 +1368,10 @@ static WORD handle_selected_title(HM_BUFFER *hm_buffer) {
         */
     };
 
-    menu.dropwin = do_wind_create(0,0,&area,WIN_MENU);
-    Srv_wind_open(menu.dropwin,&area);
+    menu.dropwin = Wind_do_create(0,0,&area,WIN_MENU);
+    Wind_do_open (apid,
+                  menu.dropwin,
+                  &area);
 
     menu.tree[box].ob_flags &= ~HIDETREE;
 
@@ -1425,7 +1427,7 @@ static WORD handle_selected_title(HM_BUFFER *hm_buffer) {
 	    Objc_do_draw (apid, menu.tree,0,9,&titlearea);
 	    
 	    Srv_wind_close(menu.dropwin);
-	    do_wind_delete(apid, menu.dropwin);
+	    Wind_do_delete(apid, menu.dropwin);
 	    
 	    menu.tree[box].ob_flags |= HIDETREE;
 	    
@@ -1535,8 +1537,9 @@ static void handle_menu(void) {
 static WORD evnt_handler(LONG arg) {
   WORD	  work_in[] = {1,7,1,1,1,1,1,1,1,1,2};
   WORD	  work_out[57];
-  EVNTREC	er;
+  EVNTREC er;
   WORD    evhd_pipe;
+  WORD    apid = -1;
 
   NOT_USED(arg);
 
@@ -1572,7 +1575,7 @@ static WORD evnt_handler(LONG arg) {
     	break;
     			
     case APPEVNT_BUTTON	:
-      handle_button((WORD)er.ap_value);
+      handle_button (apid, (WORD)er.ap_value);
       break;	
       
     case APPEVNT_MOUSE	:

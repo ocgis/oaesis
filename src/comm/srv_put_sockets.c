@@ -51,8 +51,11 @@ Client_send_recv (void * in,
     return -1;
   }
 
-  fprintf (stderr, "oaesis: srv_put_sockets.c: max_bytes_out=%d\n",
-           max_bytes_out);
+  /*
+  DB_printf ("srv_put_sockets.c: max_bytes_out=%d",
+  max_bytes_out);
+  */
+  
   if ((numbytes = recv (sockfd, out, max_bytes_out, 0)) == -1) {
     perror("oaesis: srv_put_sockets.c: Client_send_recv: recv");
     return -1;

@@ -17,7 +17,11 @@ WORD clicks,    /* Number of clicks.                                        */
 WORD *newobj);  /* Next object to gain edit focus, or 0.                    */
 /****************************************************************************/
 
-void	Form_do_center(OBJECT *tree,RECT *clip);
+void
+Form_do_center (WORD     apid,
+                OBJECT * tree,
+                RECT *   clip);
+
 WORD	Form_do_dial(WORD apid,WORD mode,RECT *r1,RECT *r2);
 
 /****************************************************************************

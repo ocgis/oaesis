@@ -78,8 +78,18 @@
  * Local functions (use static!)                                            *
  ****************************************************************************/
 
-static WORD do_appl_read(WORD apid,WORD msgpipe,WORD length,void *m) {
-	
+/*
+** Description
+** Implementation of appl_read ()
+**
+** 1998-10-04 CG
+*/
+static
+WORD
+Appl_do_read (WORD   apid,
+              WORD   msgpipe,
+              WORD   length,
+              void * m) {
   if((apid == APR_NOWAIT) && (Finstat(msgpipe) < length)) {
     return 0;
   };
@@ -98,12 +108,12 @@ static WORD do_appl_read(WORD apid,WORD msgpipe,WORD length,void *m) {
 /* 0x000a appl_init */
 
 /****************************************************************************
- * do_appl_init                                                             *
+ * Appl_do_init                                                             *
  *  Implementation of appl_init().                                          *
  ****************************************************************************/
 WORD                   /* Application id, or -1.                            */
-do_appl_init(          /*                                                   */
-GLOBAL_ARRAY *global)  /* Global array.                                     */
+Appl_do_init(          /*                                                   */
+GLOBAL_ARRAY * global) /* Global array.                                     */
 /****************************************************************************/
 {
   WORD        pid = Pgetpid();
@@ -173,7 +183,7 @@ GLOBAL_ARRAY *global)  /* Global array.                                     */
   global->minchar = 0;
 
   if(global->apid >= 0) {
-    DB_printf ("appl.c: do_appl_init: Calling init_global");
+    DB_printf ("appl.c: Appl_do_init: Calling init_global");
     init_global (1);
 
     return global->apid;
@@ -188,8 +198,9 @@ GLOBAL_ARRAY *global)  /* Global array.                                     */
 }
 
 
-void	Appl_init(AES_PB *apb) {
-  apb->int_out[0] = do_appl_init(apb->global);
+void
+Appl_init (AES_PB *apb) {
+  apb->int_out[0] = Appl_do_init(apb->global);
 }
 
 /* 0x000b appl_read */
@@ -199,7 +210,7 @@ void Appl_read(AES_PB *apb) {
 	
   Srv_get_appl_info(apb->global->apid,&appl_info);
 
-  apb->int_out[0] = do_appl_read(apb->int_in[0],
+  apb->int_out[0] = Appl_do_read(apb->int_in[0],
                                  appl_info.msgpipe,
                                  apb->int_in[1],
                                  (void *)apb->addr_in[0]);
@@ -249,11 +260,11 @@ Appl_search(      /*                                                        */
 /* 0x0013 appl_exit */
 
 /****************************************************************************
- * do_appl_exit                                                             *
+ * Appl_do_exit                                                             *
  *  Implementation of appl_exit().                                          *
  ****************************************************************************/
 WORD            /* 0 if error, or 1.                                        */
-do_appl_exit(   /*                                                          */
+Appl_do_exit (  /*                                                          */
 WORD apid)      /* Application id.                                          */
 /****************************************************************************/
 {
@@ -289,7 +300,7 @@ WORD apid)      /* Application id.                                          */
 }
 
 void	Appl_exit(AES_PB *apb) {
-  apb->int_out[0] = do_appl_exit(apb->global->apid);
+  apb->int_out[0] = Appl_do_exit(apb->global->apid);
 }
 
 /****************************************************************************

@@ -27,6 +27,17 @@
 
 #define NOT_USED(c) (void)c
 
+typedef struct {
+	WORD	type;
+	WORD	sid;
+	WORD	length;
+	WORD	msg0;
+	WORD	msg1;
+	WORD	msg2;
+	WORD	msg3;
+	WORD	msg4;
+}COMMSG;
+
 /* Cookie structure */
 
 typedef struct {
@@ -518,6 +529,7 @@ struct dev_descr {
 };
 
 
+#define MAX_MSG 100
 
 typedef struct ap_info {
   WORD   id;             /*application id                                   */
@@ -538,6 +550,9 @@ typedef struct ap_info {
   struct ap_list  *ap_search_next; /* appl_search() pointer to next app */
   
   BYTE   name[21];   /* pretty name of process, init. filename          */
+  COMMSG messages[MAX_MSG];
+  WORD   next_message;
+  WORD   number_of_messages;
 }AP_INFO;
 
 typedef struct ap_list {
@@ -612,4 +627,28 @@ typedef struct winlist
   struct winlist  *next;
 }WINLIST;
 
+typedef struct
+{
+  WORD events;
+  WORD bclicks;
+  WORD bmask;
+  WORD bstate;
+  WORD m1flag;
+  RECT m1r;
+  WORD m2flag;
+  RECT m2r;
+  WORD locount;
+  WORD hicount;
+}EVENTIN;
+
+typedef struct
+{
+  WORD	events;
+  WORD	mx;
+  WORD	my;
+  WORD	mb;
+  WORD	ks;
+  WORD	kc;
+  WORD	mc;
+}EVENTOUT;
 #endif

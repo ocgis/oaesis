@@ -4,17 +4,6 @@
 /*#include	"global.h"*/
 #include	"types.h"
 
-typedef struct {
-	WORD	type;
-	WORD	sid;
-	WORD	length;
-	WORD	msg0;
-	WORD	msg1;
-	WORD	msg2;
-	WORD	msg3;
-	WORD	msg4;
-}COMMSG;
-
 #define	MSG_LENGTH	sizeof(COMMSG)
 
 		/* event message values */

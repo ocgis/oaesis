@@ -13,6 +13,7 @@ enum {
   SRV_APPL_SEARCH,
   SRV_APPL_WRITE,
   SRV_CLICK_OWNER,
+  SRV_EVNT_MULTI,
   SRV_GET_APPL_INFO,
   SRV_GET_TOP_MENU,
   SRV_GET_WM_INFO,
@@ -30,7 +31,8 @@ enum {
   SRV_WIND_GET,
   SRV_WIND_NEW,
   SRV_WIND_OPEN,
-  SRV_WIND_SET
+  SRV_WIND_SET,
+  SRV_WIND_UPDATE
 };
 
 
@@ -90,15 +92,44 @@ typedef struct {
 }C_APPL_SEARCH;
 
 typedef struct {
-  WORD apid;
-  WORD length;
-  void *msg;
-  WORD retval;
+  C_ALL common;
+  WORD  addressee;
+  WORD  length;
+  WORD  is_reference; /* != 0 => msg.ref is a pointer to the buffer */
+  union {
+    void * ref;
+    COMMSG event;
+  }msg;
 }C_APPL_WRITE;
+
+typedef struct {
+  R_ALL common;
+}R_APPL_WRITE;
 
 typedef struct {
   WORD retval;
 }C_CLICK_OWNER;
+
+/*
+** Events used in evnt_multi
+*/
+#define MU_KEYBD        0x0001
+#define MU_BUTTON       0x0002
+#define MU_M1           0x0004
+#define MU_M2           0x0008
+#define MU_MESAG        0x0010
+#define MU_TIMER        0x0020
+
+typedef struct {
+  C_ALL   common;
+  EVENTIN eventin;
+}C_EVNT_MULTI;
+
+typedef struct {
+  R_ALL    common;
+  COMMSG   msg;
+  EVENTOUT eventout;
+}R_EVNT_MULTI;
 
 typedef struct {
   /*  SRV_APPL_INFO *appl_info;*/
@@ -200,26 +231,55 @@ typedef struct {
 }C_WIND_FIND;
 
 typedef struct {
-  WORD handle;
-  WORD mode;
-  WORD parm1;
-  WORD parm2;
-  WORD parm3;
-  WORD parm4;
-  WORD retval;
+  C_ALL common;
+  WORD  handle;
+  WORD  mode;
 }C_WIND_GET;
+
+typedef struct {
+  R_ALL common;
+  WORD  parm1;
+  WORD  parm2;
+  WORD  parm3;
+  WORD  parm4;
+}R_WIND_GET;
 
 typedef struct {
   WORD retval;
 }C_WIND_NEW;
 
-typedef C_WIND_GET C_WIND_SET;
+typedef struct {
+  C_ALL common;
+  WORD  handle;
+  WORD  mode;
+  WORD  parm1;
+  WORD  parm2;
+  WORD  parm3;
+  WORD  parm4;
+}C_WIND_SET;
 
 typedef struct {
-  WORD id;
-  RECT *size;
-  WORD retval;
+  R_ALL common;
+}R_WIND_SET;
+
+typedef struct {
+  C_ALL common;
+  WORD  id;
+  RECT  size;
 }C_WIND_OPEN;
+
+typedef struct {
+  R_ALL common;
+}R_WIND_OPEN;
+
+typedef struct {
+  C_ALL common;
+  WORD  mode;
+}C_WIND_UPDATE;
+
+typedef struct {
+  R_ALL common;
+}R_WIND_UPDATE;
 
 typedef union {
   C_ALL           common;
@@ -230,6 +290,7 @@ typedef union {
   C_APPL_SEARCH   appl_search;
   C_APPL_WRITE    appl_write;
   C_CLICK_OWNER   click_owner;
+  C_EVNT_MULTI    evnt_multi;
   C_GET_APPL_INFO get_appl_info;
   C_GET_TOP_MENU  get_top_menu;
   C_GET_WM_INFO   get_wm_info;
@@ -249,6 +310,7 @@ typedef union {
   C_WIND_NEW      wind_new;
   C_WIND_OPEN     wind_open;
   C_WIND_SET      wind_set;
+  C_WIND_UPDATE   wind_update;
 }C_SRV;
 
 
@@ -256,8 +318,13 @@ typedef union {
   R_ALL         common;
   R_APPL_EXIT   appl_exit;
   R_APPL_INIT   appl_init;
+  R_APPL_WRITE  appl_write;
+  R_EVNT_MULTI  evnt_multi;
   R_WIND_CREATE wind_create;
   R_WIND_DELETE wind_delete;
+  R_WIND_GET    wind_get;
+  R_WIND_OPEN   wind_open;
+  R_WIND_UPDATE wind_update;
 }R_SRV;
 
 #endif /* _SRV_INTERFACE_H_ */

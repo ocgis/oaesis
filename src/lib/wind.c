@@ -634,11 +634,11 @@ create_new_window_struct (WORD apid,
 }
 
 /****************************************************************************
- * do_wind_create                                                           *
+ * Wind_do_create                                                           *
  *  Implementation of wind_create().                                        *
  ****************************************************************************/
 WORD             /* 0 if error or 1 if ok.                                  */
-do_wind_create(  /*                                                         */
+Wind_do_create(  /*                                                         */
 WORD   apid,     /* Owner of window.                                        */
 WORD   elements, /* Elements of window.                                     */
 RECT * maxsize,  /* Maximum size allowed.                                   */
@@ -664,12 +664,12 @@ WORD   status)   /* Status of window.                                       */
                             &ret,
                             sizeof (R_WIND_CREATE));
 
-  DB_printf ("wind.c: do_wind_create: count=%d id=%d",
+  DB_printf ("wind.c: Wind_do_create: count=%d id=%d",
              count,
              ret.common.retval);
 
   ws = winalloc (apid);
-  DB_printf ("wind.c: do_wind_create: ws=0x%x", ws);
+  DB_printf ("wind.c: Wind_do_create: ws=0x%x", ws);
 
   ws->id = ret.common.retval;
 
@@ -690,15 +690,13 @@ WORD   status)   /* Status of window.                                       */
     WORD    i;
     AP_INFO *ai;
     
-    DB_printf ("wind.c: do_wind_create: will call allocate_window_elements");
+    DB_printf ("wind.c: Wind_do_create: will call allocate_window_elements");
     ws->tree = allocate_window_elements ();
-    DB_printf ("wind.c: do_wind_create: ws->tree=0x%x", ws->tree);
+    DB_printf ("wind.c: Wind_do_create: ws->tree=0x%x", ws->tree);
 
     ws->elements = elements;
     set_win_elem (ws->tree, ws->elements);
 
-    DB_printf ("wind.c: do_wind_create: Calling Objc_do_draw");
-    Objc_do_draw (globals->vid, ws->tree, 0, 16, &ws->maxsize);
     /*
     ai = internal_appl_info(msg->common.apid);
     
@@ -726,7 +724,10 @@ WORD   status)   /* Status of window.                                       */
     }
     
     ws->own_colour = 0;
-  };
+
+    DB_printf ("wind.c: Wind_do_create: Calling Objc_do_draw");
+    Objc_do_draw (globals->vid, ws->tree, 0, 16, &ws->maxsize);
+  }
 
   return ret.common.retval;
 }
@@ -736,7 +737,7 @@ WORD   status)   /* Status of window.                                       */
 
 void	Wind_create(AES_PB *apb) {	
   DB_printf ("wind.c: Wind_create entered");
-  apb->int_out[0] = do_wind_create(apb->global->apid
+  apb->int_out[0] = Wind_do_create(apb->global->apid
                                    ,apb->int_in[0],
                                    (RECT *)&apb->int_in[1],
                                    0);
@@ -745,8 +746,43 @@ void	Wind_create(AES_PB *apb) {
 
 /*wind_open 0x0065*/
 
+/****************************************************************************
+ * Wind_do_open                                                             *
+ *  Implementation of wind_open().                                          *
+ ****************************************************************************/
+WORD           /* 0 if error or 1 if ok.                                    */
+Wind_do_open(
+WORD   apid,
+WORD   id,     /* Identification number of window to open.                  */
+RECT * size)   /* Initial size of window.                                   */
+/****************************************************************************/
+{
+  C_WIND_OPEN par;
+  R_WIND_OPEN ret;
+  
+  DB_printf ("Wind_do_open entered");
+
+  par.common.call = SRV_WIND_OPEN;
+  par.common.apid = apid;
+  par.common.pid = getpid ();
+  par.id = id;
+  par.size = *size;
+	
+  Client_send_recv (&par,
+                    sizeof (C_WIND_OPEN),
+                    &ret,
+                    sizeof (R_WIND_DELETE));
+
+  DB_printf ("Wind_do_open returned");
+
+  return ret.common.retval;
+}
+
+
 void Wind_open(AES_PB *apb) {
-	apb->int_out[0] = Srv_wind_open(apb->int_in[0],(RECT *)&apb->int_in[1]);
+  apb->int_out[0] = Wind_do_open (apb->global->apid,
+                                  apb->int_in[0],
+                                  (RECT *)&apb->int_in[1]);
 }
 
 /*wind_close 0x0066*/
@@ -757,11 +793,11 @@ void	Wind_close(AES_PB *apb) {
 
 
 /****************************************************************************
- * do_wind_delete                                                           *
+ * Wind_do_delete                                                           *
  *  Implementation of wind_delete().                                        *
  ****************************************************************************/
 WORD             /* 0 if error or 1 if ok.                                  */
-do_wind_delete(  /*                                                         */
+Wind_do_delete(  /*                                                         */
 WORD apid,
 WORD wid)        /* Identification number of window to close.               */
 /****************************************************************************/
@@ -769,6 +805,7 @@ WORD wid)        /* Identification number of window to close.               */
   C_WIND_DELETE par;
   R_WIND_DELETE ret;
 
+  par.common.call = SRV_WIND_DELETE;
   par.common.apid = apid;
   par.common.pid = getpid ();
   par.id = wid;
@@ -785,7 +822,7 @@ WORD wid)        /* Identification number of window to close.               */
 /*wind_delete 0x0067*/
 void Wind_delete(AES_PB *apb) {
   DB_printf ("wind.c: Wind_delete entered");
-  apb->int_out[0] = do_wind_delete(apb->global->apid,
+  apb->int_out[0] = Wind_do_delete(apb->global->apid,
                                    apb->int_in[0]);
   DB_printf ("wind.c: Wind_delete exited");
 }
@@ -793,10 +830,55 @@ void Wind_delete(AES_PB *apb) {
 /*wind_get 0x0068*/
 
 
-void	Wind_get(AES_PB *apb) {
-	apb->int_out[0] = Srv_wind_get(apb->int_in[0],apb->int_in[1],
-																&apb->int_out[1],&apb->int_out[2],
-																&apb->int_out[3],&apb->int_out[4]);
+/*
+** Description
+** Lib part of wind_get
+**
+** 1998-10-04 CG
+*/
+WORD
+Wind_do_get (WORD   apid,
+             WORD   handle,
+             WORD   mode,
+             WORD * parm1,
+             WORD * parm2,
+             WORD * parm3,
+             WORD * parm4)
+{
+  C_WIND_GET par;
+  R_WIND_GET ret;
+  WORD       code;
+
+  par.common.call = SRV_WIND_GET;
+  par.common.apid = apid;
+  par.common.pid = getpid ();
+  par.handle = handle;
+  par.mode = mode;
+	
+  Client_send_recv (&par,
+                    sizeof (C_WIND_GET),
+                    &ret,
+                    sizeof (R_WIND_GET));
+
+  *parm1 = ret.parm1;
+  *parm2 = ret.parm2;
+  *parm3 = ret.parm3;
+  *parm4 = ret.parm4;
+	
+  return ret.common.retval;
+}
+
+
+void
+Wind_get (AES_PB *apb)
+{
+  apb->int_out[0] = Wind_do_get (apb->global->apid,
+                                 apb->int_in[0],
+                                 apb->int_in[1],
+                                 &apb->int_out[1],
+                                 &apb->int_out[2],
+                                 &apb->int_out[3],
+                                 &apb->int_out[4]);
 }
 
 
@@ -818,8 +900,37 @@ void	Wind_find(AES_PB *apb) {
 }
 
 /*wind_update 0x006b*/
-void Wind_update(AES_PB *apb) {
-  Evhd_wind_update(apb->global->apid,apb->int_in[0]);
+
+/*
+** Description
+** Library part of wind_update
+**
+** 1998-10-04 CG
+*/
+WORD
+Wind_do_update (WORD apid,
+                WORD mode)
+{
+  C_WIND_UPDATE par;
+  R_WIND_UPDATE ret;
+
+  par.common.call = SRV_WIND_UPDATE;
+  par.common.apid = apid;
+  par.common.pid = getpid ();
+  par.mode = mode;
+	
+  Client_send_recv (&par,
+                    sizeof (C_WIND_UPDATE),
+                    &ret,
+                    sizeof (R_WIND_UPDATE));
+
+  return ret.common.retval;
+}
+
+void
+Wind_update (AES_PB *apb) {
+  apb->int_out[0] = Wind_do_update (apb->global->apid,
+                                    apb->int_in[0]);
 }
 
 

@@ -67,7 +67,10 @@
 #include "mesagdef.h"
 #include "resource.h"
 #include "srv_calls.h"
+#include "srv_interface.h"
+#include "srv_put.h"
 #include "types.h"
+#include "wind.h"
 
 #ifdef HAVE_SYSVARS_H
 #include <sysvars.h>
@@ -246,29 +249,29 @@ void	Evnt_mouse(AES_PB *apb) {
 /*0x0017 evnt_mesag*/
 
 void	Evnt_mesag(AES_PB *apb) {
-	COMMSG    e;
-	WORD      i;
-	SRV_APPL_INFO appl_info;
+  COMMSG    e;
+  WORD      i;
+  SRV_APPL_INFO appl_info;
 	
-	Srv_get_appl_info(apb->global->apid,&appl_info);
+  Srv_get_appl_info(apb->global->apid,&appl_info);
 
-	Fread(appl_info.msgpipe,MSG_LENGTH,&e);
+  Fread(appl_info.msgpipe,MSG_LENGTH,&e);
 
-	for(i = 0; i < 8; i++) {
-		((WORD *)apb->addr_in[0])[i] = ((WORD *)&e)[i];
-	};
+  for(i = 0; i < 8; i++) {
+    ((WORD *)apb->addr_in[0])[i] = ((WORD *)&e)[i];
+  };
 	
-	if((e.type == WM_REDRAW) && (e.sid == -1)) {
-		RECT totsize;
+  if((e.type == WM_REDRAW) && (e.sid == -1)) {
+    RECT totsize;
 		
-		Srv_wind_get(((WORD *)apb->addr_in[0])[3],WF_CURRXYWH,
-								&totsize.x,&totsize.y,&totsize.width,&totsize.height);
+    Wind_do_get (apb->global->apid, ((WORD *)apb->addr_in[0])[3],WF_CURRXYWH,
+                 &totsize.x,&totsize.y,&totsize.width,&totsize.height);
 	
-		((WORD *)apb->addr_in)[4] += totsize.x;
-		((WORD *)apb->addr_in)[5] += totsize.y;
-	};			
+    ((WORD *)apb->addr_in)[4] += totsize.x;
+    ((WORD *)apb->addr_in)[5] += totsize.y;
+  };			
 
-	apb->int_out[0] = 1;
+  apb->int_out[0] = 1;
 }
 
 /*0x0018 evnt_timer*/
@@ -291,7 +294,7 @@ void	Evnt_timer(AES_PB *apb) {
  *  Implementation of evnt_multi.                                           *
  ****************************************************************************/
 void                 /*                                                     */
-Evnt_do_multi(       /*                                                     */
+Evnt_do_multi_old(       /*                                                     */
 WORD     apid,       /* Application id.                                     */
 WORD     eventpipe,  /* Event message pipe.                                 */
 WORD     msgpipe,    /* AES message pipe.                                   */
@@ -513,7 +516,7 @@ WORD     level)      /* Number of times the function has been called by     */
         if((buf->type == WM_REDRAW) && (buf->sid == -1)) {	
           RECT totsize;
 			
-          Srv_wind_get(((WORD *)buf)[3],WF_CURRXYWH,
+          Wind_do_get (apid, ((WORD *)buf)[3],WF_CURRXYWH,
                        &totsize.x,&totsize.y,&totsize.width,&totsize.height);
 	
           buf->msg1 += totsize.x;
@@ -542,16 +545,50 @@ WORD     level)      /* Number of times the function has been called by     */
   };
 }
 
+
+/*
+** Description
+** Implementation of evnt_multi
+**
+** 1998-10-04 CG
+*/
+void
+Evnt_do_multi (WORD       apid,
+               WORD       eventpipe,
+               WORD       msgpipe,
+               EVENTIN  * eventin,
+               COMMSG   * msg,
+               EVENTOUT * eventout,
+               WORD       level)
+{
+  C_EVNT_MULTI par;
+  R_EVNT_MULTI ret;
+  
+  par.common.call = SRV_EVNT_MULTI;
+  par.common.apid = apid;
+  par.common.pid = getpid ();
+  par.eventin = *eventin;
+	
+  Client_send_recv (&par,
+                    sizeof (C_EVNT_MULTI),
+                    &ret,
+                    sizeof (R_EVNT_MULTI));
+
+  *msg = ret.msg;
+  *eventout = ret.eventout;
+}
+
+
 void Evnt_multi(AES_PB *apb) {
-	SRV_APPL_INFO appl_info;
-	
-	Srv_get_appl_info(apb->global->apid,&appl_info);
-	
-	Evnt_do_multi(apb->global->apid,
-			appl_info.eventpipe,
-			appl_info.msgpipe,
-			(EVENTIN *)apb->int_in,(COMMSG *)apb->addr_in[0],
-			(EVENTOUT *)apb->int_out,0);	
+  SRV_APPL_INFO appl_info;
+  
+  Srv_get_appl_info(apb->global->apid,&appl_info);
+  
+  Evnt_do_multi(apb->global->apid,
+                appl_info.eventpipe,
+                appl_info.msgpipe,
+                (EVENTIN *)apb->int_in,(COMMSG *)apb->addr_in[0],
+                (EVENTOUT *)apb->int_out,0);	
 }
 
 /*0x001a evnt_dclick*/

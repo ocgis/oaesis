@@ -51,6 +51,7 @@
 #include "resource.h"
 #include "srv_calls.h"
 #include "types.h"
+#include "wind.h"
 
 /****************************************************************************
  * Local functions (use static!)                                            *
@@ -170,7 +171,11 @@ void	Form_do(AES_PB *apb) {
 
 /*form_dial 0x0033*/
 
-WORD	Form_do_dial(WORD apid,WORD mode,RECT *r1,RECT *r2) {
+WORD
+Form_do_dial (WORD   apid,
+              WORD   mode,
+              RECT * r1,
+              RECT * r2) {
   GLOBAL_APPL * globals = get_globals (apid);
     
   switch(mode) {
@@ -187,24 +192,27 @@ WORD	Form_do_dial(WORD apid,WORD mode,RECT *r1,RECT *r2) {
       WORD id;
       WORD top_window,owner,dummy;
 				
-      Srv_wind_get(0,WF_TOP,&top_window,&owner,&dummy,&dummy);
+      Wind_do_get (apid, 0,WF_TOP,&top_window,&owner,&dummy,&dummy);
 				
       if(owner == apid) {
         WORD status;
 					
-        Srv_wind_get(top_window,WF_OWNER,&owner,&status,&dummy,&dummy);
+        Wind_do_get (apid, top_window,WF_OWNER,&owner,&status,&dummy,&dummy);
 					
         if(status & WIN_DIALOG) {
           Srv_wind_close(top_window);
 					
-          do_wind_delete(top_window);
+          Wind_do_delete (apid,
+                          top_window);
         };
       };
 
-      id = do_wind_create(apid,0
-                          ,r2,WIN_DIALOG);
+      id = Wind_do_create(apid,
+                          0,
+                          r2,
+                          WIN_DIALOG);
 				
-      Srv_wind_open(id,r2);
+      Wind_do_open (apid, id, r2);
 
       return 1;
     }
@@ -223,17 +231,18 @@ WORD	Form_do_dial(WORD apid,WORD mode,RECT *r1,RECT *r2) {
   {
     WORD top_window,owner,dummy;
 				
-    Srv_wind_get(0,WF_TOP,&top_window,&owner,&dummy,&dummy);
+    Wind_do_get (apid, 0,WF_TOP,&top_window,&owner,&dummy,&dummy);
 				
     if(owner == apid) {
       WORD status;
 					
-      Srv_wind_get(top_window,WF_OWNER,&owner,&status,&dummy,&dummy);
+      Wind_do_get (apid, top_window,WF_OWNER,&owner,&status,&dummy,&dummy);
 					
       if(status & WIN_DIALOG) {
         Srv_wind_close(top_window);
 				
-        do_wind_delete(top_window);
+        Wind_do_delete (apid,
+                        top_window);
       };
     };
 			
@@ -443,7 +452,7 @@ WORD	do_form_alert(WORD apid,WORD eventpipe,WORD def,BYTE *alertstring) {
     tree[i + 1 + no_rows].ob_width = buttonwidth;
   };
 	
-  Form_do_center(tree,&clip);
+  Form_do_center (apid,tree,&clip);
 
   Form_do_dial(apid,FMD_START,&clip,&clip);
 
@@ -531,18 +540,25 @@ void	Form_error(AES_PB *apb) {
 
 /*form_center 0x0036*/
 
-void	Form_do_center(OBJECT *tree,RECT *clip) {
+void
+Form_do_center (WORD     apid,
+                OBJECT * tree,
+                RECT   * clip) {
     WORD pw1, pw2, pw3, pw4;
 
-    Srv_wind_get(0, WF_WORKXYWH, &pw1, &pw2, &pw3, &pw4);
+    Wind_do_get (apid, 0, WF_WORKXYWH, &pw1, &pw2, &pw3, &pw4);
     tree[0].ob_x = pw1 + ((pw3 - tree[0].ob_width) >> 1);
     tree[0].ob_y = pw2 + ((pw4 - tree[0].ob_height) >> 1);
 	
 	Objc_area_needed(tree,0,clip);
 }
 
-void	Form_center(AES_PB *apb) {
-	Form_do_center((OBJECT *)apb->addr_in[0],(RECT *)&apb->int_out[1]);
+
+void
+Form_center (AES_PB *apb) {
+  Form_do_center (apb->global->apid,
+                  (OBJECT *)apb->addr_in[0],
+                  (RECT *)&apb->int_out[1]);
 };
 
 /****************************************************************************

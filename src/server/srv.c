@@ -185,10 +185,6 @@ static BYTE **environ;
 static AP_LIST *ap_pri = NULL;
 static WINLIST *win_vis = NULL;
 
-/****************************************************************************
- * Local functions (use static!)                                            *
- ****************************************************************************/
-
 /* This has to be fixed */
 void accstart (void) {}
 
@@ -202,14 +198,9 @@ C_APPL_EXIT * par,  /* Application id.                                      */
 R_APPL_EXIT * ret);
 /****************************************************************************/
 
-/****************************************************************************
- * srv_appl_write                                                           *
- *  Implementation of appl_write().                                         *
- ****************************************************************************/
-WORD                 /* 0 if ok, or 1.                                      */
-srv_appl_write(      /*                                                     */
-C_APPL_WRITE * msg); /* Id of application to receive message.               */
-/****************************************************************************/
+void
+srv_appl_write (C_APPL_WRITE * msg,
+                R_APPL_WRITE * ret);
 
 /****************************************************************************
  * srv_wind_find                                                            *
@@ -224,9 +215,10 @@ C_WIND_FIND *msg);
  * srv_wind_get                                                             *
  *  Implementation of wind_get().                                           *
  ****************************************************************************/
-static WORD    /* 0 if error or 1 if ok.                                    */
+void
 srv_wind_get(  /*                                                           */
-C_WIND_GET *msg);
+C_WIND_GET * msg,
+R_WIND_GET * ret);
 /****************************************************************************/
 
 /****************************************************************************
@@ -280,49 +272,49 @@ internal_appl_info( /*                                                      */
 WORD apid)          /* Id of application.                                   */
 /****************************************************************************/
 {
-	switch(apid) {
-	case TOP_APPL:
-		if(ap_pri) {
-			return ap_pri->ai;
-		}
-		else {
-			return NULL;
-		};
+  switch(apid) {
+  case TOP_APPL:
+    if(ap_pri) {
+      return ap_pri->ai;
+    }
+    else {
+      return NULL;
+    };
 
-	case DESK_OWNER:
-		{
-			AP_LIST *al = ap_pri;
+  case DESK_OWNER:
+  {
+    AP_LIST *al = ap_pri;
 			
-			while(al) {
-				if(al->ai->deskbg) {
-					return al->ai;
-				};
+    while(al) {
+      if(al->ai->deskbg) {
+        return al->ai;
+      };
 				
-				al = al->next;
-			};
-		};			
-		return NULL;
+      al = al->next;
+    };
+  };			
+  return NULL;
 
-	case TOP_MENU_OWNER:
-		{
-			AP_LIST *al = ap_pri;
+  case TOP_MENU_OWNER:
+  {
+    AP_LIST *al = ap_pri;
 			
-			while(al) {
-				if(al->ai->menu) {
-					return al->ai;
-				};
+    while(al) {
+      if(al->ai->menu) {
+        return al->ai;
+      };
 				
-				al = al->next;
-			};
-		};		
-		return NULL;
+      al = al->next;
+    };
+  };		
+  return NULL;
 	
-	default:
-		if(apps[apid].id == apid) {
-			return &apps[apid];
-		};
-		return NULL;
-	};
+  default:
+    if(apps[apid].id == apid) {
+      return &apps[apid];
+    };
+    return NULL;
+  };
 }
 
 
@@ -380,6 +372,10 @@ WORD alloc_only)    /* Should the structure only be allocated?              */
   al->ai->killtries = 0;
  
   al->ai->rshdr = 0L;
+
+  /* Message handling initialization */
+  al->ai->next_message = 0;
+  al->ai->number_of_messages = 0;
   
   if(!alloc_only) {
     al->next = ap_pri;
@@ -467,58 +463,58 @@ WORD                   /* Top application id.                               */
 update_appl_menu(void) /*                                                   */
 /****************************************************************************/
 {
-	AP_LIST *mwalk;	WORD    rwalk;
-	WORD    topappl;
+  AP_LIST *mwalk;	WORD    rwalk;
+  WORD    topappl;
 	
-	topappl = get_top_appl();
+  topappl = get_top_appl();
 
-	mwalk = globals.applmenu;
-	rwalk = PMENU_FIRST;
+  mwalk = globals.applmenu;
+  rwalk = PMENU_FIRST;
 	
-	while(mwalk) {
-		strcpy(globals.pmenutad[rwalk].ob_spec.free_string,mwalk->ai->name);
-		if(mwalk->ai->id == topappl) {			globals.pmenutad[rwalk].ob_state |= CHECKED;
-		}
-		else {
-			globals.pmenutad[rwalk].ob_state &= ~CHECKED;
-		};
+  while(mwalk) {
+    strcpy(globals.pmenutad[rwalk].ob_spec.free_string,mwalk->ai->name);
+    if(mwalk->ai->id == topappl) {			globals.pmenutad[rwalk].ob_state |= CHECKED;
+    }
+    else {
+      globals.pmenutad[rwalk].ob_state &= ~CHECKED;
+    };
 	
-		globals.pmenutad[rwalk].ob_flags &= ~HIDETREE;
-		globals.pmenutad[rwalk].ob_state &= ~DISABLED;
+    globals.pmenutad[rwalk].ob_flags &= ~HIDETREE;
+    globals.pmenutad[rwalk].ob_state &= ~DISABLED;
 
-		mwalk = mwalk->mn_next;		rwalk++;
-	};
+    mwalk = mwalk->mn_next;		rwalk++;
+  };
 	
-	if(globals.accmenu) {
-		strcpy(globals.pmenutad[rwalk].ob_spec.free_string,
-						"----------------------");
-		globals.pmenutad[rwalk].ob_flags &= ~HIDETREE;
-		globals.pmenutad[rwalk].ob_state &= ~CHECKED;
-		globals.pmenutad[rwalk].ob_state |= DISABLED;
-		rwalk++;
-	};
+  if(globals.accmenu) {
+    strcpy(globals.pmenutad[rwalk].ob_spec.free_string,
+           "----------------------");
+    globals.pmenutad[rwalk].ob_flags &= ~HIDETREE;
+    globals.pmenutad[rwalk].ob_state &= ~CHECKED;
+    globals.pmenutad[rwalk].ob_state |= DISABLED;
+    rwalk++;
+  };
 
-	mwalk = globals.accmenu;
+  mwalk = globals.accmenu;
 	
-	while(mwalk) {
-		strcpy(globals.pmenutad[rwalk].ob_spec.free_string,mwalk->ai->name);
-		if(mwalk->ai->id == topappl) {			globals.pmenutad[rwalk].ob_state |= CHECKED;
-		}
-		else {
-			globals.pmenutad[rwalk].ob_state &= ~CHECKED;
-		};
+  while(mwalk) {
+    strcpy(globals.pmenutad[rwalk].ob_spec.free_string,mwalk->ai->name);
+    if(mwalk->ai->id == topappl) {			globals.pmenutad[rwalk].ob_state |= CHECKED;
+    }
+    else {
+      globals.pmenutad[rwalk].ob_state &= ~CHECKED;
+    };
 	
-		globals.pmenutad[rwalk].ob_flags &= ~HIDETREE;
-		globals.pmenutad[rwalk].ob_state &= ~DISABLED;
+    globals.pmenutad[rwalk].ob_flags &= ~HIDETREE;
+    globals.pmenutad[rwalk].ob_state &= ~DISABLED;
 
-		mwalk = mwalk->mn_next;		rwalk++;
-	};
+    mwalk = mwalk->mn_next;		rwalk++;
+  };
 
-	globals.pmenutad[rwalk].ob_flags |= HIDETREE;
+  globals.pmenutad[rwalk].ob_flags |= HIDETREE;
 	
-	globals.pmenutad[0].ob_height = globals.pmenutad[rwalk].ob_y;
+  globals.pmenutad[0].ob_height = globals.pmenutad[rwalk].ob_y;
 	
-	return topappl;}
+  return topappl;}
 
 static void set_widget_colour(WINSTRUCT *win,WORD widget,
 			      OBJC_COLORWORD *untop,OBJC_COLORWORD *top) {
@@ -974,16 +970,17 @@ srv_click_owner(void)   /*                                                  */
     WORD        owner;
     C_WIND_FIND c_wind_find;
     C_WIND_GET  c_wind_get;
-    
+    R_WIND_GET  r_wind_get;
+
     c_wind_find.x = globals.mouse_x;
     c_wind_find.y = globals.mouse_y;
     srv_wind_find (&c_wind_find);
     
     c_wind_get.handle = c_wind_find.retval;
     c_wind_get.mode = WF_OWNER;
-    srv_wind_get(&c_wind_get);
-    owner = c_wind_get.parm1;
-    status = c_wind_get.parm2;
+    srv_wind_get (&c_wind_get, &r_wind_get);
+    owner = r_wind_get.parm1;
+    status = r_wind_get.parm2;
     
     if(status & WIN_DESKTOP) {
       AP_INFO *ai;
@@ -1130,14 +1127,16 @@ static void redraw_menu_bar(void) {
   if(menu) {
     RECT r;
     C_WIND_GET c_wind_get;
+    R_WIND_GET r_wind_get;
     
     c_wind_get.handle = mglob.winbar;
     c_wind_get.mode = WF_FIRSTXYWH;
-    srv_wind_get (&c_wind_get);
-    r = *((RECT *)&c_wind_get.parm1);
+    srv_wind_get (&c_wind_get, &r_wind_get);
+    r = *((RECT *)&r_wind_get.parm1);
 
     while((r.width > 0) && (r.height > 0)) {
       C_WIND_GET c_wind_get;
+      R_WIND_GET r_wind_get;
 
       /*
       Objc_do_draw(menu,0,9,&r);
@@ -1145,8 +1144,8 @@ static void redraw_menu_bar(void) {
 
       c_wind_get.handle = mglob.winbar;
       c_wind_get.mode = WF_NEXTXYWH;
-      srv_wind_get (&c_wind_get);
-      r = *((RECT *)&c_wind_get.parm1);
+      srv_wind_get (&c_wind_get, &r_wind_get);
+      r = *((RECT *)&r_wind_get.parm1);
     };
   };
 }
@@ -1347,6 +1346,7 @@ C_APPL_CONTROL * msg) /*                                                    */
       if((ai->newmsg & 0x1) && (ai->killtries < 20)) {
 	COMMSG       m;
 	C_APPL_WRITE c_appl_write;
+        R_APPL_WRITE r_appl_write;
 	
 	ai->killtries++;
 
@@ -1357,10 +1357,11 @@ C_APPL_CONTROL * msg) /*                                                    */
 	m.length = 0;
 	m.msg2 = AP_TERM;
 	
-	c_appl_write.apid = msg->apid;
+	c_appl_write.addressee = msg->apid;
 	c_appl_write.length = sizeof (COMMSG);
-	c_appl_write.msg = &m;
-	srv_appl_write (&c_appl_write);
+        c_appl_write.is_reference = TRUE;
+	c_appl_write.msg.ref = &m;
+	srv_appl_write (&c_appl_write, &r_appl_write);
       }
       else {
         C_APPL_EXIT par;
@@ -1638,40 +1639,85 @@ C_APPL_SEARCH *msg)
   return 0;
 }
 
-/****************************************************************************
- * srv_appl_write                                                           *
- *  Implementation of appl_write().                                         *
- ****************************************************************************/
-WORD                /* 0 if ok, or 1.                                       */
-srv_appl_write(     /*                                                      */
-C_APPL_WRITE * msg) /* Id of application to receive message.                */
-/****************************************************************************/
+/*
+** Description
+**  Implementation of appl_write().                                         *
+**
+** 1998-10-04 CG
+*/
+void
+srv_appl_write (C_APPL_WRITE * msg,
+                R_APPL_WRITE * ret)
 {
-  AP_INFO	*ai;
-  
-  ai = internal_appl_info(msg->apid);
-  
-  if(ai) {
-    LONG	pnr = Fopen(ai->msgname,1);
+  if (msg->length != sizeof (COMMSG)) {
+    DB_printf ("srv.c: srv_appl_write: Sorry, only standard messages supported yet");
+    ret->common.retval = 1;
+  } else {
+    AP_INFO	*ai;
+   
+    ai = internal_appl_info (msg->addressee);
     
-    if(pnr >= 0) {
-      if(Fwrite((WORD)pnr, msg->length, msg->msg) < 0) {
-	
-	return 0;
-      };
-      
-      Fclose((WORD)pnr);
+    if (ai != NULL) {
+      if (ai->number_of_messages < MAX_MSG) {
+        if (msg->is_reference) {
+          memcpy (&ai->messages[(ai->next_message + ai->number_of_messages)
+                               % MAX_MSG],
+                  msg->msg.ref,
+                  msg->length);
+        } else {
+          ai->messages[(ai->next_message + ai->number_of_messages) % MAX_MSG] =
+            msg->msg.event;
+        }
+        ai->number_of_messages++;
+
+        ret->common.retval = 0;
+      } else {
+        ret->common.retval = 1;
+      }
+    } else {
+      ret->common.retval = 1;
     }
-    else {
-      return 0;
-    };
-  }
-  else {
-    return 0;
-  };
-  
-  return 1;
+  }    
 }
+
+
+/*
+** Description
+** Server part of evnt_multi
+**
+** 1998-10-04 CG
+*/
+void
+srv_evnt_multi (
+C_EVNT_MULTI * par,
+R_EVNT_MULTI * ret)
+{
+  /* Reset event flag */
+  ret->eventout.events = 0;
+
+  if (par->eventin.events & MU_MESAG) {
+    /* Check for new messages */
+    AP_INFO * ai = internal_appl_info (par->common.apid);
+
+    if (ai != NULL) {
+      if (ai->number_of_messages > 0) {
+        DB_printf ("srv.c: srv_evnt_multi: New message");
+        ret->msg = ai->messages[ai->next_message];
+        ai->next_message = (ai->next_message + 1) % MAX_MSG;
+        ai->number_of_messages--;
+        ret->eventout.events |= MU_MESAG;
+      } else {
+        /*
+        DB_printf ("srv.c: srv_evnt_multi: No new messages");
+        */
+      }
+    }
+  }
+
+  /* Cheat for now and always return MU_TIMER */
+  ret->eventout.events |= MU_TIMER;
+}
+
 
 
 /****************************************************************************
@@ -2275,73 +2321,82 @@ static WORD	changeslider(WINSTRUCT *win,WORD redraw,WORD which,
 	return 1;
 }
 
-/*setwinsize sets the size and position of window win to size*/
+/*
+** Description
+** setwinsize sets the size and position of window win to size
+**
+** 1998-10-04 CG
+*/
+static
+void
+setwinsize (WINSTRUCT * win,
+            RECT      * size) {
+  WORD	dx,dy,dw,dh;
 
-static void	setwinsize(WINSTRUCT *win,RECT *size) {
-	WORD	dx,dy,dw,dh;
+  win->lastsize = win->totsize;
+	
+  win->totsize = * size;
+	
+  dx = size->x - win->lastsize.x;
+  dy = size->y - win->lastsize.y;
+  dw = size->width - win->lastsize.width;
+  dh = size->height - win->lastsize.height;
+	
+  win->worksize.x += dx;
+  win->worksize.y += dy;
+  win->worksize.width += dw;
+  win->worksize.height += dh;
 
-	win->lastsize = win->totsize;
+  /*
+  if(win->tree) {
+    win->tree[0].ob_x = win->totsize.x;
+    win->tree[0].ob_y = win->totsize.y;
+    win->tree[0].ob_width = win->totsize.width;
+    win->tree[0].ob_height = win->totsize.height;
 	
-	win->totsize = *size;
-	
-	dx = size->x - win->lastsize.x;
-	dy = size->y - win->lastsize.y;
-	dw = size->width - win->lastsize.width;
-	dh = size->height - win->lastsize.height;
-	
-	win->worksize.x += dx;
-	win->worksize.y += dy;
-	win->worksize.width += dw;
-	win->worksize.height += dh;
-
-	if(win->tree) {
-		win->tree[0].ob_x = win->totsize.x;
-		win->tree[0].ob_y = win->totsize.y;
-		win->tree[0].ob_width = win->totsize.width;
-		win->tree[0].ob_height = win->totsize.height;
-	
-		win->tree[WMOVER].ob_width += dw;
+    win->tree[WMOVER].ob_width += dw;
 		
-		win->tree[WFULLER].ob_x += dw;
+    win->tree[WFULLER].ob_x += dw;
 
-		win->tree[WSMALLER].ob_x += dw;
+    win->tree[WSMALLER].ob_x += dw;
 	
-		win->tree[WDOWN].ob_x += dw;
-		win->tree[WDOWN].ob_y += dh;	
+    win->tree[WDOWN].ob_x += dw;
+    win->tree[WDOWN].ob_y += dh;	
 	
-		win->tree[WSIZER].ob_x += dw;
-		win->tree[WSIZER].ob_y += dh;	
+    win->tree[WSIZER].ob_x += dw;
+    win->tree[WSIZER].ob_y += dh;	
 	
-		win->tree[WRIGHT].ob_x += dw;
-		win->tree[WRIGHT].ob_y += dh;	
+    win->tree[WRIGHT].ob_x += dw;
+    win->tree[WRIGHT].ob_y += dh;	
 	
-		win->tree[WLEFT].ob_y += dh;	
+    win->tree[WLEFT].ob_y += dh;	
 	
-		win->tree[WVSB].ob_x += dw;
-		win->tree[WVSB].ob_height += dh;	
+    win->tree[WVSB].ob_x += dw;
+    win->tree[WVSB].ob_height += dh;	
 	
-		win->tree[WHSB].ob_y += dh;
-		win->tree[WHSB].ob_width += dw;	
+    win->tree[WHSB].ob_y += dh;
+    win->tree[WHSB].ob_width += dw;	
 	
-		win->tree[WINFO].ob_width += dw;
+    win->tree[WINFO].ob_width += dw;
 		
-		win->tree[WUP].ob_x += dw;
+    win->tree[WUP].ob_x += dw;
 		
-		win->tree[TFILLOUT].ob_width += dw;
+    win->tree[TFILLOUT].ob_width += dw;
 	
-		win->tree[RFILLOUT].ob_height += dh;
-		win->tree[RFILLOUT].ob_x += dw;
+    win->tree[RFILLOUT].ob_height += dh;
+    win->tree[RFILLOUT].ob_x += dw;
 	
-		win->tree[BFILLOUT].ob_width += dw;
-		win->tree[BFILLOUT].ob_y += dy;
+    win->tree[BFILLOUT].ob_width += dw;
+    win->tree[BFILLOUT].ob_y += dy;
 	
-		win->tree[SFILLOUT].ob_x += dw;
-		win->tree[SFILLOUT].ob_y += dh;
+    win->tree[SFILLOUT].ob_x += dw;
+    win->tree[SFILLOUT].ob_y += dh;
 
-		win->tree[WAPP].ob_width = win->tree[WMOVER].ob_width;
+    win->tree[WAPP].ob_width = win->tree[WMOVER].ob_width;
 		
-		changeslider(win,0,HSLIDE | VSLIDE,-1,-1);
-	};
+    changeslider(win,0,HSLIDE | VSLIDE,-1,-1);
+  }
+  */
 }
 
 /*winalloc creates/fetches a free window structure/id*/
@@ -2445,6 +2500,7 @@ static WORD	changewinsize(WINSTRUCT *win,RECT *size,WORD vid,WORD drawall) {
 	
 	if(drawall) {
 	  C_APPL_WRITE c_appl_write;
+	  R_APPL_WRITE r_appl_write;
 
 	  m.type = WM_REDRAW;
 	  
@@ -2467,10 +2523,11 @@ static WORD	changewinsize(WINSTRUCT *win,RECT *size,WORD vid,WORD drawall) {
 	    m.area.y = 0;
 	  };
 	  
-	  c_appl_write.apid = win->owner;
+	  c_appl_write.addressee = win->owner;
 	  c_appl_write.length = 16;
-	  c_appl_write.msg = &m;
-	  srv_appl_write(&c_appl_write);
+          c_appl_write.is_reference = TRUE;
+	  c_appl_write.msg.ref = &m;
+	  srv_appl_write (&c_appl_write, &r_appl_write);
 	}
 	else {			
 	  /*figure out which rectangles that are moveable*/
@@ -2545,6 +2602,7 @@ static WORD	changewinsize(WINSTRUCT *win,RECT *size,WORD vid,WORD drawall) {
 	  
 	  while(rlwalk) {
 	    C_APPL_WRITE c_appl_write;
+            R_APPL_WRITE r_appl_write;
 
 	    m.area.x = rlwalk->r.x;
 	    m.area.y = rlwalk->r.y;
@@ -2559,10 +2617,11 @@ static WORD	changewinsize(WINSTRUCT *win,RECT *size,WORD vid,WORD drawall) {
 	      m.area.y -= size->y;
 	    };
 	    
-	    c_appl_write.apid = win->owner;
+	    c_appl_write.addressee = win->owner;
 	    c_appl_write.length = 16;
-	    c_appl_write.msg = &m;
-	    srv_appl_write(&c_appl_write);
+            c_appl_write.is_reference = TRUE;
+	    c_appl_write.msg.ref = &m;
+	    srv_appl_write (&c_appl_write, &r_appl_write);
 	    
 	    rlwalk = rlwalk->next;
 	  };
@@ -2599,6 +2658,7 @@ static WORD	changewinsize(WINSTRUCT *win,RECT *size,WORD vid,WORD drawall) {
 	  
 	  if(rltheirnew && !(wlwalk->win->status & WIN_DESKTOP)) {
 	    C_APPL_WRITE c_appl_write;
+            R_APPL_WRITE r_appl_write;
 
 	    m.type = WM_REDRAW;
 	    
@@ -2619,11 +2679,12 @@ static WORD	changewinsize(WINSTRUCT *win,RECT *size,WORD vid,WORD drawall) {
 	      m.area.y -= wlwalk->win->totsize.y;
 	    };
 	    
-	    c_appl_write.apid = wlwalk->win->owner;
+	    c_appl_write.addressee = wlwalk->win->owner;
 	    c_appl_write.length = 16;
-	    c_appl_write.msg = &m;
-	    srv_appl_write(&c_appl_write);
-	  };
+            c_appl_write.is_reference = TRUE;
+	    c_appl_write.msg.ref = &m;
+	    srv_appl_write (&c_appl_write, &r_appl_write);
+	  }
 	  
 	  Rlist_insert(&wlwalk->win->rlist,&rltheirnew);
 	  
@@ -2733,7 +2794,8 @@ static WORD	changewinsize(WINSTRUCT *win,RECT *size,WORD vid,WORD drawall) {
 
 	if(rd && !(wl->win->status & WIN_DESKTOP)) {
 	  C_APPL_WRITE c_appl_write;
-
+          R_APPL_WRITE r_appl_write;
+          
 	  m.wid = wl->win->id;
 	  
 	  m.area = oldtotsize;
@@ -2743,10 +2805,11 @@ static WORD	changewinsize(WINSTRUCT *win,RECT *size,WORD vid,WORD drawall) {
 	    m.area.y -= wl->win->totsize.y;
 	  };
 
-	  c_appl_write.apid = wl->win->owner;
+	  c_appl_write.addressee = wl->win->owner;
 	  c_appl_write.length = 16;
-	  c_appl_write.msg = &m;
-	  srv_appl_write(&c_appl_write);
+          c_appl_write.is_reference = TRUE;
+	  c_appl_write.msg.ref = &m;
+	  srv_appl_write (&c_appl_write, &r_appl_write);
 	};
 	
 	Rlist_insert(&wl->win->rlist,&rd);
@@ -2775,6 +2838,7 @@ static WORD	changewinsize(WINSTRUCT *win,RECT *size,WORD vid,WORD drawall) {
       
       while(rl2) {
 	C_APPL_WRITE c_appl_write;
+        R_APPL_WRITE r_appl_write;
 
 	m.area.x = rl2->r.x;
 	m.area.y = rl2->r.y;
@@ -2787,10 +2851,11 @@ static WORD	changewinsize(WINSTRUCT *win,RECT *size,WORD vid,WORD drawall) {
 	m.area.width = rl2->r.width;
 	m.area.height = rl2->r.height;
 	
-	c_appl_write.apid = win->owner;
+	c_appl_write.addressee = win->owner;
 	c_appl_write.length = 16;
-	c_appl_write.msg = &m;
-	srv_appl_write (&c_appl_write);
+        c_appl_write.is_reference = TRUE;
+	c_appl_write.msg.ref = &m;
+	srv_appl_write (&c_appl_write, &r_appl_write);
 	
 	rl2 = rl2->next;
       };
@@ -2874,6 +2939,7 @@ static WORD	bottom_window(WORD winid) {
     
     if(!((*wl)->win->status & WIN_MENU)) {
       C_APPL_WRITE c_appl_write;
+      R_APPL_WRITE r_appl_write;
 
       m.wid = (*wl)->win->id;
       
@@ -2892,10 +2958,11 @@ static WORD	bottom_window(WORD winid) {
 	m.area.y -= (*wl)->win->totsize.y;
       };
 
-      c_appl_write.apid = (*wl)->win->owner;
+      c_appl_write.addressee = (*wl)->win->owner;
       c_appl_write.length = 16;
-      c_appl_write.msg = &m;
-      srv_appl_write(&c_appl_write);
+      c_appl_write.is_reference = TRUE;
+      c_appl_write.msg.ref = &m;
+      srv_appl_write (&c_appl_write, &r_appl_write);
     };
     
     wl = &(*wl)->next;
@@ -3029,6 +3096,7 @@ static WORD top_window(WORD winid) {
     
     while(rl) {
       C_APPL_WRITE c_appl_write;
+      R_APPL_WRITE r_appl_write;
 
       m.area.x = rl->r.x;
       m.area.y = rl->r.y;
@@ -3045,10 +3113,11 @@ static WORD top_window(WORD winid) {
 	m.area.y -= dy;
       };
 
-      c_appl_write.apid = ourwl->win->owner;
+      c_appl_write.addressee = ourwl->win->owner;
       c_appl_write.length = 16;
-      c_appl_write.msg = &m;
-      srv_appl_write (&c_appl_write);
+      c_appl_write.is_reference = TRUE;
+      c_appl_write.msg.ref = &m;
+      srv_appl_write (&c_appl_write, &r_appl_write);
       
       rl = rl->next;
     };
@@ -3142,6 +3211,7 @@ C_WIND_CLOSE *msg)
       
       if(rl) {
 	C_APPL_WRITE c_appl_write;
+        R_APPL_WRITE r_appl_write;
 
 	if(!(wp->win->status & (WIN_DESKTOP | WIN_MENU))) {
 	  m.type = WM_REDRAW;
@@ -3162,11 +3232,12 @@ C_WIND_CLOSE *msg)
 	  m.area.width = (*wl)->win->totsize.width;
 	  m.area.height = (*wl)->win->totsize.height;	
 
-	  c_appl_write.apid = wp->win->owner;
+	  c_appl_write.addressee = wp->win->owner;
 	  c_appl_write.length = 16;
-	  c_appl_write.msg = &m;
+          c_appl_write.is_reference = TRUE;
+	  c_appl_write.msg.ref = &m;
 
-	  srv_appl_write(&c_appl_write);
+	  srv_appl_write (&c_appl_write, &r_appl_write);
 	};
 	
 	if(wp->win != newtop) {
@@ -3426,81 +3497,81 @@ C_WIND_FIND *msg)
  * srv_wind_get                                                             *
  *  Implementation of wind_get().                                           *
  ****************************************************************************/
-static WORD    /* 0 if error or 1 if ok.                                    */
+void
 srv_wind_get(  /*                                                           */
-C_WIND_GET *msg)
+C_WIND_GET * msg,
+R_WIND_GET * ret)
 /****************************************************************************/
 {
   WINSTRUCT	*win;
-  WORD      ret;
   
   win = find_wind_description(msg->handle);
   
   if(win) {
     switch(msg->mode) {	
     case WF_KIND: /* 0x0001 */
-      ret = 1;
-      msg->parm1 = win->elements;
+      ret->common.retval = 1;
+      ret->parm1 = win->elements;
       break;
       
     case WF_WORKXYWH	:	/*0x0004*/
-      ret = 1;
-      msg->parm1 = win->worksize.x;
-      msg->parm2 = win->worksize.y;
-      msg->parm3 = win->worksize.width;
-      msg->parm4 = win->worksize.height;
+      ret->common.retval = 1;
+      ret->parm1 = win->worksize.x;
+      ret->parm2 = win->worksize.y;
+      ret->parm3 = win->worksize.width;
+      ret->parm4 = win->worksize.height;
       break;
       
     case	WF_CURRXYWH	:	/*0x0005*/
-      ret = 1;
-      msg->parm1 = win->totsize.x;
-      msg->parm2 = win->totsize.y;
-      msg->parm3 = win->totsize.width;
-      msg->parm4 = win->totsize.height;
+      ret->common.retval = 1;
+      ret->parm1 = win->totsize.x;
+      ret->parm2 = win->totsize.y;
+      ret->parm3 = win->totsize.width;
+      ret->parm4 = win->totsize.height;
 				break;
       
     case	WF_PREVXYWH	:	/*0x0006*/
-      ret = 1;
-      msg->parm1 = win->lastsize.x;
-      msg->parm2 = win->lastsize.y;
-      msg->parm3 = win->lastsize.width;
-      msg->parm4 = win->lastsize.height;
+      ret->common.retval = 1;
+      ret->parm1 = win->lastsize.x;
+      ret->parm2 = win->lastsize.y;
+      ret->parm3 = win->lastsize.width;
+      ret->parm4 = win->lastsize.height;
       break;
       
     case	WF_FULLXYWH	:	/*0x0007*/
-      ret = 1;
-      msg->parm1 = win->maxsize.x;
-      msg->parm2 = win->maxsize.y;
-      msg->parm3 = win->maxsize.width;
-      msg->parm4 = win->maxsize.height;
+      ret->common.retval = 1;
+      ret->parm1 = win->maxsize.x;
+      ret->parm2 = win->maxsize.y;
+      ret->parm3 = win->maxsize.width;
+      ret->parm4 = win->maxsize.height;
       break;
       
     case WF_HSLIDE: /*0x08*/
-      ret = 1;
-      msg->parm1 = win->hslidepos;
+      ret->common.retval = 1;
+      ret->parm1 = win->hslidepos;
       break;
       
     case WF_VSLIDE: /*0x09*/
-      ret = 1;
-      msg->parm1 = win->vslidepos;
+      ret->common.retval = 1;
+      ret->parm1 = win->vslidepos;
       break;
       
     case WF_TOP: /*0x000a*/
       if(win_vis) {
-	msg->parm1 = win_vis->win->id;
-	msg->parm2 = win_vis->win->owner;
+	ret->parm1 = win_vis->win->id;
+	ret->parm2 = win_vis->win->owner;
 	
 	if(win_vis && win_vis->next) {
-	  msg->parm3 = win_vis->next->win->id;
+	  ret->parm3 = win_vis->next->win->id;
 	}
 	else {
-	  msg->parm3 = -1;
+	  ret->parm3 = -1;
 	};
 	
-	ret = 1;
+	ret->common.retval = 1;
       }
       else {
-	ret = 0;
+	ret->common.retval = 0;
       };
       break;
       
@@ -3510,7 +3581,7 @@ C_WIND_GET *msg)
       {
 	RECT r;
 	
-	ret = 1;
+	ret->common.retval = 1;
 	
 	while(win->rpos) {
 	  if(Misc_intersect(&win->rpos->r,&win->worksize,&r)) {
@@ -3521,57 +3592,57 @@ C_WIND_GET *msg)
 	};					
 	
 	if(!win->rpos) {
-	  msg->parm1 = 0;
-	  msg->parm2 = 0;
-	  msg->parm3 = 0;
-	  msg->parm4 = 0;
+	  ret->parm1 = 0;
+	  ret->parm2 = 0;
+	  ret->parm3 = 0;
+	  ret->parm4 = 0;
 	}
 	else {
 	  win->rpos = win->rpos->next;
 	  
-	  msg->parm1 = r.x;
-	  msg->parm2 = r.y;
-	  msg->parm3 = r.width;
-	  msg->parm4 = r.height;
+	  ret->parm1 = r.x;
+	  ret->parm2 = r.y;
+	  ret->parm3 = r.width;
+	  ret->parm4 = r.height;
 	};
       };
       break;
       
     case WF_HSLSIZE: /*0x0f*/
-      ret = 1;
-      msg->parm1 = win->hslidesize;
+      ret->common.retval = 1;
+      ret->parm1 = win->hslidesize;
       break;				
       
     case WF_VSLSIZE: /*0x10*/
-      ret = 1;
-      msg->parm1 = win->vslidesize;
+      ret->common.retval = 1;
+      ret->parm1 = win->vslidesize;
       break;				
       
     case WF_SCREEN: /*0x11*/
-      ret = 1;
-      msg->parm1 = 0;
-      msg->parm2 = 0;
-      msg->parm3 = 0;
-      msg->parm4 = 0;
+      ret->common.retval = 1;
+      ret->parm1 = 0;
+      ret->parm2 = 0;
+      ret->parm3 = 0;
+      ret->parm4 = 0;
       break;
       
     case WF_OWNER: /*0x14*/
       if(win) {
-	ret = 1;
-	msg->parm1 = win->owner;
-	msg->parm2 = win->status;
+	ret->common.retval = 1;
+	ret->parm1 = win->owner;
+	ret->parm2 = win->status;
 	
 	if(win->status & WIN_OPEN) {
 	  WINLIST *wl = win_vis;
 	  
 	  
 	  if(wl->win == win) {
-	    msg->parm3 = -1;
+	    ret->parm3 = -1;
 	  }
 	  else if(wl) {
 	    while(wl->next) {
 	      if(wl->next->win == win) {
-		msg->parm3 = wl->win->id;
+		ret->parm3 = wl->win->id;
 		break;
 	      };
 	      
@@ -3585,51 +3656,51 @@ C_WIND_GET *msg)
 	    wl = wl->next;
 	    
 	    if(wl) {
-	      msg->parm4 = wl->win->id;
+	      ret->parm4 = wl->win->id;
 	    }
 	    else {
-	      msg->parm4 = -1;
+	      ret->parm4 = -1;
 	    };
 						}
 	  else {
-	    msg->parm4 = -1;
+	    ret->parm4 = -1;
 	  };							
 	}
 	else {
-	  msg->parm3 = -1;
-	  msg->parm4 = -1;
+	  ret->parm3 = -1;
+	  ret->parm4 = -1;
 	};
       }
       else {
-	ret = 0;
+	ret->common.retval = 0;
       };
       break;
       
     case WF_ICONIFY: /* 0x1a */
       if(win->status & WIN_ICONIFIED) {
-	msg->parm1 = 1;
+	ret->parm1 = 1;
       }
       else {
-	msg->parm1 = 0;
+	ret->parm1 = 0;
       };
       
-      msg->parm2 = globals.icon_width;
-      msg->parm3 = globals.icon_height;
+      ret->parm2 = globals.icon_width;
+      ret->parm3 = globals.icon_height;
       
-      ret = 1;
+      ret->common.retval = 1;
       break;
       
     case WF_UNICONIFY: /* 0x1b */
-      ret = 1;
-      msg->parm1 = win->origsize.x;
-      msg->parm2 = win->origsize.y;
-      msg->parm3 = win->origsize.width;
-      msg->parm4 = win->origsize.height;
+      ret->common.retval = 1;
+      ret->parm1 = win->origsize.x;
+      ret->parm2 = win->origsize.y;
+      ret->parm3 = win->origsize.width;
+      ret->parm4 = win->origsize.height;
       break;
       
     case WF_WINX:
     case WF_WINXCFG:
-      ret = 0;
+      ret->common.retval = 0;
       break;
       
     default:
@@ -3637,11 +3708,11 @@ C_WIND_GET *msg)
 		"Unknown mode %d  (0x%x) wind_get(%d,%d,...)",
 		__FILE__,__LINE__,msg->mode,msg->mode,
 		msg->handle,msg->mode);
-      ret = 0;
+      ret->common.retval = 0;
     };
   }
   else
-    ret = 0;
+    ret->common.retval = 0;
   
   return ret;
 }
@@ -3650,9 +3721,10 @@ C_WIND_GET *msg)
  * srv_wind_open                                                            *
  *  Implementation of wind_open().                                          *
  ****************************************************************************/
-WORD               /* 0 if error or 1 if ok.                                */
+void
 srv_wind_open(     /*                                                       */
-C_WIND_OPEN * msg) /*                                                       */
+C_WIND_OPEN * msg,
+R_WIND_OPEN * ret)
 /****************************************************************************/
 {
   WINLIST      *wl,*wp;
@@ -3663,7 +3735,7 @@ C_WIND_OPEN * msg) /*                                                       */
   WORD         i;
   WORD         wastopped = 0;
 
-  ws = find_wind_description(msg->id);
+  ws = find_wind_description (msg->id);
   
   if(ws) {
     if(!(ws->status & WIN_OPEN)) {
@@ -3671,15 +3743,16 @@ C_WIND_OPEN * msg) /*                                                       */
       
       wl->win = ws;
       
-      setwinsize(wl->win, msg->size);
+      DB_printf ("srv.c: srv_wind_open: call setwinsize");
+      setwinsize (wl->win, &msg->size);
+      DB_printf ("srv.c: srv_wind_open: returned from setwinsize");
       
       if(win_vis) {
 	if(win_vis->win->status & WIN_DIALOG) {
 	  wl->next = win_vis->next;
 	  win_vis->next = wl;
 	  wl->win->status &= ~WIN_TOPPED;
-	}
-	else {					
+	} else {					
 	  oldtop = win_vis->win;
 	  wl->next = win_vis;
 	  win_vis = wl;
@@ -3690,8 +3763,7 @@ C_WIND_OPEN * msg) /*                                                       */
 	    wastopped = 1;
 	  };
 	};
-      }
-      else {	
+      } else {	
 	wl->next = 0L;
 	win_vis = wl;
 	wl->win->status |= WIN_TOPPED;
@@ -3708,33 +3780,38 @@ C_WIND_OPEN * msg) /*                                                       */
 	
 	wp->win->rlist = rd;
 	wp = wp->next;
-      };
+      }
       
       wl->win->rlist = 0L;
       Rlist_insert(&wl->win->rlist,&rl);
       
       wl->win->status |= WIN_OPEN;
       
+      /*
       for(i = 0; i <= W_SMALLER; i++) {
 	set_widget_colour(ws,i,&ws->untop_colour[i],&ws->top_colour[i]);
       };
+      */
       
       if(!(wl->win->status & (WIN_DIALOG | WIN_MENU))){
 	C_APPL_WRITE c_appl_write;
+        R_APPL_WRITE r_appl_write;
 
 	m.type = WM_REDRAW;
 	m.length = 0;
-	
-	if(globals.realmove) {
-	  m.sid = -1;
-	  m.area.x = 0; /*x and y are relative to the position of the window*/
-	  m.area.y = 0;
-	}
-	else {
-	  m.sid = 0;
-	  m.area.x = wl->win->totsize.x;
-	  m.area.y = wl->win->totsize.y;
-	};
+        
+	/*
+          if(globals.realmove) {
+        m.sid = -1; */
+        /*x and y are relative to the position of the window*/
+        /*	  m.area.x = 0;
+                  m.area.y = 0;
+          } else {
+        */
+        m.sid = 0;
+        m.area.x = wl->win->totsize.x;
+        m.area.y = wl->win->totsize.y;
+        /*	}*/
 	
 	m.area.width = wl->win->totsize.width;
 	m.area.height = wl->win->totsize.height;
@@ -3743,13 +3820,18 @@ C_WIND_OPEN * msg) /*                                                       */
 	
 	owner = wl->win->owner;
 	
-	draw_wind_elements(wl->win,&wl->win->totsize,0);				
-	c_appl_write.apid = owner;
+        /*
+	draw_wind_elements(wl->win,&wl->win->totsize,0);
+        */
+
+	c_appl_write.addressee = owner;
 	c_appl_write.length = MSG_LENGTH;
-	c_appl_write.msg = &m;
-	srv_appl_write (&c_appl_write);
-      };
+        c_appl_write.is_reference = TRUE;
+	c_appl_write.msg.ref = &m;
+	srv_appl_write (&c_appl_write, &r_appl_write);
+      }
       
+      /*
       if(wastopped) {
 	WORD           i;
 	C_APPL_CONTROL c_appl_control;
@@ -3757,25 +3839,92 @@ C_WIND_OPEN * msg) /*                                                       */
 	for(i = 0; i <= W_SMALLER; i++) {
 	  set_widget_colour(oldtop,i,&oldtop->untop_colour[i],
 			    &oldtop->top_colour[i]);
-	};
+	}
 	
-	draw_wind_elements(oldtop,&oldtop->totsize,0);
+	draw_wind_elements (oldtop,&oldtop->totsize,0);
 	
 	c_appl_control.apid = wl->win->owner;
 	c_appl_control.mode = APC_TOP;
 	srv_appl_control(&c_appl_control);
-      };
+      }
+      */
     }
     else {
-      return 0;
-    };
+      ret->common.retval = 0;
+    }
   }
   else {
-    return 0;
-  };
+    ret->common.retval = 0;
+  }
   
-  return 1;
+  ret->common.retval = 1;
 }
+
+
+/*
+** Description
+** Server part of wind_update
+**
+** 1998-10-04 CG
+*/
+void
+srv_wind_update (C_WIND_UPDATE * msg,
+                 R_WIND_UPDATE * ret)
+{
+  static WORD update_lock = 0,update_cnt = 0;
+  static WORD mouse_lock,mouse_cnt = 0;
+
+  /*  WORD clnt_pid = Pgetpid();*/
+  /*  long timeout = (mode & 0x100) ? 0L : -1L;*/ /* test for check-and-set mode */
+  
+  switch(msg->mode) {
+  case BEG_UPDATE:	/* Grab the update lock */
+  case BEG_UPDATE | 0x100:
+    if (update_cnt > 0) {
+      if (update_lock == msg->common.apid) {
+        update_cnt++ ;
+      } else {
+        DB_printf ("srv.c: srv_wind_update: Real locking not implemented yet");
+      }
+    } else {
+      update_lock = msg->common.apid;
+      update_cnt = 1;
+    }
+    break;
+  
+  case END_UPDATE:
+    if (update_lock == msg->common.apid) {
+      update_cnt--;
+    } else {
+      DB_printf ("srv.c: srv_wind_update: Called END_UPDATE by other application");
+    }
+    break;
+  
+  case BEG_MCTRL:		/* Grab the mouse lock */
+  case BEG_MCTRL | 0x100:
+    if (mouse_lock == msg->common.apid) {
+      mouse_cnt++ ;
+      break ;
+    }
+     
+    /*    if (Psemaphore(2,MOUSE_LOCK,timeout) == -EACCESS) {
+      return 0;	 mouse locked by different process 
+    }*/
+    
+    mouse_lock=msg->common.apid;
+    mouse_cnt=1 ;
+    break;
+    
+  case END_MCTRL:
+    if ((mouse_lock == msg->common.apid) && (--mouse_cnt==0)) {
+      mouse_lock=FALSE;
+      /*      Psemaphore(3,MOUSE_LOCK,0);*/
+    }
+  }
+
+  ret->common.retval = 1;
+}
+
 
 /*wind_set 0x0069*/
 WORD srv_wind_set(WORD apid, C_WIND_SET *msg) {
@@ -3996,7 +4145,9 @@ static WORD server(LONG arg) {
   C_WIND_CREATE c_wind_create;
   R_WIND_CREATE r_wind_create;
   C_WIND_GET    c_wind_get;
+  R_WIND_GET    r_wind_get;
   C_WIND_OPEN   c_wind_open;
+  R_WIND_OPEN   r_wind_open;
 
   /* These variables are passed from clients */
   WORD          client_pid;
@@ -4021,8 +4172,8 @@ static WORD server(LONG arg) {
   
   c_wind_get.handle = 0;
   c_wind_get.mode = WF_FULLXYWH;
-  srv_wind_get (&c_wind_get);
-  r = *((RECT *)&c_wind_get.parm1);
+  srv_wind_get (&c_wind_get, &r_wind_get);
+  r = *((RECT *)&r_wind_get.parm1);
 
   r.height = r.y;
   r.y = 0;
@@ -4036,8 +4187,9 @@ static WORD server(LONG arg) {
   mglob.winbar = r_wind_create.common.retval;
 
   c_wind_open.id = mglob.winbar;
-  c_wind_open.size = &r;
-  srv_wind_open(&c_wind_open);
+  c_wind_open.size = r;
+  srv_wind_open (&c_wind_open,
+                 &r_wind_open);
   
   while(1) {
     
@@ -4046,9 +4198,9 @@ static WORD server(LONG arg) {
 #endif
 
     /* Wait for another call from a client */
-    fprintf (stderr, "oaesis: srv.c: Waiting for message from client\n");
+    /* DB_printf ("srv.c: Waiting for message from client");*/
     handle = Srv_get (&par, sizeof (C_SRV));
-    fprintf (stderr, "oaesis: srv.c: Got message from client\n");
+    /* DB_printf ("srv.c: Got message from client");*/
     
 #ifdef SRV_DEBUG
     DB_printf("Call: %d pid: %d",msg.cr.call,msg.pid);
@@ -4099,9 +4251,9 @@ static WORD server(LONG arg) {
       break;
       
     case SRV_APPL_WRITE:
-      code = srv_appl_write (&par.appl_write);
+      srv_appl_write (&par.appl_write, &ret.appl_write);
       
-      Srv_reply (handle, &par, code);
+      Srv_reply (handle, &ret, sizeof (R_APPL_WRITE));
       break;
       
     case SRV_CLICK_OWNER:
@@ -4109,6 +4261,12 @@ static WORD server(LONG arg) {
 	srv_click_owner();
       
       Srv_reply (handle, &par, code);
+      break;
+      
+    case SRV_EVNT_MULTI:
+      srv_evnt_multi (&par.evnt_multi, &ret.evnt_multi);
+      
+      Srv_reply (handle, &ret, sizeof (R_EVNT_MULTI));
       break;
       
     case SRV_GET_APPL_INFO:
@@ -4208,10 +4366,10 @@ static WORD server(LONG arg) {
       break;
       
     case SRV_WIND_GET:
-      code = 
-	srv_wind_get (&par.wind_get);
+      srv_wind_get (&par.wind_get,
+                    &ret.wind_get);
       
-      Srv_reply (handle, &par, code);
+      Srv_reply (handle, &ret, sizeof (R_WIND_GET));
       break;
       
     case SRV_WIND_NEW:
@@ -4222,10 +4380,11 @@ static WORD server(LONG arg) {
       break;
       
     case SRV_WIND_OPEN:
-      code = 
-	srv_wind_open(&par.wind_open);
+      DB_printf ("srv.c: server: srv_wind_open will be called");
+      srv_wind_open (&par.wind_open, &ret.wind_open);
       
-      Srv_reply (handle, &par, code);
+      Srv_reply (handle, &ret, sizeof (R_WIND_OPEN));
+      DB_printf ("srv.c: server: srv_wind_open reply sent");
       break;
       
     case SRV_WIND_SET:
@@ -4233,6 +4392,14 @@ static WORD server(LONG arg) {
 	srv_wind_set(apid, &par.wind_set);
       
       Srv_reply (handle, &par, code);
+      break;
+      
+    case SRV_WIND_UPDATE:
+      DB_printf ("srv.c: server: srv_wind_update will be called");
+      srv_wind_update (&par.wind_update, &ret.wind_update);
+      
+      Srv_reply (handle, &ret, sizeof (R_WIND_UPDATE));
+      DB_printf ("srv.c: server: srv_wind_update reply sent");
       break;
       
     default:

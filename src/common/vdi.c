@@ -787,7 +787,6 @@ WORD color)       /* Color number.                                          */
   contrl[6] = handle;
   
   vdipb.contrl = contrl;
-  DB_printf ("vdi.c: Vdi_vsl_color: &contrl=0x%x", vdipb.contrl);
   vdipb.intin = &color;
   vdipb.intout = &intout;
   

@@ -458,7 +458,7 @@ BYTE *file)         /* File name buffer.                                    */
 
   strcpy(oldpath,path);
 
-  Form_do_center(tree,&clip);
+  Form_do_center (apid, tree,&clip);
 
   Objc_do_offset(tree,FISEL_FIRST,(WORD *)&dst);
   dst.width = tree[FISEL_FIRST].ob_width;

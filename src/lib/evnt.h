@@ -3,38 +3,6 @@
 #include	"mesagdef.h"
 #include	"types.h"
 
-#define MU_KEYBD        0x0001
-#define MU_BUTTON       0x0002
-#define MU_M1           0x0004
-#define MU_M2           0x0008
-#define MU_MESAG        0x0010
-#define MU_TIMER        0x0020
-
-typedef struct
-{
-	WORD events;
-	WORD bclicks;
-	WORD bmask;
-	WORD bstate;
-	WORD m1flag;
-	RECT m1r;
-	WORD m2flag;
-	RECT m2r;
-	WORD locount;
-	WORD hicount;
-}EVENTIN;
-
-typedef struct
-{
-	WORD	events;
-	WORD	mx;
-	WORD	my;
-	WORD	mb;
-	WORD	ks;
-	WORD	kc;
-	WORD	mc;
-}EVENTOUT;
-
 /****************************************************************************
  * Evnt_waitclicks                                                          *
  *  Wait for mouse button clicks.                                           *

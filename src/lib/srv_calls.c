@@ -183,9 +183,9 @@ void *m)        /* Pointer to message structure.                            */
 {
   C_APPL_WRITE par;
 
-  par.apid = apid;
+  par.addressee = apid;
   par.length = length;
-  par.msg = m;
+  /*  par.msg = m; <-- Fix this! */
 	
   return Srv_put (apid, SRV_APPL_WRITE, &par);
 }
@@ -424,36 +424,6 @@ WORD y)        /* Y coordinate.                                             */
 }
 
 /****************************************************************************
- * Srv_wind_get                                                             *
- *  Get information about window.                                           *
- ****************************************************************************/
-WORD           /*                                                           */
-Srv_wind_get(  /*                                                           */
-WORD handle,   /* Identification number of window.                          */
-WORD mode,     /* Tells what to return.                                     */
-WORD *parm1,   /* Parameter 1.                                              */
-WORD *parm2,   /* Parameter 2.                                              */
-WORD *parm3,   /* Parameter 3.                                              */
-WORD *parm4)   /* Parameter 4.                                              */
-/****************************************************************************/
-{
-  C_WIND_GET par;
-  WORD       code;
-	
-  par.handle = handle;
-  par.mode = mode;
-	
-  code = Srv_put (0, SRV_WIND_GET, &par);
-
-  *parm1 = par.parm1;
-  *parm2 = par.parm2;
-  *parm3 = par.parm3;
-  *parm4 = par.parm4;
-	
-  return code;
-}
-
-/****************************************************************************
  * Srv_wind_new                                                             *
  *  Implementation of wind_new().                                           *
  ****************************************************************************/
@@ -465,24 +435,6 @@ WORD apid)     /* Application whose windows should be erased.               */
 	C_WIND_NEW par;
 
 	return Srv_put (apid, SRV_WIND_NEW, &par);
-}
-
-/****************************************************************************
- * Srv_wind_open                                                            *
- *  Implementation of wind_open().                                          *
- ****************************************************************************/
-WORD           /* 0 if error or 1 if ok.                                    */
-Srv_wind_open( /*                                                           */
-WORD id,       /* Identification number of window to open.                  */
-RECT *size)    /* Initial size of window.                                   */
-/****************************************************************************/
-{
-	C_WIND_OPEN par;
-	
-	par.id = id;
-	par.size = size;
-	
-	return Srv_put (0, SRV_WIND_OPEN, &par);
 }
 
 /****************************************************************************

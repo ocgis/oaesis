@@ -6,6 +6,16 @@
 
 
 /*system calls*/
+
+/****************************************************************************
+ * Appl_do_init                                                             *
+ *  Implementation of appl_init().                                          *
+ ****************************************************************************/
+WORD                    /* Application id, or -1.                           */
+Appl_do_init(           /*                                                  */
+GLOBAL_ARRAY * global); /* Global array.                                    */
+/****************************************************************************/
+
 void	Appl_init(AES_PB *apb);		/*0x000a*/
 void	Appl_read(AES_PB *apb);		/*0x000b*/
 void	Appl_write(AES_PB *apb);	/*0x000c*/
@@ -26,6 +36,15 @@ AES_PB *apb);     /* AES parameter block.                                   */
 void              /*                                                        */
 Appl_search(      /*                                                        */
 AES_PB *apb);     /* AES parameter block.                                   */
+/****************************************************************************/
+
+/****************************************************************************
+ * Appl_do_exit                                                             *
+ *  Implementation of appl_exit().                                          *
+ ****************************************************************************/
+WORD            /* 0 if error, or 1.                                        */
+Appl_do_exit(   /*                                                          */
+WORD apid);     /* Application id.                                          */
 /****************************************************************************/
 
 void	Appl_exit(AES_PB *apb);		/*0x0013*/
