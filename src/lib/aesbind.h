@@ -323,7 +323,9 @@ typedef struct _mn_set {
 #define WF_RESVD         13
 #define WF_NEWDESK       14
 #define WF_HSLSIZE       15
+#define WF_HSLSIZ        WF_HSLSIZE
 #define WF_VSLSIZE       16
+#define WF_VSLSIZ        WF_VSLSIZE
 #define WF_SCREEN        17
 #define WF_COLOR         18
 #define WF_DCOLOR        19
