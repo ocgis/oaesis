@@ -538,13 +538,11 @@ typedef struct _mn_set {
 #define BACKGRCOL    5
 #define AD3DVAL      6
 
-typedef struct objc_colorword {
-   unsigned borderc : 4;
-   unsigned textc   : 4;
-   unsigned opaque  : 1;
-   unsigned pattern : 3;
-   unsigned fillc   : 4;
-} PACKED OBJC_COLORWORD;
+#define GET_TE_COLOR_BORDERC(te_color) ((te_color >> 12) & 0xf)
+#define GET_TE_COLOR_TEXTC(te_color)   ((te_color >> 8) & 0xf)
+#define GET_TE_COLOR_OPAQUE(te_color)  ((te_color >> 7) & 0x1)
+#define GET_TE_COLOR_PATTERN(te_color) ((te_color >> 4) & 0x7)
+#define GET_TE_COLOR_FILLC(te_color)   (te_color & 0xf)
 
 typedef struct text_edinfo
 {
@@ -554,7 +552,7 @@ typedef struct text_edinfo
   short          te_font;       /* font */
   short          te_fontid;     /* font id */
   short          te_just;       /* justification */
-  OBJC_COLORWORD te_color;      /* color information word */
+  short          te_color;      /* color information word */
   short          te_fontsize;   /* font size */
   short          te_thickness;  /* border thickness */
   short          te_txtlen;     /* length of text string */
