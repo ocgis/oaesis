@@ -436,10 +436,10 @@ Wind_set_size (int    apid,
     
     if(ws->tree)
     {
-      ADD_OB_X(&ws->tree[0], ws->totsize.x);
-      ADD_OB_Y(&ws->tree[0], ws->totsize.x);
-      ADD_OB_WIDTH(&ws->tree[0], ws->totsize.width);
-      ADD_OB_HEIGHT(&ws->tree[0], ws->totsize.height);
+      OB_X_PUT(&ws->tree[0], ws->totsize.x);
+      OB_Y_PUT(&ws->tree[0], ws->totsize.y);
+      OB_WIDTH_PUT(&ws->tree[0], ws->totsize.width);
+      OB_HEIGHT_PUT(&ws->tree[0], ws->totsize.height);
       
       ADD_OB_WIDTH(&ws->tree[WMOVER], dw);
       
