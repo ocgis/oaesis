@@ -1,7 +1,7 @@
 /*
 ** srv_wind.c
 **
-** Copyright 1999 Christer Gustavsson <cg@nocrew.org>
+** Copyright 1999-2000 Christer Gustavsson <cg@nocrew.org>
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@
 #include "srv_appl.h"
 #include "srv_comm.h"
 #include "srv_global.h"
+#include "srv_malloc.h"
 #include "srv_misc.h"
 #include "srv_queue.h"
 #include "srv_wind.h"
@@ -111,7 +112,7 @@ lialloc(COMM_HANDLE handle,
 
   if (free_lock_info == LOCK_INFO_NIL) {
     DEBUG3 ("srv_wind.c: lialloc: allocating new structure!");
-    li = (LOCK_INFO)malloc (sizeof (LOCK_INFO_S));
+    li = (LOCK_INFO)MALLOC(sizeof (LOCK_INFO_S));
   } else {
     li = free_lock_info;
     free_lock_info = free_lock_info->next;
@@ -1213,8 +1214,8 @@ srv_wind_delete (C_WIND_DELETE * msg,
       
       *wl = (*wl)->next;
       
-      Mfree(wt->win);
-      Mfree(wt);
+      FREE(wt->win);
+      FREE(wt);
       win_next--;
       
       do {
@@ -1241,8 +1242,8 @@ srv_wind_delete (C_WIND_DELETE * msg,
               
               *wlwalk = (*wlwalk)->next;
               
-              Mfree(wltemp->win);
-              Mfree(wltemp);
+              FREE(wltemp->win);
+              FREE(wltemp);
               
               win_next--;
               
@@ -1292,7 +1293,7 @@ srv_wind_open (C_WIND_OPEN * msg,
   if(ws) {
     if(!(ws->status & WIN_OPEN)) {
       DEBUG2 ("srv.c: srv_wind_open: Allocating memory");
-      wl = (WINLIST *)malloc(sizeof(WINLIST));
+      wl = (WINLIST *)MALLOC(sizeof(WINLIST));
       
       wl->win = ws;
       
@@ -1469,8 +1470,8 @@ winalloc(void)
   else
   {
     DEBUG2 ("srv.c: winalloc: Allocating memory");
-    wl = (WINLIST *)malloc(sizeof(WINLIST));
-    wl->win = (WINSTRUCT *)malloc(sizeof(WINSTRUCT));
+    wl = (WINLIST *)MALLOC(sizeof(WINLIST));
+    wl->win = (WINSTRUCT *)MALLOC(sizeof(WINSTRUCT));
     wl->win->id = win_next;
     win_next++;
   }
@@ -1528,14 +1529,14 @@ srv_init_windows(void)
   
   ws->maxsize = ws->totsize = ws->worksize;
   
-  wl = (WINLIST *)malloc(sizeof(WINLIST));
+  wl = (WINLIST *)MALLOC(sizeof(WINLIST));
   
   wl->win = ws;
   
   wl->next = win_vis;
   win_vis = wl;
 
-  wl->win->rlist = (RLIST *)malloc(sizeof(RLIST));
+  wl->win->rlist = (RLIST *)MALLOC(sizeof(RLIST));
   wl->win->rlist->r.x = globals.screen.x;
   wl->win->rlist->r.y = globals.screen.y;
   wl->win->rlist->r.width = globals.screen.width;
@@ -2201,7 +2202,7 @@ srv_wind_close (C_WIND_CLOSE * par,
     *wl = (*wl)->next;
     
     wp->win->status &= ~WIN_OPEN;
-    Mfree(wp);
+    FREE(wp);
     
     if(newtop) {
       /*
