@@ -894,7 +894,7 @@ Rsrc_duplicate(OBJECT * src)
   {
     if(OB_TYPE(twalk) == G_TEXT)
     {
-      memcpy(ti, twalk->ob_spec.tedinfo, sizeof(TEDINFO));
+      memcpy(ti, (TEDINFO *)OB_SPEC(twalk), sizeof(TEDINFO));
       OB_SPEC_PUT(twalk, ti);
       ti++;
     }
