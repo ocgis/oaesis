@@ -769,7 +769,7 @@ menu_text (OBJECT * tree,
   aespb.intin[0] = obj;
 
   aespb.addrin[0] = (long)tree;
-  aespb.addrin[0] = (long)text;
+  aespb.addrin[1] = (long)text;
 
   aes_call (&aespb);
 
