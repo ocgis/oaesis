@@ -262,6 +262,30 @@ form_alert (short  default_button,
 
 
 int
+form_button(OBJECT * tree,
+            int      obj,
+            int      clicks,
+            short *  nxtobj)
+{
+  OPCODE = 56;
+  NO_INTIN = 2;
+  NO_ADDRIN = 1;
+  NO_INTOUT = 2;
+  NO_ADDROUT = 0;
+  
+  aespb.addrin[0] = (long)tree;
+  aespb.intin[0] = obj;
+  aespb.intin[0] = clicks;
+
+  aes_call (&aespb);
+  
+  *nxtobj = aespb.intout[1];
+
+  return aespb.intout[0];
+}
+
+
+int
 form_center (OBJECT * tree,
              int *    cx,
              int *    cy,

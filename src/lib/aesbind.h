@@ -1,7 +1,7 @@
 /*
 ** aesbind.h
 **
-** Copyright 1998-1999 Christer Gustavsson <cg@nocrew.org>
+** Copyright 1998 - 2000 Christer Gustavsson <cg@nocrew.org>
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -822,8 +822,11 @@ evnt_timer (unsigned long interval);
 short
 form_alert (short  DefButton,
             char * Str);
-int form_button (void *Btree, int Bobject, int Bclicks,
-                                  int *Bnxtobj);
+int
+form_button(OBJECT * tree,
+            int      obj,
+            int      clicks,
+            short *  nxtobj);
 int
 form_center (OBJECT * tree,
              int *    cx,
