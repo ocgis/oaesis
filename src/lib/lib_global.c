@@ -12,7 +12,7 @@
 ** Read the file COPYING for more information.
 */
 
-#define DEBUGLEVEL 0
+#define DEBUGLEVEL 3
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -405,8 +405,7 @@ init_global_appl (int    apid,
   /* There is no default menu */
   globals->menu = NULL;
 
-  /* Setup resource header and resource file */
-  globals->rscfile = NULL;
+  /* Setup resource header */
   globals->rshdr = NULL;
 
   /* Setup path mode: MiNT or Unix */
