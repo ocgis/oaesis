@@ -12,9 +12,9 @@ TRAP_SRCS = \
 	trap.c
 
 LIB_SRCS = \
-	appl.c cursors.c debug.c docalls.c evnt.c evnthndl.c form.c \
-	fsel.c graf.c lib_comm.h lib_global.c lib_misc.c menu.c objc.c \
-	resource.c rsrc.c scrp.c shel.c srv_put.c wind.c
+	resource.c appl.c cursors.c debug.c docalls.c evnt.c evnthndl.c \
+	form.c fsel.c graf.c lib_comm.h lib_global.c lib_misc.c menu.c objc.c \
+	rsrc.c scrp.c shel.c srv_put.c wind.c
 
 if USE_LIBTOOL
 
