@@ -361,6 +361,7 @@ check_mouse_buttons (C_EVNT_MULTI * par,
 ** 1998-12-25 CG
 ** 1999-01-09 CG
 ** 1999-03-15 CG
+** 1999-08-15 CG
 */
 static
 WORD
@@ -402,8 +403,8 @@ check_mouse_motion (WORD           x,
 
   /* Fill in mouse status if it hasn't been done already */
   if (!(ret->eventout.events & MU_BUTTON)) {
-    ret->eventout.mx = x_last;
-    ret->eventout.my = y_last;
+    ret->eventout.mx = x;
+    ret->eventout.my = y;
     ret->eventout.mb = buttons_last;
     ret->eventout.ks = 0; /* FIXME
                           ** Return keystate once the keyboard handling is
@@ -599,7 +600,7 @@ handle_keys (WORD vdi_workstation_id) {
 			     0,
 			     echoxy,
 			     str);
-  
+
   /* Has any key events occurred? */
   if (n_o_keys > 0) {
     WORD topped_appl = get_top_appl ();

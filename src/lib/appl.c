@@ -221,11 +221,12 @@ vdi_tunnel (VDIPB * vpb) {
 ** 1998-12-28 CG
 ** 1999-04-10 CG
 ** 1999-08-08 CG
+** 1999-08-15 CG
 */
 WORD
 Appl_do_init (GLOBAL_ARRAY * global) {
-  C_APPL_INIT par;
-  R_APPL_INIT ret;
+  C_APPL_INIT   par;
+  R_APPL_INIT   ret;
 
   DEBUG3 ("appl.c: Appl_do_init");
   /* Open connection to server */
@@ -271,10 +272,15 @@ Appl_do_init (GLOBAL_ARRAY * global) {
   global->minchar = 0;
 
   if(global->apid >= 0) {
-#ifndef MINT_TARGET
-    init_global (1, ret.physical_vdi_id);
-#endif
+#ifdef MINT_TARGET
     init_global_appl (global->apid, ret.physical_vdi_id);
+#else
+    GLOBAL_APPL * globals_appl = get_globals (global->apid);
+
+    init_global_appl (global->apid, ret.physical_vdi_id);
+
+    init_global (1, globals_appl->vid);
+#endif
 
     return global->apid;
   } else {

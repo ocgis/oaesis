@@ -27,6 +27,8 @@
  
  ****************************************************************************/
 
+#define DEBUGLEVEL 0
+
 /****************************************************************************
  * Used interfaces                                                          *
  ****************************************************************************/
@@ -86,6 +88,7 @@
 ** Creates and updates the menu list entries for the specified menu. 
 **
 ** 1999-01-09 CG
+** 1999-08-15 CG
 */
 static
 WORD
@@ -100,7 +103,9 @@ Menu_bar_install (WORD     apid,
 
   globals->menu = tree;
   
-  Graf_do_handle (&cheight, &cwidth, &width, &height);
+  Graf_do_handle (&cwidth, &cheight, &width, &height);
+
+  DEBUG2 ("menu.c: Menu_bar_install: cheight = %d", cheight);
 
   /* Modify width of menu*/
   tree[0].ob_width = globals->common->screen.width;
@@ -149,6 +154,12 @@ Menu_bar_install (WORD     apid,
     tree[tree[i].ob_tail].ob_x + tree[tree[i].ob_tail].ob_width;
   globals->menu_bar_rect.y = 0;
   globals->menu_bar_rect.height = cheight + 3;
+
+  DEBUG2 ("menu_bar_rect = %d %d %d %d",
+          globals->menu_bar_rect.x,
+          globals->menu_bar_rect.y,
+          globals->menu_bar_rect.width,
+          globals->menu_bar_rect.height);
 
   /* Return OK */
   return 1;
