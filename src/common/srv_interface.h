@@ -34,8 +34,9 @@ enum {
   SRV_WIND_UPDATE   = 107,
   SRV_WIND_NEW      = 109,
   SRV_VDI_CALL      = 200,
-  SRV_MALLOC        = 300,
-  SRV_FREE          = 301
+  SRV_APPL_RESERVE  = 201,
+  SRV_MALLOC        = 202,
+  SRV_FREE          = 203
 };
 
 
@@ -107,8 +108,8 @@ typedef struct {
 #define R_APPL_FIND_WORDS 0
 
 typedef struct {
-  C_ALL          common;
-  BYTE           appl_name[20];
+  C_ALL common;
+  BYTE  appl_name[20];
 }C_APPL_INIT;
 
 #define C_APPL_INIT_WORDS 0
@@ -120,6 +121,22 @@ typedef struct {
 }R_APPL_INIT;
 
 #define R_APPL_INIT_WORDS 2
+
+typedef struct
+{
+  C_ALL common;
+  WORD  type;   /* APP_APPLICATION or APP_ACCESSORY */
+  WORD  pid;    /* Process id: FIXME: make more general id */
+} C_APPL_RESERVE;
+
+#define C_APPL_RESERVE_WORDS 0
+
+typedef struct
+{
+  R_ALL common; /* The reserved application id is returned in retval */
+} R_APPL_RESERVE;
+
+#define R_APPL_RESERVE_WORDS 0
 
 typedef struct {
   C_ALL  common;
@@ -421,6 +438,7 @@ typedef union {
   C_APPL_EXIT     appl_exit;
   C_APPL_FIND     appl_find;
   C_APPL_INIT     appl_init;
+  C_APPL_RESERVE  appl_reserve;
   C_APPL_SEARCH   appl_search;
   C_APPL_WRITE    appl_write;
   C_EVNT_MULTI    evnt_multi;
@@ -449,6 +467,7 @@ typedef union {
   R_APPL_EXIT     appl_exit;
   R_APPL_FIND     appl_find;
   R_APPL_INIT     appl_init;
+  R_APPL_RESERVE  appl_reserve;
   R_APPL_SEARCH   appl_search;
   R_APPL_WRITE    appl_write;
   R_EVNT_MULTI    evnt_multi;
