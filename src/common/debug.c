@@ -12,7 +12,7 @@
 
 #include "debug.h"
 
-#define DEBUGPATH "u:\\dev\\ttya"
+#define DEBUGPATH "u:\\dev\\ttyb"
 
 static char debugpath[128] = DEBUGPATH;
 
@@ -48,7 +48,7 @@ DEBUG (char * s) {
 ** Exported
 */
 void
-DB_printf (char * fmt, ...)
+ndebug(char * fmt, ...)
 {
   va_list arguments;
   char    s[128];
@@ -60,7 +60,7 @@ DB_printf (char * fmt, ...)
 #ifdef MINT_TARGET
   DEBUG(s);
 #else
-  fprintf (stderr, "oaesis: %s\r\n", s);
+  fprintf(stderr, "oaesis: %s\r\n", s);
 #endif
 }
 

@@ -6,14 +6,15 @@
 #endif
 
 #ifdef __GNUC__
+# define DEBUG0(fmt,args...) ndebug(fmt, ##args)
 #if DEBUGLEVEL>=1
-# define DEBUG1(fmt,args...) DB_printf (fmt, ##args)
+# define DEBUG1(fmt,args...) ndebug(fmt, ##args)
 #endif
 #if DEBUGLEVEL>=2
-# define DEBUG2(fmt,args...) DB_printf (fmt, ##args)
+# define DEBUG2(fmt,args...) ndebug(fmt, ##args)
 #endif
 #if DEBUGLEVEL>=3
-# define DEBUG3(fmt,args...) DB_printf (fmt, ##args)
+# define DEBUG3(fmt,args...) ndebug(fmt, ##args)
 #endif
 
 #ifndef DEBUG1
@@ -29,13 +30,13 @@
 #else /* Not GCC */
 
 #if DEBUGLEVEL>=1
-# define DEBUG1 DB_printf
+# define DEBUG1 ndebug
 #endif
 #if DEBUGLEVEL>=2
-# define DEBUG2 DB_printf
+# define DEBUG2 ndebug
 #endif
 #if DEBUGLEVEL>=3
-# define DEBUG3 DB_printf
+# define DEBUG3 ndebug
 #endif
 
 #ifndef DEBUG1
@@ -52,7 +53,7 @@ void debug_dummy(char *fmt, ...);
 
 #endif /* __GNUC__ */
 
-void DB_printf (char * fmt, ...);
+void ndebug(char * fmt, ...);
 
 void DB_setpath (char * path);
 
