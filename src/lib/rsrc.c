@@ -308,7 +308,7 @@ Rsrc_do_rcfix(int      vid,
   LARRAY *    frimgwalk;
   CICONBLK ** cicons = NULL;
 
-  DEBUG0("Rsrc_do_rcfix: rsc = %p", rsc);
+  DEBUG3("Rsrc_do_rcfix: rsc = %p", rsc);
   /*
   ** Detect previously undetected endian mismatch. This issue has to be
   ** solved in a better way.
