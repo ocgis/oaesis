@@ -13,9 +13,9 @@ TRAP_OBJS = \
 	$(TRAP_CSRCS:.c=.o)
 
 LIB_CSRCS = \
-	resource.c appl.c cursors.c lib_debug.c docalls.c evnt.c evnthndl.c \
+	resource.c appl.c cursors.c lib_comm_device.c lib_debug.c docalls.c evnt.c evnthndl.c \
 	form.c fsel.c graf.c lib_global.c lib_misc.c menu.c objc.c rsrc.c \
-	scrp.c shel.c srv_put.c wind.c
+	scrp.c shel.c wind.c
 
 LIB_OBJS = \
 	$(LIB_CSRCS:.c=.o)
