@@ -56,6 +56,7 @@
 #include "lib_global.h"
 /*#include "lxgemdos.h"*/
 #include "oaesis.h"
+#include "oconfig.h"
 #include "resource.h"
 #include "rsrc.h"
 #include "types.h"
@@ -72,7 +73,7 @@
 GLOBAL_COMMON global_common;
 
 /* FIXME: allocate when needed */
-GLOBAL_APPL globals_appl[256];
+GLOBAL_APPL globals_appl[MAX_NUM_APPS];
 
 char *p_fsel_extern = (char *)&global_common.fsel_extern;
 #if 0
