@@ -208,11 +208,12 @@ Menu_do_bar (WORD     apid,
 
 /*
 ** Exported
-**
-** 1999-01-09 CG
 */
 void
-Menu_bar (AES_PB *apb) {
+Menu_bar (AES_PB *apb)
+{
+  CHECK_APID(apb->global->apid);
+
   apb->int_out[0] = Menu_do_bar (apb->global->apid,
                                  (OBJECT *)apb->addr_in[0],
                                  apb->int_in[0]);
@@ -384,6 +385,8 @@ Menu_do_register(WORD   apid,
 void
 Menu_register(AES_PB * apb)
 {
+  CHECK_APID(apb->global->apid);
+
   apb->int_out[0] = Menu_do_register(apb->global->apid,
                                      apb->int_in[0],
                                      (BYTE *)apb->addr_in[0]);

@@ -420,43 +420,65 @@ Appl_do_init (GLOBAL_ARRAY * global) {
 
   WORD          apid = -1;
 
-#ifdef MINT_TARGET
-  Psemaphore(SEM_LOCK, SHEL_WRITE_LOCK, -1);
-  Psemaphore(SEM_UNLOCK, SHEL_WRITE_LOCK, 0);
-#endif
+  CHECK_APID(apid);
 
-  DEBUG3 ("appl.c: Appl_do_init");
-  /* Open connection to server */
-  if (Client_open () == -1) {
-    return -1;
+  if(apid == -1)
+  {
+#ifdef MINT_TARGET
+    Psemaphore(SEM_LOCK, SHEL_WRITE_LOCK, -1);
+    Psemaphore(SEM_UNLOCK, SHEL_WRITE_LOCK, 0);
+#endif
+    
+    DEBUG3 ("appl.c: Appl_do_init");
+    /* Open connection to server */
+    if (Client_open () == -1) {
+      return -1;
+    }
+    
+#ifdef TUNNEL_VDI_CALLS
+    /* Tunnel VDI calls through oaesis' connection with the server */
+    vdi_handler = vdi_tunnel;
+#endif /* TUNNEL_VDI_CALLS */
+    
+    PUT_C_ALL(APPL_INIT, &par);
+    
+#ifdef MINT_TARGET
+    get_process_name (par.common.pid,
+                      par.appl_name,
+                      sizeof (par.appl_name) - 1);
+#else
+    DEBUG3 ("appl.c: Appl_do_init: program_invocation_short_name %s",
+            program_invocation_short_name);
+    strncpy (par.appl_name,
+             program_invocation_short_name,
+             sizeof (par.appl_name) - 1);
+#endif
+    par.appl_name[sizeof (par.appl_name) - 1] = 0;
+    
+    CLIENT_SEND_RECV(&par,
+                     sizeof (C_APPL_INIT),
+                     &ret,
+                     sizeof (R_APPL_INIT));
+    
+    global->apid = ret.apid;
+
+    if(global->apid >= 0)
+    {
+      init_global_appl (global->apid, ret.physical_vdi_id, par.appl_name);
+#ifndef MINT_TARGET
+      {
+        GLOBAL_APPL * globals_appl = get_globals (global->apid);
+        
+        init_global (globals_appl->vid);
+      }
+#endif
+    }
+  }
+  else
+  {
+    global->apid = apid;
   }
 
-#ifdef TUNNEL_VDI_CALLS
-  /* Tunnel VDI calls through oaesis' connection with the server */
-  vdi_handler = vdi_tunnel;
-#endif /* TUNNEL_VDI_CALLS */
-
-  PUT_C_ALL(APPL_INIT, &par);
-
-#ifdef MINT_TARGET
-  get_process_name (par.common.pid,
-		    par.appl_name,
-		    sizeof (par.appl_name) - 1);
-#else
-  DEBUG3 ("appl.c: Appl_do_init: program_invocation_short_name %s",
-          program_invocation_short_name);
-  strncpy (par.appl_name,
-           program_invocation_short_name,
-           sizeof (par.appl_name) - 1);
-#endif
-  par.appl_name[sizeof (par.appl_name) - 1] = 0;
-
-  CLIENT_SEND_RECV(&par,
-                   sizeof (C_APPL_INIT),
-                   &ret,
-                   sizeof (R_APPL_INIT));
-
-  global->apid = ret.apid;	
   global->version = 0x0410;
   global->numapps = -1;
   global->appglobal = 0L;
@@ -468,20 +490,7 @@ Appl_do_init (GLOBAL_ARRAY * global) {
   global->maxchar = 0;
   global->minchar = 0;
 
-  if(global->apid >= 0) {
-    init_global_appl (global->apid, ret.physical_vdi_id, par.appl_name);
-#ifndef MINT_TARGET
-    {
-      GLOBAL_APPL * globals_appl = get_globals (global->apid);
-
-      init_global (globals_appl->vid);
-    }
-#endif
-
-    return global->apid;
-  } else {
-    return -1;
-  }
+  return global->apid;
 }
 
 
@@ -533,15 +542,15 @@ Appl_do_write (WORD   apid,
 
 /*
 ** Exported
-**
-** 1998-12-20 CG
 */
 void
-Appl_write (AES_PB *apb) {
-  apb->int_out[0] =	
-    Appl_do_write (apb->global->apid,
-                   apb->int_in[0],apb->int_in[1],
-                   (void *)apb->addr_in[0]);
+Appl_write (AES_PB *apb)
+{
+  CHECK_APID(apb->global->apid);
+
+  apb->int_out[0] = Appl_do_write(apb->global->apid,
+                                  apb->int_in[0],apb->int_in[1],
+                                  (void *)apb->addr_in[0]);
 }
 
 
@@ -590,18 +599,21 @@ Appl_do_find(WORD   apid,
 /*
 ** Exported
 ** 0x000d appl_find ()
-**
-** 1999-06-10 CG
 */
 void
 Appl_find (AES_PB * apb)
 {
-  if(apb->addr_in[0] == 0) {
+  CHECK_APID(apb->global->apid);
+
+  if(apb->addr_in[0] == 0)
+  {
     /* return our own pid */
     apb->int_out[0] = apb->global->apid;
-  } else {
-    apb->int_out[0] = Appl_do_find (apb->global->apid,
-                                    (BYTE *)apb->addr_in[0]);
+  }
+  else
+  {
+    apb->int_out[0] = Appl_do_find(apb->global->apid,
+                                   (BYTE *)apb->addr_in[0]);
   }
 }
 
@@ -639,16 +651,17 @@ Appl_do_search (WORD   apid,
 /*
 ** Exported
 ** 0x0012 appl_search ()
-**
-** 1999-04-11 CG
 */
 void
-Appl_search (AES_PB * apb) {
-  apb->int_out[ 0] = Appl_do_search (apb->global->apid,
-                                     apb->int_in[0], 
-                                     (BYTE *)apb->addr_in[0],
-                                     &apb->int_out[1],
-                                     &apb->int_out[2]);
+Appl_search (AES_PB * apb)
+{
+  CHECK_APID(apb->global->apid);
+
+  apb->int_out[ 0] = Appl_do_search(apb->global->apid,
+                                    apb->int_in[0], 
+                                    (BYTE *)apb->addr_in[0],
+                                    &apb->int_out[1],
+                                    &apb->int_out[2]);
 }
 
 
@@ -678,12 +691,13 @@ Appl_do_exit (WORD apid) {
 
 /*
 ** Exported
-**
-** 1998-12-28 CG
 */
 void
-Appl_exit (AES_PB * apb) {
-  apb->int_out[0] = Appl_do_exit (apb->global->apid);
+Appl_exit (AES_PB * apb)
+{
+  CHECK_APID(apb->global->apid);
+
+  apb->int_out[0] = Appl_do_exit(apb->global->apid);
 }
 
 /****************************************************************************
@@ -695,6 +709,8 @@ Appl_getinfo(AES_PB *apb) /* AES parameter block.                           */
      /***********************************************************************/
 {
   GLOBAL_APPL * globals;
+
+  CHECK_APID(apb->global->apid);
 
   apb->int_out[0] = 1; /* default: return OK ( ret != 0) */
 

@@ -293,12 +293,12 @@ Graf_do_rubberbox(WORD   apid,
 
 /*
 ** Exported
-**
-** 1998-12-20 CG
-** 1998-12-25 CG
 */
 void
-Graf_rubberbox (AES_PB *apb) {
+Graf_rubberbox (AES_PB *apb)
+{
+  CHECK_APID(apb->global->apid);
+
   Wind_do_update (apb->global->apid, BEG_MCTRL);
   
   apb->int_out[0] = Graf_do_rubberbox (apb->global->apid,
@@ -330,7 +330,7 @@ Graf_do_dragbox (WORD   apid,
 {
   EVENTIN ei =
   {
-    MU_BUTTON | MU_M1,
+    MU_BUTTON | MU_M1 /*| 0x8000*/,
     0,
     LEFT_BUTTON,
     0,
@@ -473,12 +473,12 @@ Graf_do_dragbox (WORD   apid,
 
 /*
 ** Exported
-**
-** 1998-12-20 CG
-** 1998-12-25 CG
 */
 void
-Graf_dragbox (AES_PB *apb) {
+Graf_dragbox(AES_PB *apb)
+{
+  CHECK_APID(apb->global->apid);
+
   Wind_do_update (apb->global->apid, BEG_MCTRL);
   
   apb->int_out[0] = Graf_do_dragbox (apb->global->apid,
@@ -561,13 +561,16 @@ Graf_do_grmobox(WORD   apid,
 
 /*
 ** Exported
-**
-** 1999-01-11 CG
 */
 void
-Graf_movebox (AES_PB *apb) {
+Graf_movebox (AES_PB *apb)
+{
   RECT r1,r2;
-  GLOBAL_APPL * globals = get_globals (apb->global->apid);
+  GLOBAL_APPL * globals;
+
+  CHECK_APID(apb->global->apid);
+
+  globals = get_globals (apb->global->apid);
 
   if(globals->common->graf_mbox)
   {
@@ -596,7 +599,11 @@ Graf_movebox (AES_PB *apb) {
 void
 Graf_growbox(AES_PB *apb)
 {
-  GLOBAL_APPL * globals = get_globals (apb->global->apid);
+  GLOBAL_APPL * globals;
+
+  CHECK_APID(apb->global->apid);
+
+  globals = get_globals (apb->global->apid);
 
   if(globals->common->graf_growbox)
   {
@@ -616,7 +623,11 @@ Graf_growbox(AES_PB *apb)
 */
 void
 Graf_shrinkbox (AES_PB * apb) {
-  GLOBAL_APPL * globals = get_globals (apb->global->apid);
+  GLOBAL_APPL * globals;
+
+  CHECK_APID(apb->global->apid);
+
+  globals = get_globals (apb->global->apid);
 
   if(globals->common->graf_shrinkbox)
   {
@@ -719,11 +730,12 @@ Graf_do_watchbox (WORD     apid,
 
 /*
 ** Exported
-**
-** 1998-12-20 CG
 */
 void
-Graf_watchbox (AES_PB *apb) {
+Graf_watchbox (AES_PB *apb)
+{
+  CHECK_APID(apb->global->apid);
+
   apb->int_out[0] = Graf_do_watchbox(apb->global->apid,
                                      (OBJECT *)apb->addr_in[0],
                                      apb->int_in[1],
@@ -784,11 +796,12 @@ Graf_do_slidebox (WORD     apid,
 
 /*
 ** Exported
-**
-** 1998-12-20 CG
 */
 void
-Graf_slidebox (AES_PB *apb) {
+Graf_slidebox (AES_PB *apb)
+{
+  CHECK_APID(apb->global->apid);
+
   apb->int_out[0] = Graf_do_slidebox(apb->global->apid,
                                      (OBJECT *)apb->addr_in[0],
                                      apb->int_in[0],
@@ -983,11 +996,12 @@ Graf_do_mouse (WORD    apid,
 
 /*
 ** Exported
-**
-** 1999-01-01 CG
 */
 void
-Graf_mouse (AES_PB *apb) {
+Graf_mouse (AES_PB *apb)
+{
+  CHECK_APID(apb->global->apid);
+
   apb->int_out[0] = Graf_do_mouse (apb->global->apid,
                                    apb->int_in[0],
                                    (MFORM *)apb->addr_in[0]);
@@ -1024,11 +1038,12 @@ Graf_do_mkstate (WORD   apid,
 
 /*
 ** Exported
-**
-** 1998-12-23 CG
 */
 void
-Graf_mkstate (AES_PB *apb) {
+Graf_mkstate (AES_PB *apb)
+{
+  CHECK_APID(apb->global->apid);
+
   apb->int_out[0] = Graf_do_mkstate (apb->global->apid,
                                      &apb->int_out [1],
                                      &apb->int_out [2],

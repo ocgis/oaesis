@@ -1779,12 +1779,14 @@ Objc_do_draw (WORD     vid,
 /*
 ** Description
 ** objc_draw ()
-**
-** 1998-11-15 CG
 */
 void
 Objc_draw (AES_PB *apb) {
-  GLOBAL_APPL * globals = get_globals (apb->global->apid);
+  GLOBAL_APPL * globals;
+
+  CHECK_APID(apb->global->apid);
+
+  globals = get_globals (apb->global->apid);
 
   apb->int_out[0] = Objc_do_draw (globals->vid,
                                   (OBJECT *)apb->addr_in[0],
@@ -1976,6 +1978,8 @@ Objc_edit(        /*                                                        */
 AES_PB *apb)      /* AES parameter block.                                   */
 /****************************************************************************/
 {
+  CHECK_APID(apb->global->apid);
+
   apb->int_out[1] = apb->int_in[2];
   apb->int_out[0] = Objc_do_edit (apb->global->apid,
                                   (OBJECT *)apb->addr_in[0],
@@ -2011,12 +2015,15 @@ WORD     drawflag)  /* Drawing flag.                                        */
 /*
 ** Description
 **   0x002f objc_change().
-**
-** 1998-11-15 CG
 */
 void
-Objc_change (AES_PB * apb) {
-  GLOBAL_APPL * globals = get_globals (apb->global->apid);
+Objc_change (AES_PB * apb)
+{
+  GLOBAL_APPL * globals;
+
+  CHECK_APID(apb->global->apid);
+
+  globals = get_globals (apb->global->apid);
 
   apb->int_out[0] = Objc_do_change (globals->vid,
                                     (OBJECT *)apb->addr_in[0],

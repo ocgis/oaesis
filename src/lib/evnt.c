@@ -129,6 +129,8 @@ Evnt_do_button (WORD   apid,
 void
 Evnt_button(AES_PB *apb)
 {
+  CHECK_APID(apb->global->apid);
+
   apb->int_out[0] = Evnt_do_button(apb->global->apid,
                                    apb->int_in[0],
                                    apb->int_in[1],
@@ -175,6 +177,8 @@ Evnt_do_mesag(WORD     apid,
 void
 Evnt_mesag(AES_PB * apb)
 {
+  CHECK_APID(apb->global->apid);
+
   apb->int_out[0] = Evnt_do_mesag(apb->global->apid,
                                   (COMMSG *)apb->addr_in[0]);
 }
@@ -194,6 +198,8 @@ Evnt_timer(AES_PB * apb)
   ei.events = MU_TIMER;
   ei.locount = apb->int_in[0];
   ei.hicount = apb->int_in[1];
+
+  CHECK_APID(apb->global->apid);
 
   Evnt_do_multi(apb->global->apid, &ei, &buf, &eo, 0, DONT_HANDLE_MENU_BAR);  
 }
@@ -259,7 +265,8 @@ Evnt_do_multi (WORD       apid,
       }
     }
     
-    if (ret.eventout.events & MU_BUTTON) {
+    if (ret.eventout.events & MU_BUTTON)
+    {
       DEBUG2 ("evnt.c: Evnt_do_multi: apid = %d bclicks = 0x%x bstate = 0x%x",
               apid, par.eventin.bclicks, par.eventin.bstate);
       events_out |= Evhd_handle_button (apid,
@@ -293,12 +300,12 @@ Evnt_do_multi (WORD       apid,
 
 /*
 ** Exported
-**
-** 1998-12-19 CG
-** 1999-01-09 CG
 */
 void
-Evnt_multi (AES_PB *apb) {
+Evnt_multi (AES_PB *apb)
+{
+  CHECK_APID(apb->global->apid);
+
   Evnt_do_multi(apb->global->apid,
                 (EVENTIN *)apb->int_in,
                 (COMMSG *)apb->addr_in[0],

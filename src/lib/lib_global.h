@@ -108,6 +108,7 @@ typedef struct {
 typedef struct global_appl
 {
   GLOBAL_COMMON *  common;
+  WORD             pid;
   WORD             vid;
   void *           windows;
   OBJECT *         desktop_background;
@@ -146,5 +147,9 @@ GLOBAL_APPL   * get_globals (WORD apid);
 
 extern GLOBAL_COMMON global_common;
 #define get_global_common() (&global_common)
+
+int check_apid(int apid);
+
+#define CHECK_APID(apid) apid = check_apid(apid);
 
 #endif

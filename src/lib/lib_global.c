@@ -381,7 +381,9 @@ init_global_appl (int    apid,
   int           work_out[57];
   int           temp_vid;
 
-  globals = get_globals (apid);
+  globals = get_globals(apid);
+
+  globals->pid = getpid();
 
   work_in[0] = 5;
   DEBUG3 ("lib_global.c: init_global_appl: physical_vdi_id = %d",
@@ -389,8 +391,10 @@ init_global_appl (int    apid,
   /* FIXME: change vid types to int and remove temp_vid */
   temp_vid = physical_vdi_id;
   v_opnvwk (work_in, &temp_vid, work_out);
+
   globals->vid = temp_vid;
   DEBUG2("lib_global.c: apid = %d globals->vid = %d", apid, globals->vid);
+
   /* There is no default desktop background */
   globals->desktop_background = NULL;
 
@@ -480,3 +484,27 @@ Oaesis_callback_handler(void * callback_handler)
 }
 
 #endif MINT_TARGET
+
+int
+check_apid(int apid)
+{
+  int i;
+  int pid = getpid();
+
+  if((apid >= 0) && (apid < MAX_NUM_APPS) && (globals_appl[apid].pid == pid))
+  {
+    return apid;
+  }
+  else
+  {
+    for(i = 0; i < MAX_NUM_APPS; i++)
+    {
+      if(globals_appl[i].pid == pid)
+      {
+        return i;
+      }
+    }
+  }
+
+  return -1;
+}

@@ -519,6 +519,8 @@ Shel_do_write(WORD   apid,
 void
 Shel_write (AES_PB *apb)
 {
+  CHECK_APID(apb->global->apid);
+
   apb->int_out[0] =  Shel_do_write (apb->global->apid,
                                     apb->int_in[0],
                                     apb->int_in[1],
@@ -682,13 +684,13 @@ Shel_do_find (WORD   apid,
 /*
 ** Exported
 ** 0x007c shel_find()
-**
-** 1999-03-14 CG
 */
 void
-Shel_find (AES_PB * apb) {
-	apb->int_out[0] =
-          Shel_do_find (apb->global->apid, (BYTE *)apb->addr_in[0]);
+Shel_find (AES_PB * apb)
+{
+  CHECK_APID(apb->global->apid);
+
+  apb->int_out[0] = Shel_do_find (apb->global->apid, (BYTE *)apb->addr_in[0]);
 }
 
 

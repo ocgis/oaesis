@@ -233,7 +233,8 @@ handle_mover_click (WORD apid,
   EVNTREC   er;
   COMMSG    mesag;
   GLOBAL_COMMON * globals = get_global_common ();
-  EVENTIN         ei = {
+  EVENTIN         ei =
+  {
     MU_BUTTON | MU_TIMER,
     0,
     LEFT_BUTTON,
@@ -633,7 +634,8 @@ handle_slider_click (WORD     apid,
                      WORD     owner,
                      OBJECT * tree,
                      WORD     mouse_x,
-                     WORD     mouse_y) {
+                     WORD     mouse_y)
+{
   WORD last_x = mouse_x, last_y = mouse_y, new_x = last_x, new_y = last_y;
   WORD waittime = EVHD_WAITTIME;
   WORD bg = (elem == WVSLIDER)? WVSB : WHSB;
@@ -731,7 +733,9 @@ handle_slider_click (WORD     apid,
       }
     }
     */
-  } else {
+  }
+  else
+  {
     Wind_do_update (apid, BEG_UPDATE);
 
     mesag.msg1 = Graf_do_slidebox (apid,

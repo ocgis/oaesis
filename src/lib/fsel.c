@@ -973,12 +973,12 @@ Fsel_do_exinput (WORD   apid,
 
 /*
 ** Exported
-**
-** 1998-12-20 CG
-** 1999-05-24 CG
 */
 void
-Fsel_input (AES_PB *apb) {
+Fsel_input (AES_PB *apb)
+{
+  CHECK_APID(apb->global->apid);
+
   apb->int_out[0] = Fsel_do_exinput (apb->global->apid,
                                      &apb->int_out[1],
                                      "Select a file",
@@ -989,12 +989,12 @@ Fsel_input (AES_PB *apb) {
 
 /*
 ** Exported
-**
-** 1998-12-20 CG
-** 1999-05-24 CG
 */
 void
-Fsel_exinput (AES_PB *apb) {
+Fsel_exinput (AES_PB *apb)
+{
+  CHECK_APID(apb->global->apid);
+
   apb->int_out[0] = Fsel_do_exinput (apb->global->apid,
                                      &apb->int_out[1],
                                      (BYTE *)apb->addr_in[2],

@@ -157,11 +157,12 @@ Form_do_do (WORD     apid,
 
 /*
 ** Exported
-**
-** 1998-12-20 CG
 */
 void
-Form_do (AES_PB *apb) {
+Form_do (AES_PB *apb)
+{
+  CHECK_APID(apb->global->apid);
+
   apb->int_out[0] = Form_do_do (apb->global->apid,
                                 (OBJECT *)apb->addr_in[0],
                                 apb->int_in[0]);		
@@ -281,12 +282,15 @@ Form_do_dial (WORD   apid,
   };
 }
 
-void	Form_dial(AES_PB *apb) {
+void Form_dial(AES_PB *apb)
+{
+  CHECK_APID(apb->global->apid);
+
   apb->int_out[0] = Form_do_dial(apb->global->apid,
 				 apb->int_in[0],
 				 (RECT *)&apb->int_in[1],
 				 (RECT *)&apb->int_in[5]);
-};
+}
 
 /*
 ** Description
@@ -509,14 +513,15 @@ Form_do_alert (WORD   apid,
 
 /*
 ** Exported
-**
-** 1998-12-20 CG
 */
 void
-Form_alert (AES_PB *apb) {
-  apb->int_out[0] = Form_do_alert (apb->global->apid,
-                                   apb->int_in[0],
-                                   (BYTE *)apb->addr_in[0]);
+Form_alert (AES_PB *apb)
+{
+  CHECK_APID(apb->global->apid);
+
+  apb->int_out[0] = Form_do_alert(apb->global->apid,
+                                  apb->int_in[0],
+                                  (BYTE *)apb->addr_in[0]);
 }
 
 
@@ -566,14 +571,16 @@ Form_do_error (WORD apid,
 
 /*
 ** Exported
-**
-** 1998-12-19 CG
 */
 void
-Form_error (AES_PB * apb) {
+Form_error (AES_PB * apb)
+{
+  CHECK_APID(apb->global->apid);
+
   apb->int_out[0] = Form_do_error(apb->global->apid,
 				  apb->int_in[0]);
 }
+
 
 /*form_center 0x0036*/
 
@@ -604,7 +611,10 @@ Form_do_center (WORD     apid,
 
 
 void
-Form_center (AES_PB *apb) {
+Form_center(AES_PB *apb)
+{
+  CHECK_APID(apb->global->apid);
+
   Form_do_center (apb->global->apid,
                   (OBJECT *)apb->addr_in[0],
                   (RECT *)&apb->int_out[1]);
@@ -736,6 +746,8 @@ Form_keybd(       /*                                                        */
 AES_PB *apb)      /* AES parameter block.                                   */
 /****************************************************************************/
 {
+  CHECK_APID(apb->global->apid);
+
   apb->int_out[0] = Form_do_keybd (apb->global->apid,
                                    (OBJECT *)apb->addr_in[0],
                                    apb->int_in[0],
@@ -879,11 +891,12 @@ Form_do_button (WORD     apid,
 
 /*
 ** Exported
-**
-** 1998-12-19 CG
 */
 void
-Form_button (AES_PB *apb) {
+Form_button (AES_PB *apb)
+{
+  CHECK_APID(apb->global->apid);
+
   apb->int_out[0] = Form_do_button (apb->global->apid,
                                     (OBJECT *)apb->addr_in[0],
                                     apb->int_in[0],

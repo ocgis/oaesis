@@ -581,14 +581,15 @@ Rsrc_do_rcfix(WORD     vid,
 
 /*
 ** Exported
-**
-** 1998-12-20 CG
-** 1999-03-14 CG
 */
 void
 Rsrc_load (AES_PB *apb)  /*0x006e*/ {
   RSHDR *       rsc;
-  GLOBAL_APPL * globals = get_globals (apb->global->apid);
+  GLOBAL_APPL * globals;
+
+  CHECK_APID(apb->global->apid);
+
+  globals = get_globals (apb->global->apid);
 
   rsc = Rsrc_do_load (apb->global->apid,
                       globals->vid,
@@ -646,12 +647,14 @@ OBJECT ** addr)   /* Object address.                                        */
 
 /*
 ** Exported
-**
-** 1999-01-06 CG
 */
 void
 Rsrc_gaddr (AES_PB *apb) {
-  GLOBAL_APPL * globals = get_globals (apb->global->apid);
+  GLOBAL_APPL * globals;
+
+  CHECK_APID(apb->global->apid);
+
+  globals = get_globals (apb->global->apid);
 
   apb->int_out[0] = Rsrc_do_gaddr (globals->rshdr,
                                    apb->int_in[0],
@@ -672,16 +675,16 @@ Rsrc_obfix(AES_PB * apb) /*0x0072*/ {
 
 /*
 ** Exported
-**
-** 1998-12-20 CG
-** 1999-01-06 CG
-** 1999-04-24 CG
 */
 void
 Rsrc_rcfix (AES_PB *apb) /*0x0073*/ {
   RSHDR *       rsc = (RSHDR *)apb->addr_in[0];
-  GLOBAL_APPL * globals = get_globals (apb->global->apid);
+  GLOBAL_APPL * globals;
   
+  CHECK_APID(apb->global->apid);
+
+  globals = get_globals (apb->global->apid);
+
   Rsrc_do_rcfix (globals->vid,
                  rsc,
                  FALSE);

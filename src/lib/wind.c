@@ -1211,6 +1211,8 @@ Wind_do_create (WORD   apid,
 void
 Wind_create (AES_PB *apb)
 {       
+  CHECK_APID(apb->global->apid);
+
   apb->int_out[0] = Wind_do_create(apb->global->apid,
                                    apb->int_in[0],
                                    (RECT *)&apb->int_in[1],
@@ -1250,7 +1252,11 @@ Wind_do_open (WORD   apid,
 }
 
 
-void Wind_open(AES_PB *apb) {
+void
+Wind_open(AES_PB *apb)
+{
+  CHECK_APID(apb->global->apid);
+
   apb->int_out[0] = Wind_do_open (apb->global->apid,
                                   apb->int_in[0],
                                   (RECT *)&apb->int_in[1]);
@@ -1281,11 +1287,12 @@ Wind_do_close (WORD apid,
 
 /*
 ** Exported
-**
-** 1998-12-20 CG
 */
 void
-Wind_close (AES_PB *apb) {
+Wind_close (AES_PB *apb)
+{
+  CHECK_APID(apb->global->apid);
+
   apb->int_out[0] = Wind_do_close (apb->global->apid, apb->int_in[0]);
 }
 
@@ -1317,7 +1324,10 @@ WORD wid)        /* Identification number of window to close.               */
 
 
 /*wind_delete 0x0067*/
-void Wind_delete(AES_PB *apb) {
+void Wind_delete(AES_PB *apb)
+{
+  CHECK_APID(apb->global->apid);
+
   apb->int_out[0] = Wind_do_delete(apb->global->apid,
                                    apb->int_in[0]);
 }
@@ -1445,12 +1455,12 @@ Wind_do_get (WORD   apid,
 
 /*
 ** Exported
-**
-** 1998-12-20 CG
 */
 void
 Wind_get (AES_PB *apb)
 {
+  CHECK_APID(apb->global->apid);
+
   apb->int_out[0] = Wind_do_get (apb->global->apid,
                                  apb->int_in[0],
                                  apb->int_in[1],
@@ -1626,11 +1636,12 @@ Wind_do_set (WORD apid,
 
 /*
 ** Exported
-**
-** 1998-12-25 CG
 */
 void
-Wind_set (AES_PB *apb) {
+Wind_set (AES_PB *apb)
+{
+  CHECK_APID(apb->global->apid);
+
   apb->int_out[0] = Wind_do_set (apb->global->apid,
                                   apb->int_in[0],
                                   apb->int_in[1],
@@ -1667,11 +1678,12 @@ Wind_do_find (WORD apid,
 
 /*
 ** Exported
-**
-** 1998-12-20 CG
 */
 void
-Wind_find (AES_PB *apb) {
+Wind_find (AES_PB *apb)
+{
+  CHECK_APID(apb->global->apid);
+
   apb->int_out[0] = Wind_do_find (apb->global->apid,
                                   apb->int_in[0],
                                   apb->int_in[1]);
@@ -1706,7 +1718,10 @@ Wind_do_update (WORD apid,
 
 
 void
-Wind_update (AES_PB *apb) {
+Wind_update(AES_PB *apb)
+{
+  CHECK_APID(apb->global->apid);
+
   apb->int_out[0] = Wind_do_update (apb->global->apid,
                                     apb->int_in[0]);
 }
@@ -1714,7 +1729,10 @@ Wind_update (AES_PB *apb) {
 
 /*wind_calc 0x006c*/
 void
-Wind_calc (AES_PB *apb) {
+Wind_calc (AES_PB *apb)
+{
+  CHECK_APID(apb->global->apid);
+
   calcworksize (apb->global->apid,
                 apb->int_in[1],
                 (RECT *)&apb->int_in[2],
@@ -1752,12 +1770,12 @@ Wind_do_new (WORD apid) {
 /*
 ** Description
 ** 0x006d wind_new ()
-**
-** 1999-06-10 CG
 */
 void
 Wind_new (AES_PB * apb)
 {
+  CHECK_APID(apb->global->apid);
+
   apb->int_out[0] = Wind_do_new(apb->global->apid);
 }
 
