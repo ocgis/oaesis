@@ -96,17 +96,25 @@ srv_get_cookie (LONG   code,
 #endif
 
 #ifdef MINT_TARGET
-static void CDECL startup(register BASEPAGE *b) {
-  register WORD (*func)(LONG);
-  register LONG arg;
+typedef WORD (*Thread)(LONG arg);
 
-  /*  set_stack((void *)(((LONG)b) + 256 + STKSIZE));*/
-
-  func = (WORD (*)(LONG))b->p_dbase;
-  arg = b->p_dlen;
-
-  DEBUG3 ("srv_misc.c: startup: Calling Pterm()");
-  Pterm((*func)(arg));
+static
+void
+CDECL
+startup(register BASEPAGE * bp)
+{
+  Thread     func;
+  LONG       arg;
+  short      handle;
+  ULONG *    cmd;
+  
+  /* Get command line parameters */
+  cmd = (ULONG *)bp->p_cmdlin;
+  func = (Thread)(cmd[0]);
+  arg = (LONG)(cmd[1]);
+	
+  /* Call function and exit*/
+  Pterm(func(arg));
 }
 #else
 void startup () {}
@@ -123,6 +131,7 @@ srv_fork (WORD   (*func)(LONG),
   BASEPAGE * bp_parent;
   LONG       pid;
   int        parent_handle;
+  ULONG *    cmd;
 
   /* Create a basepage for child process */
   bp_child = (BASEPAGE *)Pexec(PE_CBASEPAGE, 0L, "", 0L);
@@ -141,14 +150,17 @@ srv_fork (WORD   (*func)(LONG),
   /* Get correct parent */
   bp_child->p_parent = bp_parent;
 
+  /* Pass parameters to child via command line buffer */
+  cmd = (ULONG *)bp_child->p_cmdlin;
+  *cmd++ = (ULONG)func;
+  *cmd = (ULONG)arg;
+
   /* Allocate stack */
   bp_child->p_bbase = (char *)(bp_child + 1);
   bp_child->p_blen = STKSIZE;
 
   /* Setup start parameters */
-  bp_child->p_tbase = (BYTE *)startup;
-  bp_child->p_dbase = (BYTE *)func;
-  bp_child->p_dlen = arg;
+  bp_child->p_tbase = (BYTE *)&startup;
  
   /* Start child process */
   pid = Pexec(PE_ASYNC_GO_FREE, name, bp_child, 0L);
