@@ -103,7 +103,7 @@ Rsrc_do_load_mint (WORD   apid,
         
   flen = Fseek(0,(WORD)fnr,SEEK_END);
         
-  rsc = (RSHDR *)malloc(flen,GLOBALMEM);
+  rsc = (RSHDR *)malloc(flen);
 
   if(!rsc) {
     DB_printf("rsrc.c: loadrsc: Could not malloc memory for %s",namebuf);
