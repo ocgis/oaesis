@@ -30,7 +30,7 @@
  
  ****************************************************************************/
 
-#define DEBUGLEVEL 0
+#define DEBUGLEVEL 2
 
 /****************************************************************************
  * Used interfaces                                                          *
@@ -500,7 +500,8 @@ Rsrc_do_rcfix(WORD     vid,
 	  rsc->rsh_nobs,
 	  swap_endian);
 				     
-  for (i = 0; i < rsc->rsh_nobs; i++) {
+  for (i = 0; i < rsc->rsh_nobs; i++)
+  {
     /* Swap endian if necessary */
     if (swap_endian) {
       owalk[i].ob_next = SWAP_WORD(owalk[i].ob_next);
@@ -509,14 +510,15 @@ Rsrc_do_rcfix(WORD     vid,
       owalk[i].ob_type = SWAP_WORD(owalk[i].ob_type);
       owalk[i].ob_flags = SWAP_WORD(owalk[i].ob_flags);
       owalk[i].ob_state = SWAP_WORD(owalk[i].ob_state);
-      /*owalk[i].ob_spec.index = SWAP_LONG(owalk[i].ob_spec.index);*/
+      owalk[i].ob_spec.index = SWAP_LONG(owalk[i].ob_spec.index);
       owalk[i].ob_x = SWAP_WORD(owalk[i].ob_x);
       owalk[i].ob_y = SWAP_WORD(owalk[i].ob_y);
       owalk[i].ob_width = SWAP_WORD(owalk[i].ob_width);
       owalk[i].ob_height = SWAP_WORD(owalk[i].ob_height);
     }
 
-    switch (owalk[i].ob_type & 0xff /* FIXME: Check that this is OK! */) {
+    switch (owalk[i].ob_type & 0xff)
+    {
     case        G_BOX:
     case        G_IBOX:
     case        G_BOXCHAR:
@@ -531,11 +533,11 @@ Rsrc_do_rcfix(WORD     vid,
     case        G_STRING:
     case        G_TITLE:
     case        G_ICON:
-      owalk[i].ob_spec.index = SWAP_LONG(owalk[i].ob_spec.index) + (LONG)rsc;
+      owalk[i].ob_spec.index = owalk[i].ob_spec.index + (LONG)rsc;
       break;
       
     case        G_CICON:
-      owalk[i].ob_spec.index = (LONG)cicons[SWAP_LONG(owalk[i].ob_spec.index)];
+      owalk[i].ob_spec.index = (LONG)cicons[owalk[i].ob_spec.index];
       break;
       
     default:
