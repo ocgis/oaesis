@@ -100,6 +100,7 @@ void startup () {}
 #endif /* MINT_TARGET */
 
 
+#ifdef MINT_TARGET
 LONG Misc_fork(WORD (*func)(LONG),LONG arg,BYTE *name) {
   register BASEPAGE *b;
   register LONG pid;
@@ -115,6 +116,17 @@ LONG Misc_fork(WORD (*func)(LONG),LONG arg,BYTE *name) {
 
   return pid;
 }
+#else /* MINT_TARGET */
+LONG
+Misc_fork (WORD (*func)(LONG),
+	   LONG arg,
+	   BYTE * name) {
+  fprintf (stderr, "oAESis: Implement server thread start in misc.c\n");
+
+  return 42;
+}
+	   
+#endif /* MINT_TARGET */
 
 
 WORD	max(WORD a,WORD b) {

@@ -177,11 +177,11 @@ int	main(int argc,char *argv[])
 	
 	if(argc > 2)
 	{
-		if(!stricmp("-u",argv[1]))
+		if(!strcasecmp("-u",argv[1]))
 		{
 			strcpy(radslut,"\n");
 		}
-		else if(!stricmp("-a",argv[1]))
+		else if(!strcasecmp("-a",argv[1]))
 		{
 			strcpy(radslut,"\r\n");
 		}

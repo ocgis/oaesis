@@ -42,11 +42,11 @@
 #endif
 
 void init_aes(WORD nocnf) {
-  fprintf(stderr,"Initializing:\r\n");
+  fprintf(stderr,"Initializing global:\n");
   
   init_global(nocnf);
 
-  fprintf(stderr,"Server\r\n");
+  fprintf(stderr,"Initializing server:\n");
   Srv_init_module();
   
 #ifdef MINT_TARGET
@@ -60,7 +60,7 @@ void init_aes(WORD nocnf) {
   fprintf(stderr,"Menu calls\r\n");
   Menu_init_module();
   
-  fprintf(stderr,"Graf calls\r\n");
+  fprintf(stderr,"Initializing graf calls\n");
   Graf_init_module();
 
 #ifdef MINT_TARGET  
