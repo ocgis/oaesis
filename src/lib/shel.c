@@ -1,7 +1,7 @@
 /*
 ** shel.c
 **
-** Copyright 1999 Christer Gustavsson <cg@nocrew.org>
+** Copyright 1999 - 2000 Christer Gustavsson <cg@nocrew.org>
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -261,7 +261,6 @@ start_gem_program_unix(WORD   apid,
   WORD       pid = -1;
   WORD       ap_id;
 
-
   getcwd(oldpath, 128);
   
   strcpy(exepath, cmd);
@@ -437,11 +436,7 @@ Shel_do_write(WORD   apid,
     break;
     
   case SWM_LAUNCHNOW: /* - run another application in GEM or TOS mode */
-    if (wisgr == GEMAPP)
-    {
-      r = start_gem_program(apid, APP_APPLICATION, envir, ddir, cmd, tail);
-    }
-    else if (wisgr == TOSAPP)
+    if(wisgr == TOSAPP)
     {
       WORD fd;
       BYTE new_cmd[300];
@@ -452,7 +447,8 @@ Shel_do_write(WORD   apid,
       strcpy (exepath, cmd);
       tmp = exepath;
       
-      if(!ddir) {
+      if(!ddir)
+      {
 	ddir = oldpath;
       }
       
@@ -466,6 +462,10 @@ Shel_do_write(WORD   apid,
       Fclose(fd);
       
       r = 1;
+    }
+    else /* GEMAPP */
+    {
+      r = start_gem_program(apid, APP_APPLICATION, envir, ddir, cmd, tail);
     }
     break;
     
