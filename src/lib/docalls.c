@@ -533,7 +533,8 @@ aes_call_be32(AESPB * apb)
     {          
       FIX((WORD *)native_apb.addrin[0],
           (WORD *)native_apb.addrin[0],
-          MSG_LENGTH + htons(((WORD *)native_apb.addrin[0])[2]),
+          (MSG_LENGTH / sizeof(WORD)) +
+          htons(((WORD *)native_apb.addrin[0])[2]),
           htons);
     }
     DEBUG3("Fix evnt_multi finished");
