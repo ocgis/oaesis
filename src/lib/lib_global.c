@@ -1,7 +1,7 @@
 /*
 ** lib_global.c
 **
-** Copyright 1996 - 2000 Christer Gustavsson <cg@nocrew.org>
+** Copyright 1996 - 2001 Christer Gustavsson <cg@nocrew.org>
 ** Copyright 1996 Jan Paul Schmidt <Jan.P.Schmidt@mni.fh-giessen.de>
 **
 ** This program is free software; you can redistribute it and/or modify
@@ -76,6 +76,9 @@ short
 (*oaesis_callback)(void *, void *) = NULL;
 
 static OAESIS_PATH_MODE default_path_mode = OAESIS_PATH_MODE_UNIX;
+
+OAESIS_ENDIAN oaesis_client_endian = OAESIS_ENDIAN_HOST;
+
 #endif /* MINT_TARGET */
 
 /****************************************************************************
@@ -304,30 +307,44 @@ init_global (WORD physical_vdi_id)
 #else
                    TRUE
 #endif
+                   ,
+                   TRUE
                    );
     DEBUG2("lib_global.c: init_global: Called Rsrc_do_rcfix");
     
-    Rsrc_do_gaddr ((RSHDR *)resource, R_TREE, AICONS, &global_common.aiconstad);
-    Rsrc_do_gaddr ((RSHDR *)resource, R_TREE, ALERT, &global_common.alerttad);
-    Rsrc_do_gaddr ((RSHDR *)resource,
-                   R_TREE,
-                   FISEL,
-                   &global_common.fiseltad);
+    Rsrc_do_gaddr((RSHDR *)resource,
+                  R_TREE,
+                  AICONS,
+                  &global_common.aiconstad,
+                  TRUE);
+    Rsrc_do_gaddr((RSHDR *)resource,
+                  R_TREE,
+                  ALERT,
+                  &global_common.alerttad,
+                  TRUE);
+    Rsrc_do_gaddr((RSHDR *)resource,
+                  R_TREE,
+                  FISEL,
+                  &global_common.fiseltad,
+                  TRUE);
 
-    Rsrc_do_gaddr ((RSHDR *)resource,
-                   R_TREE,
-                   PMENU,
-                   &global_common.pmenutad);
-    Rsrc_do_gaddr ((RSHDR *)resource,
-                   R_FRSTR,
-                   0,
-                   (OBJECT **)&global_common.fr_string);
+    Rsrc_do_gaddr((RSHDR *)resource,
+                  R_TREE,
+                  PMENU,
+                  &global_common.pmenutad,
+                  TRUE);
+    Rsrc_do_gaddr((RSHDR *)resource,
+                  R_FRSTR,
+                  0,
+                  (OBJECT **)&global_common.fr_string,
+                  TRUE);
     
     /* Initialize window elements and resource counters */
     Rsrc_do_gaddr((RSHDR *)resource,
                   R_TREE,
                   WINDOW,
-                  &global_common.windowtad);
+                  &global_common.windowtad,
+                  TRUE);
     global_common.elemnumber = -1;
  
     /* Init mouseforms */
@@ -338,11 +355,14 @@ init_global (WORD physical_vdi_id)
 #else
                    TRUE
 #endif
+                   ,
+                   TRUE
                    );
     Rsrc_do_gaddr((RSHDR *)cursors,
                   R_TREE,
                   MOUSEFORMS,
-                  &global_common.mouseformstad);
+                  &global_common.mouseformstad,
+                  TRUE);
     Graf_init_mouseforms();
     
 #ifdef MINT_TARGET
@@ -459,6 +479,16 @@ Oaesis_set_path_mode(OAESIS_PATH_MODE path_mode)
 
 
 #ifndef MINT_TARGET
+
+/*
+** Description
+** Set client endian. Default is the host endian.
+*/
+void
+Oaesis_set_client_endian(OAESIS_ENDIAN client_endian)
+{
+  oaesis_client_endian = client_endian;
+}
 
 /*
 ** Description

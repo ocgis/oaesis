@@ -28,6 +28,20 @@ typedef enum
 void
 Oaesis_set_path_mode(OAESIS_PATH_MODE path_mode);
 
+typedef enum
+{
+  OAESIS_ENDIAN_HOST,
+  OAESIS_ENDIAN_BIG,
+  OAESIS_ENDIAN_LOW
+} OAESIS_ENDIAN;
+
+/*
+** Description
+** Set client endian. Default is the host endian.
+*/
+void
+Oaesis_set_client_endian(OAESIS_ENDIAN client_endian);
+
 /*
 ** Description
 ** Install a callback handler

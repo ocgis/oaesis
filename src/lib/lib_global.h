@@ -1,3 +1,16 @@
+/*
+** lib_global.h
+**
+** Copyright 1996 - 2001 Christer Gustavsson <cg@nocrew.org>
+**
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+**  
+** Read the file COPYING for more information.
+*/
+
 #ifndef	__LIB_GLOBAL__
 #define	__LIB_GLOBAL__
 
@@ -151,5 +164,49 @@ extern GLOBAL_COMMON global_common;
 int check_apid(int apid);
 
 #define CHECK_APID(apid) apid = check_apid(apid);
+
+#ifdef WORDS_BIGENDIAN
+
+#define CW_TO_HW(cw) cw
+#define HW_TO_CW(hw) hw
+#define CL_TO_HL(cl) (LONG)cl
+#define HL_TO_CL(hl) (LONG)hl
+
+#else /* WORDS_BIGENDIAN */
+
+/* FIXME */
+#include <netinet/in.h>
+
+extern OAESIS_ENDIAN oaesis_client_endian;
+
+#define CW_TO_HW(word) \
+        ((is_internal || (oaesis_client_endian == OAESIS_ENDIAN_HOST)) ? \
+          word : \
+          (oaesis_client_endian == OAESIS_ENDIAN_BIG) ? \
+            ntohs((WORD)word) : \
+            word)
+
+#define HW_TO_CW(word) \
+        ((is_internal || (oaesis_client_endian == OAESIS_ENDIAN_HOST)) ? \
+          word : \
+          (oaesis_client_endian == OAESIS_ENDIAN_BIG) ? \
+            htons((WORD)word) : \
+            word)
+
+#define CL_TO_HL(cl) \
+        ((is_internal || (oaesis_client_endian == OAESIS_ENDIAN_HOST)) ? \
+          (LONG)cl : \
+          (oaesis_client_endian == OAESIS_ENDIAN_BIG) ? \
+            ntohl((LONG)cl) : \
+            (LONG)cl)
+
+#define HL_TO_CL(hl) \
+        ((is_internal || (oaesis_client_endian == OAESIS_ENDIAN_HOST)) ? \
+          (LONG)hl : \
+          (oaesis_client_endian == OAESIS_ENDIAN_BIG) ? \
+            htonl((LONG)hl) : \
+            (LONG)hl)
+
+#endif /* WORDS_BIGENDIAN */
 
 #endif

@@ -1,22 +1,33 @@
+/*
+** rsrc.h
+**
+** Copyright 1995 - 2001 Christer Gustavsson <cg@nocrew.org>
+**
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+**  
+** Read the file COPYING for more information.
+**
+*/
+
+
 #ifndef	__RSRC__
 #define	__RSRC__
 
-#include	"types.h"
+#include "types.h"
 
-/****************************************************************************
- * Library routines                                                         *
- ****************************************************************************/
 
 /*
 ** Description
 ** Implementation of rsrc_rcfix ()
-**
-** 1999-04-24 CG
 */
 WORD
-Rsrc_do_rcfix (WORD     vid,
+Rsrc_do_rcfix (int      vid,
                RSHDR  * rshdr,
-               WORD     swap_endian);
+               int      swap_endian,
+               int      is_internal);
 
 /****************************************************************************
  *  Rsrc_duplicate                                                          *
@@ -37,17 +48,16 @@ Rsrc_free_tree(   /*                                                        */
 OBJECT *src);     /* Tree to erase.                                         */
 /****************************************************************************/
 
-/****************************************************************************
- *  Rsrc_do_gaddr                                                           *
- *   Implementation of rsrc_gaddr().                                        *
- ****************************************************************************/
-WORD              /* 0 if ok or != 0 if error.                              */
-Rsrc_do_gaddr(    /*                                                        */
-RSHDR  *rshdr,    /* Resource structure to search.                          */
-WORD   type,      /* Type of object.                                        */
-WORD   index,     /* Index of object.                                       */
-OBJECT **addr);   /* Object address.                                        */
-/****************************************************************************/
+/*
+** Description
+** Implementation of rsrc_gaddr()
+*/
+int
+Rsrc_do_gaddr(RSHDR  *  rshdr,
+              int       type,
+              int       index,
+              OBJECT ** addr,
+              int       is_internal);
 
 /****************************************************************************
  * System calls                                                             *
