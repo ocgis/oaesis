@@ -13,6 +13,10 @@
 
 #define DEBUGLEVEL 0
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdlib.h>
 
 #include "debug.h"
@@ -75,10 +79,8 @@ free_queue (QUEUE q) {
 /*
 ** Description
 ** Allocate a new element
-**
-** 1999-02-06 CG
 */
-inline
+INLINE
 ELEMENT
 ealloc (QUEUE q) {
   if (q->free == ELEMENT_NIL) {
@@ -98,10 +100,8 @@ ealloc (QUEUE q) {
 /*
 ** Description
 ** Free an element
-**
-** 1999-02-06 CG
 */
-inline
+INLINE
 void
 efree (QUEUE   q,
        ELEMENT e) {

@@ -52,13 +52,17 @@
 #include "debug.h"
 #include "srv_global.h"
 #include "lxgemdos.h"
-/*#include "resource.h"*/
-/*#include "rsrc.h"*/
 #include "types.h"
 #include "version.h"
 
 #ifdef MINT_TARGET
 #include "lib_global.h"
+#endif
+
+#ifdef __GNUC__
+# define OAESIS_CDECL
+#else
+# define OAESIS_CDECL cdecl
 #endif
 
 /****************************************************************************
@@ -158,12 +162,10 @@ WORD own_graf_handle(void) {
 /*
 ** Description
 ** Close vdi workstation if we get a segmentation fault
-**
-** 1999-01-16 CG
-** 1999-05-22 CG
 */
 static
 void
+OAESIS_CDECL
 handle_signal (int s) {
   v_clswk (globals.vid);
 
@@ -185,9 +187,10 @@ handle_signal (int s) {
 ** 1999-03-28 CG
 ** 1999-05-22 CG
 ** 1999-08-08 CG
+** 1999-08-25 CG
 */
 void
-srv_init_global (WORD nocnf) {
+srv_init_global (WORD no_configuration_file) {
   int work_in[] = {1,1,1,1,1,1,1,1,1,1,2};
   int work_out[57];
   int dum;
@@ -209,7 +212,7 @@ srv_init_global (WORD nocnf) {
   v_opnwk (work_in, &globals.vid, work_out);
 
 #ifdef MINT_TARGET
-  init_global (nocnf, globals.vid);
+  init_global (globals.vid);
 #endif
 
   vq_extnd(globals.vid,0,work_out);
@@ -255,6 +258,10 @@ srv_init_global (WORD nocnf) {
   globals.csheight = work_out[9] / 2;
   
   sprintf(versionstring,"Version %s",VERSIONTEXT);
+
+  if (!no_configuration_file) {
+    Boot_parse_cnf ();
+  }
 }
 
 

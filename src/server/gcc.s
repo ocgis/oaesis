@@ -14,6 +14,7 @@
 	.globl	_old_button_vector
 	.globl	_catch_mouse_motion
 	.globl	_catch_mouse_buttons
+	.globl	_catch_timer_click
 	.globl	_p_fsel_extern
         .globl _aescall
 

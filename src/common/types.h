@@ -1,6 +1,12 @@
 #ifndef __TYPES__
 #define __TYPES__
 
+#ifdef __GNUC__
+#define PACKED __attribute__ ((packed))
+#else
+#define PACKED
+#endif
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -68,20 +74,6 @@ typedef struct {
   WORD            fd_r2;      /* Reserved                              */
   WORD            fd_r3;      /* Reserved                              */
 } MFDB;
-#endif
-
-/* Mouse Form Definition Block */
-#if 0
-/* FIXME: check type in ovdisis and remove from here */
-typedef struct mouse_form {
-  WORD mf_xhot;
-  WORD mf_yhot;
-  WORD mf_nplanes;
-  WORD mf_bg;
-  WORD mf_fg;
-  WORD mf_mask[16];
-  WORD mf_data[16];
-} __attribute__ ((packed)) MFORM;
 #endif
 
 typedef struct mouse_event_type {
@@ -355,7 +347,7 @@ typedef struct global_array {
   void *  int_info;
   WORD    maxchar;
   WORD    minchar;
-} __attribute__ ((packed)) GLOBAL_ARRAY;
+} PACKED GLOBAL_ARRAY;
 
 typedef struct aes_pb {
   WORD         *control;

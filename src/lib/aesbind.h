@@ -15,6 +15,13 @@
 #ifndef _AESBIND_H_
 #define _AESBIND_H_
 
+#ifdef __GNUC__
+#error Gnu C
+#define PACKED __attribute__ ((packed))
+#else
+#define PACKED
+#endif
+
 #define NIL (-1)
 
 /* appl_control modes */
@@ -538,7 +545,7 @@ typedef struct objc_colorword {
    unsigned opaque  : 1;
    unsigned pattern : 3;
    unsigned fillc   : 4;
-} __attribute__ ((packed)) OBJC_COLORWORD;
+} PACKED OBJC_COLORWORD;
 
 typedef struct text_edinfo
 {
@@ -570,7 +577,7 @@ typedef struct icon_block {
   short   ib_ytext;
   short   ib_wtext;
   short   ib_htext;
-} __attribute__ ((packed)) ICONBLK;
+} PACKED ICONBLK;
 
 typedef struct bit_block {
   char  * bi_pdata;  /* ptr to bit forms data  */
@@ -579,7 +586,7 @@ typedef struct bit_block {
   short   bi_x;       /* source x in bit form */
   short   bi_y;       /* source y in bit form */
   short   bi_color;   /* fg color of blt */
-} __attribute__ ((packed)) BITBLK;
+} PACKED BITBLK;
 
 typedef struct cicon_data {
   short               num_planes;
@@ -588,12 +595,12 @@ typedef struct cicon_data {
   short *             sel_data;
   short *             sel_mask;
   struct cicon_data * next_res;
-} __attribute__ ((packed)) CICON;
+} PACKED CICON;
         
 typedef struct cicon_blk {
   ICONBLK monoblk;
   CICON * mainlist;
-} __attribute__ ((packed)) CICONBLK;
+} PACKED CICONBLK;
 
 
 typedef struct {

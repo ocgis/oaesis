@@ -121,10 +121,10 @@ typedef struct global_appl {
 ** Initialize global variables, open vdi workstation etc
 **
 ** 1998-11-15 CG
+** 1999-08-25 CG
 */
 void
-init_global (WORD nocnf,
-             WORD physical_vdi_id);
+init_global (WORD physical_vdi_id);
 
 /*
 ** Description

@@ -23,4 +23,6 @@ noinst_HEADERS = \
         boot.h lxgemdos.h mousedev.h rlist.h srv.h srv_global.h srv_misc.h
 
 EXTRA_oaesis_SOURCES = \
-	$(TRAP_SRCS) $(SERVER_SRCS)
+	$(TRAP_SRCS) $(SERVER_SRCS) purec.s
+
+EXTRA_DIST = Makefile.purec

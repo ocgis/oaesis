@@ -13,6 +13,10 @@
 
 #define DEBUGLEVEL 0
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -55,11 +59,9 @@ static COMM_HANDLE last_queued_handle  = COMM_HANDLE_NIL;
 /*
 ** Description
 ** Insert a handle last in the queue
-**
-** 1999-02-04 CG
 */
 static
-inline
+INLINE
 void
 insert_last (COMM_HANDLE handle) {
   if (first_queued_handle == COMM_HANDLE_NIL) {
@@ -77,11 +79,9 @@ insert_last (COMM_HANDLE handle) {
 /*
 ** Description
 ** Pop the first queued handle
-**
-** 1999-02-04 CG
 */
 static
-inline
+INLINE
 COMM_HANDLE
 pop_first (void) {
   COMM_HANDLE handle;

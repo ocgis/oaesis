@@ -116,24 +116,12 @@ catch_mouse_motion (int x,
 /*
 ** Description
 ** This procedure is installed with vex_timv to handle timer clicks
-**
-** 1999-01-29 CG
-** 1999-08-05 CG
 */
 void
 catch_timer_click (void) {
   /* Another 20 ms has passed */
   timer_counter += timer_tick_ms;
-
-  /* Wake server so that it will wake the waiting application */
-// FIXME
-//  if (timer_counter > next_timer_event) {
-    /* Prevent multiple wake calls */
-    /*    next_timer_event = MAX_TIMER_COUNT;*/
-//    Srv_wake ();
-//  }
 }
-
 
 
 #ifdef MINT_TARGET
@@ -149,7 +137,7 @@ extern void * newtvec;
 
 #define catch_timer_click &newtvec
 
-#endif
+#endif /* MINT_TARGET */
 
 void * old_button_vector;
 void * old_motion_vector;

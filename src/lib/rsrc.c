@@ -247,7 +247,7 @@ Rsrc_do_load (WORD   apid,
 
 typedef struct {
   OBJECT *o[1];
-} __attribute__ ((packed)) OARRAY;
+} PACKED OARRAY;
 
 /*
 ** Description
@@ -294,7 +294,7 @@ calculate_element_address (RSHDR * rsc,
 
 typedef struct {
   LONG l[1];
-} __attribute__ ((packed)) LARRAY;
+} PACKED LARRAY;
 
 /*
 ** Exported

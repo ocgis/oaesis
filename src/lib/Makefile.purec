@@ -1,0 +1,29 @@
+include ../../mincl.purec
+
+CFLAGS = -I../comm -I../common -I../.. \
+	 $(INCLUDES) $(DEFINES)
+
+BINDINGS_OBJS = \
+	aesbind.o
+
+TRAP_OBJS = \
+	trap.o
+
+LIB_OBJS = \
+	appl.o cursors.o debug.o docalls.o evnt.o evnthndl.o form.o \
+	fsel.o graf.o lib_global.o lib_misc.o menu.o objc.o resource.o rsrc.o \
+	scrp.o shel.o srv_put.o wind.o
+
+all: oaesis.lib oaesis_client.lib
+
+oaesis.lib: $(BINDINGS_OBJS)
+	$(LD) -J -O=$@ $(BINDINGS_OBJS)
+
+oaesis_client.lib: $(LIB_OBJS)
+	$(LD) -J -O=$@ $(LIB_OBJS)
+
+cursors.c cursors.h: cursors.rsc cursors.hrd
+	../../tools/r2c_raw cursors.rsc
+
+resource.c resource.h: resource.rsc resource.hrd
+	../../tools/r2c_raw resource.rsc

@@ -16,6 +16,10 @@
 
 static char debugpath[128] = DEBUGPATH;
 
+#ifndef __GNUC__
+void debug_dummy(char * fmt, ...) {}
+#endif /* __GNUC__ */
+
 #ifdef MINT_TARGET
 static
 void

@@ -1,0 +1,14 @@
+CC = pcc
+AS = pasm
+LD = plink
+INCLUDES = -I/usr/include -I/usr/local/include/osis
+DEFINES = -DHAVE_CONFIG_H
+PCLIBDIR = /usr/lib/purec
+PCINCDIR = /usr/include
+
+.c.o:
+	$(CC) $(CFLAGS) -P -O$@ $<
+
+.s.o:
+	$(AS) -S -ODUM.O $<
+	mv DUM.O $@

@@ -30,6 +30,8 @@
   be freely duplicated and distributed without fee, but not charged for.
  ****************************************************************************/
 
+#define DEBUGLEVEL 0
+
 /****************************************************************************
  * Used interfaces                                                          *
  ****************************************************************************/
@@ -112,11 +114,13 @@ open_config_file () {
   FILE * fp;
 
   /* Is the HOME environment variable set? */
-  if(getenv("HOME") != NULL) {
+  if (getenv("HOME") != NULL) {
     /* Get value of $HOME */
-    strcpy(config_path, getenv("HOME"));
+    strcpy (config_path, getenv("HOME"));
 
-    strcat (config_path, ".oaesisrc");
+    strcat (config_path, "/.oaesisrc");
+
+    DEBUG3 ("config path: %s", config_path);
 
 #ifdef MINT_TARGET
     {
@@ -172,7 +176,7 @@ void Boot_parse_cnf(void) /*                                                */
     fprintf (stderr, "oaesis: couldn't find configuration file\n");
 
     return;
-  };
+  }
   
   while(1) {
     get_token(fp,line);

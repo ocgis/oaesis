@@ -9,3 +9,4 @@ resource.h
 resource.c
 .libs
 Makefile.in
+*.lib

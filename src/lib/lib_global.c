@@ -181,10 +181,10 @@ WORD own_graf_handle(void) {
 ** 1999-04-24 CG
 ** 1999-05-16 CG
 ** 1999-08-22 CG
+** 1999-08-25 CG
 */
 void
-init_global (WORD nocnf,
-             WORD physical_vdi_id) {
+init_global (WORD physical_vdi_id) {
   int work_in[] = {1,1,1,1,1,1,1,1,1,1,2};
   int work_out[57];
   int dum;
@@ -221,12 +221,6 @@ init_global (WORD nocnf,
   global_common.fsel_extern = 0;
   
   DEBUG3 ("init_global: 2");
-
-  if(!nocnf) {
-    /*
-    Boot_parse_cnf();
-    */
-  };
 
 #if 0 /* FIXME : Remove? def MINT_TARGET */
   fprintf(stderr,"appl_init()\r\n");

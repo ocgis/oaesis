@@ -359,7 +359,7 @@ Appl_do_init (GLOBAL_ARRAY * global) {
 
     init_global_appl (global->apid, ret.physical_vdi_id);
 
-    init_global (1, globals_appl->vid);
+    init_global (globals_appl->vid);
 #endif
 
     return global->apid;
