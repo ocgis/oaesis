@@ -327,7 +327,7 @@ static void apinfofree(WORD id) {
 			};
 
 			altemp->ai->id = -1;
-			Mfree(altemp);
+			/* FIXME Mfree(altemp);*/
 
 			break;
 		};
@@ -4070,7 +4070,7 @@ server (LONG arg) {
 
   /* Stop warnings from compiler about unused parameters */
   NOT_USED(arg);
-  
+
   /* Initialize message handling */
   Srv_open ();
 

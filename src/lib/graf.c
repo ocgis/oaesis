@@ -552,15 +552,14 @@ RECT *r2)         /* End rectangle.                                         */
   return 1;
 }
 
-/****************************************************************************
- * Graf_movebox                                                             *
- *  0x0048 graf_movebox().                                                  *
- ****************************************************************************/
-void              /*                                                        */
-Graf_movebox(     /*                                                        */
-AES_PB *apb)      /* AES parameter block.                                   */
-/****************************************************************************/
-{
+
+/*
+** Exported
+**
+** 1999-01-11 CG
+*/
+void
+Graf_movebox (AES_PB *apb) {
   RECT r1,r2;
   GLOBAL_APPL * globals = get_globals (apb->global->apid);
 
@@ -575,62 +574,56 @@ AES_PB *apb)      /* AES parameter block.                                   */
     r2.width = apb->int_in[0];
     r2.height = apb->int_in[1];
     
-    Evhd_wind_update(Pgetpid(),BEG_UPDATE);
+    Wind_do_update (apb->global->apid, BEG_UPDATE);
     
     apb->int_out[0] = Graf_do_grmobox(&r1,&r2);
     
-    Evhd_wind_update(Pgetpid(),END_UPDATE);
-  }
-  else {
+    Wind_do_update (apb->global->apid, END_UPDATE);
+  } else {
     apb->int_out[0] = 1;
-  };
+  }
 }
 
-/****************************************************************************
- * Graf_growbox                                                             *
- *  0x0049 graf_growbox().                                                  *
- ****************************************************************************/
-void              /*                                                        */
-Graf_growbox(     /*                                                        */
-AES_PB *apb)      /* AES parameter block.                                   */
-/****************************************************************************/
-{
+
+/*
+** Exported
+**
+** 1999-01-11 CG
+*/
+void
+Graf_growbox (AES_PB *apb) {
   GLOBAL_APPL * globals = get_globals (apb->global->apid);
 
   if(globals->common->graf_growbox) {
-    Evhd_wind_update(Pgetpid(),BEG_UPDATE);
-    
+    Wind_do_update (apb->global->apid, BEG_UPDATE);
     apb->int_out[0] = Graf_do_grmobox((RECT *)&apb->int_in[0],
                                       (RECT *)&apb->int_in[4]);
-    
-    Evhd_wind_update(Pgetpid(),END_UPDATE);
-  }
-  else {
+    Wind_do_update (apb->global->apid, END_UPDATE);
+  } else {
     apb->int_out[0] = 1;
-  };
+  }
 }
 
-/****************************************************************************
- * Graf_shrinkbox                                                           *
- *  0x004a graf_shrinkbox().                                                *
- ****************************************************************************/
-void              /*                                                        */
-Graf_shrinkbox(   /*                                                        */
-AES_PB *apb)      /* AES parameter block.                                   */
-/****************************************************************************/
-{
+
+/*
+** Exported
+**
+** 1999-01-11 CG
+*/
+void
+Graf_shrinkbox (AES_PB * apb) {
   GLOBAL_APPL * globals = get_globals (apb->global->apid);
 
   if(globals->common->graf_shrinkbox) {
-    Evhd_wind_update(Pgetpid(),BEG_UPDATE);
+    Wind_do_update (apb->global->apid, BEG_UPDATE);
     apb->int_out[0] = Graf_do_grmobox((RECT *)&apb->int_in[4], 
                                       (RECT *)&apb->int_in[0]);
-    Evhd_wind_update(Pgetpid(),END_UPDATE);
-  }
-  else {
+    Wind_do_update (apb->global->apid, END_UPDATE);
+  } else {
     apb->int_out[0] = 1;
   }
 }
+
 
 /*
 ** Exported

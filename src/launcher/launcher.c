@@ -12,6 +12,7 @@
 */
 
 #include <stdio.h>
+#include <string.h>
 
 #include <aesbind.h>
 #include <vdibind.h>
@@ -55,12 +56,69 @@ min (WORD a,
 
 #define NUM_LINES       10
 
+static char progpath[500] = "u:\\";
+static char progfile[70] = "";
+
+/*
+** Description
+** Let the user select an application and start it
+**
+** 1999-01-11 CG
+*/
+static
+void
+launch_application (void) {
+  char   execpath[128]; /*FIXME length of string */
+  char   oldpath[128];
+  char * tmp;
+  WORD   button;
+
+  /* Open file selector */
+  fsel_exinput (progpath, progfile, &button, "Select program to start");
+
+  /* Handle request if OK was selected */
+  if (button == FSEL_OK) {
+    LONG err;
+    char newpath[128];
+    
+    strcpy(newpath,progpath);
+    
+    tmp = strrchr(newpath,'\\');
+    
+    if (tmp) {
+      *tmp = '\0';
+      sprintf (execpath, "%s\\%s", newpath, progfile);
+    } else {
+      strcpy (execpath, progfile);
+    }
+    
+    /*
+    Dgetpath (oldpath, 0);
+    
+    Misc_setpath (newpath);
+    */
+
+    /*
+    err = Pexec (100, execpath, 0L, 0L);
+    */
+
+    /*
+    Misc_setpath (oldpath);
+    */
+
+    if (err < 0) {
+      form_error ((WORD) -err - 31);
+    }
+  }
+}
+
 
 /*
 ** Description
 ** Show information about oAESis
 **
 ** 1999-01-10 CG
+** 1999-01-11 CG
 */
 static
 void
@@ -77,8 +135,6 @@ show_information (void) {
   /* Calculate area of resource */
   form_center (information, &x, &y, &w, &h);
 
-  fprintf (stderr, "launcher.c: form_center returned: %d %d %d %d\n",
-           x, y, w, h);
   /* Reserve area for dialog */
   form_dial (FMD_START, x, y, w, h, x, y, w, h);
 
@@ -90,6 +146,9 @@ show_information (void) {
 
   /* Free area used by dialog */
   form_dial (FMD_FINISH, x, y, w, h, x, y, w, h);
+
+  /* Restore ok button */
+  information[INFOOK].ob_state &= ~SELECTED;
 }
 
 
@@ -105,6 +164,10 @@ handle_menu (WORD * buffert) {
   switch (buffert[3]) {
   case MENU_FILE :
     switch (buffert[4]) {
+    case MENU_LAUNCHAPP :
+      launch_application ();
+      break;
+
     case MENU_QUIT :
       return TRUE;
 

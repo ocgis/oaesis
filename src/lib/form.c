@@ -68,11 +68,12 @@
 **
 ** 1998-12-19 CG
 ** 1999-01-09 CG
+** 1999-01-11 CG
 */
 WORD
-Form_do_do(WORD     apid,
-           OBJECT * tree,
-           WORD editobj) {
+Form_do_do (WORD     apid,
+            OBJECT * tree,
+            WORD     editobj) {
   WORD buffer[16];
   WORD object,newobj,keyout;
   WORD idx;
@@ -89,14 +90,14 @@ Form_do_do(WORD     apid,
     0,
     0
   };
-							
   EVENTOUT	eo;
+  GLOBAL_APPL * globals = get_globals (apid);
 
-  if(editobj != 0) {
-    Objc_do_edit (apid, tree,editobj,0,&idx,ED_INIT);
-  };
+  if (editobj != 0) {
+    Objc_do_edit (globals->vid, tree, editobj, 0, &idx, ED_INIT);
+  }
 
-  Evhd_wind_update(apid,BEG_MCTRL);
+  Wind_do_update (apid, BEG_MCTRL);
 	
   while (TRUE) {
     Evnt_do_multi (apid, &ei, (COMMSG *)buffer, &eo, 0, DONT_HANDLE_MENU_BAR);
@@ -107,53 +108,51 @@ Form_do_do(WORD     apid,
       if(object >= 0) {
         if(!Form_do_button(apid, tree, object, eo.mc, &newobj)) {
           if(editobj != 0) {
-            Objc_do_edit (apid, tree,editobj,0,&idx,ED_END);
-          };
+            Objc_do_edit (globals->vid, tree,editobj,0,&idx,ED_END);
+          }
 
-          Evhd_wind_update(apid,END_MCTRL);
+          Wind_do_update (apid, END_MCTRL);
+
           return newobj;
-        }
-        else {
+        } else {
           if((newobj != 0) && (newobj != editobj)) {
             if(editobj != 0) {
-              Objc_do_edit (apid, tree,editobj,0,&idx,ED_END);
-            };
+              Objc_do_edit (globals->vid, tree,editobj,0,&idx,ED_END);
+            }
 				
             editobj = newobj;
 
-            Objc_do_edit (apid, tree,editobj,0,&idx,ED_INIT);
-          };
-        };
-      };
-    };
+            Objc_do_edit (globals->vid, tree,editobj,0,&idx,ED_INIT);
+          }
+        }
+      }
+    }
 		
     if(eo.events & MU_KEYBD) {
-      if(!Form_do_keybd (apid, tree,editobj,eo.kc,&newobj,&keyout)) {
+      if (!Form_do_keybd (apid, tree,editobj,eo.kc,&newobj,&keyout)) {
         if(editobj != 0) {
-          Objc_do_edit (apid, tree,editobj,0,&idx,ED_END);
-        };
+          Objc_do_edit (globals->vid, tree,editobj,0,&idx,ED_END);
+        }
 
-        Evhd_wind_update(apid,END_MCTRL);
+        Wind_do_update (apid, END_MCTRL);
         return newobj;
-      }
-      else if(newobj != editobj) {
+      } else if(newobj != editobj) {
         if(editobj != 0) {
-          Objc_do_edit (apid, tree,editobj,0,&idx,ED_END);
-        };
+          Objc_do_edit (globals->vid, tree, editobj, 0, &idx, ED_END);
+        }
 				
         editobj = newobj;
 
         if(editobj != 0) {
-          Objc_do_edit (apid, tree,editobj,0,&idx,ED_INIT);
-        };
-      }
-      else {
+          Objc_do_edit (globals->vid, tree, editobj, 0, &idx, ED_INIT);
+        }
+      } else {
         if((editobj != 0) && (keyout != 0)) {
-          Objc_do_edit (apid, tree,editobj,keyout,&idx,ED_CHAR);
-        };
-      };
-    };
-  };
+          Objc_do_edit (globals->vid, tree, editobj, keyout, &idx, ED_CHAR);
+        }
+      }
+    }
+  }
 }
 
 
@@ -176,6 +175,7 @@ Form_do (AES_PB *apb) {
 **
 ** 1998-12-20 CG
 ** 1999-01-02 CG
+** 1999-01-11 CG
 */
 WORD
 Form_do_dial (WORD   apid,
@@ -187,10 +187,10 @@ Form_do_dial (WORD   apid,
   switch(mode) {
   case	FMD_GROW		:	/*0x0001*/
     if(globals->common->graf_growbox) {
-      Evhd_wind_update(Pgetpid(),BEG_UPDATE);
+      Wind_do_update (apid, BEG_UPDATE);
       Graf_do_grmobox(r1,r2);
-      Evhd_wind_update(Pgetpid(),END_UPDATE);
-    };
+      Wind_do_update (apid, END_UPDATE);
+    }
     return 1;
 					
   case	FMD_START	:	/*0x0000*/
@@ -242,10 +242,10 @@ Form_do_dial (WORD   apid,
 
   case	FMD_SHRINK	:	/*0x0002*/
     if(globals->common->graf_shrinkbox) {
-      Evhd_wind_update(Pgetpid(),BEG_UPDATE);
+      Wind_do_update (apid, BEG_UPDATE);
       Graf_do_grmobox(r2,r1);
-      Evhd_wind_update(Pgetpid(),END_UPDATE);
-    };
+      Wind_do_update (apid, END_UPDATE);
+    }
 
   case	FMD_FINISH	:	/*0x0003*/
   {
@@ -300,6 +300,7 @@ void	Form_dial(AES_PB *apb) {
 ** Implementation of form_alert ()
 **
 ** 1998-12-19 CG
+** 1999-01-11 CG
 */
 static
 WORD
@@ -326,8 +327,10 @@ Form_do_alert (WORD   apid,
   WORD	 textwidth = 0,buttonwidth = 0;
   GLOBAL_APPL * globals = get_globals (apid);
 	
+  DB_printf ("form.c: Form_do_alert: 1");
   Graf_do_handle(&cwidth,&cheight,&width,&height);
 	
+  DB_printf ("form.c: Form_do_alert: 2");
   strcpy(s,alertstring);
 	
   while(s[i] != '[')
@@ -356,6 +359,7 @@ Form_do_alert (WORD   apid,
     i++;
   };
 	
+  DB_printf ("form.c: Form_do_alert: 3");
   s[i] = 0;
 	
   while(s[i] != '[')
@@ -376,16 +380,21 @@ Form_do_alert (WORD   apid,
 		
   s[i] = 0;
 	
+  DB_printf ("form.c: Form_do_alert: 4");
   tree = (OBJECT *)Mxalloc((2 + no_butts + no_rows) * sizeof(OBJECT)
                            ,PRIVATEMEM);
 	
+  DB_printf ("form.c: Form_do_alert: 4a");
   ti = (TEDINFO *)Mxalloc(no_rows * sizeof(TEDINFO),PRIVATEMEM);
 	
+  DB_printf ("form.c: Form_do_alert: 4b");
   memcpy(&tree[0],&globals->common->alerttad[0],sizeof(OBJECT));
 	
+  DB_printf ("form.c: Form_do_alert: 4c");
   tree[0].ob_head = -1;
   tree[0].ob_tail = -1;
 	
+  DB_printf ("form.c: Form_do_alert: 4d");
   for(i = 0; i < no_rows; i ++) {
     memcpy(&tree[1 + i],&globals->common->alerttad[AL_TEXT],sizeof(OBJECT));
     memcpy(&ti[i],globals->common->alerttad[AL_TEXT].ob_spec.tedinfo
@@ -409,6 +418,7 @@ Form_do_alert (WORD   apid,
     do_objc_add(tree,0,i + 1);
   };
 
+  DB_printf ("form.c: Form_do_alert: 5");
   for(i = 0; i < no_butts; i ++) {
     memcpy(&tree[1 + i + no_rows],&globals->common->alerttad[AL_BUTTON],sizeof(OBJECT));
 	
@@ -433,6 +443,7 @@ Form_do_alert (WORD   apid,
     do_objc_add(tree,0,i + 1 + no_rows);
   };
 	
+  DB_printf ("form.c: Form_do_alert: 6");
   memcpy(&tree[1 + no_butts + no_rows],&globals->common->alerttad[AL_ICON],sizeof(OBJECT));
 
   do_objc_add(tree,0,1 + no_butts + no_rows);
@@ -462,6 +473,7 @@ Form_do_alert (WORD   apid,
     tree[1 + no_butts + no_rows].ob_flags |= HIDETREE;		
   };
 		
+  DB_printf ("form.c: Form_do_alert: 7");
   buttonwidth += 2;
 
   if(def) {
@@ -498,7 +510,7 @@ Form_do_alert (WORD   apid,
 
   Form_do_dial(apid,FMD_START,&clip,&clip);
 
-  Objc_do_draw (apid, tree,0,9,&clip);
+  Objc_do_draw (globals->vid, tree,0,9,&clip);
 
   but_chosen = Form_do_do (apid, tree, 0) & 0x7fff;
 	
@@ -536,7 +548,9 @@ Form_do_error (WORD apid,
   BYTE	s[100];
   BYTE	*sp = s;
   GLOBAL_APPL * globals = get_globals (apid);
-	
+
+  DB_printf ("form.c: Form_do_error: Entered");
+
   switch(error)
   {
   case	FERR_FILENOTFOUND:
@@ -565,6 +579,8 @@ Form_do_error (WORD apid,
     sprintf(s,globals->common->fr_string[ERROR_GENERAL],error);
   };
 	
+  DB_printf ("form.c: Form_do_error: Calling Form_do_alert");
+
   return Form_do_alert (apid, 1, sp);
 }
 

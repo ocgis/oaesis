@@ -4,9 +4,9 @@ AC_INIT(src/Makefile.am)
 
 dnl libtool versioning
 LT_RELEASE=$OAESIS_MAJOR_VERSION.$OAESIS_MINOR_VERSION
-LT_CURRENT=`expr $OAESIS_MICRO_VERSION - $OAESIS_INTERFACE_AGE`
-LT_REVISION=$OAESIS_INTERFACE_AGE
-LT_AGE=`expr $OAESIS_BINARY_AGE - $OAESIS_INTERFACE_AGE`
+LT_CURRENT=`expr $OAESIS_MAJOR_VERSION + $OAESIS_MINOR_VERSION`
+LT_REVISION=$OAESIS_MICRO_VERSION
+LT_AGE=$OAESIS_MINOR_VERSION
 LT_VERSION_INFO="-version-info $LT_CURRENT:$LT_REVISION:$LT_AGE"
 
 dnl Check system type
@@ -76,57 +76,57 @@ else
   AC_SUBST(OVDISIS_LIBS)
 fi
 
-if test x$with_mintwrappers = xyes ; then
+if test x$with_otosis = xyes ; then
   AC_MSG_ERROR([
-*** Directory must be specified for --with-mintwrappers])
+*** Directory must be specified for --with-otosis])
 fi
 
-if test x$with_mintwrappers = x ; then 
-  # Look for separately installed mintwrappers
+if test x$with_otosis = x ; then 
+  # Look for separately installed otosis
 
-  AM_PATH_MINTWRAPPERS(0.0.0,,
+  AM_PATH_OTOSIS(0.31.0,,
     AC_MSG_ERROR([
-*** mintwrappers 0.0.0 or better is required. The latest version of mintwrappers
+*** otosis 0.31.0 or better is required. The latest version of otosis
 *** is always available from ftp://ftp.nocrew.org.]),
-    libmint)
+    libotosis)
 
-  mintwrappers_cflags=$MINTWRAPPERS_CFLAGS
-  mintwrappers_libs=$MINTWRAPPERS_LIBS
+  otosis_cflags=$OTOSIS_CFLAGS
+  otosis_libs=$OTOSIS_LIBS
 else
-  # Use uninstalled mintwrappers (assume they got the version right)
+  # Use uninstalled otosis (assume they got the version right)
 
-  if test -x $with_mintwrappers/mintwrappers-config ; then 
+  if test -x $with_otosis/otosis-config ; then 
     :
   else
-    AC_MSG_ERROR([mintwrappers directory ($with_mintwrappers) not present or not configured])
+    AC_MSG_ERROR([otosis directory ($with_otosis) not present or not configured])
   fi
 
   # For use in oaesis-config
-  mintwrappers_cflags=`$with_mintwrappers/mintwrappers-config --cflags`
-  mintwrappers_libs=`$with_mintwrappers/mintwrappers-config --libs`
+  otosis_cflags=`$with_otosis/otosis-config --cflags`
+  otosis_libs=`$with_otosis/otosis-config --libs`
 
-  mintwrappers_release=`$with_mintwrappers/mintwrappers-config --version | sed 's%\\.[[0-9]]*$%%'`
+  otosis_release=`$with_otosis/otosis-config --version | sed 's%\\.[[0-9]]*$%%'`
 
   # canonicalize relative paths
-  case $with_mintwrappers in 
+  case $with_otosis in 
     /*)
-      mintwrappers_dir=$with_mintwrappers
+      otosis_dir=$with_otosis
       ;;
     *)
-      mintwrappers_dir="\$(top_builddir)/$with_mintwrappers"
+      otosis_dir="\$(top_builddir)/$with_otosis"
       ;;
   esac
 
-  MINTWRAPPERS_CFLAGS="-I$mintwrappers_dir"
-  MINTWRAPPERS_LIBS=$mintwrappers_dir/libfb.la
+  OTOSIS_CFLAGS="-I$otosis_dir"
+  OTOSIS_LIBS=$otosis_dir/libfb.la
 
-  AC_SUBST(MINTWRAPPERS_CFLAGS)
-  AC_SUBST(MINTWRAPPERS_LIBS)
+  AC_SUBST(OTOSIS_CFLAGS)
+  AC_SUBST(OTOSIS_LIBS)
 fi
 
-dnl This is needed for AC_CHECK_HEADERS to find the mintwrappers 
+dnl This is needed for AC_CHECK_HEADERS to find the otosis 
 dnl and the oVDIsis headers
-CPPFLAGS="$CPPFLAGS $MINTWRAPPERS_CFLAGS $OVDISIS_CFLAGS"
+CPPFLAGS="$CPPFLAGS $OTOSIS_CFLAGS $OVDISIS_CFLAGS"
 
 OSISINCLUDE=${includedir}/osis
 

@@ -365,7 +365,9 @@ WORD apid)                     /*                                           */
 	
 	WORD i = 0;
 	
+        /* FIXME
 	bootpath[0] = (get_sysvar(_bootdev) >> 16) + 'a';
+        */
 
 	fp = fopen("oaesis.cnf","r");
 
@@ -447,7 +449,9 @@ WORD apid)                     /*                                           */
 	
 
     if(!(*Boot_acc_path)) {
+      /* FIXME
 	Boot_acc_path[0] = (get_sysvar(_bootdev) >> 16) + 'a';
+      */
         Boot_acc_path[1] = ':';
         Boot_acc_path[2] = '\\';
     }

@@ -264,6 +264,7 @@ static void localize_mousevalues(void) {
 ** Handle mouse button click on window arrow
 **
 ** 1998-12-20 CG
+** 1999-01-11 CG
 */
 static
 void
@@ -276,7 +277,7 @@ handle_arrow_click (WORD apid,
   WORD      owner;
   WORD      dummy;
         
-  Evhd_wind_update(EVHD_APID,BEG_MCTRL);
+  Wind_do_update (apid, BEG_MCTRL);
   
   mesag.type = WM_ARROWED;
   mesag.sid = 0;
@@ -312,7 +313,7 @@ handle_arrow_click (WORD apid,
   
   Appl_do_write (apid, owner,16,&mesag);
   
-  Evhd_wind_update(EVHD_APID,END_MCTRL);
+  Wind_do_update (apid, END_MCTRL);
 }
 
 
@@ -615,6 +616,7 @@ handle_sizer_click (WORD apid,
 **
 ** 1998-12-20 CG
 ** 1999-01-01 CG
+** 1999-01-11 CG
 */
 static
 void
@@ -716,9 +718,8 @@ handle_slider_click (WORD apid,
         }
       }
     }
-  }
-  else {
-    Evhd_wind_update(Pgetpid(),BEG_UPDATE);
+  } else {
+    Wind_do_update (apid, BEG_UPDATE);
     
     Vdi_vsl_type(evntglbl.evid,3);
     Vdi_vswr_mode(evntglbl.evid,MD_XOR);
@@ -798,7 +799,7 @@ handle_slider_click (WORD apid,
     
     Appl_do_write (apid, owner,16,&mesag);
 
-    Evhd_wind_update(Pgetpid(),END_UPDATE);
+    Wind_do_update (apid, END_UPDATE);
   }
 
   Wind_change (apid, win_id, widget, 0);
@@ -1801,6 +1802,10 @@ WORD apid)             /* Application id to end reporting to.               */
 }
 
 
+/* FIXME
+** Remove!!!
+*/
+#if 0
 /****************************************************************************
  * Evhd_wind_update                                                         *
  *  Get / release update semaphore.                                         *
@@ -1864,3 +1869,4 @@ WORD mode)             /* Mode.                                             */
 
   return 1;
 }
+#endif

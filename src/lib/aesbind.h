@@ -795,7 +795,8 @@ form_dial (short flag,
 short
 form_do (void * tree,
          short  startobj);
-int form_error (int ErrorCode);
+short
+form_error (short code);
 int form_keybd (void *Ktree, int Kobject, int Kobnext,
                                  int Kchar, int *Knxtobject, int *Knxtchar);
 
@@ -868,12 +869,14 @@ int     objc_order (void *Tree, int Object, int NewPos);
 int     objc_sysvar (int mode, int which, int in1, int in2, int *out1, int *out2);
 
 int     rsrc_free (void);
-extern short rsrc_gaddr (int    Type,
-                         int    Index,
-                         void * Address);
+short
+rsrc_gaddr (short  Type,
+            short  Index,
+            void * Address);
 int     rsrc_load (char *Name);
 int     rsrc_obfix (void *Tree, int Index);
-extern short rsrc_rcfix (void * rc_header);
+short
+rsrc_rcfix (void * rc_header);
 int     rsrc_saddr (int Type, int Index, void *Address);
 
 int     scrp_clear (void);

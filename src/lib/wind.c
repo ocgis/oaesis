@@ -335,9 +335,6 @@ allocate_window_elements (void) {
   LONG    size;
   GLOBAL_COMMON * globals = get_global_common ();
 
-  DB_printf ("wind.c: allocate_window_elements: 1");
-  DB_printf ("wind.c: allocate_window_elements: globals=0x%x", globals);
-  DB_printf ("wind.c: allocate_window_elements: globals->windowtad=0x%x", globals->windowtad);
   while(elemnumber == -1) {
     switch (globals->windowtad[i].ob_type) {
     case        G_TEXT          :
@@ -356,14 +353,10 @@ allocate_window_elements (void) {
     i++;
   }
         
-  DB_printf ("wind.c: allocate_window_elements: 2");
-
   size = sizeof(OBJECT) * elemnumber + sizeof(TEDINFO) * tednumber;
         
   t = (OBJECT *)Mxalloc(size,GLOBALMEM);
         
-  DB_printf ("wind.c: allocate_window_elements: 3");
-
   if(t != NULL) {
     ti = (TEDINFO *)&t[elemnumber];
                 
@@ -382,8 +375,6 @@ allocate_window_elements (void) {
     };
   };
 
-  DB_printf ("wind.c: allocate_window_elements: 4");
-        
   return t;
 }
 

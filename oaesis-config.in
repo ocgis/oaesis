@@ -2,6 +2,8 @@
 
 ovdisis_libs="@OVDISIS_LIBS@"
 ovdisis_cflags="@OVDISIS_CFLAGS@"
+otosis_libs="@OTOSIS_LIBS@"
+otosis_cflags="@OTOSIS_CFLAGS@"
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -42,21 +44,21 @@ while test $# -gt 0; do
       echo @VERSION@
       ;;
     --cflags)
-      echo $ovdisis_cflags -I@OSISINCLUDE@
+      echo $ovdisis_cflags $otosis_cflags -I@OSISINCLUDE@
       ;;
     --libs)
-      my_ovdisis_libs=
+      my_libs=
       libdirs=-L@libdir@
-      for i in $ovdisis_libs ; do
+      for i in $ovdisis_libs $otosis_libs; do
         if test $i != -L@libdir@ ; then
-          if test -z "$my_ovdisis_libs" ; then
-            my_ovdisis_libs="$i"
+          if test -z "$my_libs" ; then
+            my_libs="$i"
           else
-            my_ovdisis_libs="$my_ovdisis_libs $i"
+            my_libs="$my_libs $i"
           fi
         fi
       done
-      echo $libdirs -loaesis $my_ovdisis_libs
+      echo $libdirs -loaesis $my_libs
       ;;
     *)
       echo "${usage}" 1>&2

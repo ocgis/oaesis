@@ -68,10 +68,12 @@ WORD Misc_get_cookie(LONG code,LONG *value) {
   register COOKIE *cookie;
   void            *stack;
   
+  /* FIXME
   stack = (void*)Super(0L);
   cookie = *(COOKIE **)_p_cookies;
   Super(stack);
-  
+  */
+
   while(cookie->cookie) {
     if(cookie->cookie == code) {
       *value = cookie->value;		

@@ -165,6 +165,7 @@ WORD own_graf_handle(void) {
 ** 1999-01-01 CG
 ** 1999-01-06 CG
 ** 1999-01-09 CG
+** 1999-01-13 CG
 */
 void
 init_global (WORD nocnf,
@@ -303,24 +304,20 @@ init_global (WORD nocnf,
   Rsrc_do_rcfix (global_common.vid,
                  (RSHDR *)resource);
 
-  /*  
-  Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,AICONS,&global_common.aiconstad);
-  Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,ALERT,&global_common.alerttad);
-  Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,DESKBG,&global_common.deskbgtad);
-  */
+  Rsrc_do_gaddr ((RSHDR *)resource, R_TREE, AICONS, &global_common.aiconstad);
+  Rsrc_do_gaddr ((RSHDR *)resource, R_TREE, ALERT, &global_common.alerttad);
   Rsrc_do_gaddr ((RSHDR *)resource,
                  R_TREE,
                  FISEL,
                  &global_common.fiseltad);
   /*
-  Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,INFORM,&global_common.informtad);
-  Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,MENU,&global_common.menutad);
   Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,MOUSEFORMS,&global_common.mouseformstad);
   Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,PMENU,&global_common.pmenutad);
   */
-  /*
-  Rsrc_do_gaddr((RSHDR *)RESOURCE,R_FRSTR,0,(OBJECT **)&global_common.fr_string);
-  */
+  Rsrc_do_gaddr ((RSHDR *)resource,
+                 R_FRSTR,
+                 0,
+                 (OBJECT **)&global_common.fr_string);
   
   sprintf(versionstring,"Version %s",VERSIONTEXT);
   /*  global_common.informtad[INFOVERSION].ob_spec.tedinfo->te_ptext = versionstring; */
@@ -331,9 +328,6 @@ init_global (WORD nocnf,
                 WINDOW,
                 &global_common.windowtad);
   global_common.elemnumber = -1;
-
-  DB_printf ("lib_global.c: init_global: global_common.windowtad=0x%x",
-             global_common.windowtad);
 
   global_common.applpid = Pgetpid();
 

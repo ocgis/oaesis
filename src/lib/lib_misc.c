@@ -67,7 +67,9 @@ WORD Misc_get_cookie(LONG code,LONG *value) {
   void            *stack;
   
   stack = (void*)Super(0L);
-  cookie = *(COOKIE **)_p_cookies;
+  /* FIXME
+  **cookie = *(COOKIE **)_p_cookies;
+  */
   Super(stack);
   
   while(cookie->cookie) {

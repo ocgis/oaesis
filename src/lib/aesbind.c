@@ -25,14 +25,19 @@ static long  addrin[3];
 static long  addrout[1];
 static AESPB aespb = {contrl, global, intin, intout, addrin, addrout};
 
+#define OPCODE     aespb.contrl[0]
+#define NO_INTIN   aespb.contrl[1]
+#define NO_ADDRIN  aespb.contrl[2]
+#define NO_INTOUT  aespb.contrl[3]
+#define NO_ADDROUT aespb.contrl[4]
 
 short
 appl_exit (void)
 {
-  aespb.contrl[0] = 19;
-  aespb.contrl[1] = 0;
-  aespb.contrl[2] = 1;
-  aespb.contrl[3] = 0;
+  OPCODE = 19;
+  NO_INTIN = 0;
+  NO_ADDRIN = 1;
+  NO_INTOUT = 0;
 
   aes_call (&aespb);
 
@@ -43,10 +48,10 @@ appl_exit (void)
 short
 appl_init (void)
 {
-  aespb.contrl[0] = 10;
-  aespb.contrl[1] = 0;
-  aespb.contrl[2] = 1;
-  aespb.contrl[3] = 0;
+  OPCODE = 10;
+  NO_INTIN = 0;
+  NO_ADDRIN = 1;
+  NO_INTOUT = 0;
 
   aes_call (&aespb);
 
@@ -78,10 +83,10 @@ evnt_multi (short         Type,
             short *       Key,
             short *       ReturnCount)
 {
-  aespb.contrl[0] = 25;
-  aespb.contrl[1] = 16;
-  aespb.contrl[2] = 7;
-  aespb.contrl[3] = 1;
+  OPCODE = 25;
+  NO_INTIN = 16;
+  NO_ADDRIN = 7;
+  NO_INTOUT = 1;
   
   aespb.intin[0] = Type;
   aespb.intin[1] = Clicks;
@@ -124,11 +129,11 @@ form_center (void *  tree,
              short * cy,
              short * cw,
              short * ch) {
-  aespb.contrl[0] = 54;
-  aespb.contrl[1] = 0;
-  aespb.contrl[2] = 1;
-  aespb.contrl[3] = 5;
-  aespb.contrl[4] = 0;
+  OPCODE = 54;
+  NO_INTIN = 0;
+  NO_ADDRIN = 1;
+  NO_INTOUT = 5;
+  NO_ADDROUT = 0;
   
   aespb.addrin[0] = tree;
 
@@ -153,11 +158,11 @@ form_dial (short flag,
            short by,
            short bw,
            short bh) {
-  aespb.contrl[0] = 51;
-  aespb.contrl[1] = 9;
-  aespb.contrl[2] = 0;
-  aespb.contrl[3] = 1;
-  aespb.contrl[4] = 0;
+  OPCODE = 51;
+  NO_INTIN = 9;
+  NO_ADDRIN = 0;
+  NO_INTOUT = 1;
+  NO_ADDROUT = 0;
   
   aespb.intin[0] = flag;
     
@@ -180,11 +185,11 @@ form_dial (short flag,
 short
 form_do (void * tree,
          short  startobj) {
-  aespb.contrl[0] = 50;
-  aespb.contrl[1] = 1;
-  aespb.contrl[2] = 1;
-  aespb.contrl[3] = 1;
-  aespb.contrl[4] = 0;
+  OPCODE     = 50;
+  NO_INTIN   = 1;
+  NO_ADDRIN  = 1;
+  NO_INTOUT  = 1;
+  NO_ADDROUT = 0;
   
   aespb.intin[0] = startobj;
     
@@ -197,15 +202,31 @@ form_do (void * tree,
 
 
 short
+form_error (short code) {
+  OPCODE     = 53;
+  NO_INTIN   = 1;
+  NO_ADDRIN  = 0;
+  NO_INTOUT  = 1;
+  NO_ADDROUT = 0;
+  
+  aespb.intin[0] = code;
+    
+  aes_call (&aespb);
+  
+  return aespb.intout[0];
+}
+
+
+short
 fsel_exinput (char *  Path,
               char *  File,
               short * ExitButton,
               char *  Prompt) {
-  aespb.contrl[0] = 91;
-  aespb.contrl[1] = 0;
-  aespb.contrl[2] = 3;
-  aespb.contrl[3] = 2;
-  aespb.contrl[4] = 0;
+  OPCODE = 91;
+  NO_INTIN = 0;
+  NO_ADDRIN = 3;
+  NO_INTOUT = 2;
+  NO_ADDROUT = 0;
   
   aespb.addrin[0] = (long)Path;
   aespb.addrin[1] = (long)File;
@@ -225,10 +246,10 @@ graf_handle (short * Wchar,
              short * Wbox, 
              short * Hbox)
 {
-  aespb.contrl[0] = 77;
-  aespb.contrl[1] = 0;
-  aespb.contrl[2] = 5;
-  aespb.contrl[3] = 0;
+  OPCODE = 77;
+  NO_INTIN = 0;
+  NO_ADDRIN = 5;
+  NO_INTOUT = 0;
 
   aes_call (&aespb);
 
@@ -243,10 +264,10 @@ graf_handle (short * Wchar,
 short
 graf_mouse (int    Form,
             void * FormAddress) {
-  aespb.contrl[0] = 78;
-  aespb.contrl[1] = 1;
-  aespb.contrl[2] = 1;
-  aespb.contrl[3] = 1;
+  OPCODE = 78;
+  NO_INTIN = 1;
+  NO_ADDRIN = 1;
+  NO_INTOUT = 1;
 
   aespb.intin[0] = Form;
   
@@ -261,11 +282,11 @@ graf_mouse (int    Form,
 short
 menu_bar (void * tree,
           short  mode) {
-  aespb.contrl[0] = 30;
-  aespb.contrl[1] = 1;
-  aespb.contrl[2] = 1;
-  aespb.contrl[3] = 1;
-  aespb.contrl[4] = 0;
+  OPCODE = 30;
+  NO_INTIN = 1;
+  NO_ADDRIN = 1;
+  NO_INTOUT = 1;
+  NO_ADDROUT = 0;
 
   aespb.addrin[0] = (long)tree;
   aespb.intin[0] = mode;
@@ -284,11 +305,11 @@ objc_draw (void * tree,
            short  cy,
            short  cw,
            short  ch) {
-  aespb.contrl[0] = 42;
-  aespb.contrl[1] = 6;
-  aespb.contrl[2] = 1;
-  aespb.contrl[3] = 1;
-  aespb.contrl[4] = 0;
+  OPCODE = 42;
+  NO_INTIN = 6;
+  NO_ADDRIN = 1;
+  NO_INTOUT = 1;
+  NO_ADDROUT = 0;
 
   aespb.intin[0] = start;
   aespb.intin[1] = depth;
@@ -306,14 +327,14 @@ objc_draw (void * tree,
 
 
 short
-rsrc_gaddr (int    Type,
-            int    Index,
+rsrc_gaddr (short  Type,
+            short  Index,
             void * Address) {
-  aespb.contrl[0] = 112;
-  aespb.contrl[1] = 2;
-  aespb.contrl[2] = 1;
-  aespb.contrl[3] = 0;
-  aespb.contrl[4] = 1;
+  OPCODE     = 112;
+  NO_INTIN   = 2;
+  NO_ADDRIN  = 1;
+  NO_INTOUT  = 0;
+  NO_ADDROUT = 1;
 
   aespb.intin[0] = Type;
   aespb.intin[1] = Index;
@@ -328,10 +349,10 @@ rsrc_gaddr (int    Type,
 
 short
 rsrc_rcfix (void * rc_header) {
-  aespb.contrl[0] = 115;
-  aespb.contrl[1] = 0;
-  aespb.contrl[2] = 1;
-  aespb.contrl[3] = 1;
+  OPCODE = 115;
+  NO_INTIN = 0;
+  NO_ADDRIN = 1;
+  NO_INTOUT = 1;
 
   aespb.addrin[0] = (long)rc_header;
 
@@ -344,10 +365,10 @@ rsrc_rcfix (void * rc_header) {
 short
 wind_close (short WindowHandle)
 {
-  aespb.contrl[0] = 102;
-  aespb.contrl[1] = 1;
-  aespb.contrl[2] = 1;
-  aespb.contrl[3] = 0;
+  OPCODE = 102;
+  NO_INTIN = 1;
+  NO_ADDRIN = 1;
+  NO_INTOUT = 0;
 
   aespb.intin[0] = WindowHandle;
 
@@ -364,10 +385,10 @@ wind_create (short Parts,
              short Ww,
              short Wh)
 {
-  aespb.contrl[0] = 100;
-  aespb.contrl[1] = 5;
-  aespb.contrl[2] = 1;
-  aespb.contrl[3] = 0;
+  OPCODE = 100;
+  NO_INTIN = 5;
+  NO_ADDRIN = 1;
+  NO_INTOUT = 0;
 
   aespb.intin[0] = Parts;
   aespb.intin[1] = Wx;
@@ -389,10 +410,10 @@ wind_get (short   WindowHandle,
           short * W3,
           short * W4)
 {
-  aespb.contrl[0] = 104;
-  aespb.contrl[1] = 2;
-  aespb.contrl[2] = 5;
-  aespb.contrl[3] = 0;
+  OPCODE = 104;
+  NO_INTIN = 2;
+  NO_ADDRIN = 5;
+  NO_INTOUT = 0;
 
   aespb.intin[0] = WindowHandle;
   aespb.intin[1] = What;
@@ -414,10 +435,10 @@ wind_open (short WindowHandle,
            short Ww,
            short Wh)
 {
-  aespb.contrl[0] = 101;
-  aespb.contrl[1] = 5;
-  aespb.contrl[2] = 1;
-  aespb.contrl[3] = 0;
+  OPCODE = 101;
+  NO_INTIN = 5;
+  NO_ADDRIN = 1;
+  NO_INTOUT = 0;
 
   aespb.intin[0] = WindowHandle;
   aespb.intin[1] = Wx;
@@ -439,10 +460,10 @@ wind_set (short WindowHandle,
           short parm3,
           short parm4)
 {
-  aespb.contrl[0] = 105;
-  aespb.contrl[1] = 6;
-  aespb.contrl[2] = 1;
-  aespb.contrl[3] = 0;
+  OPCODE = 105;
+  NO_INTIN = 6;
+  NO_ADDRIN = 1;
+  NO_INTOUT = 0;
 
 	
   aespb.intin[0] = WindowHandle;
@@ -462,10 +483,10 @@ wind_set (short WindowHandle,
 short
 wind_update (short Code)
 {
-  aespb.contrl[0] = 107;
-  aespb.contrl[1] = 1;
-  aespb.contrl[2] = 1;
-  aespb.contrl[3] = 0;
+  OPCODE = 107;
+  NO_INTIN = 1;
+  NO_ADDRIN = 1;
+  NO_INTOUT = 0;
 
   aespb.intin[0] = Code;
 

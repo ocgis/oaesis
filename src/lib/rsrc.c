@@ -403,7 +403,6 @@ WORD      index,  /* Index of object.                                       */
 OBJECT ** addr)   /* Object address.                                        */
 /****************************************************************************/
 {
-  DB_printf ("rsrc.c: Rsrc_do_gaddr: rshdr=0x%x", rshdr);
   if (rshdr) {
     *addr = calculate_element_address (rshdr, type, index);
                 

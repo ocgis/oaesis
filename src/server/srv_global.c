@@ -43,6 +43,7 @@
 #include <osbind.h>
 #endif
 
+#include <signal.h>
 #include <stdio.h>
 #include <unistd.h>
 
@@ -151,6 +152,23 @@ WORD own_graf_handle(void) {
 #endif /* MINT_TARGET */
 
 
+/*
+** Description
+** Close vdi workstation if we get a segmentation fault
+**
+** 1999-01-16 CG
+*/
+static
+void
+handle_signal (int s) {
+  Vdi_v_clswk (globals.vid);
+
+  DB_printf ("srv_global.c: handle_signal: Got signal %d", s);
+
+  signal (s, SIG_DFL);
+}
+
+
 /****************************************************************************
  * Public functions                                                         *
  ****************************************************************************/
@@ -159,16 +177,22 @@ WORD own_graf_handle(void) {
 ** Exported
 **
 ** 1999-01-09 CG
+** 1999-01-16 CG
 */
 void
 srv_init_global (WORD nocnf) {
   WORD work_in[] = {1,1,1,1,1,1,1,1,1,1,2};
   WORD work_out[57];
   WORD dum;
-  
-  DB_printf ("srv.c: Opening vdi workstation");
+
+  /* Install segmentation fault handler */
+  signal (SIGSEGV, handle_signal);
+  signal (SIGILL, handle_signal);
+  signal (SIGBUS, handle_signal);
+  signal (SIGFPE, handle_signal);
+  signal (SIGSTKFLT, handle_signal);
+
   Vdi_v_opnwk (work_in, &globals.vid, work_out);
-  DB_printf ("srv.c: Opened vdi workstation: vid = %d", globals.vid);
 
   Vdi_vq_extnd(globals.vid,0,work_out);
   
