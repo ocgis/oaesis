@@ -1,8 +1,9 @@
 /*
 ** boot.c
 **
-** Copyright 1996-1999 Christer Gustavsson <cg@nocrew.org>
+** Copyright 1996-2000 Christer Gustavsson <cg@nocrew.org>
 ** Copyright 1996 Jan Paul Schmidt <Jan.P.Schmidt@mni.fh-giessen.de>
+** Copyright 2000 Vincent Barrilliot <vbarr@nist.gov>
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -42,314 +43,95 @@
 #include <sysvars.h>
 #endif
 
+#include "boot.h"
+#include "launcher.h"
 #include "misc.h"
 
-/****************************************************************************
- * Local variables                                                          *
- ****************************************************************************/
-
-static char Boot_acc_path[128] = "\0";
-
-/****************************************************************************
- * Local functions (use static!)                                            *
- ****************************************************************************/
-
-static
-int
-get_token(FILE * fp,
-	  char * token)
+typedef struct _boot_program
 {
-  int err;
+  char	                 name[FILENAME_MAX];
+  char	                 cmdline[256];
+  struct _boot_program * next;
+} BOOT_PROGRAM;
 
-  fscanf(fp,"%[ \t]",token);
-		
-  if((err = fscanf(fp,"%[^= \t\n\r]",token)) == 0) {
-    if((err = fscanf(fp,"%[=]",token)) == 0) {
-      err = fscanf(fp,"%[\n\r]",token);
-      strcpy(token,"\n");
-    };
-  };
-  
-  return err;
-}
+static BOOT_PROGRAM * Boot_runlist = NULL;
+static BOOT_PROGRAM * Boot_shell = NULL;
+
+static char *         Boot_acc_path = NULL;
 
 
-/****************************************************************************
+/*
 ** Description
-** Find the oaesis configuration file and open it
-**
-** To be done
-** Look for oaesis.cnf in <prefix>/share/osis/oaesis.cnf, <boot>/oaesis.conf,
-** <boot>/mint/oaesis.cnf and <boot>/multitos/oaesis.cnf
-**
-** 1998-07-11 CG
-*****************************************************************************/
-static
-FILE *
-open_config_file () {
-  char   config_path[256];
-  FILE * fp;
-
-  /* Is the HOME environment variable set? */
-  if (getenv("HOME") != NULL) {
-    /* Get value of $HOME */
-    strcpy (config_path, getenv("HOME"));
-
-    strcat (config_path, "/.oaesisrc");
-
-    fprintf(stderr, "config path: %s", config_path);
-
-#ifdef MINT_TARGET
-    {
-      char * tmp = config_path;
-
-      /* Convert '/' to '\' */
-      while (*tmp) {
-	if (*tmp == '/') {
-	  *tmp = '\\';
-	}
-	
-	tmp++;
-      }
-
-      if(tmp[-1] == '\\') {
-	tmp[-1] = '\0';
-      }
-    }
-
-#endif
-
-    fp = fopen(config_path, "r");
-
-    /* Did we get lucky? */
-    if (fp != NULL) {
-      return fp;
-    }
+** Set accessories path
+*/
+void
+launcher_set_accessory_path(char * accpath)
+{
+  if(Boot_acc_path != NULL)
+  {
+    free(Boot_acc_path);
   }
 
-  return NULL;
+  Boot_acc_path = (char *)malloc(strlen(accpath) + 1);
+
+  strcpy(Boot_acc_path, accpath);
 }
 
 
-/****************************************************************************
- * Public functions                                                         *
- ****************************************************************************/
-
-/****************************************************************************
- * Boot_parse_cnf                                                           *
- *  Parse oaesis.cnf.                                                       *
- ****************************************************************************/
-static void Boot_parse_cnf(void) /*                                         */
-/****************************************************************************/
+/*
+** Description
+** Add startup application
+*/
+void
+launcher_add_startup_application(char * application,
+                                 char * arg)
 {
-  FILE *fp;
-  char line[200];
-  
-  /* Find configuration file */
-  fp = open_config_file();
+  BOOT_PROGRAM * bp;
 
-  /* Didn't we find any configuration file? */
-  if(fp == NULL) {
-    fprintf (stderr, "oaesis: couldn't find configuration file\n");
+  bp = malloc(sizeof(BOOT_PROGRAM));
 
-    return;
-  }
-  
-  while(TRUE)
+  /* Copy data */
+  strcpy(bp->name, application);
+  bp->cmdline[0] = strlen(arg);
+  strcpy(&bp->cmdline[1], arg);
+
+  /* Insert into list */
+  bp->next = Boot_runlist;
+  Boot_runlist = bp;
+}
+
+
+/*
+** Description
+** Set shell application
+*/
+void
+launcher_set_shell_application(char * shell,
+                               char * arg)
+{
+  if(Boot_shell != NULL)
   {
-    get_token(fp,line);
-    
-    if(feof(fp)) {
-      break;
-    }
-    
-    if(line[0] == '#')
-    {
-      fgets(line,200,fp);
-    }
-    else
-    {
-      if(!strcmp(line,"AE_DEBUG"))
-      {
-	char path[128];
-	char lineend[128];
-	
-	get_token(fp,path);
-	get_token(fp,path);
-	get_token(fp,lineend);
-	
-	/* FIXME: DB_setpath(path); */
-      }
-      else if(!strcmp(line,"AE_VMODE"))
-      {
-	char size[128];
-	char lineend[128];
-	
-	get_token(fp,size);
-	get_token(fp,size);
-	get_token(fp,lineend);
-	
-	/* FIXME sscanf(size,"%hd",&globals.vmode); */
-      }
-      else if(!strcmp(line,"AE_VMODECODE"))
-      {
-	char size[128];
-	char lineend[128];
-	
-	get_token(fp,size);
-	get_token(fp,size);
-	get_token(fp,lineend);
-	
-	/* FIXME sscanf(size,"%hd",&globals.vmodecode); */
-      }
-      else if(!strcmp(line,"AE_REALMOVE"))
-      {
-	char size[128];
-	char lineend[128];
-	
-	get_token(fp,size);
-	get_token(fp,size);
-	get_token(fp,lineend);
-	
-	/* FIXME sscanf(size,"%hd",&globals.realmove); */
-      }
-      else if(!strcmp(line,"AE_REALSIZE"))
-      {
-	char size[128];
-	char lineend[128];
-	
-	get_token(fp,size);
-	get_token(fp,size);
-	get_token(fp,lineend);
-	
-	/* FIXME sscanf(size,"%hd",&globals.realsize);*/
-      }
-      else if(!strcmp(line,"AE_REALSLIDE"))
-      {
-	char size[128];
-	char lineend[128];
-	
-	get_token(fp,size);
-	get_token(fp,size);
-	get_token(fp,lineend);
-
-	/* FIXME sscanf(size,"%hd",&globals.realslide); */
-      }
-      else if(!strcmp(line,"AE_FONTID"))
-      {
-	char size[128];
-	char lineend[128];
-	
-	get_token(fp,size);
-	get_token(fp,size);
-	get_token(fp,lineend);
-	
-	/* FIXME sscanf(size,"%hd",&globals.fnt_regul_id); */
-      }
-      else if(!strcmp(line,"AE_PNTSIZE"))
-      {
-	char size[128];
-	char lineend[128];
-	
-	get_token(fp,size);
-	get_token(fp,size);
-	get_token(fp,lineend);
-	
-	/* FIXME sscanf(size,"%hd",&globals.fnt_regul_sz); */
-      }
-      else if(!strcmp(line,"AE_WIND_APPL"))
-      {
-	char size[128];
-	char lineend[128];
-	
-	get_token(fp,size);
-	get_token(fp,size);
-	get_token(fp,lineend);
-	
-	/* FIXME sscanf(size,"%hd",&globals.wind_appl); */
-      }
-      else if(!strcmp(line,"AE_TRACE"))
-      {
-	char size[128];
-	char lineend[128];
-	
-	get_token(fp,size);
-	get_token(fp,size);
-	get_token(fp,lineend);
-	
-	/* FIXME sscanf(size,"%hd",&globals.aes_trace); */
-      }
-      else if(!strcmp(line, "AE_GRAF_MBOX"))
-      {
-	char size[128];
-	char lineend[128];
-	
-	get_token(fp,size);
-	get_token(fp,size);
-	get_token(fp,lineend);
-	
-	/* FIXME sscanf(size,"%hd",&globals.graf_mbox); */
-      }
-      else if(!strcmp(line, "AE_GRAF_GROWBOX"))
-      {
-	char size[128];
-	char lineend[128];
-	
-	get_token(fp,size);
-	get_token(fp,size);
-	get_token(fp,lineend);
-	
-	/* FIXME sscanf(size,"%hd",&globals.graf_growbox); */
-      }
-      else if(!strcmp(line, "AE_GRAF_SHRINKBOX"))
-      {
-	char size[128];
-	char lineend[128];
-	
-	get_token(fp,size);
-	get_token(fp,size);
-	get_token(fp,lineend);
-	
-	/* FIXME sscanf(size,"%hd",&globals.graf_shrinkbox); */
-      }
-      else if(!strcmp(line, "AE_FSEL_SORTED"))
-      {
-	char size[128];
-	char lineend[128];
-	
-	get_token(fp,size);
-	get_token(fp,size);
-	get_token(fp,lineend);
-	
-	/* FIXME sscanf(size,"%hd",&globals.fsel_sorted); */
-      }
-      /* this one I need for tests with extern fileselectors. jps */
-      else if(!strcmp(line, "AE_FSEL_EXTERN"))
-      {
-	char size[128];
-	char lineend[128];
-	
-	get_token(fp,size);
-	get_token(fp,size);
-	get_token(fp,lineend);
-	
-	/* FIXME sscanf(size,"%hd",&globals.fsel_extern); */
-      }
-      else if(!strcmp(line, "AE_ACC_PATH"))
-      {
-	char path[128];
-	char lineend[128];
-	
-	get_token(fp,path);
-	get_token(fp,path);
-	get_token(fp,lineend);
-	
-	strcpy(Boot_acc_path, path);
-      }
-    }
+    free(Boot_shell);
   }
-  
-  fclose(fp);
+
+  Boot_shell = (BOOT_PROGRAM *)malloc(sizeof(BOOT_PROGRAM));
+
+  strcpy(Boot_shell->name, shell);
+  Boot_shell->cmdline[0] = strlen(arg);
+  strcpy(&Boot_shell->cmdline[1], arg);
+  Boot_shell->next = NULL;
+}
+
+
+/*
+** Description
+** Set environment variable
+*/
+void
+launcher_set_environment_variable(char * variable,
+                                  char * value)
+{
+  /* FIXME: Implement */
 }
 
 
@@ -362,103 +144,27 @@ start_programs(void)
 {
   _DTA newdta, *olddta;
   int  found;
-  FILE *fp;
-  char line[200];
   char bootpath[] = "c:\\";
-  char filepath[128];
   
-  char *filelist[] = {
-    "mint\\oaesis.cnf",
-    "multitos\\oaesis.cnf",
-    "oaesis.cnf",
-    NULL
-  };
-  
-  int i = 0;
+  BOOT_PROGRAM * run_walk;
   
 #ifdef MINT_TARGET /* FIXME for linux */
   bootpath[0] = (get_sysvar(_bootdev) >> 16) + 'a';
 #endif
   
-  misc_setpath(bootpath);
+  /* Start shell if it was specified */
+  if(Boot_shell != NULL)
+  {
+    shel_write(SWM_LAUNCH, 0, 0, Boot_shell->name, Boot_shell->cmdline);
+  }
 
-  fp = fopen("oaesis.cnf", "r");
-  
-  while((fp == NULL) && filelist[i])
+  /* Start applications specified in the configuration file */
+  for(run_walk = Boot_runlist; run_walk != NULL; run_walk = run_walk->next)
   {
-    sprintf(filepath, "%s%s", bootpath, filelist[i]);
-    
-    fp = fopen(filepath,"r");
-    
-    i++;
+    shel_write(SWM_LAUNCH, 0, 0, run_walk->name, run_walk->cmdline);
   }
   
-  if(fp == NULL)
-  {
-    return;
-  }
-  
-  while(TRUE)
-  {
-    get_token(fp,line);
-    
-    if(feof(fp))
-    {
-      break;
-    }
-		
-    if(line[0] == '#')
-    {
-      fgets(line,200,fp);
-    }
-    else
-    {
-      if(!strcmp(line,"run")) {
-	char program[128],param[128];
-	
-	get_token(fp,program);
-	fgets(&param[1],199,fp);
-	
-	if(param[strlen(&param[1])] == '\n') {
-	  param[strlen(&param[1])] = '\0';
-	}
-	
-	param[0] = (char)strlen(&param[1]);
-	
-	shel_write(SWM_LAUNCH, 0, 0, program, param);
-      }
-      else if(!strcmp(line,"shell"))
-      {
-	char shell[128],param[128];
-	
-	get_token(fp,shell);
-	
-	fgets(&param[1],199,fp);
-	
-	if(param[strlen(&param[1])] == '\n') {
-	  param[strlen(&param[1])] = '\0';
-	}
-	
-	param[0] = (char)strlen(&param[1]);
-	
-	shel_write(SWM_LAUNCH, 0, 0, shell, param);
-      }
-      else if(!strcmp(line,"setenv"))
-      {
-	char value[300];
-	
-	get_token(fp,value);
-	get_token(fp,&value[strlen(value)]);
-	get_token(fp,&value[strlen(value)]);
-	
-	shel_write(SWM_ENVIRON, ENVIRON_CHANGE, 0, value, NULL);
-	get_token(fp,value);
-      }
-    }
-  }
-  
-  fclose(fp);
-  
+  /* Start accessories */
   olddta = Fgetdta();
   Fsetdta(&newdta);
   
@@ -482,8 +188,8 @@ start_programs(void)
   {
     char accname[128];
     
-    sprintf(accname,"%s%s", bootpath, newdta.dta_name);
-    shel_write(SWM_LAUNCHACC,0,0,accname,"");
+    sprintf(accname, "%s%s", bootpath, newdta.dta_name);
+    shel_write(SWM_LAUNCHACC, 0, 0, accname, "");
 
     found = Fsnext();
   }

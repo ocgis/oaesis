@@ -2,7 +2,8 @@ CFLAGS = -Wall @CFLAGS@
 INCLUDES = -I../lib
 
 SRCS = \
-         launch.rsc launch.hrd boot.c boot.h launch.c launcher.c misc.c misc.h
+	launch.rsc launch.hrd boot.c boot.h launch.c launcher.c launcher.h \
+	misc.c misc.h
 
 if LAUNCHER_AS_PRG
 bin_PROGRAMS = launcher.prg

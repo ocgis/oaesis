@@ -1,7 +1,7 @@
 /*
 ** launcher.c
 **
-** Copyright 1998-1999 Christer Gustavsson <cg@nocrew.org>
+** Copyright 1998-2000 Christer Gustavsson <cg@nocrew.org>
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
