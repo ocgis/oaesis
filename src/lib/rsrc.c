@@ -57,7 +57,6 @@
 #include "mintdefs.h"
 #include "rsrc.h"
 #include "shel.h"
-#include "srv_calls.h"
 #include "types.h"
 
 /****************************************************************************

@@ -50,11 +50,11 @@
 #include "lib_global.h"
 #include "lib_misc.h"
 #include "shel.h"
-#include "srv_calls.h"
 #include "types.h"
 
 #define TOSAPP 0
 #define GEMAPP 1
+
 
 WORD Shel_do_read(BYTE *name,BYTE *tail) {
 	BYTE pname[30];
@@ -102,26 +102,250 @@ void	Shel_read(AES_PB *apb) {
 }
 
 
-/****************************************************************************
- * Shel_write                                                               *
- *  0x0079 shel_write().                                                    *
- ****************************************************************************/
-void              /*                                                        */
-Shel_write(       /*                                                        */
-AES_PB *apb)      /* AES parameter block.                                   */
-/****************************************************************************/
+
+/*
+** Description
+** Implementation of shel_write ()
+**
+** 1999-06-13 CG
+*/
+WORD
+Shel_do_write (WORD   apid,
+               WORD   mode,
+               WORD   wisgr,
+               WORD   wiscr,
+               BYTE * cmd,
+               BYTE * tail)
 {
-	apb->int_out[0] = 
-	Srv_shel_write(apb->global->apid,apb->int_in[0], apb->int_in[1], apb->int_in[2],
-		(BYTE *)apb->addr_in[0], (BYTE *)apb->addr_in[1]);
-		
-	if(apb->int_out[0] == 0) {
-		DB_printf("shel_write(0x%04x,0x%04x,0x%04x,\r\n"
-																"%s,\r\n"
-																"%s)", 
-		        apb->int_in[0],apb->int_in[1],apb->int_in[2],
-		        (BYTE *)apb->addr_in[0],(BYTE *)apb->addr_in[1]+1);
+  WORD     r = 0;
+  BYTE     *tmp,*ddir = NULL,*envir = NULL;
+  BYTE     oldpath[128];
+  BYTE     exepath[128];			
+  SHELW    *shelw;
+  BASEPAGE *b;
+  
+  shelw = (SHELW *)cmd;
+  ddir = NULL;
+  envir = NULL;
+  
+  if (mode & 0xff00) /* should we use extended info? */
+  {
+    cmd = shelw->newcmd;
+    
+    /*	
+        if(mode & SW_PSETLIMIT) {
+        v_Psetlimit = shelw->psetlimit;
+        };
+        
+        if(mode & SW_PRENICE) {
+        v_Prenice = shelw->prenice;
+        };
+    */
+    
+    if(mode & SW_DEFDIR) {
+      ddir = shelw->defdir;
+    }
+      
+    if(mode & SW_ENVIRON) {
+      envir = shelw->env;
+    }
+  }
+  
+  mode &= 0xff;
+  
+  if (mode == SWM_LAUNCH)	/* - run application */ 
+  {
+    tmp = strrchr (cmd, '.');
+    if(!tmp) {
+      tmp = "";
+    }
+      
+    /* use enviroment GEMEXT, TOSEXT, and ACCEXT. */
+    
+    if((strcasecmp(tmp,".app") == 0) || (strcasecmp(tmp,".prg") == 0)) {
+      mode = SWM_LAUNCHNOW;
+      wisgr = 1;
+    } else if (strcasecmp(tmp,".acc") == 0) {
+      mode = SWM_LAUNCHACC;
+      wisgr = 3;
+    } else {
+      mode = SWM_LAUNCHNOW;
+      wisgr = 0;
+    }
+  }
+  
+  switch (mode) {
+  case SWM_LAUNCH: 	/* - run application */
+    /* we just did take care of this case */
+    break;
+    
+  case SWM_LAUNCHNOW: /* - run another application in GEM or TOS mode */
+    if (wisgr == GEMAPP) {
+      Dgetpath(oldpath,0);
+      
+      strcpy(exepath, cmd);
+      tmp = exepath;
+      
+      if(ddir) {
+	Misc_setpath(ddir);
+      } else {
+	tmp = strrchr(exepath,'\\');
+	if(tmp) {
+	  *tmp = 0;
+	  Misc_setpath(exepath);
+	  tmp++;
+	} else {
+	  tmp = exepath;
 	}
+      }
+      
+      r = (WORD)Pexec(100, tmp, tail, envir);
+      
+      if(r < 0) {
+	r = 0;
+      }
+      /* FIXME: How can this be solved?
+         else if((ai = srv_info_alloc(r,APP_APPLICATION,1))) {
+         r = ai->id;
+         }
+      */
+      else {
+	r = 0;
+      }
+      
+      Misc_setpath(oldpath);
+    } else if (wisgr == TOSAPP) {
+      WORD fd;
+      BYTE new_cmd[300];
+      WORD t;
+      
+      Dgetpath(oldpath,0);
+      
+      strcpy (exepath, cmd);
+      tmp = exepath;
+      
+      if(!ddir) {
+	ddir = oldpath;
+      }
+      
+      sprintf (new_cmd, "%s %s %s", ddir, cmd, tail + 1);
+      
+      fd = (int)Fopen("U:\\PIPE\\TOSRUN", 2);
+      t = (short)strlen(new_cmd) + 1;
+      
+      Fwrite(fd, t, new_cmd);
+      
+      Fclose(fd);
+      
+      r = 1;
+    }
+    break;
+    
+  case SWM_LAUNCHACC: /* - run an accessory */
+    Dgetpath(oldpath,0);
+    
+    strcpy(exepath, cmd);
+    tmp = exepath;
+    if(ddir) {
+      Misc_setpath(ddir);
+    } else {
+      tmp = strrchr(exepath,'\\');
+      
+      if(tmp) {
+	BYTE c = tmp[1];
+	
+	tmp[1] = 0;
+	Misc_setpath(exepath);
+	tmp[1] = c;
+	tmp++;
+      } else {
+	tmp = exepath;
+      }
+    }
+    
+    b = (BASEPAGE *)Pexec(3, tmp, tail, envir);
+    
+    if(((LONG)b) > 0) {
+      Mshrink(b,256 + b->p_tlen + b->p_dlen + b->p_blen);
+      
+      b->p_dbase = b->p_tbase;
+      /* FIXME
+      b->p_tbase = (BYTE *)accstart;
+      */
+      r = (WORD)Pexec(104,tmp,b,NULL);
+      
+      if(r < 0) {
+	r = 0;
+        /* FIXME: How can this be solved?
+           } else if((ai = srv_info_alloc(r,APP_ACCESSORY,1))) {
+           r = ai->id;
+        */
+      } else {
+	r = 0;
+      }
+    } else {
+      DB_printf("Pexec failed: code %ld",(LONG)b);
+      r = 0;
+    }
+    
+    Misc_setpath(oldpath);
+    break;
+    
+  case SWM_SHUTDOWN: /* - set shutdown mode */
+  case SWM_REZCHANGE: /* - resolution change */
+  case SWM_BROADCAST: /* - send message to all processes */
+    break;
+    
+  case SWM_ENVIRON: /* - AES environment */
+    switch (wisgr) {
+    case ENVIRON_CHANGE:
+      putenv (cmd);
+      r = 1;
+      break;
+      
+    default:
+      DB_printf("shel_write(SWM_ENVIRON,%d,...) not implemented.", wisgr);
+      r = 0;
+    }
+    break;
+    
+  case SWM_NEWMSG: /* - I know about: bit 0: AP_TERM */
+    /* FIXME
+    if(apps[apid].id != -1) {
+      apps[apid].newmsg = wisgr;
+      r = 1;
+    }
+    else
+    */
+  {
+    r = 0;
+  }
+    
+  break;
+    
+  case SWM_AESMSG: /* - send message to the AES */
+  default:
+    ;
+  };
+  
+  return r;
+}
+
+/*
+** Exported
+**
+** 1999-06-13 CG
+*/
+void
+Shel_write (AES_PB *apb)
+{
+  apb->int_out[0] = 
+    Shel_do_write (apb->global->apid,
+                   apb->int_in[0],
+                   apb->int_in[1],
+                   apb->int_in[2],
+                   (BYTE *)apb->addr_in[0],
+                   (BYTE *)apb->addr_in[1]);
 }
 
 
@@ -286,6 +510,23 @@ Shel_find (AES_PB * apb) {
           Shel_do_find (apb->global->apid, (BYTE *)apb->addr_in[0]);
 }
 
+
+/*
+** Description
+** Implementation of shel_envrn ()
+**
+** 1999-06-13 CG
+*/
+WORD
+Shel_do_envrn (BYTE ** value,
+               BYTE *  name)
+{
+  *value = getenv (name);
+  
+  return 1;
+}
+
+
 /****************************************************************************
  * Shel_envrn                                                               *
  *  0x007d shel_envrn().                                                    *
@@ -295,6 +536,6 @@ Shel_envrn(       /*                                                        */
 AES_PB *apb)      /* AES parameter block.                                   */
 /****************************************************************************/
 {
-  apb->int_out[0] = Srv_shel_envrn((BYTE **)apb->addr_in[0],
-                                   (BYTE *)apb->addr_in[1]);
+  apb->int_out[0] = Shel_do_envrn((BYTE **)apb->addr_in[0],
+                                  (BYTE *)apb->addr_in[1]);
 }

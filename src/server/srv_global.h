@@ -10,9 +10,7 @@ typedef struct globalvars {
   int     vid;	      /* physical vdi id of the screen */
   WORD    vmode;
   WORD    vmodecode;
-  LONG    video;
   RECT    screen;     /* size of physical screen */	
-  WORD    num_planes; /* number of bitplanes in the display */
 
   WORD    realmove;   /* if set realtime moving of windows is enabled */
   WORD    realsize;
@@ -33,12 +31,7 @@ typedef struct globalvars {
   AP_LIST_REF applmenu;
   AP_LIST_REF accmenu;
 	
-  WORD    mouse_x;
-  WORD    mouse_y;
-  WORD    mouse_button;
-	
   WORD    arrowrepeat;
-  ULONG   time;
 	
   WORD    cswidth;
   WORD    csheight;
@@ -58,24 +51,7 @@ typedef struct globalvars {
   WORD    icon_width;   /* Width of iconified window */
   WORD    icon_height;  /* Height of iconified window */
 
-  OBJECT  *aiconstad;
-  OBJECT  *alerttad;
-  OBJECT  *deskbgtad;
-  OBJECT  *fiseltad;
-  OBJECT  *informtad;
-  OBJECT  *menutad;
-  OBJECT  *mouseformstad;
-  OBJECT  *pmenutad;
-  OBJECT  *windowtad;
-  BYTE    **fr_string;
-
-  BYTE    mousename[30];
-	
-  WORD    mouse_mode;
-
   WORD    srvpid;
-  WORD    evntpid;
-  WORD    applpid;
 }GLOBALVARS;
 
 extern GLOBALVARS	globals;

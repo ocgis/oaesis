@@ -66,6 +66,7 @@
 #include <unistd.h>
 
 #include "aesbind.h"
+#include "appl.h"
 #include "debug.h"
 #include "evnthndl.h"
 #include "lib_global.h"
@@ -74,7 +75,6 @@
 #include "lib_misc.h"
 #include "objc.h"
 #include "resource.h"
-#include "srv_calls.h"
 #include "srv_interface.h"
 #include "srv_put.h"
 #include "types.h"
@@ -345,6 +345,7 @@ Wind_set_slider (WORD        apid,
 ** 1999-01-10 CG
 ** 1999-04-10 CG
 ** 1999-04-11 CG
+** 1999-06-13 CG
 */
 static
 WORD
@@ -386,7 +387,7 @@ Wind_set_size (WORD   apid,
       }
 
       if ((m.area.width > 0) && (m.area.height > 0)) {
-        Appl_do_write (apid, apid, m.length, m);
+        Appl_do_write (apid, apid, m.length, &m);
       }
     }
 
@@ -413,7 +414,7 @@ Wind_set_size (WORD   apid,
       }
 
       if ((m.area.width > 0) && (m.area.height > 0)) {
-        Appl_do_write (apid, apid, m.length, m);
+        Appl_do_write (apid, apid, m.length, &m);
       }
     }
 

@@ -73,7 +73,6 @@
 #include "appl.h"
 #include "debug.h"
 #include "lib_global.h"
-#include "srv_calls.h"
 #include "srv_put.h"
 #include "srv_interface.h"
 #include "types.h"

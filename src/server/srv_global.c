@@ -231,10 +231,6 @@ srv_init_global (WORD nocnf) {
   globals.applmenu = NULL;
   globals.accmenu = NULL;
   
-  globals.mouse_x = 0;
-  globals.mouse_y = 0;
-  globals.mouse_button = 0;
-  
   globals.arrowrepeat = 100;
   
   vqt_attributes(globals.vid,work_out);
@@ -249,12 +245,7 @@ srv_init_global (WORD nocnf) {
   globals.cswidth = work_out[8] / 2;
   globals.csheight = work_out[9] / 2;
   
-  globals.time = 0L;
-
   sprintf(versionstring,"Version %s",VERSIONTEXT);
-  /*  globals.informtad[INFOVERSION].ob_spec.tedinfo->te_ptext = versionstring; */
-  
-  globals.applpid = Pgetpid();
 }
 
 

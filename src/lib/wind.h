@@ -6,6 +6,14 @@
 
 # define REDRAW_ALL (-1)
 
+/*window status codes*/
+#define	WIN_OPEN       0x0001
+#define	WIN_UNTOPPABLE 0x0002
+#define	WIN_DESKTOP    0x0004
+#define	WIN_TOPPED     0x0008
+#define	WIN_DIALOG     0x0010
+#define	WIN_MENU       0x0020
+#define WIN_ICONIFIED  0x0040
 
 /*
 ** Description

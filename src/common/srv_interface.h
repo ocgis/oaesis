@@ -8,7 +8,6 @@
 /* Server calls */
 
 enum {
-  SRV_SHAKE,
   SRV_APPL_CONTROL,
   SRV_APPL_INIT     =  10,
   SRV_APPL_WRITE    =  12,
@@ -29,8 +28,6 @@ enum {
   SRV_WIND_FIND     = 106,
   SRV_WIND_UPDATE   = 107,
   SRV_WIND_NEW      = 109,
-  SRV_SHEL_WRITE    = 121,
-  SRV_SHEL_ENVRN    = 125,
   SRV_VDI_CALL      = 200
 };
 
@@ -191,21 +188,6 @@ typedef struct {
 } R_MENU_REGISTER;
 
 typedef struct {
-  BYTE **value;
-  BYTE *name;
-  WORD retval;
-}C_SHEL_ENVRN;
-
-typedef struct {
-  WORD mode;
-  WORD wisgr;
-  WORD wiscr;
-  BYTE *cmd;
-  BYTE *tail;
-  WORD retval;
-}C_SHEL_WRITE;
-
-typedef struct {
   C_ALL common;
   WORD  id;
   WORD  retval;
@@ -326,8 +308,6 @@ typedef union {
   C_GRAF_MOUSE    graf_mouse;
   C_MENU_BAR      menu_bar;
   C_MENU_REGISTER menu_register;
-  C_SHEL_ENVRN    shel_envrn;
-  C_SHEL_WRITE    shel_write;
   C_WIND_CLOSE    wind_close;
   C_WIND_CREATE   wind_create;
   C_WIND_DELETE   wind_delete;

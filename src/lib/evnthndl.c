@@ -83,7 +83,6 @@ v   Fixed mover grabbing bug; if the mouse was moved during click on
 #include "lib_misc.h"
 #include "objc.h"
 #include "resource.h"
-#include "srv_calls.h"
 #include "types.h"
 #include "wind.h"
 

@@ -5,6 +5,11 @@
 #include	"types.h"
 
 
+/* Internal appl_control() modes */
+#define APC_TOPNEXT 0
+#define APC_KILL    1
+
+
 /*system calls*/
 
 /****************************************************************************

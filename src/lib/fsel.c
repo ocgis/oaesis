@@ -64,7 +64,6 @@
 #include "objc.h"
 #include "resource.h"
 #include "rsrc.h"
-#include "srv_calls.h"
 #include "types.h"
 #include "wind.h"
 

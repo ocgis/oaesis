@@ -59,7 +59,6 @@
 #include "mintdefs.h"
 #include "objc.h"
 #include "resource.h"
-#include "srv_calls.h"
 #include "srv_interface.h"
 #include "srv_put.h"
 #include "types.h"

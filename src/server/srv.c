@@ -98,9 +98,6 @@ static WINLIST *win_free = 0L;
 
 static WORD	win_next = 0;
 
-static WORD	elemnumber = -1;
-static WORD	tednumber;
-
 static OBJC_COLORWORD top_colour[20] = {
   {BLACK,BLACK,1,7,LWHITE},
   {BLACK,BLACK,1,7,LWHITE},
@@ -147,7 +144,6 @@ static OBJC_COLORWORD untop_colour[20] = {
   {BLACK,BLACK,1,7,LWHITE}
 };
 
-static BYTE **environ;
 extern AP_LIST_REF ap_pri;
 extern WINLIST * win_vis;
 
@@ -349,448 +345,6 @@ get_top_appl(void) /*                                                       */
 	};
 }
 
-/*
-** FIXME
-** Move to lib
-static void set_widget_colour(WINSTRUCT *win,WORD widget,
-			      OBJC_COLORWORD *untop,OBJC_COLORWORD *top) {
-  U_OB_SPEC      *ob_spec;
-  WORD           object = 0;
-  OBJC_COLORWORD *colour;
-  
-  if(win->tree) {
-    object = widgetmap[widget];
-    
-    if(win->tree[object].ob_flags & INDIRECT) {
-      ob_spec = (U_OB_SPEC *)win->tree[object].ob_spec.indirect;
-    }
-    else {
-      ob_spec = (U_OB_SPEC *)&win->tree[object].ob_spec;
-    };
-    
-    switch(win->tree[object].ob_type & 0xff) {
-    case G_BOX:
-    case G_IBOX:
-    case G_BOXCHAR:
-      colour = &((OBJC_COLORWORD *)ob_spec)[1];
-      break;
-      
-    case G_TEXT:
-    case G_BOXTEXT:
-    case G_FTEXT:
-    case G_FBOXTEXT:
-      colour = (OBJC_COLORWORD *)&ob_spec->tedinfo->te_color;
-      break;
-      
-    case G_IMAGE:
-      colour = (OBJC_COLORWORD *)&ob_spec->bitblk->bi_color;
-      break;
-      
-    case G_BUTTON:
-    case G_PROGDEF:
-    case G_STRING:
-    case G_TITLE:
-      return;
-      
-    default:
-      DB_printf("Unsupported type %d in set_widget_colour.",
-		win->tree[object].ob_type);
-      return;
-    };
-    
-    if(win->status & WIN_TOPPED) {
-      *colour = *top;
-    }
-    else {
-      *colour = *untop;
-    };
-  };
-}
-*/
-
-static void packelem(OBJECT *tree,WORD object,WORD left,WORD right,
-                     WORD top,WORD bottom) {
-
-	if((left != -1) && (right != -1)) {
-		if(left == 0) {
-			tree[object].ob_x = D3DSIZE;
-		}
-		else {
-			tree[object].ob_x = tree[left].ob_x + tree[left].ob_width + D3DSIZE * 2;
-		};
-		
-		if(right == 0) {
-			tree[object].ob_width = tree[0].ob_width - tree[object].ob_x - D3DSIZE;
-		}
-		else {
-			tree[object].ob_width = tree[right].ob_x - tree[object].ob_x - D3DSIZE * 2;
-		}
-	}
-	else if(left != -1) {
-		if(left == 0) {
-			tree[object].ob_x = D3DSIZE;
-		}
-		else {
-			tree[object].ob_x = tree[left].ob_x + tree[left].ob_width + D3DSIZE * 2;
-		};		
-	}
-	else if(right != -1) {
-		if(right == 0) {
-			tree[object].ob_x = tree[0].ob_width - tree[object].ob_width - D3DSIZE;
-		}
-		else {
-			tree[object].ob_x = tree[right].ob_x - tree[object].ob_width - D3DSIZE * 2;
-		};
-	};
-	
-	
-	if((top != -1) && (bottom != -1)) {
-		if(top == 0) {
-			tree[object].ob_y = D3DSIZE;
-		}
-		else {
-			tree[object].ob_y = tree[top].ob_y + tree[top].ob_height + D3DSIZE * 2;
-		};
-		
-		if(bottom == 0) {
-			tree[object].ob_height = tree[0].ob_height - tree[object].ob_y - D3DSIZE;
-		}
-		else {
-			tree[object].ob_height = tree[bottom].ob_y - tree[object].ob_y - D3DSIZE * 2;
-		}
-	}
-	else if(top != -1) {
-		if(top == 0) {
-			tree[object].ob_y = D3DSIZE;
-		}
-		else {
-			tree[object].ob_y = tree[top].ob_y + tree[top].ob_height + D3DSIZE * 2;
-		};		
-	}
-	else if(bottom != -1) {
-		if(bottom == 0) {
-			tree[object].ob_y = tree[0].ob_height - tree[object].ob_height - D3DSIZE;
-		}
-		else {
-			tree[object].ob_y = tree[bottom].ob_y - tree[object].ob_height - D3DSIZE * 2;
-		};
-	};	
-}
-
-static OBJECT *alloc_win_elem(void) {
-	WORD    i = 0,tnr = 0;
-	OBJECT  *t;
-	TEDINFO *ti;
-	LONG    size;
-
-	while(elemnumber == -1) {
-		switch(globals.windowtad[i].ob_type) {
-			case	G_TEXT		:
-			case	G_BOXTEXT	:
-			case	G_FTEXT		:
-			case	G_FBOXTEXT	:
-				tnr++;
-		}
-		
-		if(globals.windowtad[i].ob_flags & LASTOB)
-		{
-			elemnumber = i + 1;
-			tednumber = tnr;
-		}
-		
-		i++;
-	}
-	
-	size = sizeof(OBJECT) * elemnumber + sizeof(TEDINFO) * tednumber;
-	
-        DEBUG2 ("srv.c: alloc_win_element: Allocation memory");
-	t = (OBJECT *)Mxalloc(size,GLOBALMEM);
-	
-	if(t != NULL) {
-		ti = (TEDINFO *)&t[elemnumber];
-		
-		memcpy(t,globals.windowtad,sizeof(OBJECT) * elemnumber);
-		
-		for(i = 0; i < elemnumber; i++) {
-			switch(globals.windowtad[i].ob_type) {
-				case	G_TEXT		:
-				case	G_BOXTEXT	:
-				case	G_FTEXT		:
-				case	G_FBOXTEXT	:
-					t[i].ob_spec.tedinfo = ti;
-					memcpy(ti, globals.windowtad[i].ob_spec.tedinfo, sizeof(TEDINFO));
-					ti++;
-			};
-		};
-	};
-	
-	return t;
-}
-
-static void set_win_elem(OBJECT *tree,WORD elem) {
-	WORD bottomsize = 0;
-	WORD rightsize = 0;
-	WORD left = 0,right = 0,top = 0,bottom = 0;
-
-	if((HSLIDE | LFARROW | RTARROW) & elem) {
-		bottomsize = tree[WLEFT].ob_height + (D3DSIZE << 1);
-	};
-	
-	if((LFARROW | HSLIDE | RTARROW) & elem) {
-		bottomsize = tree[WLEFT].ob_height + (D3DSIZE << 1);
-	};
-	
-	if(((bottomsize == 0) && (SIZER & elem))
-		|| ((VSLIDE | UPARROW | DNARROW) & elem)) {
-		rightsize = tree[WSIZER].ob_width + (D3DSIZE << 1);
-	};
-	
-	if(CLOSER & elem) {
-		tree[WCLOSER].ob_flags &= ~HIDETREE;	
-		
-		packelem(tree,WCLOSER,0,-1,0,-1);
-		left = WCLOSER;
-	}	
-	else {
-		tree[WCLOSER].ob_flags |= HIDETREE;
-	}
-	
-	if(FULLER & elem) {
-		tree[WFULLER].ob_flags &= ~HIDETREE;	
-		
-		packelem(tree,WFULLER,-1,0,0,-1);
-		right = WFULLER;
-	}	
-	else {
-		tree[WFULLER].ob_flags |= HIDETREE;
-	}
-		
-	if(SMALLER & elem) {
-		tree[WSMALLER].ob_flags &= ~HIDETREE;	
-		
-		packelem(tree,WSMALLER,-1,right,0,-1);
-		right = WSMALLER;
-	}	
-	else {
-		tree[WSMALLER].ob_flags |= HIDETREE;
-	}
-		
-	if(MOVER & elem) {
-		tree[WMOVER].ob_flags &= ~HIDETREE;
-		tree[TFILLOUT].ob_flags |= HIDETREE;
-		
-		tree[WMOVER].ob_height = tree[WCLOSER].ob_height;
-		tree[WMOVER].ob_spec.tedinfo->te_font = IBM;
-
-		packelem(tree,WMOVER,left,right,0,-1);
-		top = WMOVER;
-	}
-	else {
-		tree[WMOVER].ob_flags |= HIDETREE;
-
-		if((left != 0) || (right != 0)) {
-			tree[TFILLOUT].ob_flags &= ~HIDETREE;
-
-			packelem(tree,TFILLOUT,left,right,0,-1);
-			top = TFILLOUT;
-		}
-		else {
-			tree[TFILLOUT].ob_flags |= HIDETREE;
-		};
-	};
-	
-	if(INFO & elem) {
-		tree[WINFO].ob_flags &= ~HIDETREE;
-
-		packelem(tree,WINFO,0,0,top,-1);
-		top = WINFO;		
-	}
-	else {
-		tree[WINFO].ob_flags |= HIDETREE;
-	};
-
-	right = 0;
-	left = 0;
-
-	if(elem & UPARROW) {
-		tree[WUP].ob_flags &= ~HIDETREE;
-		
-		packelem(tree,WUP,-1,0,top,-1);
-		top = WUP;
-	}
-	else {
-		tree[WUP].ob_flags |= HIDETREE;
-	};
-
-	if(SIZER & elem) {
-		tree[WSIZER].ob_flags &= ~HIDETREE;
-		tree[SFILLOUT].ob_flags |= HIDETREE;	
-		
-		packelem(tree,WSIZER,-1,0,-1,0);
-		bottom = right = WSIZER;
-	}	
-	else {
-		tree[WSIZER].ob_flags |= HIDETREE;
-		
-		if((bottomsize > 0) && (rightsize > 0)) {
-			tree[SFILLOUT].ob_flags &= ~HIDETREE;
-			
-			packelem(tree,SFILLOUT,-1,0,-1,0);
-			bottom = right = SFILLOUT;
-		}
-		else {
-			tree[SFILLOUT].ob_flags |= HIDETREE;
-		}
-	}
-	
-	if(elem & DNARROW) {
-		tree[WDOWN].ob_flags &= ~HIDETREE;
-
-		packelem(tree,WDOWN,-1,0,-1,bottom);
-		bottom = WDOWN;		
-	}
-	else {
-		tree[WDOWN].ob_flags |= HIDETREE;
-	};
-	
-	if(elem & VSLIDE) {
-		tree[WVSB].ob_flags &= ~HIDETREE;
-
-		packelem(tree,WVSB,-1,0,top,bottom);		
-	}
-	else
-	{
-		tree[WVSB].ob_flags |= HIDETREE;
-	}
-	
-	if(!(VSLIDE & elem) && (rightsize > 0))
-	{
-		tree[RFILLOUT].ob_flags &= ~HIDETREE;
-
-		packelem(tree,RFILLOUT,-1,0,top,bottom);		
-	}
-	else {
-		tree[RFILLOUT].ob_flags |= HIDETREE;
-	}
-	
-	if(LFARROW & elem) {
-		tree[WLEFT].ob_flags &= ~HIDETREE;
-		
-		packelem(tree,WLEFT,0,-1,-1,0);
-		left = WLEFT;
-	}
-	else {
-		tree[WLEFT].ob_flags |= HIDETREE;
-	}
-	
-	if(RTARROW & elem) {
-		tree[WRIGHT].ob_flags &= ~HIDETREE;
-		
-		packelem(tree,WRIGHT,-1,right,-1,0);
-		right = WRIGHT;
-	}
-	else {
-		tree[WRIGHT].ob_flags |= HIDETREE;
-	};
-	
-	if(elem & HSLIDE) {
-		tree[WHSB].ob_flags &= ~HIDETREE;
-		
-		packelem(tree,WHSB,left,right,-1,0);
-	}
-	else {
-		tree[WHSB].ob_flags |= HIDETREE;
-	}
-	
-	if(!(HSLIDE & elem) && (bottomsize > 0)) {
-		tree[BFILLOUT].ob_flags &= ~HIDETREE;
-		
-		packelem(tree,BFILLOUT,left,right,-1,0);
-	}
-	else {
-		tree[BFILLOUT].ob_flags |= HIDETREE;
-	};
-	
-	if(IMOVER & elem) {
-		tree[WMOVER].ob_flags &= ~HIDETREE;
-		tree[WMOVER].ob_height = globals.csheight + 2;
-		tree[WMOVER].ob_spec.tedinfo->te_font = SMALL;
-		packelem(tree,WMOVER,0,0,0,-1);
-
-		tree[WAPP].ob_flags |= HIDETREE;
-	}
-	else {
-		tree[WAPP].ob_flags &= ~HIDETREE;
-	};
-}
-
-/* delwinelem deletes an object created with crwinelem*/
-
-static void	delwinelem(OBJECT *o) {
-	if(o) {
-		Mfree(o);
-	};
-}
-
-/*calcworksize calculates the worksize or the total size of
-a window. If dir == WC_WORK the worksize will be calculated and 
-otherwise the total size will be calculated.*/
-
-static void	calcworksize(WORD elem,RECT *orig,RECT *new,WORD dir) {
-	WORD	bottomsize = 1;
-	WORD	headsize = 1;
-	WORD	leftsize = 1;
-	WORD	rightsize = 1;
-	WORD	topsize;
-	
-	if((HSLIDE | LFARROW | RTARROW) & elem) {
-		bottomsize = globals.windowtad[WLEFT].ob_height + (D3DSIZE << 1);
-	};
-	
-	if((CLOSER | MOVER | FULLER | NAME) & elem) {
-		topsize = globals.windowtad[WMOVER].ob_height + (D3DSIZE << 1);
-	}
-	else if(IMOVER & elem) {
-		topsize = globals.csheight + 2 + D3DSIZE * 2;
-	}
-	else {
-		topsize = 0;
-	};
-	
-	if(INFO & elem) {
-		headsize = topsize + globals.windowtad[WINFO].ob_height + 2 * D3DSIZE;
-	}
-	else {
-		if(topsize)
-			headsize = topsize;
-		else
-			headsize = 1;
-	};
-	
-	if((LFARROW | HSLIDE | RTARROW) & elem) {
-		bottomsize = globals.windowtad[WLEFT].ob_height + (D3DSIZE << 1);
-	};
-	
-	if(((bottomsize < globals.windowtad[WLEFT].ob_height) && (SIZER & elem))
-		|| ((VSLIDE | UPARROW | DNARROW) & elem))
-	{
-		rightsize = globals.windowtad[WSIZER].ob_width + (D3DSIZE << 1);
-	};
-
-	if(dir == WC_WORK) {
-		new->x = orig->x + leftsize;
-		new->y = orig->y + headsize;
-		new->width = orig->width - leftsize - rightsize;
-		new->height = orig->height - headsize - bottomsize;
-	}
-	else {
-		new->x = orig->x - leftsize;
-		new->y = orig->y - headsize;
-		new->width = orig->width + leftsize + rightsize;
-		new->height = orig->height + headsize + bottomsize;
-	};
-}
-
 
 /****************************************************************************
  * srv_get_appl_info                                                        *
@@ -935,8 +489,6 @@ static
 WORD
 menu_bar_install (OBJECT * tree,
                   WORD     capid) {
-  AP_INFO * ai;
-
   set_menu (capid, tree);
   
   if (get_top_menu_owner () == capid) {
@@ -1309,7 +861,6 @@ srv_appl_init(C_APPL_INIT * par,
   ret->physical_vdi_id = globals.vid;
 
   if ((ret->apid >= 0) && (ai->type & APP_APPLICATION)) {
-    char            menuentry [strlen (par->appl_name) + 3];
     C_MENU_REGISTER c_menu_register;
     R_MENU_REGISTER r_menu_register;
 
@@ -1613,328 +1164,6 @@ top_appl (WORD apid) {
 }
 
 
-static void del_env(const BYTE *strng) {
-  BYTE **var;
-  BYTE *name;
-  LONG len = 0;
-  
-  if (!environ)
-    return; /* find the length of "tag" in "tag=value" */
-  
-  for (name = (char *)strng; *name && (*name != '='); name++)
-    len++; /* find the tag in the environment */
-
-  for (var = environ; (name = *var) != NULL; var++) {
-    if(!strncmp(name, strng, len) && name[len] == '=') {
-      break;
-    };
-  } /* if it's found, move all the other environment variables down by 1 to
-       delete it */
-  
-  if(name) {
-    Mfree(name);
-    
-    while (name) {
-      name = var[1];
-      *var++ = name;
-    }
-  }
-}
-
-static WORD srv_putenv(const BYTE *strng) {
-  WORD i = 0;
-  BYTE **e;
-  del_env(strng);
-  if(!environ) {
-    DEBUG2 ("srv.c: srv_putenv: Allocation memory");
-    e = (BYTE **)Mxalloc(2*sizeof(BYTE *),GLOBALMEM);
-  }
-  else {
-    while(environ[i]) 
-      i++;
-    DEBUG2 ("srv.c: srv_putenv: Allocation memory 2");
-    e = (BYTE **)Mxalloc((i+2)*sizeof(BYTE *),GLOBALMEM);
-    if (!e) {
-      return -1;
-    }
-    
-    bcopy(environ, e,(i + 1) * sizeof(BYTE *));
-    Mfree(environ);
-    environ = e;
-  }
-  
-  if(!e) {
-    return -1;
-  };
-  
-  environ = e;
-  DEBUG2 ("srv.c: srv_putenv: Allocation memory 3");
-  environ[i] = (BYTE *)Mxalloc(strlen(strng) + 1,GLOBALMEM);
-  strcpy(environ[i],strng);
-  environ[i+1] = 0;
-  return 0;
-}
-
-static BYTE *srv_getenv(const char *tag) {
-  BYTE **var;
-  BYTE *name;
-  LONG len = strlen(tag);
-	
-  if(strrchr(tag,'=')) {
-    len--;
-  };
-  if (!environ) return 0;
-  
-  for (var = environ; (name = *var) != 0; var++) {
-    if (!strncmp(name, tag, len) && name[len] == '=')
-      return name+len+1;
-  }
-  return 0;
-}
-
-/****************************************************************************
- * srv_shel_envrn                                                           *
- *  Implementation of shel_envrn().                                         *
- ****************************************************************************/
-WORD                /*                                                      */
-srv_shel_envrn(     /*                                                      */
-C_SHEL_ENVRN * msg) /*                                                      */
-/****************************************************************************/
-{
-  *msg->value = srv_getenv (msg->name);
-
-  return 1;
-}
-
-/****************************************************************************
- * srv_shel_write                                                           *
- *  Implementation of shel_write().                                         *
- ****************************************************************************/
-WORD                /*                                                      */
-srv_shel_write(     /*                                                      */
-WORD apid,          /* Application id.                                      */
-C_SHEL_WRITE * msg) /*                                                      */
-/****************************************************************************/
-{
-  AP_INFO  *ai;
-  WORD     r = 0;
-  BYTE     *tmp,*ddir = NULL,*envir = NULL;
-  BYTE     oldpath[128];
-  BYTE     exepath[128];			
-  SHELW    *shelw;
-  BASEPAGE *b;
-  
-  NOT_USED(msg->wiscr);
-  
-  shelw = (SHELW *)msg->cmd;
-  ddir = NULL;
-  envir = NULL;
-  
-  if(msg->mode & 0xff00) /* should we use extended info? */
-    {
-      msg->cmd = shelw->newcmd;
-      
-      /*	
-		if(mode & SW_PSETLIMIT) {
-		v_Psetlimit = shelw->psetlimit;
-		};
-		
-		if(mode & SW_PRENICE) {
-		v_Prenice = shelw->prenice;
-		};
-		*/
-      
-      if(msg->mode & SW_DEFDIR) {
-	ddir = shelw->defdir;
-      };
-      
-      if(msg->mode & SW_ENVIRON) {
-	envir = shelw->env;
-      };
-    };
-  
-  msg->mode &= 0xff;
-  
-  if(msg->mode == SWM_LAUNCH)	/* - run application */ 
-    {
-      tmp = strrchr(msg->cmd, '.');
-      if(!tmp) {
-	tmp = "";
-      };
-      
-      /* use enviroment GEMEXT, TOSEXT, and ACCEXT. */
-      
-      if((strcasecmp(tmp,".app") == 0) || (strcasecmp(tmp,".prg") == 0)) {
-	msg->mode = SWM_LAUNCHNOW;
-	msg->wisgr = 1;
-      }
-      else if (strcasecmp(tmp,".acc") == 0) {
-	msg->mode = SWM_LAUNCHACC;
-	msg->wisgr = 3;
-      }
-      else {
-	msg->mode = SWM_LAUNCHNOW;
-	msg->wisgr = 0;
-      };
-    };
-  
-  switch (msg->mode) {
-  case SWM_LAUNCH: 	/* - run application */
-    /* we just did take care of this case */
-    break;
-    
-  case SWM_LAUNCHNOW: /* - run another application in GEM or TOS mode */
-    if(msg->wisgr == GEMAPP) {
-      Dgetpath(oldpath,0);
-      
-      strcpy(exepath, msg->cmd);
-      tmp = exepath;
-      
-      if(ddir) {
-	Misc_setpath(ddir);
-      }
-      else {
-	tmp = strrchr(exepath,'\\');
-	if(tmp) {
-	  *tmp = 0;
-	  Misc_setpath(exepath);
-	  tmp++;
-	}
-	else {
-	  tmp = exepath;
-	};
-      };
-      
-      r = (WORD)Pexec(100, tmp, msg->tail, envir);
-      
-      if(r < 0) {
-	r = 0;
-      }
-      else if((ai = srv_info_alloc(r,APP_APPLICATION,1))) {
-	r = ai->id;
-      }
-      else {
-	r = 0;
-      };
-      
-      Misc_setpath(oldpath);
-    }
-    else if(msg->wisgr == TOSAPP) {
-      WORD fd;
-      BYTE new_cmd[300];
-      WORD t;
-      
-      Dgetpath(oldpath,0);
-      
-      strcpy(exepath, msg->cmd);
-      tmp = exepath;
-      
-      if(!ddir) {
-	ddir = oldpath;
-      };
-      
-      sprintf(new_cmd, "%s %s %s", ddir, msg->cmd, msg->tail + 1);
-      
-      fd = (int)Fopen("U:\\PIPE\\TOSRUN", 2);
-      t = (short)strlen(new_cmd) + 1;
-      
-      Fwrite(fd, t, new_cmd);
-      
-      Fclose(fd);
-      
-      r = 1;
-    };
-    break;
-    
-  case SWM_LAUNCHACC: /* - run an accessory */
-    Dgetpath(oldpath,0);
-    
-    strcpy(exepath, msg->cmd);
-    tmp = exepath;
-    if(ddir) {
-      Misc_setpath(ddir);
-    }
-    else {
-      tmp = strrchr(exepath,'\\');
-      
-      if(tmp) {
-	BYTE c = tmp[1];
-	
-	tmp[1] = 0;
-	Misc_setpath(exepath);
-	tmp[1] = c;
-	tmp++;
-      }
-      else {
-	tmp = exepath;
-      };
-    };
-    
-    b = (BASEPAGE *)Pexec(3, tmp, msg->tail, envir);
-    
-    if(((LONG)b) > 0) {
-      Mshrink(b,256 + b->p_tlen + b->p_dlen + b->p_blen);
-      
-      b->p_dbase = b->p_tbase;
-      b->p_tbase = (BYTE *)accstart;
-      
-      r = (WORD)Pexec(104,tmp,b,NULL);
-      
-      if(r < 0) {
-	r = 0;
-      }
-      else if((ai = srv_info_alloc(r,APP_ACCESSORY,1))) {
-	r = ai->id;
-      }
-      else {
-	r = 0;
-      };
-    }
-    else {
-      DB_printf("Pexec failed: code %ld",(LONG)b);
-      r = 0;
-    };
-    
-    Misc_setpath(oldpath);
-    break;
-    
-  case SWM_SHUTDOWN: /* - set shutdown mode */
-  case SWM_REZCHANGE: /* - resolution change */
-  case SWM_BROADCAST: /* - send message to all processes */
-    break;
-    
-  case SWM_ENVIRON: /* - AES environment */
-    switch(msg->wisgr) {
-    case ENVIRON_CHANGE:
-      srv_putenv (msg->cmd);
-      r = 1;
-      break;
-      
-    default:
-      DB_printf("shel_write(SWM_ENVIRON,%d,...) not implemented.", msg->wisgr);
-      r = 0;
-    };
-    break;
-    
-  case SWM_NEWMSG: /* - I know about: bit 0: AP_TERM */
-    if(apps[apid].id != -1) {
-      apps[apid].newmsg = msg->wisgr;
-      r = 1;
-    }
-    else {
-      r = 0;
-    };
-    
-    break;
-    
-  case SWM_AESMSG: /* - send message to the AES */
-  default:
-    ;
-  };
-  
-  return r;
-}
-
 /****************************************************************************
  * draw_wind_elements                                                       *
  *  Draw the elements of the window win that intersects with the rectangle  *
@@ -2027,11 +1256,7 @@ changeslider (WINSTRUCT * win,
               WORD        which,
               WORD        position,
               WORD        size) {	
-  WORD redraw2 = 0;
-  
   if(which & VSLIDE) {
-    WORD newheight,newy;
-    
     if(position != -1) {
       if(position > 1000) {
         win->vslidepos = 1000;
@@ -2051,27 +1276,9 @@ changeslider (WINSTRUCT * win,
         win->vslidesize = size;
       }
     }
-
-    /*
-    newy = (WORD)(((LONG)win->vslidepos *
-                   (LONG)(win->tree[WVSB].ob_height -
-                          win->tree[WVSLIDER].ob_height)) / 1000L);
-    newheight = (WORD)(((LONG)win->vslidesize *
-                        (LONG)win->tree[WVSB].ob_height) / 1000L);
-    
-    if((win->tree[WVSLIDER].ob_y != newy) ||
-       (win->tree[WVSLIDER].ob_height != newheight)) {
-      win->tree[WVSLIDER].ob_y = newy;
-      win->tree[WVSLIDER].ob_height = newheight;
-      
-      redraw2 = 1;
-    }
-    */
   }
   
   if(which & HSLIDE) {
-    WORD newx,newwidth;
-    
     if(position != -1) {
       if(position > 1000) {
         win->hslidepos = 1000;
@@ -2091,36 +1298,8 @@ changeslider (WINSTRUCT * win,
         win->hslidesize = size;
       }
     }
-    
-    /*
-    newx = (WORD)(((LONG)win->hslidepos *
-                   (LONG)(win->tree[WHSB].ob_width -
-                          win->tree[WHSLIDER].ob_width)) / 1000L);
-    newwidth = (WORD)(((LONG)win->hslidesize *
-                       (LONG)win->tree[WHSB].ob_width) / 1000L);
-
-    if((win->tree[WHSLIDER].ob_x != newx) ||
-       (win->tree[WHSLIDER].ob_width != newwidth)) {
-      win->tree[WHSLIDER].ob_x = newx;
-      win->tree[WHSLIDER].ob_width = newwidth;
-      
-      redraw2 = 1;
-    }
-    */
   }
 
-  /*  
-  if(redraw && redraw2 && (win->status & WIN_OPEN)) {							
-    if(which & VSLIDE) {
-      draw_wind_elements(win,&globals.screen,WVSB);
-    }
-    
-    if(which & HSLIDE) {
-      draw_wind_elements(win,&globals.screen,WHSB);
-    }
-  }
-  */
-  
   return 1;
 }
 
@@ -3206,9 +2385,11 @@ srv_wind_delete (C_WIND_DELETE * msg,
       srv_wind_close (&c_wind_close,
                       &r_wind_close);
     }
-    
+
+    /* FIXME : Remove
     delwinelem((*wl)->win->tree);
-    
+    */
+
     if(msg->id == (win_next - 1)) {
       WORD	found;
       WINLIST	*wt = *wl;
@@ -3502,7 +2683,7 @@ srv_wind_set (C_WIND_SET * msg,
       break;
 
     case WF_ICONIFY: /*0x1a*/
-      win->origsize = win->totsize;
+      /* FIXME:       win->origsize = win->totsize;
       set_win_elem(win->tree,IMOVER);
       win->status |= WIN_ICONIFIED;
       calcworksize(IMOVER,&win->totsize,&win->worksize,WC_WORK);
@@ -3510,9 +2691,11 @@ srv_wind_set (C_WIND_SET * msg,
                                          (RECT *)&msg->parm1,
                                          globals.vid,
                                          1);
+      */
       break;
 
     case WF_UNICONIFY: /*0x1b*/
+      /* FIXME:
       set_win_elem(win->tree,win->elements);
       win->status &= ~WIN_ICONIFIED;
       calcworksize(win->elements,&win->totsize,&win->worksize,WC_WORK);
@@ -3520,6 +2703,7 @@ srv_wind_set (C_WIND_SET * msg,
                                           (RECT *)&msg->parm1,
                                           globals.vid,
                                           1);
+      */
       break;
 
     default:
@@ -3697,6 +2881,7 @@ srv_vdi_call (COMM_HANDLE  handle,
 ** 1999-05-20 CG
 ** 1999-05-23 CG
 ** 1999-06-10 CG
+** 1999-06-13 CG
 */
 static
 WORD
@@ -3710,13 +2895,9 @@ server (LONG arg) {
   R_WIND_OPEN   r_wind_open;
 
   /* These variables are passed from clients */
-  WORD          client_pid;
-  WORD          apid;
   C_SRV         par;
   R_SRV         ret;
   COMM_HANDLE   handle;
-
-  WORD          code;
 
   WINSTRUCT *   ws;
   WINLIST *     wl;
@@ -3804,12 +2985,6 @@ server (LONG arg) {
     } else {
       DEBUG3 ("srv.c: Call no %d\n", par.common.call);
       switch (par.common.call) {
-      case SRV_SHAKE:
-        DB_printf ("I'm fine application %d (process %d)!", apid, client_pid);
-        DB_printf ("How are you doing yourself?");
-        Srv_reply (handle, &par, 0);
-        break;
-        
       case SRV_APPL_CONTROL:
         srv_appl_control (&par.appl_control, &ret.appl_control);
         
@@ -3872,19 +3047,6 @@ server (LONG arg) {
         srv_menu_register (&par.menu_register, &ret.menu_register);
         
         Srv_reply (handle, &par, sizeof (R_MENU_REGISTER));
-        break;
-        
-      case SRV_SHEL_ENVRN:
-        code = 
-          srv_shel_envrn (&par.shel_envrn);
-        
-        Srv_reply (handle, &par, code);
-        break;
-        
-      case SRV_SHEL_WRITE:
-        code = srv_shel_write(apid, &par.shel_write);
-        
-        Srv_reply (handle, &par, code);
         break;
         
       case SRV_WIND_CLOSE:
@@ -3979,6 +3141,7 @@ Srv_init_module (WORD no_config) {
 
   DEBUG3 ("srv.c: Srv_init_module: In Srv_init_module");
 
+  /* FIXME: Move initializations to server process */
   for(i = 0; i < MAX_NUM_APPS; i++) {
     apps[i].id = -1;
     apps[i].eventpipe = -1;
