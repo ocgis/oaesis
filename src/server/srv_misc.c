@@ -40,13 +40,8 @@
 #ifdef HAVE_IOCTL_H
 #include <ioctl.h>
 #ifdef MINT_TARGET
-#define ploadinfo __ploadinfo
 #endif /* MINT_TARGET */
 #endif /* HAVE_IOCTL_H */
-
-#ifdef HAVE_MINT_DCNTL_H
-#include <mint/dcntl.h>
-#endif /* HAVE_MINT_DCNTL_H */
 
 #ifdef HAVE_MINTBIND_H
 #include <mintbind.h>
@@ -276,44 +271,4 @@ BYTE *dir)        /* New directory.                                         */
 	};
 	
 	return 0;
-}
-
-
-/****************************************************************************
- * srv_get_loadinfo                                                        *
- *  Get loading information.                                                *
- ****************************************************************************/
-void                /*                                                      */
-srv_get_loadinfo(  /*                                                      */
-WORD pid,           /*                                                      */
-WORD fnamelen,      /* Length of filename buffer.                           */
-BYTE *cmdlin,       /* Command line buffer.                                 */
-BYTE *fname)        /* File name buffer.                                    */
-/****************************************************************************/
-{
-  BYTE pname[30];
-  _DTA *olddta,newdta;
-	
-  olddta = Fgetdta();
-  Fsetdta(&newdta);
-	
-  sprintf(pname,"u:\\proc\\*.%03d",pid);
-  if(Fsfirst(pname,0) == 0) {
-    LONG fd;
-		
-    sprintf(pname,"u:\\proc\\%s",newdta.dta_name);
-		
-    if((fd = Fopen(pname,0)) >= 0) {
-      struct ploadinfo li;
-			
-      li.fnamelen = fnamelen;
-      li.cmdlin = cmdlin;
-      li.fname = fname;
-			
-      Fcntl((WORD)fd,&li,PLOADINFO);
-      Fclose((WORD)fd);
-    }
-  }
-	
-  Fsetdta(olddta);
 }

@@ -70,19 +70,6 @@ srv_setpath(     /*                                                        */
 BYTE *dir);       /* New directory.                                         */
 /****************************************************************************/
 
-/****************************************************************************
- * srv_get_loadinfo                                                        *
- *  Get loading information.                                                *
- ****************************************************************************/
-void                /*                                                      */
-srv_get_loadinfo(  /*                                                      */
-WORD pid,           /*                                                      */
-WORD fnamelen,      /* Length of filename buffer.                           */
-BYTE *cmdlin,       /* Command line buffer.                                 */
-BYTE *fname);       /* File name buffer.                                    */
-/****************************************************************************/
-
-
 /*
 ** Description
 ** End thread
