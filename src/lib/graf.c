@@ -308,13 +308,6 @@ Graf_rubberbox (AES_PB *apb) {
 
 /*
 ** Exported
-**
-** 1998-12-20 CG
-** 1998-12-25 CG
-** 1998-12-26 CG
-** 1999-01-03 CG
-** 1999-01-09 CG
-** 1999-05-16 CG
 */
 WORD
 Graf_do_dragbox (WORD   apid,
@@ -324,8 +317,10 @@ Graf_do_dragbox (WORD   apid,
                  WORD   sy,
                  RECT * bound,
                  WORD * endx,
-                 WORD * endy) {
-  EVENTIN ei = {
+                 WORD * endy)
+{
+  EVENTIN ei =
+  {
     MU_BUTTON | MU_M1,
     0,
     LEFT_BUTTON,
@@ -337,6 +332,7 @@ Graf_do_dragbox (WORD   apid,
     0,
     0
   };
+
   EVENTOUT      eo;
   COMMSG        buffer;
     
@@ -354,14 +350,15 @@ Graf_do_dragbox (WORD   apid,
   GLOBAL_APPL * globals = get_globals (apid);
 
   /* Get the initial mouse state */
-  Graf_do_mkstate (apid, &mx, &my, &mb, &ks);
+  Graf_do_mkstate(apid, &mx, &my, &mb, &ks);
 
   /* Calculate offset from mouse position to rectangle origo */
   relx = sx - mx;
   rely = sy - my;
 
   /* If the mouse button is release return directly */
-  if (!(mb & LEFT_BUTTON)) {   
+  if (!(mb & LEFT_BUTTON))
+  {
     *endx = sx;
     *endy = sy;
     
@@ -390,26 +387,35 @@ Graf_do_dragbox (WORD   apid,
   ei.m1r.x = mx;
   ei.m1r.y = my;
   
-  while (TRUE) {
+  while(TRUE)
+  {
     Evnt_do_multi (apid, &ei, &buffer, &eo, 0, DONT_HANDLE_MENU_BAR);
 
-    if (eo.events & MU_M1) {
+    if (eo.events & MU_M1)
+    {
       newx = eo.mx + relx;
       newy = eo.my + rely;
       
-      if (newx < bound->x) {
+      if (newx < bound->x)
+      {
         newx = bound->x;
-      } else if (newx > (bound->x + bound->width - w)) {
+      }
+      else if (newx > (bound->x + bound->width - w))
+      {
         newx = bound->x + bound->width - w;
       }
 
-      if (newy < bound->y) {
+      if (newy < bound->y)
+      {
         newy = bound->y;
-      } else if (newy > (bound->y + bound->height - h)) {
+      }
+      else if (newy > (bound->y + bound->height - h))
+      {
         newy = bound->y + bound->height - h;
       }
       
-      if ((lastx != newx) || (lasty != newy)) {
+      if ((lastx != newx) || (lasty != newy))
+      {
         Graf_do_mouse (apid, M_OFF, NULL);
         v_pline (globals->vid, 5, xyarray);
 
@@ -430,10 +436,16 @@ Graf_do_dragbox (WORD   apid,
         lastx = newx;
         lasty = newy;
       }
+
+      /* Update coordinates for mouse leave rectangle */
+      ei.m1r.x = eo.mx;
+      ei.m1r.y = eo.my;
     }
     
-    if(eo.events & MU_BUTTON) {
-      if (!(eo.mb & LEFT_BUTTON)) {
+    if(eo.events & MU_BUTTON)
+    {
+      if (!(eo.mb & LEFT_BUTTON))
+      {
         break;
       }
     }
@@ -713,21 +725,20 @@ Graf_watchbox (AES_PB *apb) {
 
 /*
 ** Exported
-**
-** 1998-12-20 CG
-** 1998-12-25 CG
 */
 WORD
 Graf_do_slidebox (WORD     apid,
                   OBJECT * tree,
                   WORD     parent,
                   WORD     obj,
-                  WORD     orient) {
+                  WORD     orient)
+{
   RECT bound;
   RECT slid;
   WORD x,y;
         
-  if (tree == NULL) {
+  if (tree == NULL)
+  {
     return 0;
   }
         
