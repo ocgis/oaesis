@@ -1,7 +1,7 @@
 /*
 ** evnthndl.c
 **
-** Copyright 1996 - 2000 Christer Gustavsson <cg@nocrew.org>
+** Copyright 1996 - 2001 Christer Gustavsson <cg@nocrew.org>
 ** Copyright 1996 Jan Paul Schmidt <Jan.P.Schmidt@mni.fh-giessen.de>
 **
 ** This program is free software; you can redistribute it and/or modify
@@ -628,15 +628,15 @@ handle_slider_click (WORD     apid,
   Graf_do_mouse (apid, FLAT_HAND, NULL);
 
   Objc_do_offset(tree,elem,(WORD *)&elemrect);
-  elemrect.width = tree[elem].ob_width;
-  elemrect.height = tree[elem].ob_height;
+  elemrect.width = OB_WIDTH(&tree[elem]);
+  elemrect.height = OB_HEIGHT(&tree[elem]);
 
   dx = last_x - elemrect.x;
   dy = last_y - elemrect.y;
 
   Objc_do_offset(tree,bg,(WORD *)&bgrect);
-  bgrect.width = tree[bg].ob_width;
-  bgrect.height = tree[bg].ob_height;
+  bgrect.width = OB_WIDTH(&tree[bg]);
+  bgrect.height = OB_HEIGHT(&tree[bg]);
 
   Graf_do_mouse (apid, M_OFF, NULL);
   Wind_change (apid, win_id, widget, SELECTED);
@@ -1231,8 +1231,8 @@ update_appl_menu(WORD apid)
   rwalk = PMENU_FIRST;
 
   for (i = 0; i < globals->appl_menu.count; i++, rwalk++) {
-    strcpy (globals->common->pmenutad[rwalk].ob_spec.free_string,
-            globals->appl_menu.entries[i].name);
+    strcpy((char *)OB_SPEC(&globals->common->pmenutad[rwalk]),
+           globals->appl_menu.entries[i].name);
 
     if (globals->appl_menu.entries[i].ap_id == topappl)
     {
@@ -1248,7 +1248,7 @@ update_appl_menu(WORD apid)
   }
 
   if (globals->acc_menu.count > 0) {
-    strcpy(globals->common->pmenutad[rwalk].ob_spec.free_string,
+    strcpy((char *)OB_SPEC(&globals->common->pmenutad[rwalk]),
            "----------------------");
     OB_FLAGS_CLEAR(&globals->common->pmenutad[rwalk], HIDETREE);
     OB_STATE_CLEAR(&globals->common->pmenutad[rwalk], CHECKED);
@@ -1256,8 +1256,8 @@ update_appl_menu(WORD apid)
     rwalk++;
     
     for (i = 0; i < globals->acc_menu.count; i++, rwalk++) {
-      strcpy (globals->common->pmenutad[rwalk].ob_spec.free_string,
-              globals->acc_menu.entries[i].name);
+      strcpy((char *)OB_SPEC(&globals->common->pmenutad[rwalk]),
+             globals->acc_menu.entries[i].name);
 
       if (globals->acc_menu.entries[i].ap_id == topappl)
       {
@@ -1276,8 +1276,8 @@ update_appl_menu(WORD apid)
   /* FIXME: Make pmenutad local to the application */
   OB_FLAGS_SET(&globals->common->pmenutad[rwalk], HIDETREE);
 	
-  globals->common->pmenutad[0].ob_height =
-    globals->common->pmenutad[rwalk].ob_y;
+  OB_HEIGHT_PUT(&globals->common->pmenutad[0],
+                OB_Y(&globals->common->pmenutad[rwalk]));
 	
   return topappl;
 }
@@ -1288,33 +1288,35 @@ static WORD     get_matching_menu(OBJECT *t,WORD n) {
         
   /*first we need to know which in order our title is*/
         
-  parent = t[t[0].ob_head].ob_head;
-  start = t[parent].ob_head;
+  parent = OB_HEAD(&t[OB_HEAD(&t[0])]);
+  start = OB_HEAD(&t[parent]);
         
-  while(start != n) {
+  while(start != n)
+  {
     /* we have failed to find the object! */
                 
     if(start == parent)
       return -1;
 
-    start = t[start].ob_next;
+    start = OB_NEXT(&t[start]);
     i++;
-  };
+  }
         
   /* now we shall find the i:th menubox! */
         
-  parent = t[t[0].ob_head].ob_next;
+  parent = OB_NEXT(&t[OB_HEAD(&t[0])]);
         
-  start = t[parent].ob_head;
+  start = OB_HEAD(&t[parent]);
         
-  while(i) {
-    start = t[start].ob_next;
+  while(i)
+  {
+    start = OB_NEXT(&t[start]);
 
     if(start == parent)
       return -1;
                         
     i--;
-  };
+  }
         
   return start;
 }
@@ -1323,12 +1325,6 @@ static WORD     get_matching_menu(OBJECT *t,WORD n) {
 /*
 ** Description
 ** Handle drop down menu
-**
-** 1999-01-09 CG
-** 1999-04-10 CG
-** 1999-04-13 CG
-** 1999-04-18 CG
-** 1999-08-17 CG
 */
 static
 WORD
@@ -1343,12 +1339,15 @@ handle_drop_down (WORD        apid,
   GLOBAL_APPL * globals = get_globals (apid);
   OBJECT * nmenu;
   
-  deskbox = globals->menu[globals->menu[0].ob_tail].ob_head;
+  deskbox = OB_HEAD(&globals->menu[OB_TAIL(&globals->menu[0])]);
 
-  if ((deskbox == menubox) && (my >= globals->common->pmenutad[0].ob_y)) {
+  if((deskbox == menubox) && (my >= OB_Y(&globals->common->pmenutad[0])))
+  {
     nmenu = globals->common->pmenutad;
     entry = Objc_do_find (nmenu, 0, 9, mx, my, 0);
-  } else {
+  }
+  else
+  {
     nmenu = globals->menu;
     entry = Objc_do_find (nmenu, menubox, 9, mx, my, 0);
   }
@@ -1531,7 +1530,7 @@ handle_selected_title (WORD        apid,
   title = Objc_do_find (globals->menu, 0, 9, mouse_x, mouse_y, 0);
   box = get_matching_menu (globals->menu, title);
   
-  deskbox = globals->menu[globals->menu[0].ob_tail].ob_head;
+  deskbox = OB_HEAD(&globals->menu[OB_TAIL(&globals->menu[0])]);
           
   if (box >= 0) {
     RECT area;
@@ -1549,26 +1548,32 @@ handle_selected_title (WORD        apid,
 
     Objc_area_needed (globals->menu, box, &area);
     
-    if(box == deskbox) {
+    if(box == deskbox)
+    {
       WORD i;
+      WORD xy[2];
 
       /* Get applications for menu */
       update_appl_menu (apid);
 
-      Objc_do_offset (globals->menu, box, &globals->common->pmenutad[0].ob_x);
+      Objc_do_offset(globals->menu, box, xy);
      
-      globals->common->pmenutad[0].ob_y +=
-        (globals->menu[globals->menu[box].ob_head].ob_height << 1);
-      globals->common->pmenutad[0].ob_width = globals->menu[box].ob_width;
+      OB_X_PUT(&globals->common->pmenutad[0], xy[0]);
+      OB_Y_PUT(&globals->common->pmenutad[0],
+               xy[1] +
+               (OB_HEIGHT(&globals->menu[OB_HEAD(&globals->menu[box])]) << 1));
+      OB_WIDTH_PUT(&globals->common->pmenutad[0],
+                   OB_WIDTH(&globals->menu[box]));
 
-      for(i = PMENU_FIRST; i <= PMENU_LAST; i++) {
-        globals->common->pmenutad[i].ob_width =
-          globals->common->pmenutad[0].ob_width;
+      for(i = PMENU_FIRST; i <= PMENU_LAST; i++)
+      {
+        OB_WIDTH_PUT(&globals->common->pmenutad[i],
+                     OB_WIDTH(&globals->common->pmenutad[0]));
       }
       
       area.height =
-        globals->common->pmenutad[0].ob_height +
-        (globals->common->pmenutad[1].ob_height << 1) + 2;
+        OB_HEIGHT(&globals->common->pmenutad[0]) +
+        (OB_HEIGHT(&globals->common->pmenutad[1]) << 1) + 2;
     }
 
 #ifdef REALMOVE
@@ -1614,11 +1619,11 @@ handle_selected_title (WORD        apid,
     if (box == deskbox) {
       RECT clip = area;
 
-      clip.height = globals->common->pmenutad[0].ob_y - area.y;
+      clip.height = OB_Y(&globals->common->pmenutad[0]) - area.y;
       Objc_do_draw (globals->vid, globals->menu, box, 9, &clip);
       
-      clip.y = globals->common->pmenutad[0].ob_y;
-      clip.height = globals->common->pmenutad[0].ob_height + 1;
+      clip.y = OB_Y(&globals->common->pmenutad[0]);
+      clip.height = OB_HEIGHT(&globals->common->pmenutad[0]) + 1;
       Objc_do_draw (globals->vid, globals->common->pmenutad, 0, 9, &clip);
     } else {
       Graf_do_mouse (apid, M_OFF, NULL);
@@ -1637,11 +1642,16 @@ handle_selected_title (WORD        apid,
         WORD closebox = 0;
         
         if ((deskbox == box) &&
-            (eo.my >= globals->common->pmenutad[0].ob_y))
+            (eo.my >= OB_Y(&globals->common->pmenutad[0])))
 	{
-          if (!Misc_inside ((RECT *)&globals->common->pmenutad[0].ob_x,
-                            eo.mx,
-                            eo.my) ||
+          RECT objarea;
+
+          objarea.x      = OB_X(&globals->common->pmenutad[0]);
+          objarea.y      = OB_Y(&globals->common->pmenutad[0]);
+          objarea.width  = OB_WIDTH(&globals->common->pmenutad[0]);
+          objarea.height = OB_HEIGHT(&globals->common->pmenutad[0]);
+
+          if (!Misc_inside(&objarea, eo.mx, eo.my) ||
               (Objc_do_find (globals->common->pmenutad,
                              0,
                              9,
