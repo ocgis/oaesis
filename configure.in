@@ -124,8 +124,9 @@ else
   AC_SUBST(MINTWRAPPERS_LIBS)
 fi
 
-dnl This is needed for AC_CHECK_HEADERS to find the mintwrappers headers
-CPPFLAGS="$CPPFLAGS $MINTWRAPPERS_CFLAGS"
+dnl This is needed for AC_CHECK_HEADERS to find the mintwrappers 
+dnl and the oVDIsis headers
+CPPFLAGS="$CPPFLAGS $MINTWRAPPERS_CFLAGS $OVDISIS_CFLAGS"
 
 OSISINCLUDE=${includedir}/osis
 
