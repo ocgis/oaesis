@@ -181,11 +181,11 @@ set_widget_colour(WINDOW_STRUCT * win,
     case G_BOXTEXT:
     case G_FTEXT:
     case G_FBOXTEXT:
-      TE_COLOR_PUT(obspec->tedinfo, new_colour);
+      TE_COLOR_PUT(CL_TO_HL(obspec->tedinfo), new_colour);
       break;
       
     case G_IMAGE:
-      BI_COLOR_PUT(obspec->bitblk, new_colour);
+      BI_COLOR_PUT(CL_TO_HL(obspec->bitblk), new_colour);
       break;
       
     case G_BUTTON:
