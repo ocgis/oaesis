@@ -96,64 +96,971 @@ Interface between the server and the client library
 
 All data passed between the client library and the server shall be in network
  order.
- Its size shall be well defined.
+ All parameters and return values are divided into 16-bit words.
+\layout Subsubsection
+
+Common for all messages
+\layout Paragraph
+
+Parameters
+\layout Standard
+\added_space_top 0.3cm \added_space_bottom 0.3cm \align left \LyXTable
+multicol5
+6 3 0 0 -1 -1 -1 -1
+1 1 0 0
+0 0 0 0
+1 0 0 0
+1 0 0 0
+1 1 0 0
+0 1 0 0
+2 1 0 "" ""
+2 1 0 "" ""
+2 1 1 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 8 1 0 0 0 0 "" ""
+0 8 1 0 0 0 0 "" ""
+0 8 1 0 0 0 0 "" ""
+0 8 1 0 0 0 0 "" ""
+0 8 1 0 0 0 0 "" ""
+0 8 1 0 0 0 0 "" ""
+0 8 1 0 0 0 0 "" ""
+0 8 1 0 0 0 0 "" ""
+0 8 1 0 0 0 0 "" ""
+0 8 1 0 0 0 0 "" ""
+0 8 1 0 0 0 0 "" ""
+0 8 1 0 0 0 0 "" ""
+0 8 1 0 0 0 0 "" ""
+0 8 1 0 0 0 0 "" ""
+0 8 1 0 0 0 0 "" ""
+
+Offset
+\newline 
+Name
+\newline 
+Description
+\newline 
+0
+\newline 
+words
+\newline 
+Number of words in message
+\newline 
+1
+\newline 
+longs
+\newline 
+Number of longs in message
+\newline 
+2
+\newline 
+apid
+\newline 
+Application id of sender
+\newline 
+3
+\newline 
+pid
+\newline 
+Process id of sender
+\newline 
+4
+\newline 
+call
+\newline 
+Call number
+\layout Paragraph
+
+Return values
+\layout Standard
+\added_space_top 0.3cm \added_space_bottom 0.3cm \align left \LyXTable
+multicol5
+4 3 0 0 -1 -1 -1 -1
+1 1 0 0
+0 0 0 0
+1 1 0 0
+0 1 0 0
+2 1 0 "" ""
+2 1 0 "" ""
+2 1 1 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+
+Offset
+\newline 
+Name
+\newline 
+Description
+\newline 
+0
+\newline 
+words
+\newline 
+Number of words in message
+\newline 
+1
+\newline 
+longs
+\newline 
+Number of longs in message
+\newline 
+2
+\newline 
+retval
+\newline 
+Return value
 \layout Subsubsection
 
 SRV_APPL_CONTROL
+\layout Standard
+
+Control an application.
+\layout Paragraph
+
+Parameters
+\layout Standard
+\added_space_top 0.3cm \added_space_bottom 0.3cm \align left \LyXTable
+multicol5
+3 3 0 0 -1 -1 -1 -1
+1 1 0 0
+0 0 0 0
+1 1 0 0
+2 1 0 "" ""
+2 1 0 "" ""
+2 1 1 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+
+Offset
+\newline 
+Name
+\newline 
+Description
+\newline 
+0
+\newline 
+ap_id
+\newline 
+Id of application to control
+\newline 
+1
+\newline 
+mode
+\newline 
+Operation to perform
+\layout Paragraph
+
+Return values
+\layout Standard
+
+None
 \layout Subsubsection
 
 SRV_APPL_INIT
 \layout Standard
 
 Get a new application id.
+\layout Paragraph
+
+Parameters
+\layout Standard
+\added_space_top 0.3cm \added_space_bottom 0.3cm \align left \LyXTable
+multicol5
+2 3 0 0 -1 -1 -1 -1
+1 1 0 0
+0 1 0 0
+2 1 0 "" ""
+2 1 0 "" ""
+2 1 1 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+
+Offset
+\newline 
+Name
+\newline 
+Description
+\newline 
+0-19
+\newline 
+appl_name
+\newline 
+Name of application
+\layout Paragraph
+
+Return values
+\layout Standard
+\added_space_top 0.3cm \added_space_bottom 0.3cm \align left \LyXTable
+multicol5
+3 3 0 0 -1 -1 -1 -1
+1 1 0 0
+0 1 0 0
+0 1 0 0
+2 1 0 "" ""
+2 1 0 "" ""
+2 1 1 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+
+Offset
+\newline 
+Name
+\newline 
+Description
+\newline 
+0
+\newline 
+apid
+\newline 
+Application id
+\newline 
+1
+\newline 
+physical_vdi_id
+\newline 
+VDI id of the physical workstation
 \layout Subsubsection
 
 SRV_APPL_WRITE
 \layout Standard
 
 Send data to an application.
+\layout Paragraph
+
+Parameters
+\layout Standard
+\added_space_top 0.3cm \added_space_bottom 0.3cm \align left \LyXTable
+multicol5
+4 3 0 0 -1 -1 -1 -1
+1 1 0 0
+0 1 0 0
+0 1 0 0
+0 1 0 0
+2 1 0 "" ""
+2 1 0 "" ""
+2 1 1 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+
+Offset
+\newline 
+Name
+\newline 
+Description
+\newline 
+0
+\newline 
+addressee
+\newline 
+Id of addressed application
+\newline 
+1
+\newline 
+length
+\newline 
+Length of message
+\newline 
+2-length+1
+\newline 
+message
+\newline 
+Message data
+\layout Paragraph
+
+Return values
+\layout Standard
+
+None
 \layout Subsubsection
 
 SRV_APPL_FIND
 \layout Standard
 
-Search for an application by its name.
+Search for an application by its name, process id or application id
+\layout Paragraph
+
+Parameters
+\layout Standard
+\added_space_top 0.3cm \added_space_bottom 0.3cm \align left \LyXTable
+multicol5
+5 3 0 0 -1 -1 -1 -1
+1 1 0 0
+0 1 0 0
+0 1 0 0
+0 1 0 0
+0 1 0 0
+2 1 0 "" ""
+2 1 0 "" ""
+2 1 1 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+
+Offset
+\newline 
+Name
+\newline 
+Description
+\newline 
+0
+\newline 
+mode
+\newline 
+Search mode
+\newline 
+1 - 21
+\newline 
+name
+\newline 
+Name of application to find
+\newline 
+1
+\newline 
+pid
+\newline 
+Process id of application to find
+\newline 
+1
+\newline 
+apid
+\newline 
+Application id of application to find
+\layout Standard
+
+FIXME: Split this service into several
+\layout Paragraph
+
+Return values
+\layout Standard
+
+None
 \layout Subsubsection
 
 SRV_APPL_SEARCH
 \layout Standard
 
 Search for an application by its type.
+\layout Paragraph
+
+Parameters
+\layout Standard
+\added_space_top 0.3cm \added_space_bottom 0.3cm \align left \LyXTable
+multicol5
+2 3 0 0 -1 -1 -1 -1
+1 1 0 0
+0 1 0 0
+2 1 0 "" ""
+2 1 0 "" ""
+2 1 1 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+
+Offset
+\newline 
+Name
+\newline 
+Description
+\newline 
+0
+\newline 
+mode
+\newline 
+Search mode
+\layout Paragraph
+
+Return values
+\layout Standard
+\added_space_top 0.3cm \added_space_bottom 0.3cm \align left \LyXTable
+multicol5
+4 3 0 0 -1 -1 -1 -1
+1 1 0 0
+0 0 0 0
+1 1 0 0
+0 1 0 0
+2 1 0 "" ""
+2 1 0 "" ""
+2 1 1 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+
+Offset
+\newline 
+Name
+\newline 
+Description
+\newline 
+0
+\newline 
+type
+\newline 
+Type of found application
+\newline 
+1
+\newline 
+ap_id
+\newline 
+Id of found application
+\newline 
+2 - 21
+\newline 
+name
+\newline 
+Name of found application
 \layout Subsubsection
 
 SRV_APPL_EXIT
 \layout Standard
 
 Free an application id.
+\layout Paragraph
+
+Parameters
+\layout Standard
+
+None
+\layout Paragraph
+
+Return values
+\layout Standard
+
+None
 \layout Subsubsection
 
 SRV_APPL_RESERVE
 \layout Standard
 
 Reserve application id for a specific process.
+\layout Paragraph
+
+Parameters
+\layout Standard
+\added_space_top 0.3cm \added_space_bottom 0.3cm \align left \LyXTable
+multicol5
+3 3 0 0 -1 -1 -1 -1
+1 1 0 0
+0 1 0 0
+0 1 0 0
+2 1 0 "" ""
+2 1 0 "" ""
+2 1 1 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+
+Offset
+\newline 
+Name
+\newline 
+Description
+\newline 
+0
+\newline 
+type
+\newline 
+Type of application
+\newline 
+1
+\newline 
+pid
+\newline 
+Process id of application
+\layout Paragraph
+
+Return values
+\layout Standard
+
+None
 \layout Subsubsection
 
 SRV_EVNT_MULTI
 \layout Standard
 
 Wait for an event to occur.
+\layout Paragraph
+
+Parameters
+\layout Standard
+\added_space_top 0.3cm \added_space_bottom 0.3cm \align left \LyXTable
+multicol5
+21 3 0 0 -1 -1 -1 -1
+1 1 0 0
+0 1 0 0
+0 1 0 0
+0 1 0 0
+0 1 0 0
+0 1 0 0
+0 1 0 0
+0 1 0 0
+0 1 0 0
+0 1 0 0
+0 1 0 0
+0 1 0 0
+0 1 0 0
+0 1 0 0
+0 1 0 0
+0 1 0 0
+0 1 0 0
+0 1 0 0
+0 1 0 0
+0 1 0 0
+0 1 0 0
+2 1 0 "" ""
+2 1 0 "" ""
+2 1 1 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+
+Offset
+\newline 
+Name
+\newline 
+Description
+\newline 
+0
+\newline 
+event
+\newline 
+Mask of events to wait for
+\newline 
+1
+\newline 
+bclicks
+\newline 
+Number of mouse clicks to wait for
+\newline 
+2
+\newline 
+bmask
+\newline 
+Mouse button mask
+\newline 
+3
+\newline 
+bstate
+\newline 
+Mouse button state to wait for
+\newline 
+4
+\newline 
+m1flag
+\newline 
+Rectangle 1 flag
+\newline 
+5
+\newline 
+m1x
+\newline 
+Rectangle 1 x coordinate
+\newline 
+6
+\newline 
+m1y
+\newline 
+Rectangle 1 y coordinate
+\newline 
+7
+\newline 
+m1w
+\newline 
+Rectangle 1 width
+\newline 
+8
+\newline 
+m1h
+\newline 
+Rectangle 1 height
+\newline 
+9
+\newline 
+m2flag
+\newline 
+Rectangle 2 flag
+\newline 
+10
+\newline 
+m2x
+\newline 
+Rectangle 2 x coordinate
+\newline 
+11
+\newline 
+m2y
+\newline 
+Rectangle 2 y coordinate
+\newline 
+12
+\newline 
+m2w
+\newline 
+Rectangle 2 width
+\newline 
+13
+\newline 
+m2h
+\newline 
+Rectangle 2 height
+\newline 
+14
+\newline 
+locount
+\newline 
+Least significant word of timeout value
+\newline 
+15
+\newline 
+hicount
+\newline 
+Most significant word of timeout value
+\newline 
+16
+\newline 
+menubarx
+\newline 
+Menu bar rectangle x coordinate
+\newline 
+17
+\newline 
+menubary
+\newline 
+Menu bar rectangle y coordinate
+\newline 
+18
+\newline 
+menubarw
+\newline 
+Menu bar rectangle width
+\newline 
+19
+\newline 
+menubarh
+\newline 
+Menu bar rectangle height
+\layout Paragraph
+
+Return values
+\layout Standard
+\added_space_top 0.3cm \added_space_bottom 0.3cm \align left \LyXTable
+multicol5
+9 3 0 0 -1 -1 -1 -1
+1 1 0 0
+0 0 0 0
+1 1 0 0
+0 1 0 0
+0 1 0 0
+0 1 0 0
+0 1 0 0
+0 1 0 0
+0 1 0 0
+2 1 0 "" ""
+2 1 0 "" ""
+2 1 1 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+
+Offset
+\newline 
+Name
+\newline 
+Description
+\newline 
+0
+\newline 
+events
+\newline 
+Bitfield of events that occured
+\newline 
+1
+\newline 
+mx
+\newline 
+Mouse pointer x coordinate
+\newline 
+2
+\newline 
+my
+\newline 
+Mouse pointer y coordinate
+\newline 
+3
+\newline 
+mb
+\newline 
+Mouse buttons state
+\newline 
+3
+\newline 
+ks
+\newline 
+Shift keys state
+\newline 
+4
+\newline 
+kc
+\newline 
+Key code
+\newline 
+5
+\newline 
+mc
+\newline 
+Number of mouse clicks
+\newline 
+6-13
+\newline 
+msg
+\newline 
+Message data
 \layout Subsubsection
 
 SRV_MENU_BAR
 \layout Standard
 
 Register that a menu bar is or isn't available.
+\layout Paragraph
+
+Parameters
+\layout Standard
+\added_space_top 0.3cm \added_space_bottom 0.3cm \align left \LyXTable
+multicol5
+2 3 0 0 -1 -1 -1 -1
+1 1 0 0
+0 1 0 0
+2 1 0 "" ""
+2 1 0 "" ""
+2 1 1 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+
+Offset
+\newline 
+Name
+\newline 
+Description
+\newline 
+0
+\newline 
+mode
+\newline 
+Operation to perform
+\layout Paragraph
+
+Return values
+\layout Standard
+
+None
 \layout Subsubsection
 
 SRV_MENU_REGISTER
 \layout Standard
 
 Set application name to be shown in the application list in the menu.
+\layout Paragraph
+
+Parameters
+\layout Standard
+\added_space_top 0.3cm \added_space_bottom 0.3cm \align left \LyXTable
+multicol5
+3 3 0 0 -1 -1 -1 -1
+1 1 0 0
+0 1 0 0
+0 1 0 0
+2 1 0 "" ""
+2 1 0 "" ""
+2 1 1 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+
+Offset
+\newline 
+Name
+\newline 
+Description
+\newline 
+0
+\newline 
+register_apid
+\newline 
+Application id
+\newline 
+1 - 20
+\newline 
+title
+\newline 
+New name of application
+\layout Paragraph
+
+Return values
+\layout Standard
+
+None
 \layout Subsubsection
 
 SRV_GRAF_MOUSE
