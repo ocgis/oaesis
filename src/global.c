@@ -7,7 +7,7 @@
   Variables of global interest in oAESis.
   
  Author(s)
- 	cg (Christer Gustavsson <d2cg@dtek.chalmers.se>)
+  cg (Christer Gustavsson <d2cg@dtek.chalmers.se>)
   jps (Jan Paul Schmidt <Jan.P.Schmidt@mni.fh-giessen.de>)
 
  Revision history
@@ -69,48 +69,48 @@ static WORD oldmode,oldmodecode;
  ****************************************************************************/
 
 WORD own_appl_init(void) {
-    LONG addr_in[3],
-         addr_out[1];
-    WORD contrl[5] = { 10, 0, 1 , 0, 0 },
-         int_in[16],
-         int_out[7];
+  LONG addr_in[3],
+  addr_out[1];
+  WORD contrl[5] = { 10, 0, 1 , 0, 0 },
+  int_in[16],
+  int_out[7];
 
-    void *aespb[6] = { contrl, global, int_in, int_out, addr_in, addr_out };
-
-    global[0] = 0;                   /* clear AES version number  */
-    aescall(aespb); 
-    open_physical_ws = !(global[0]); /* if AES version still cleared,
-                                        no AES installed */
-
-    return(int_out[0]);
+  void *aespb[6] = { contrl, global, int_in, int_out, addr_in, addr_out };
+  
+  global[0] = 0;                   /* clear AES version number  */
+  aescall(aespb); 
+  open_physical_ws = !(global[0]); /* if AES version still cleared,
+				      no AES installed */
+  
+  return(int_out[0]);
 }
 
 WORD own_appl_exit(void) {
-    LONG addr_in[3],
-         addr_out[1];
-    WORD contrl[5] = { 19, 0, 1 , 0, 0 },
-         int_in[16],
-         int_out[7];
+  LONG addr_in[3],
+  addr_out[1];
+  WORD contrl[5] = { 19, 0, 1 , 0, 0 },
+  int_in[16],
+  int_out[7];
 
-    void *aespb[6] = { contrl, global, int_in, int_out, addr_in, addr_out };
+  void *aespb[6] = { contrl, global, int_in, int_out, addr_in, addr_out };
 
-    aescall(aespb);
+  aescall(aespb);
 
-    return(int_out[0]);
+  return(int_out[0]);
 }
 
 WORD own_graf_handle(void) {
-    LONG addr_in[3],
-         addr_out[1];
-    WORD contrl[5] = { 77, 0, 5 , 0, 0 },
-         int_in[16],
-         int_out[7];
-
-    void *aespb[6] = { contrl, global, int_in, int_out, addr_in, addr_out };
-
-    aescall(aespb);
-
-    return(int_out[0]);
+  LONG addr_in[3],
+  addr_out[1];
+  WORD contrl[5] = { 77, 0, 5 , 0, 0 },
+  int_in[16],
+  int_out[7];
+  
+  void *aespb[6] = { contrl, global, int_in, int_out, addr_in, addr_out };
+  
+  aescall(aespb);
+  
+  return(int_out[0]);
 }
 
 /****************************************************************************
@@ -140,32 +140,35 @@ void init_global(WORD nocnf) {
   globals.icon_width = 48;
   globals.icon_height = 56;
   globals.wind_appl = 1;
-    globals.graf_mbox = 1;
-    globals.graf_growbox = 1;
-    globals.graf_shrinkbox = 1;
-    globals.fsel_sorted = 1;
-    globals.fsel_extern = 0;
+  globals.graf_mbox = 1;
+  globals.graf_growbox = 1;
+  globals.graf_shrinkbox = 1;
+  globals.fsel_sorted = 1;
+  globals.fsel_extern = 0;
   
-/*
-  _global[2] = -1;
-  appl_init();
-  DB_printf("_AESapid=%d\r\n",_global[2]);
-*/
+  if(!nocnf) {
+    Boot_parse_cnf();
+  };
 
-    if(!nocnf) Boot_parse_cnf();
-  
-    own_appl_init();
+  own_appl_init();
+
   if(open_physical_ws) {	
-        printf("No other AES found. Opening own Workstation.\r\n");
-        work_in[0] = 1; /* 5 */
+    printf("No other AES found. Opening own Workstation.\r\n");
+    work_in[0] = 5;
     Vdi_v_opnwk(work_in,&globals.vid,work_out);
-/*        VsetScreen(NULL, NULL, globals.vmode, globals.vmodecode); */
+
+    if(globals.video == 0x00030000L) {
+      VsetScreen(NULL, NULL, globals.vmode, globals.vmodecode);
+    }
+    else {
+      VsetScreen(-1, -1, globals.vmode, globals.vmodecode);
+    };
   }
   else {
-        printf("Other AES detected.\r\n");
-        globals.vid = own_graf_handle();
+    printf("Other AES detected.\r\n");
+    globals.vid = own_graf_handle();
     Vdi_v_clrwk(globals.vid);
-    }
+  }
   
   Vdi_vq_extnd(globals.vid,0,work_out);
   
@@ -249,7 +252,12 @@ void init_global(WORD nocnf) {
 
 void	exit_global(void) {
   if(open_physical_ws) {
-/*    VsetScreen(NULL,NULL,oldmode,oldmodecode); */
+    if(globals.video == 0x00030000L) {
+      VsetScreen(NULL, NULL, oldmode, oldmodecode);
+    }
+    else {
+      VsetScreen(-1, -1, oldmode, oldmodecode);
+    };
     
     Vdi_v_clswk(globals.vid);
     own_appl_exit();
