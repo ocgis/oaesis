@@ -13,8 +13,10 @@
 
 #define DEBUGLEVEL 0
 
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <netinet/in.h>
 #include <sys/time.h>
 #include <sys/types.h>
@@ -109,35 +111,37 @@ pop_first (void) {
 **
 ** 1998-09-25 CG
 ** 1999-02-03 CG
+** 1999-08-22 CG
 */
 void
 Srv_open (void) {
   struct sockaddr_in my_addr;  /* Address information for server */
 
   if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-    perror("oaesis: Srv_open: socket");
+    DEBUG1 ("oaesis: srv_get_sockets.c: Srv_open: socket: %s: ",
+	    strerror (errno));
     return;
   }
   
   my_addr.sin_family = AF_INET;         /* host byte order */
   my_addr.sin_port = htons(MYPORT);     /* short, network byte order */
   my_addr.sin_addr.s_addr = INADDR_ANY; /* automatically fill with my IP */
-  bzero(&(my_addr.sin_zero), 8);        /* zero the rest of the struct */
+  memset (&(my_addr.sin_zero), 0, 8);   /* zero the rest of the struct */
   
   if (bind(sockfd,
            (struct sockaddr *)&my_addr,
            sizeof(struct sockaddr)) == -1) {
-    perror("oaesis: Srv_open: bind");
+    DEBUG1 ("oaesis: Srv_open: bind: %s", strerror (errno));
     return;
   }
 
   if (listen(sockfd, BACKLOG) == -1) {
-    perror("oaesis: Srv_open: listen");
+    DEBUG1 ("oaesis: Srv_open: listen: %s", strerror (errno));
     return;
   }
 
   if (pipe (wake_fd) == -1) {
-    perror ("oaesis: Srv_open: pipe");
+    DEBUG1 ("oaesis: Srv_open: pipe: %s", strerror (errno));
   }
 }
 
@@ -153,6 +157,7 @@ Srv_open (void) {
 ** 1999-02-07 CG
 ** 1999-07-26 CG
 ** 1999-08-12 CG
+** 1999-08-22 CG
 */
 COMM_HANDLE
 Srv_get (void * in,
@@ -224,7 +229,7 @@ Srv_get (void * in,
     /* A new application has called the server*/
 
     if ((new_fd = accept (sockfd, (struct sockaddr *)&their_addr, &sin_size)) == -1) {
-      perror ("oaesis: Srv_get: accept");
+      DEBUG1 ("oaesis: Srv_get: accept: %s", strerror (errno));
       return NULL;
     }
 
@@ -261,7 +266,7 @@ Srv_get (void * in,
 
   /* Receive data */
   if ((err = recv (handle_walk->fd, in, max_bytes_in, 0)) == -1) {
-    perror ("oaesis: Srv_get: recv");
+    DEBUG1 ("oaesis: Srv_get: recv: %s", strerror (errno));
     return NULL;
   }
   /*  DB_printf ("srv_get_sockets.c: length = %d %d", err, count++);*/
@@ -294,21 +299,14 @@ Srv_wake (void) {
 **
 ** 1998-09-25 CG
 ** 1998-12-13 CG
+** 1999-08-22 CG
 */
 void
 Srv_reply (COMM_HANDLE handle,
            void *      out,
            WORD        bytes_out) {
-  /*  static int count = 0;
-  DB_printf ("srv_get_sockets.c: Srv_reply: bytes_out=%d %d",
-  bytes_out, count++);*/
-
-  /*
-  DB_printf ("srv_get_sockets.c: Sending reply through fd %d", ((APPL_HANDLE *)handle)->fd);
-  */
-
   if (send (handle->fd, out, bytes_out, 0) == -1) {
-    perror ("oaesis: Srv_reply: send");
+    DEBUG1 ("oaesis: Srv_reply: send: %s", strerror (errno));
     return;
   }
 }

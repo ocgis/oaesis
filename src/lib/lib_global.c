@@ -180,6 +180,7 @@ WORD own_graf_handle(void) {
 ** 1999-04-18 CG
 ** 1999-04-24 CG
 ** 1999-05-16 CG
+** 1999-08-22 CG
 */
 void
 init_global (WORD nocnf,
@@ -259,9 +260,12 @@ init_global (WORD nocnf,
   global_common.screen.y = 0;
   global_common.screen.width = work_out[0] + 1;
   global_common.screen.height = work_out[1] + 1;
-  
+
   global_common.num_pens = work_out[13];
   
+  vq_extnd (physical_vdi_id, 1, work_out);
+  global_common.num_planes = work_out[4];
+
   /* setup systemfont information */
   
   if(global_common.screen.height >= 400) {

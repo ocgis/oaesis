@@ -25,7 +25,7 @@
    realtime slider.
 
   960623 cg
-v   Fixed mover grabbing bug; if the mouse was moved during click on
+   Fixed mover grabbing bug; if the mouse was moved during click on
    window mover the window was topped / bottomed instead of dragged.
    
  Copyright notice
@@ -1444,6 +1444,7 @@ handle_drop_down (WORD        apid,
 ** 1999-04-10 CG
 ** 1999-04-13 CG
 ** 1999-05-24 CG
+** 1999-08-22 CG
 */
 static
 WORD
@@ -1473,7 +1474,15 @@ handle_selected_title (WORD        apid,
   };
   COMMSG        buffer;
   EVENTOUT      eo;
+
+#ifdef REALMOVE
   WORD          dropwin;
+#else
+  char * menu_buffer;
+  MFDB   mfdb_src;
+  MFDB   mfdb_dst;
+  int    pxy[8];
+#endif
 
   Graf_do_mkstate (apid, &mx, &my, &mb, &ks);
         
@@ -1517,10 +1526,37 @@ handle_selected_title (WORD        apid,
         (globals->common->pmenutad[1].ob_height << 1) + 2;
     }
 
+#ifdef REALMOVE
     dropwin = Wind_do_create (apid, 0, &area, WIN_MENU);
     Wind_do_open (apid,
                   dropwin,
                   &area);
+#else
+    menu_buffer = malloc (20000); /* FIXME */
+    pxy[0] = area.x;
+    pxy[1] = area.y + area.height - 1;
+    pxy[2] = area.x + area.width - 1;
+    pxy[3] = area.y;
+    pxy[4] = 0;
+    pxy[5] = area.height - 1;
+    pxy[6] = area.width - 1;
+    pxy[7] = 0;
+    mfdb_src.fd_addr = NULL;
+    mfdb_dst.fd_addr = menu_buffer; /* FIXME */
+    mfdb_dst.fd_w = area.width;
+    mfdb_dst.fd_h = area.height;
+    mfdb_dst.fd_wdwidth = (area.width + 15) / 16;
+    mfdb_dst.fd_stand = 0;
+    mfdb_dst.fd_nplanes = globals->common->num_planes;
+    mfdb_dst.fd_r1 = 0;
+    mfdb_dst.fd_r2 = 0;
+    mfdb_dst.fd_r3 = 0;
+
+    Wind_do_update (apid, BEG_UPDATE);
+    Graf_do_mouse (apid, M_OFF, NULL);
+    vro_cpyfm (globals->vid, S_ONLY, pxy, &mfdb_src, &mfdb_dst);
+    Graf_do_mouse (apid, M_ON, NULL);
+#endif
 
     globals->menu[box].ob_flags &= ~HIDETREE;
 
@@ -1588,9 +1624,36 @@ handle_selected_title (WORD        apid,
           Objc_do_draw (globals->vid, globals->menu, 0, 9, &titlearea);
           Graf_do_mouse (apid, M_ON, NULL);
           
+#ifdef REALMOVE
           Wind_do_close (apid, dropwin);
           Wind_do_delete (apid, dropwin);
-          
+#else
+	  pxy[4] = area.x;
+	  pxy[5] = area.y + area.height - 1;
+	  pxy[6] = area.x + area.width - 1;
+	  pxy[7] = area.y;
+	  pxy[0] = 0;
+	  pxy[1] = area.height - 1;
+	  pxy[2] = area.width - 1;
+	  pxy[3] = 0;
+	  mfdb_dst.fd_addr = NULL;
+	  mfdb_src.fd_addr = menu_buffer; /* FIXME */
+	  mfdb_src.fd_w = area.width;
+	  mfdb_src.fd_h = area.height;
+	  mfdb_src.fd_wdwidth = (area.width + 15) / 16;
+	  mfdb_src.fd_stand = 0;
+	  mfdb_src.fd_nplanes = globals->common->num_planes;
+	  mfdb_src.fd_r1 = 0;
+	  mfdb_src.fd_r2 = 0;
+	  mfdb_src.fd_r3 = 0;
+
+	  Graf_do_mouse (apid, M_OFF, NULL);
+	  vro_cpyfm (globals->vid, S_ONLY, pxy, &mfdb_src, &mfdb_dst);
+	  Graf_do_mouse (apid, M_ON, NULL);
+	  Wind_do_update (apid, END_UPDATE);
+	  free (menu_buffer); /* FIXME */
+#endif
+
           globals->menu[box].ob_flags |= HIDETREE;
           
           return 0;

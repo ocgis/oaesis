@@ -44,6 +44,10 @@
 #include "config.h"
 #endif
 
+#ifdef MINT_TARGET
+#include <ioctl.h>
+#endif
+
 #ifdef HAVE_ALLOC_H
 #include <alloc.h>
 #endif
@@ -78,7 +82,9 @@
 #include "types.h"
 
 
+#ifndef MINT_TARGET
 extern char * program_invocation_short_name;
+#endif
 
 /* From ovdisis */
 extern void (*vdi_handler)(VDIPB *);
@@ -215,6 +221,49 @@ vdi_tunnel (VDIPB * vpb) {
 
 /* 0x000a appl_init */
 
+#ifdef MINT_TARGET
+/*
+** Description
+** Get program name and command line
+**
+** 1999-08-22 CG
+*/
+static
+void
+get_loadinfo (WORD   pid,
+	      WORD   fnamelen,
+	      BYTE * cmdlin,
+	      BYTE * fname)
+{
+  BYTE pname[30];
+  _DTA *olddta,newdta;
+	
+  olddta = Fgetdta();
+  Fsetdta(&newdta);
+	
+  sprintf(pname,"u:\\proc\\*.%03d",pid);
+  if(Fsfirst(pname,0) == 0) {
+    LONG fd;
+		
+    sprintf(pname,"u:\\proc\\%s",newdta.dta_name);
+		
+    if((fd = Fopen(pname,0)) >= 0) {
+      struct __ploadinfo li;
+			
+      li.fnamelen = fnamelen;
+      li.cmdlin = cmdlin;
+      li.fname = fname;
+			
+      Fcntl((WORD)fd,&li,PLOADINFO);
+      Fclose((WORD)fd);
+    }
+  }
+	
+  Fsetdta(olddta);
+}
+#endif
+
+
 /*
 ** Exported
 **
@@ -222,11 +271,16 @@ vdi_tunnel (VDIPB * vpb) {
 ** 1999-04-10 CG
 ** 1999-08-08 CG
 ** 1999-08-15 CG
+** 1999-08-22 CG
 */
 WORD
 Appl_do_init (GLOBAL_ARRAY * global) {
   C_APPL_INIT   par;
   R_APPL_INIT   ret;
+
+#ifdef MINT_TARGET
+  char          cmdlin[256];
+#endif
 
   DEBUG3 ("appl.c: Appl_do_init");
   /* Open connection to server */
@@ -243,9 +297,10 @@ Appl_do_init (GLOBAL_ARRAY * global) {
   par.common.pid = getpid ();
 
 #ifdef MINT_TARGET
-  strncpy (par.appl_name,
-           "FIXME",
-           sizeof (par.appl_name) - 1);
+  get_loadinfo (par.common.pid,
+		sizeof (par.appl_name) - 1,
+		cmdlin,
+		par.appl_name);
 #else
   DEBUG3 ("appl.c: Appl_do_init: program_invocation_short_name %s",
           program_invocation_short_name);
