@@ -253,10 +253,11 @@ typedef struct {
 
 typedef struct {
   C_ALL common;
+  WORD  register_apid;
   BYTE  title[20];
 } C_MENU_REGISTER;
 
-#define C_MENU_REGISTER_WORDS 0
+#define C_MENU_REGISTER_WORDS 1
 
 typedef struct {
   R_ALL common;
