@@ -192,9 +192,7 @@ void init_global(WORD nocnf) {
   globals.fsel_extern = 0;
   
   if(!nocnf) {
-    fprintf(stderr,"Boot_parse_cnf()\r\n");
     Boot_parse_cnf();
-    fprintf(stderr,"/Boot_parse_cnf()\r\n");
   };
 
 #ifdef MINT_TARGET

@@ -53,8 +53,7 @@ typedef struct {
 
 /* This has to be fixed */
 #ifndef MINT_TARGET
-void vdicall (void * contrl) {}
-
+#define vdicall(vdi_pb) vdi_call(vdi_pb)
 #endif /* MINT_TARGET */
 
 /****************************************************************************

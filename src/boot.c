@@ -21,10 +21,13 @@
   960816 jps
    some new variables
 
+  98-07-11 CG
+   Moved searching for configuration files into an own function:
+   open_config_file ().
+
  Copyright notice
   The copyright to the program code herein belongs to the authors. It may
   be freely duplicated and distributed without fee, but not charged for.
- 
  ****************************************************************************/
 
 /****************************************************************************
@@ -91,6 +94,51 @@ static WORD get_token(FILE *fp,BYTE *token) {
   return err;
 }
 
+
+/****************************************************************************
+** Description
+** Find the oaesis configuration file and open it
+**
+** To be done
+** Look for oaesis.cnf in <prefix>/share/osis/oaesis.cnf, <boot>/oaesis.conf,
+** <boot>/mint/oaesis.cnf and <boot>/multitos/oaesis.cnf
+**
+** 1998-07-11 CG
+*****************************************************************************/
+static
+FILE *
+open_config_file () {
+  char   config_path[256];
+  FILE * fp;
+
+  /* Is the HOME environment variable set? */
+  if(getenv("HOME") != NULL) {
+    /* Get value of $HOME */
+    strcpy(config_path, getenv("HOME"));
+
+    strcat (config_path, ".oaesisrc");
+
+#ifdef MINT_TARGET
+    /* Convert '/' to '\' */
+    while(*tmp) {
+      if(*tmp++ == '/') (tmp[-1] = '\\');
+    }
+
+    if(tmp[-1] == '\\') tmp[-1] = '\0';
+#endif
+
+    fp = fopen(config_path, "r");
+
+    /* Did we get lucky? */
+    if (fp != NULL) {
+      return fp;
+    }
+  }
+
+  return NULL;
+}
+
+
 /****************************************************************************
  * Public functions                                                         *
  ****************************************************************************/
@@ -104,53 +152,14 @@ void Boot_parse_cnf(void) /*                                                */
 {
   FILE *fp;
   BYTE line[200];
-  BYTE filepath[128];
-  BYTE homepath[128] = "\0";
   
-  BYTE bootdrive = (get_sysvar(_bootdev) >> 16) + 'a';
+  /* Find configuration file */
+  fp = open_config_file ();
 
-  BYTE *pathlist[] = {
-    NULL,
-    "u:\\?\\mint",
-    "u:\\?\\multitos",
-    "u:\\?",
-    NULL
-    };
-  
-  WORD i = 0;
-  
-  pathlist[0] = homepath;
+  /* Didn't we find any configuration file? */
+  if(fp == NULL) {
+    fprintf (stderr, "oaesis: couldn't find configuration file\n");
 
-  (pathlist[0])[3] = bootdrive;
-  (pathlist[1])[3] = bootdrive;
-  (pathlist[2])[3] = bootdrive;
-  (pathlist[3])[3] = bootdrive;
-
-  if(getenv("HOME") != NULL) {
-    BYTE *tmp = homepath;
-
-    strcpy(homepath, getenv("HOME"));
-
-    while(*tmp) if(*tmp++ == '/') (tmp[-1] = '\\');
-    if(tmp[-1] == '\\') tmp[-1] = '\0';
-  }
-  else {
-    i++;
-  }
-  
-  do {
-    sprintf(filepath, "%s\\.oaesisrc", pathlist[i]);
-    fp = fopen(filepath, "r");
-
-    if(fp) break;
-    
-    sprintf(filepath, "%s\\oaesis.cnf", pathlist[i]);
-    fp = fopen(filepath,"r");
-    
-    i++;
-  } while(!fp && pathlist[i]);  
-  
-  if(!fp) {
     return;
   };
   

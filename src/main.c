@@ -113,8 +113,10 @@ void exit_aes(void) {
 int main(int argc,BYTE *argv[],BYTE *envp[]) {
   WORD nocnf = 0;
   WORD i;
+
+#ifdef MINT_TARGET
   LONG mintval;
-  
+#endif  
 
   /* We only need to check for mint if we've built oaesis for mint */
 #ifdef MINT_TARGET
@@ -146,7 +148,8 @@ int main(int argc,BYTE *argv[],BYTE *envp[]) {
 #ifdef __68881__
   fprintf(stderr,"- Math co-processor 68881.\r\n");
 #endif
-  
+ 
+#ifdef MINT_TARGET 
   fprintf(stderr,"\r\nMiNT version %ld.%02ld detected\r\n",mintval >> 8,mintval & 0xff);
   
   globals.video = 0;
@@ -172,6 +175,7 @@ int main(int argc,BYTE *argv[],BYTE *envp[]) {
   default:
     fprintf(stderr,"Unknown video shifter!\r\n");
   }
+#endif
   
   for(i = 1; i < argc; i++) {
     if(!strcmp("--nocnf",argv[i])) {
