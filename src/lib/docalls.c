@@ -25,11 +25,11 @@
  ****************************************************************************/
 
 #define DEBUGLEVEL 0
-
 /****************************************************************************
  * Used interfaces                                                          *
  ****************************************************************************/
 
+#include <netinet/in.h>
 #include <stdio.h>
 #include <unistd.h>
 
@@ -499,4 +499,49 @@ aes_call(AESPB * apb)
          apb->contrl[0],
          ((AES_PB *)apb)->global->apid,
          getpid());
+}
+
+
+#define FIX(dst, src, len, fun) \
+  for(i = 0; i < len; i++) \
+  { \
+    dst[i] = fun(src[i]); \
+  }
+
+void
+aes_call_be32(AESPB * apb)
+{
+  int          i;
+  short *      tmp_short;
+  long *       tmp_long;
+  static short contrl[5];
+  static short global[15];
+  static short intin[16];
+  static short intout[7];
+  static long  addrin[3];
+  static long  addrout[1];
+  static AESPB native_apb =
+  {
+    contrl, global, intin, intout, addrin, addrout
+  };
+
+  tmp_short = (short *)ntohl((LONG)apb->contrl);
+  FIX(native_apb.contrl, tmp_short, 5, ntohs);
+
+  tmp_short = (short *)ntohl((LONG)apb->intin);
+  FIX(native_apb.intin, tmp_short, native_apb.contrl[1], ntohs);
+
+  tmp_long = (long *)ntohl((LONG)apb->addrin);
+  FIX(native_apb.addrin, tmp_long, native_apb.contrl[2], ntohl);
+
+  aes_call(&native_apb);
+
+  tmp_short = (short *)ntohl((LONG)apb->contrl);
+  FIX(tmp_short, native_apb.contrl, 5, htons);
+
+  tmp_short = (short *)ntohl((LONG)apb->intout);
+  FIX(tmp_short, native_apb.intout, 7 /* FIXME native_apb.contrl[3] */, htons);
+
+  tmp_long = (long *)ntohl((LONG)apb->addrout);
+  FIX(tmp_long, native_apb.addrout, 1 /* FIXME native_apb.contrl[4] */, htonl);
 }
