@@ -38,6 +38,3 @@
 
 /* Define if you have the <vdibind.h> header file.  */
 #undef HAVE_VDIBIND_H
-
-/* Define if you have the mint library (-lmint).  */
-#undef HAVE_LIBMINT

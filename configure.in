@@ -28,9 +28,6 @@ AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 AC_PROG_RANLIB
 
-dnl Check for libraries
-AC_CHECK_LIB(mint,main)
-
 if test x$with_ovdisis = xyes ; then
   AC_MSG_ERROR([
 *** Directory must be specified for --with-ovdisis])
@@ -43,7 +40,7 @@ if test x$with_ovdisis = x ; then
     AC_MSG_ERROR([
 *** ovdisis 0.0.1 or better is required. The latest version of ovdisis
 *** is always available from ftp://ftp.nocrew.org.]),
-    libfb)
+    libovdisis)
 
   ovdisis_cflags=$OVDISIS_CFLAGS
   ovdisis_libs=$OVDISIS_LIBS
@@ -73,24 +70,68 @@ else
   esac
 
   OVDISIS_CFLAGS="-I$ovdisis_dir"
-  OVDISIS_LIBS=$ovdisis_dir/libfb.la
+  OVDISIS_LIBS=$ovdisis_dir/libovdisis.la
 
   AC_SUBST(OVDISIS_CFLAGS)
   AC_SUBST(OVDISIS_LIBS)
 fi
+
+if test x$with_mintwrappers = xyes ; then
+  AC_MSG_ERROR([
+*** Directory must be specified for --with-mintwrappers])
+fi
+
+if test x$with_mintwrappers = x ; then 
+  # Look for separately installed mintwrappers
+
+  AM_PATH_MINTWRAPPERS(0.0.0,,
+    AC_MSG_ERROR([
+*** mintwrappers 0.0.0 or better is required. The latest version of mintwrappers
+*** is always available from ftp://ftp.nocrew.org.]),
+    libmint)
+
+  mintwrappers_cflags=$MINTWRAPPERS_CFLAGS
+  mintwrappers_libs=$MINTWRAPPERS_LIBS
+else
+  # Use uninstalled mintwrappers (assume they got the version right)
+
+  if test -x $with_mintwrappers/mintwrappers-config ; then 
+    :
+  else
+    AC_MSG_ERROR([mintwrappers directory ($with_mintwrappers) not present or not configured])
+  fi
+
+  # For use in oaesis-config
+  mintwrappers_cflags=`$with_mintwrappers/mintwrappers-config --cflags`
+  mintwrappers_libs=`$with_mintwrappers/mintwrappers-config --libs`
+
+  mintwrappers_release=`$with_mintwrappers/mintwrappers-config --version | sed 's%\\.[[0-9]]*$%%'`
+
+  # canonicalize relative paths
+  case $with_mintwrappers in 
+    /*)
+      mintwrappers_dir=$with_mintwrappers
+      ;;
+    *)
+      mintwrappers_dir="\$(top_builddir)/$with_mintwrappers"
+      ;;
+  esac
+
+  MINTWRAPPERS_CFLAGS="-I$mintwrappers_dir"
+  MINTWRAPPERS_LIBS=$mintwrappers_dir/libfb.la
+
+  AC_SUBST(MINTWRAPPERS_CFLAGS)
+  AC_SUBST(MINTWRAPPERS_LIBS)
+fi
+
+dnl This is needed for AC_CHECK_HEADERS to find the mintwrappers headers
+CPPFLAGS="$CPPFLAGS $MINTWRAPPERS_CFLAGS"
 
 OSISINCLUDE=${includedir}/osis
 
 dnl Set target specific things
 case "${target}" in
     *mint*)    DEFS="$DEFS -DMINT_TARGET" ;;
-
-dnl Assume that MiNTwrapper includes are in /usr/local/include/tos
-dnl and that gemlib includes are in /usr/local/include/gem. This
-dnl has to be changed so that all include root directories are
-dnl searched for <root>/tos and <root>/gem
-dnl    *)    CPPFLAGS="$CPPFLAGS -I/usr/local/include/tos -I/usr/local/include/gem" ;;
-       *)    CPPFLAGS="$CPPFLAGS -I/usr/local/include/tos" ;;
 esac
 
 dnl Check for header files
@@ -117,7 +158,7 @@ AC_SUBST(target_cpu)
 AC_SUBST(target_os)
 
 dnl Set CFLAGS
-CFLAGS="$CFLAGS -Wall"
+CFLAGS="$CFLAGS -Wall -pedantic"
 
 dnl Setup symbolic links
 AC_LINK_FILES(src/common/debug.c, src/lib/debug.c)

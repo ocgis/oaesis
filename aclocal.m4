@@ -445,3 +445,76 @@ AC_ARG_ENABLE(ovdisistest, [  --disable-ovdisistest       Do not try to compile 
   AC_SUBST(OVDISIS_LIBS)
 ])
 
+# Configure paths for mintwrappers
+# Christer Gustavsson 98-11-29
+
+dnl AM_PATH_MINTWRAPPERS([MINIMUM-VERSION, [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND [, MODULES]]]])
+dnl Test for mintwrappers, and define MINTWRAPPERS_CFLAGS and MINTWRAPPERS_LIBS
+
+AC_DEFUN(AM_PATH_MINTWRAPPERS,
+[dnl 
+dnl Get the cflags and libraries from the mintwrappers-config script
+dnl
+AC_ARG_WITH(mintwrappers-prefix,[  --with-mintwrappers-prefix=PFX   Prefix where mintwrappers is installed (optional)],
+            mintwrappers_config_prefix="$withval", mintwrappers_config_prefix="")
+AC_ARG_WITH(mintwrappers-exec-prefix,[  --with-mintwrappers-exec-prefix=PFX Exec prefix where mintwrappers is installed (optional)],
+            mintwrappers_config_exec_prefix="$withval", mintwrappers_config_exec_prefix="")
+AC_ARG_ENABLE(mintwrapperstest, [  --disable-mintwrapperstest       Do not try to compile and run a test mintwrappers program],
+		    , enable_mintwrapperstest=yes)
+
+  if test x$mintwrappers_config_exec_prefix != x ; then
+     mintwrappers_config_args="$mintwrappers_config_args --exec-prefix=$mintwrappers_config_exec_prefix"
+     if test x${MINTWRAPPERS_CONFIG+set} != xset ; then
+        MINTWRAPPERS_CONFIG=$mintwrappers_config_exec_prefix/bin/mintwrappers-config
+     fi
+  fi
+  if test x$mintwrappers_config_prefix != x ; then
+     mintwrappers_config_args="$mintwrappers_config_args --prefix=$mintwrappers_config_prefix"
+     if test x${MINTWRAPPERS_CONFIG+set} != xset ; then
+        MINTWRAPPERS_CONFIG=$mintwrappers_config_prefix/bin/mintwrappers-config
+     fi
+  fi
+
+  AC_PATH_PROG(MINTWRAPPERS_CONFIG, mintwrappers-config, no)
+  min_mintwrappers_version=ifelse([$1], ,0.1,$1)
+  AC_MSG_CHECKING(for mintwrappers - version >= $min_mintwrappers_version)
+  no_mintwrappers=""
+  if test "$MINTWRAPPERS_CONFIG" = "no" ; then
+    no_mintwrappers=yes
+  else
+    MINTWRAPPERS_CFLAGS=`$MINTWRAPPERS_CONFIG $mintwrappers_config_args --cflags`
+    MINTWRAPPERS_LIBS=`$MINTWRAPPERS_CONFIG $mintwrappers_config_args --libs`
+    mintwrappers_config_major_version=`$MINTWRAPPERS_CONFIG $mintwrappers_config_args --version | \
+           sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\1/'`
+    mintwrappers_config_minor_version=`$MINTWRAPPERS_CONFIG $mintwrappers_config_args --version | \
+           sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\2/'`
+    mintwrappers_config_micro_version=`$MINTWRAPPERS_CONFIG $mintwrappers_config_args --version | \
+           sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\3/'`
+    if test "x$enable_mintwrapperstest" = "xyes" ; then
+      ac_save_CFLAGS="$CFLAGS"
+      ac_save_LIBS="$LIBS"
+      CFLAGS="$CFLAGS $MINTWRAPPERS_CFLAGS"
+      LIBS="$LIBS $MINTWRAPPERS_LIBS"
+     fi
+  fi
+  if test "x$no_mintwrappers" = x ; then
+     AC_MSG_RESULT(yes)
+     ifelse([$2], , :, [$2])     
+  else
+     AC_MSG_RESULT(no)
+     if test "$MINTWRAPPERS_CONFIG" = "no" ; then
+       echo "*** The mintwrappers-config script installed by mintwrappers could not be found"
+       echo "*** If mintwrappers was installed in PREFIX, make sure PREFIX/bin is in"
+       echo "*** your path, or set the MINTWRAPPERS_CONFIG environment variable to the"
+       echo "*** full path to mintwrappers-config."
+     else
+        :
+     fi
+     MINTWRAPPERS_CFLAGS=""
+     MINTWRAPPERS_LIBS=""
+     ifelse([$3], , :, [$3])
+  fi
+  AC_SUBST(MINTWRAPPERS_CFLAGS)
+  AC_SUBST(MINTWRAPPERS_LIBS)
+])
+

@@ -23,6 +23,9 @@ static int sockfd;  /* Server socket descriptor */
 
 static APPL_HANDLE * handles = NULL;
 
+/* This is used when trying to wake a Srv_get call */
+static int wake_fd [2];
+
 /*
 ** Description
 ** Open the server connection
@@ -51,8 +54,12 @@ Srv_open (void) {
   }
 
   if (listen(sockfd, BACKLOG) == -1) {
-    perror("oaesis: Srv_opem: listen");
+    perror("oaesis: Srv_open: listen");
     return;
+  }
+
+  if (pipe (wake_fd) == -1) {
+    perror ("oaesis: Srv_open: pipe");
   }
 }
 
@@ -76,9 +83,10 @@ Srv_get (void * in,
   FD_ZERO (&handle_set);
   
   /* Specify which handles to wait for */
-  highest_fd = sockfd;
   FD_SET (sockfd, &handle_set);
-  
+  FD_SET (wake_fd [0], &handle_set);
+  highest_fd = wake_fd[0];
+
   handle_walk = handles;
   while (handle_walk) {
     /*
@@ -112,6 +120,12 @@ Srv_get (void * in,
     handle_walk->fd = new_fd;
     handle_walk->next = handles;
     handles = handle_walk;
+  } else if (FD_ISSET (wake_fd [0], &handle_set)) {
+    char dum;
+
+    read (wake_fd [0], &dum, 1);
+
+    return NULL;
   } else {
     /* An existing application has sent a command. Now find its handle */
     handle_walk = handles;
@@ -139,6 +153,19 @@ Srv_get (void * in,
   return handle_walk;
 }
 
+
+/*
+** Description
+** Wake a waiting Srv_get
+**
+** 1998-12-06 CG
+*/
+void
+Srv_wake (void) {
+  if (write (wake_fd [1], "o", 1) == -1) {
+    perror ("oaesis: Srv_wake: write");
+  }
+}
 
 
 /*

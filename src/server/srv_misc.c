@@ -25,6 +25,8 @@
  * Used interfaces                                                          *
  ****************************************************************************/
 
+#include <pthread.h>
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -122,6 +124,12 @@ LONG
 Misc_fork (WORD (*func)(LONG),
 	   LONG arg,
 	   BYTE * name) {
+  pthread_attr_t thread;
+
+  pthread_create (&thread, NULL, func, (void *)arg);
+
+  return 0;
+#if 0
   LONG pid;
 
   pid = fork ();
@@ -133,6 +141,7 @@ Misc_fork (WORD (*func)(LONG),
   }
 
   return pid;
+#endif
 }
 	   
 #endif /* MINT_TARGET */

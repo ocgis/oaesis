@@ -4152,9 +4152,24 @@ C_PUT_EVENT *msg)
 
 /*
 ** Description
+** This procedure is installed with vex_butv to handle mouse button clicks.
+**
+** 1998-12-06 CG
+*/
+void
+catch_mouse_buttons (int buttons) {
+  DB_printf ("srv.c: catch_mouse_buttons: buttons = %d", buttons);
+  
+  Srv_wake ();
+}
+
+
+/*
+** Description
 ** This is the server itself
 **
 ** 1998-09-26 CG
+** 1998-12-06 CG
 */
 static
 WORD
@@ -4181,6 +4196,8 @@ server (LONG arg) {
 
   WINSTRUCT *   ws;
   WINLIST *     wl;
+
+  void *        old_button_vector;
   
   /* Stop warnings from compiler about unused parameters */
   NOT_USED(arg);
@@ -4245,6 +4262,9 @@ server (LONG arg) {
   srv_wind_open (&c_wind_open,
                  &r_wind_open);
   
+  /* Setup event vectors */
+  Vdi_vex_butv (svid, catch_mouse_buttons, &old_button_vector);
+
   while(1) {
     
 #ifdef SRV_DEBUG
@@ -4256,6 +4276,12 @@ server (LONG arg) {
     DB_printf ("srv.c: Waiting for message from client");
     */
     handle = Srv_get (&par, sizeof (C_SRV));
+
+    if (handle == NULL) {
+      DB_printf ("srv.c: server: handle == NULL => event");
+      continue;
+    }
+
     /*
     DB_printf ("srv.c: Got message from client");
     */
@@ -4489,7 +4515,8 @@ Srv_init_module(void)  /*                                                   */
   WINLIST	*wl;
   
   WINSTRUCT	*ws;
-  
+
+  DB_printf ("In Srv_init_module\n");
   for(i = 0; i < MAX_NUM_APPS; i++) {
     apps[i].id = -1;
     apps[i].eventpipe = -1;
@@ -4509,8 +4536,10 @@ Srv_init_module(void)  /*                                                   */
     }
   }
   
+  DB_printf ("Starting server process\n");
   globals.srvpid = (WORD)Misc_fork(server,0,"oAESsrv");
-  
+  DB_printf ("Started server process\n");
+
   /*
     Srv_shake();
     */
