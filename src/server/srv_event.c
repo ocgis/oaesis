@@ -295,7 +295,8 @@ check_mouse_buttons (C_EVNT_MULTI * par,
 
   WORD retval = 0;
 
-  if (appl_list [par->common.apid].mouse_size > 0) {
+  if (appl_list [par->common.apid].mouse_size > 0)
+  {
     ret->eventout.mx = MOUSE_BUFFER_HEAD.x;
     ret->eventout.my = MOUSE_BUFFER_HEAD.y;
     ret->eventout.mb = MOUSE_BUFFER_HEAD.buttons;
@@ -310,23 +311,32 @@ check_mouse_buttons (C_EVNT_MULTI * par,
     appl_list [par->common.apid].mouse_head =
       (appl_list [par->common.apid].mouse_head + 1) % MOUSE_BUFFER_SIZE;
     appl_list [par->common.apid].mouse_size--;
-  } else if (par->eventin.events & MU_BUTTON) {
-    if (par->eventin.bclicks & 0x100) {
-      if (par->eventin.bmask & buttons_last) {
+  }
+  else if(par->eventin.events & MU_BUTTON)
+  {
+    if(par->common.apid == srv_click_owner(x_last, y_last))
+    {
+      if(par->eventin.bclicks & 0x100)
+      {
+	if(par->eventin.bmask & buttons_last)
+	{
+	  ret->eventout.mx = x_last;
+	  ret->eventout.my = y_last;
+	  ret->eventout.mb = buttons_last;
+	  ret->eventout.mc = 1;
+	  
+	  retval = MU_BUTTON;
+	}
+      }
+      else if((buttons_last & par->eventin.bmask) == par->eventin.bstate)
+      {
 	ret->eventout.mx = x_last;
 	ret->eventout.my = y_last;
 	ret->eventout.mb = buttons_last;
-	ret->eventout.mc = 1;
+	ret->eventout.mc = 0;
 	
 	retval = MU_BUTTON;
       }
-    } else if ((buttons_last & par->eventin.bmask) == par->eventin.bstate) {
-      ret->eventout.mx = x_last;
-      ret->eventout.my = y_last;
-      ret->eventout.mb = buttons_last;
-      ret->eventout.mc = 0;
-      
-      retval = MU_BUTTON;
     }
   }
 
