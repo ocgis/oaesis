@@ -115,12 +115,15 @@ int main(int argc,BYTE *argv[],BYTE *envp[]) {
   WORD i;
   LONG mintval;
   
-  
+
+  /* We only need to check for mint if we've built oaesis for mint */
+#ifdef MINT_TARGET
   if(!Misc_get_cookie(0x4d694e54L /*'MiNT'*/,&mintval)) {
     fprintf(stderr,"oAESis requires MiNT to work. Start MiNT and try again!\r\n");
     
     return -1;
   };
+#endif
   
   fprintf(stderr,"Starting oAESis version %s.\r\n",VERSIONTEXT);
   fprintf(stderr,"Compiled on %s at %s with ",__DATE__,__TIME__);
