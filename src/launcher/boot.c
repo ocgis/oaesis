@@ -137,6 +137,10 @@ launcher_set_environment_variable(char * variable,
 }
 
 #ifdef MINT_TARGET
+static
+char
+bootpath[] = "c:\\";
+
 /*
 ** Description
 ** Start accessories under MiNT
@@ -148,7 +152,6 @@ start_accessories(void)
   _DTA   newdta;
   _DTA * olddta;
   int    found;
-  char   bootpath[] = "c:\\";
   
   /* Start accessories */
   olddta = Fgetdta();
