@@ -337,22 +337,65 @@ Appl_write (AES_PB *apb) {
 }
 
 
-/****************************************************************************
- * Appl_find                                                                *
- *  0x000d appl_find().                                                     *
- ****************************************************************************/
-void              /*                                                        */
-Appl_find(        /*                                                        */
-          AES_PB *apb)      /* AES parameter block.                                   */
-     /****************************************************************************/
+
+/*
+** Description
+** Implementation of appl_find ()
+**
+** 1999-06-10 CG
+*/
+WORD
+Appl_do_find (WORD   apid,
+              BYTE * fname) {
+  C_APPL_FIND par;
+  R_APPL_FIND ret;
+
+  par.common.call = SRV_APPL_FIND;
+  par.common.apid = apid;
+  par.common.pid = getpid ();
+
+  switch (((LONG)fname >> 16) & 0xffff) {
+  case 0xffff :
+    par.mode = APPL_FIND_PID_TO_APID;
+    par.data.pid = (LONG)fname & 0xffff;
+    break;
+
+  case 0xfffe :
+    par.mode = APPL_FIND_APID_TO_PID;
+    par.data.apid = (LONG)fname & 0xffff;
+    break;
+
+  default :
+    par.mode = APPL_FIND_NAME_TO_APID;
+    strcpy (par.data.name, fname);
+    break;
+  }
+
+  Client_send_recv (&par,
+                    sizeof (C_APPL_FIND),
+                    &ret,
+                    sizeof (R_APPL_FIND));
+
+  return ret.common.retval;
+}
+
+
+/*
+** Exported
+** 0x000d appl_find ()
+**
+** 1999-06-10 CG
+*/
+void
+Appl_find (AES_PB * apb)
 {
   if(apb->addr_in[0] == 0) {
     /* return our own pid */
     apb->int_out[0] = apb->global->apid;
+  } else {
+    apb->int_out[0] = Appl_do_find (apb->global->apid,
+                                    (BYTE *)apb->addr_in[0]);
   }
-  else {
-    apb->int_out[0] = Srv_appl_find((BYTE *)apb->addr_in[0]);
-  };
 }
 
 

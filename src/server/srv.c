@@ -1180,64 +1180,73 @@ srv_appl_exit (C_APPL_EXIT * par,
   ret->common.retval = 1;
 }
 
-/****************************************************************************
- * srv_appl_find                                                            *
- *  Implementation of appl_find().                                          *
- ****************************************************************************/
-WORD              /* Application id, or -1.                                 */
-srv_appl_find(    /*                                                        */
-BYTE *fname)      /* File name of application to seek.                      */
-/****************************************************************************/
+
+/*
+** Description
+** Implementation of appl_find ()
+**
+** 1999-06-10 CG
+*/
+static
+void
+srv_appl_find (C_APPL_FIND * msg,
+               R_APPL_FIND * ret)
 {
   AP_LIST *al;
   LONG    w;
   _DTA    *olddta,newdta;
   BYTE    pname[ 30];
-  
-  w = (LONG)fname & 0xffff0000l;
-  if(w == 0xffff0000l) {
+
+  switch (msg->mode) {
+  case APPL_FIND_PID_TO_APID :
     /* convert MiNT to AES pid */
-    al = search_mpid((WORD)((LONG)fname));
+    al = search_mpid (msg->data.pid);
     
-    if(al) {
-      return al->ai->id;
-    };
-    
-    return -1;
-  }
-  
-  if ( w == 0xfffe0000l)
-    {
-      /* convert from AES to MINT pid */
-      al = search_apid((WORD)((LONG)fname));
-      if(al)
-	return al->ai->pid;
-      return -1;
+    if (al) {
+      ret->common.retval = al->ai->id;
+    } else {
+      ret->common.retval = -1;
     }
-  
-  /* Now find the pid of process with the passed name */
-  olddta = Fgetdta();
-  
-  Fsetdta( &newdta);
-  w = -1;
-  sprintf(pname, "u:\\proc\\%s.*", fname);
-  
-  if(Fsfirst(pname, 0) == 0) {
-    w = atoi(&newdta.dta_name[9]);
-  };
-  
-  Fsetdta(olddta);
-  
-  /* map the MINT-pid to aes */
-  if(w != -1) {
-    al = search_mpid((WORD)w);
-    
+    break;
+
+  case APPL_FIND_APID_TO_PID :
+    /* convert from AES to MINT pid */
+    al = search_apid (msg->data.apid);
     if(al) {
-      return al->ai->id;
-    };
-  };
-  
-  return -1;
+      ret->common.retval = al->ai->pid;
+    } else {
+      ret->common.retval = -1;
+    }
+    break;
+
+  default:
+    /* FIXME: This mode needs to be overhauled */
+    /* Now find the pid of process with the passed name */
+    olddta = Fgetdta();
+    
+    Fsetdta( &newdta);
+    w = -1;
+    sprintf (pname, "u:\\proc\\%s.*", msg->data.name);
+    
+    if(Fsfirst(pname, 0) == 0) {
+      w = atoi(&newdta.dta_name[9]);
+    }
+    
+    Fsetdta(olddta);
+    
+    /* map the MINT-pid to aes */
+    if(w != -1) {
+      al = search_mpid((WORD)w);
+      
+      if(al) {
+        ret->common.retval = al->ai->id;
+      } else {
+        ret->common.retval = -1;
+      }
+    } else {
+      ret->common.retval = -1;
+    }
+  }
 }
 
 /*
@@ -3687,6 +3696,7 @@ srv_vdi_call (COMM_HANDLE  handle,
 ** 1999-04-18 CG
 ** 1999-05-20 CG
 ** 1999-05-23 CG
+** 1999-06-10 CG
 */
 static
 WORD
@@ -3813,9 +3823,9 @@ server (LONG arg) {
         break;
         
       case SRV_APPL_FIND:
-        code = srv_appl_find (&par.appl_find);
+        srv_appl_find (&par.appl_find, &ret.appl_find);
         
-        Srv_reply (handle, &par, code);
+        Srv_reply (handle, &ret, sizeof (R_APPL_FIND));
         break;
         
       case SRV_APPL_INIT:
@@ -3911,10 +3921,10 @@ server (LONG arg) {
         break;
         
       case SRV_WIND_NEW:
-        code = 
-          srv_wind_new(&par.wind_new);
+        ret.common.retval = 
+          srv_wind_new (par.wind_new.common.apid);
         
-        Srv_reply (handle, &par, code);
+        Srv_reply (handle, &ret, sizeof (R_WIND_NEW));
         break;
         
       case SRV_WIND_OPEN:

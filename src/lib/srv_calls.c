@@ -107,23 +107,6 @@ void Srv_shake(void) {
 }
 
 /****************************************************************************
- * Srv_appl_find                                                            *
- *  Implementation of appl_find().                                          *
- ****************************************************************************/
-WORD              /* Application id, or -1.                                 */
-Srv_appl_find(    /*                                                        */
-BYTE *fname)      /* File name of application to seek.                      */
-/****************************************************************************/
-{
-  C_APPL_FIND par;
-	
-  par.fname = fname;
-
-  return Srv_put (0, SRV_APPL_FIND, &par);
-}
-
-
-/****************************************************************************
  * Srv_shel_envrn                                                           *
  *  Implementation of shel_envrn().                                         *
  ****************************************************************************/
@@ -166,37 +149,3 @@ BYTE *tail)      /* Command tail.                                           */
 
   return Srv_put (apid, SRV_SHEL_WRITE, &par);
 }
-
-
-/****************************************************************************
- * Srv_wind_draw                                                            *
- *  Draw window widgets.                                                    *
- ****************************************************************************/
-WORD             /* 0 if an error occured, or >0                            */
-Srv_wind_draw(   /*                                                         */
-WORD handle,     /* Handle of window.                                       */
-WORD object)     /* Object to be drawn (see WF_COLOR modes).                */
-/****************************************************************************/
-{
-  C_WIND_DRAW par;
-	
-  par.handle = handle;
-  par.object = object;
-	
-  return Srv_put (0, SRV_WIND_DRAW, &par);
-}
-
-/****************************************************************************
- * Srv_wind_new                                                             *
- *  Implementation of wind_new().                                           *
- ****************************************************************************/
-WORD           /* 0 if error or 1 if ok.                                    */
-Srv_wind_new(  /*                                                           */
-WORD apid)     /* Application whose windows should be erased.               */
-/****************************************************************************/
-{
-	C_WIND_NEW par;
-
-	return Srv_put (apid, SRV_WIND_NEW, &par);
-}
-

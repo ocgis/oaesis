@@ -20,7 +20,6 @@ enum {
   SRV_MENU_REGISTER =  35,
   SRV_GRAF_MOUSE    =  78,
   SRV_GRAF_MKSTATE  =  79,
-  SRV_WIND_DRAW,
   SRV_WIND_CREATE   = 100,
   SRV_WIND_OPEN     = 101,
   SRV_WIND_CLOSE    = 102,
@@ -67,10 +66,23 @@ typedef struct {
   R_ALL common;
 }R_APPL_EXIT;
 
+#define APPL_FIND_NAME_TO_APID 0
+#define APPL_FIND_PID_TO_APID  1
+#define APPL_FIND_APID_TO_PID  2
+
 typedef struct {
-  BYTE *fname;
-  WORD retval;
-}C_APPL_FIND;
+  C_ALL  common;
+  WORD   mode;
+  union {
+    BYTE   name[20];
+    WORD   pid;
+    WORD   apid;
+  } data;
+} C_APPL_FIND;
+
+typedef struct {
+  R_ALL common;
+} R_APPL_FIND;
 
 typedef struct {
   C_ALL          common;
@@ -179,12 +191,6 @@ typedef struct {
 } R_MENU_REGISTER;
 
 typedef struct {
-  WORD pid;
-  WORD type;
-  WORD retval;
-}C_REGISTER_PRG;
-
-typedef struct {
   BYTE **value;
   BYTE *name;
   WORD retval;
@@ -231,12 +237,6 @@ typedef struct {
 }R_WIND_DELETE;
 
 typedef struct {
-  WORD handle;
-  WORD object;
-  WORD retval;
-}C_WIND_DRAW;
-
-typedef struct {
   C_ALL common;
   WORD  x;
   WORD  y;
@@ -261,8 +261,12 @@ typedef struct {
 }R_WIND_GET;
 
 typedef struct {
-  WORD retval;
+  C_ALL common;
 }C_WIND_NEW;
+
+typedef struct {
+  R_ALL common;
+}R_WIND_NEW;
 
 typedef struct {
   C_ALL common;
@@ -322,13 +326,11 @@ typedef union {
   C_GRAF_MOUSE    graf_mouse;
   C_MENU_BAR      menu_bar;
   C_MENU_REGISTER menu_register;
-  C_REGISTER_PRG  register_prg;
   C_SHEL_ENVRN    shel_envrn;
   C_SHEL_WRITE    shel_write;
   C_WIND_CLOSE    wind_close;
   C_WIND_CREATE   wind_create;
   C_WIND_DELETE   wind_delete;
-  C_WIND_DRAW     wind_draw;
   C_WIND_FIND     wind_find;
   C_WIND_GET      wind_get;
   C_WIND_NEW      wind_new;
@@ -343,6 +345,7 @@ typedef union {
   R_ALL           common;
   R_APPL_CONTROL  appl_control;
   R_APPL_EXIT     appl_exit;
+  R_APPL_FIND     appl_find;
   R_APPL_INIT     appl_init;
   R_APPL_SEARCH   appl_search;
   R_APPL_WRITE    appl_write;
@@ -356,6 +359,7 @@ typedef union {
   R_WIND_DELETE   wind_delete;
   R_WIND_FIND     wind_find;
   R_WIND_GET      wind_get;
+  R_WIND_NEW      wind_new;
   R_WIND_OPEN     wind_open;
   R_WIND_SET      wind_set;
   R_WIND_UPDATE   wind_update;

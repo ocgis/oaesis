@@ -1691,16 +1691,43 @@ Wind_calc (AES_PB *apb) {
   apb->int_out[0] = 1;
 }
 
-/****************************************************************************
- * Wind_new                                                                 *
- *  0x006d wind_new().                                                      *
- ****************************************************************************/
-void              /*                                                        */
-Wind_new(         /*                                                        */
-AES_PB *apb)      /* AES parameter block.                                   */
-/****************************************************************************/
+
+/*
+** Description
+** Implementation of wind_new ()
+**
+** 1999-06-10 CG
+*/
+WORD
+Wind_do_new (WORD apid) {
+  C_WIND_NEW par;
+  R_WIND_NEW ret;
+
+  par.common.call = SRV_WIND_NEW;
+  par.common.apid = apid;
+  par.common.pid = getpid ();
+
+  Client_send_recv (&par,
+                    sizeof (C_WIND_NEW),
+                    &ret,
+                    sizeof (R_WIND_NEW));
+
+  /* FIXME: Remove structures on lib side */
+
+  return ret.common.retval;
+}
+
+
+/*
+** Description
+** 0x006d wind_new ()
+**
+** 1999-06-10 CG
+*/
+void
+Wind_new (AES_PB * apb)
 {
-        apb->int_out[0] = Srv_wind_new(apb->global->apid);
+  apb->int_out[0] = Wind_do_new(apb->global->apid);
 }
 
 
