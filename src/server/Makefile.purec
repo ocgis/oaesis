@@ -4,8 +4,9 @@ CFLAGS = -I../comm -I../common -I../.. -I../lib \
 	 $(INCLUDES) $(DEFINES)
 
 SERVER_OBJS = \
-	boot.o debug.o main.o rlist.o srv.o srv_appl_info.o srv_event.o \
-        srv_get.o srv_global.o srv_misc.o srv_queue.o srv_wind.o
+	boot.o srv_debug.o main.o rlist.o srv.o srv_appl.o srv_appl_info.o \
+	srv_event.o srv_get.o srv_global.o srv_menu.o srv_misc.o srv_queue.o \
+	srv_wind.o
 
 TRAP_OBJS = purec.o
 
@@ -13,5 +14,9 @@ all: oaesis
 
 oaesis: $(SERVER_OBJS) $(TRAP_OBJS)
 	$(LD) -O=$@ $(PCLIBDIR)/crt0.o $(SERVER_OBJS) $(TRAP_OBJS)\
-	  ../lib/oaesis_client.lib $(PCLIBDIR)/ovdisis.lib \
-	  $(PCLIBDIR)/mintlib.lib
+	  ../launcher/launcher.lib ../lib/oaesis.lib ../lib/oaesis_client.lib \
+	  $(PCLIBDIR)/ovdisis.lib $(PCLIBDIR)/mintlib.lib
+	chmod +x oaesis
+
+srv_get.c:
+	echo \#include \"srv_get_pmsg.c\" > srv_get.c

@@ -10,7 +10,7 @@ TRAP_OBJS = \
 	trap_purec.o
 
 LIB_OBJS = \
-	appl.o cursors.o debug.o docalls.o evnt.o evnthndl.o form.o \
+	appl.o cursors.o lib_debug.o docalls.o evnt.o evnthndl.o form.o \
 	fsel.o graf.o lib_global.o lib_misc.o menu.o objc.o resource.o rsrc.o \
 	scrp.o shel.o srv_put.o wind.o
 
@@ -28,3 +28,5 @@ cursors.c cursors.h: cursors.rsc cursors.hrd
 resource.c resource.h: resource.rsc resource.hrd
 	../../tools/r2c_raw resource.rsc
 
+srv_put.c:
+	echo \#include \"srv_put_pmsg.c\" > srv_put.c

@@ -5,12 +5,10 @@ CFLAGS = -I../comm -I../common -I../.. -I../lib \
 
 LAUNCHER_OBJS = launch.o launcher.o
 
-all: launcher.prg
+all: launcher.lib
 
-launcher.prg: $(LAUNCHER_OBJS) ../lib/oaesis.lib
-	$(LD) -O=$@ $(PCLIBDIR)/crt0.o $(LAUNCHER_OBJS)\
-	  ../lib/oaesis.lib $(PCLIBDIR)/ovdisis.lib \
-	  $(PCLIBDIR)/mintlib.lib
+launcher.lib: $(LAUNCHER_OBJS) ../lib/oaesis.lib
+	$(LD) -O=$@ -J $(LAUNCHER_OBJS)
 
 launch.c launch.h: launch.rsc launch.hrd
 	../../tools/r2c_raw launch.rsc

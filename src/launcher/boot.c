@@ -376,11 +376,11 @@ start_programs(void)
   
   int i = 0;
   
-  /* FIXME
-     bootpath[0] = (get_sysvar(_bootdev) >> 16) + 'a';
-     */
+#ifdef MINT_TARGET /* FIXME for linux */
+  bootpath[0] = (get_sysvar(_bootdev) >> 16) + 'a';
+#endif
   
-  fp = fopen("oaesis.cnf","r");
+  fp = fopen("oaesis.cnf", "r");
   
   while((fp == NULL) && filelist[i])
   {
