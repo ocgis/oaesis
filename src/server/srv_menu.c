@@ -48,12 +48,12 @@ get_top_menu_owner(void)
 */
 static
 WORD
-set_menu(WORD     apid,
-         OBJECT * tree)
+set_menu(WORD        apid,
+         SRV_FEATURE state)
 {
   if(apps[apid].id != -1)
   {
-    apps[apid].menu = tree;
+    apps[apid].menu = state;
     return 0;
   }
   else
@@ -130,10 +130,9 @@ redraw_menu_bar(void)
 */
 static
 WORD
-menu_bar_install (OBJECT * tree,
-                  WORD     capid)
+menu_bar_install(WORD capid)
 {
-  set_menu (capid, tree);
+  set_menu(capid, INSTALLED);
   
   if (get_top_menu_owner () == capid)
   {
@@ -152,7 +151,7 @@ static
 WORD
 menu_bar_remove(WORD apid)
 {
-  set_menu(apid, NULL);
+  set_menu(apid, NOT_INSTALLED);
   
   redraw_menu_bar();
   
@@ -173,7 +172,7 @@ srv_menu_bar(C_MENU_BAR * msg,
   switch (msg->mode)
   {
   case MENU_INSTALL: 
-    retval = menu_bar_install (msg->tree, msg->common.apid);
+    retval = menu_bar_install(msg->common.apid);
     break;
 
   case MENU_REMOVE:
