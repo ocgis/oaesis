@@ -1199,10 +1199,6 @@ Wind_create (AES_PB *apb)
 
 /*
 ** Exported
-**
-** 1998-12-20 CG
-** 1999-01-10 CG
-** 1999-04-09 CG
 */
 WORD
 Wind_do_open (WORD   apid,
@@ -1212,16 +1208,15 @@ Wind_do_open (WORD   apid,
   R_WIND_OPEN     ret;
   WINDOW_STRUCT * win = find_window_struct (apid, id);
 
-  par.common.call = SRV_WIND_OPEN;
-  par.common.apid = apid;
-  par.common.pid = getpid ();
+  PUT_C_ALL(WIND_OPEN, &par);
+
   par.id = id;
   par.size = *size;
 
-  Client_send_recv (&par,
-                    sizeof (C_WIND_OPEN),
-                    &ret,
-                    sizeof (R_WIND_OPEN));
+  CLIENT_SEND_RECV(&par,
+                   sizeof (C_WIND_OPEN),
+                   &ret,
+                   sizeof (R_WIND_OPEN));
 
   /* Set the size of the window elements */
   Wind_set_size (apid, id, size);
@@ -1241,8 +1236,6 @@ void Wind_open(AES_PB *apb) {
 
 /*
 ** Exported
-**
-** 1998-12-20 CG
 */
 WORD
 Wind_do_close (WORD apid,
@@ -1250,15 +1243,14 @@ Wind_do_close (WORD apid,
   C_WIND_CLOSE par;
   R_WIND_CLOSE ret;
   
-  par.common.call = SRV_WIND_CLOSE;
-  par.common.apid = apid;
-  par.common.pid = getpid ();
+  PUT_C_ALL(WIND_CLOSE, &par);
+
   par.id = wid;
         
-  Client_send_recv (&par,
-                    sizeof (C_WIND_CLOSE),
-                    &ret,
-                    sizeof (R_WIND_CLOSE));
+  CLIENT_SEND_RECV(&par,
+                   sizeof (C_WIND_CLOSE),
+                   &ret,
+                   sizeof (R_WIND_CLOSE));
 
   return ret.common.retval;
 }
@@ -1288,15 +1280,14 @@ WORD wid)        /* Identification number of window to close.               */
   C_WIND_DELETE par;
   R_WIND_DELETE ret;
 
-  par.common.call = SRV_WIND_DELETE;
-  par.common.apid = apid;
-  par.common.pid = getpid ();
+  PUT_C_ALL(WIND_DELETE, &par);
+
   par.id = wid;
         
-  Client_send_recv (&par,
-                    sizeof (C_WIND_DELETE),
-                    &ret,
-                    sizeof (R_WIND_DELETE));
+  CLIENT_SEND_RECV(&par,
+                   sizeof (C_WIND_DELETE),
+                   &ret,
+                   sizeof (R_WIND_DELETE));
 
   return ret.common.retval;
 }
@@ -1387,18 +1378,17 @@ Wind_do_get (WORD   apid,
     }
   }
 
-  par.common.call = SRV_WIND_GET;
-  par.common.apid = apid;
-  par.common.pid = getpid ();
+  PUT_C_ALL(WIND_GET, &par);
+
   par.handle = handle;
   par.mode = mode;
         
   /* Loop until we get the data we need (needed for WF_{FIRST,NEXT}XYWH */
   while (TRUE) {
-    Client_send_recv (&par,
-                      sizeof (C_WIND_GET),
-                      &ret,
-                      sizeof (R_WIND_GET));
+    CLIENT_SEND_RECV(&par,
+                     sizeof (C_WIND_GET),
+                     &ret,
+                     sizeof (R_WIND_GET));
     
     if (in_workarea && ((mode == WF_FIRSTXYWH) || (mode == WF_NEXTXYWH))) {
       RECT r;
@@ -1542,9 +1532,7 @@ Wind_do_set (WORD apid,
     break;
 
   default:
-    par.common.call = SRV_WIND_SET;
-    par.common.apid = apid;
-    par.common.pid = getpid ();
+    PUT_C_ALL(WIND_SET, &par);
     
     par.handle = handle;
     par.mode = mode;
@@ -1554,10 +1542,10 @@ Wind_do_set (WORD apid,
     par.parm3 = parm3;
     par.parm4 = parm4;
     
-    Client_send_recv (&par,
-                      sizeof (C_WIND_SET),
-                      &ret,
-                      sizeof (R_WIND_SET));
+    CLIENT_SEND_RECV(&par,
+                     sizeof (C_WIND_SET),
+                     &ret,
+                     sizeof (R_WIND_SET));
   }
 
   /* FIXME
@@ -1635,8 +1623,6 @@ Wind_set (AES_PB *apb) {
 
 /*
 ** Exported
-**
-** 1998-12-20 CG
 */
 WORD
 Wind_do_find (WORD apid,
@@ -1645,16 +1631,15 @@ Wind_do_find (WORD apid,
   C_WIND_FIND par;
   R_WIND_FIND ret;
 
-  par.common.call = SRV_WIND_FIND;
-  par.common.apid = apid;
-  par.common.pid = getpid ();
+  PUT_C_ALL(WIND_FIND, &par);
+
   par.x = x;
   par.y = y;
         
-  Client_send_recv (&par,
-                    sizeof (C_WIND_FIND),
-                    &ret,
-                    sizeof (R_WIND_FIND));
+  CLIENT_SEND_RECV(&par,
+                   sizeof (C_WIND_FIND),
+                   &ret,
+                   sizeof (R_WIND_FIND));
 
   return ret.common.retval;
 }
@@ -1687,15 +1672,14 @@ Wind_do_update (WORD apid,
   C_WIND_UPDATE par;
   R_WIND_UPDATE ret;
 
-  par.common.call = SRV_WIND_UPDATE;
-  par.common.apid = apid;
-  par.common.pid = getpid ();
+  PUT_C_ALL(WIND_UPDATE, &par);
+
   par.mode = mode;
 
-  Client_send_recv (&par,
-                    sizeof (C_WIND_UPDATE),
-                    &ret,
-                    sizeof (R_WIND_UPDATE));
+  CLIENT_SEND_RECV(&par,
+                   sizeof (C_WIND_UPDATE),
+                   &ret,
+                   sizeof (R_WIND_UPDATE));
 
   return ret.common.retval;
 }
@@ -1724,22 +1708,18 @@ Wind_calc (AES_PB *apb) {
 /*
 ** Description
 ** Implementation of wind_new ()
-**
-** 1999-06-10 CG
 */
 WORD
 Wind_do_new (WORD apid) {
   C_WIND_NEW par;
   R_WIND_NEW ret;
 
-  par.common.call = SRV_WIND_NEW;
-  par.common.apid = apid;
-  par.common.pid = getpid ();
+  PUT_C_ALL(WIND_NEW, &par);
 
-  Client_send_recv (&par,
-                    sizeof (C_WIND_NEW),
-                    &ret,
-                    sizeof (R_WIND_NEW));
+  CLIENT_SEND_RECV(&par,
+                   sizeof (C_WIND_NEW),
+                   &ret,
+                   sizeof (R_WIND_NEW));
 
   /* FIXME: Remove structures on lib side */
 

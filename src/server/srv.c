@@ -538,38 +538,37 @@ WORD apid)        /* Application whose menu is to be removed.               */
 /*
 ** Description
 ** Server part of 0x001e menu_bar ()
-**
-** 1999-01-09 CG
-** 1999-03-15 CG
 */
 static
 void
 srv_menu_bar (C_MENU_BAR * msg,
               R_MENU_BAR * ret) {
+  WORD retval;
+
   switch (msg->mode) {
   case MENU_INSTALL: 
-    ret->common.retval = menu_bar_install (msg->tree, msg->common.apid);
+    retval = menu_bar_install (msg->tree, msg->common.apid);
     break;
 
   case MENU_REMOVE:
-    ret->common.retval = menu_bar_remove (msg->common.apid);
+    retval = menu_bar_remove (msg->common.apid);
     break;
     
   case MENU_INQUIRE:
-    ret->common.retval = menu_bar_inquire ();
+    retval = menu_bar_inquire ();
     break;
 
   default:
-    ret->common.retval = 0;
+    retval = 0;
   }
+
+  PUT_R_ALL(MENU_BAR, ret, retval);
 }
 
 
 /*
 ** Description
 ** Implementation of menu_register ()
-**
-** 1999-04-11 CG
 */
 void
 srv_menu_register (C_MENU_REGISTER * par,
@@ -577,11 +576,12 @@ srv_menu_register (C_MENU_REGISTER * par,
   AP_LIST **mwalk;
   AP_LIST *ap;
   WORD    n_menu = par->common.apid;
+  WORD    retval;
   
   ap = search_apid (par->common.apid);
   
   if (ap == AP_LIST_REF_NIL) {
-    ret->common.retval = -1;
+    retval = -1;
   } else {
     /* if the menu have been registered then unlink it again */
     if (ap->ai->type & APP_ACCESSORY) {
@@ -617,8 +617,10 @@ srv_menu_register (C_MENU_REGISTER * par,
     *mwalk = ap;
     strncpy (ap->ai->name, par->title, 20);	
     
-    ret->common.retval = n_menu;
+    retval = n_menu;
   }
+
+  PUT_R_ALL(MENU_REGISTER, ret, retval);
 }
 
 

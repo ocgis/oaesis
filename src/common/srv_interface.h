@@ -203,28 +203,38 @@ typedef struct {
 
 typedef struct {
   C_ALL    common;
-  OBJECT * tree;
   WORD     mode;
+  OBJECT * tree;
 } C_MENU_BAR;
+
+#define C_MENU_BAR_WORDS 1
 
 typedef struct {
   R_ALL common;
 } R_MENU_BAR;
+
+#define R_MENU_BAR_WORDS 0
 
 typedef struct {
   C_ALL common;
   BYTE  title[20];
 } C_MENU_REGISTER;
 
+#define C_MENU_REGISTER_WORDS 0
+
 typedef struct {
   R_ALL common;
 } R_MENU_REGISTER;
+
+#define R_MENU_REGISTER_WORDS 0
 
 typedef struct {
   C_ALL common;
   WORD  id;
   WORD  retval;
 } C_WIND_CLOSE;
+
+#define C_WIND_CLOSE_WORDS 2
 
 typedef struct {
   R_ALL common;
@@ -250,6 +260,8 @@ typedef struct {
   WORD id;
 }C_WIND_DELETE;
 
+#define C_WIND_DELETE_WORDS 1
+
 typedef struct {
   R_ALL common;
 }R_WIND_DELETE;
@@ -260,6 +272,8 @@ typedef struct {
   WORD  y;
 } C_WIND_FIND;
 
+#define C_WIND_FIND_WORDS 2
+
 typedef struct {
   R_ALL common;
 } R_WIND_FIND;
@@ -269,6 +283,8 @@ typedef struct {
   WORD  handle;
   WORD  mode;
 }C_WIND_GET;
+
+#define C_WIND_GET_WORDS 2
 
 typedef struct {
   R_ALL common;
@@ -281,6 +297,8 @@ typedef struct {
 typedef struct {
   C_ALL common;
 }C_WIND_NEW;
+
+#define C_WIND_NEW_WORDS 0
 
 typedef struct {
   R_ALL common;
@@ -296,6 +314,8 @@ typedef struct {
   WORD  parm4;
 }C_WIND_SET;
 
+#define C_WIND_SET_WORDS 6
+
 typedef struct {
   R_ALL common;
 }R_WIND_SET;
@@ -306,6 +326,8 @@ typedef struct {
   RECT  size;
 }C_WIND_OPEN;
 
+#define C_WIND_OPEN_WORDS 5
+
 typedef struct {
   R_ALL common;
 }R_WIND_OPEN;
@@ -314,6 +336,8 @@ typedef struct {
   C_ALL common;
   WORD  mode;
 }C_WIND_UPDATE;
+
+#define C_WIND_UPDATE_WORDS 1
 
 typedef struct {
   R_ALL common;

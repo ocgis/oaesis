@@ -65,6 +65,7 @@
 #include "form.h"
 #include "fsel.h"
 #include "graf.h"
+#include "lib_comm.h"
 #include "lib_global.h"
 #include "lib_misc.h"
 #include "mintdefs.h"
@@ -168,8 +169,6 @@ Menu_bar_install (WORD     apid,
 
 /*
 ** Exported
-**
-** 1999-01-09 CG
 */
 WORD
 Menu_do_bar (WORD     apid,
@@ -179,17 +178,15 @@ Menu_do_bar (WORD     apid,
   R_MENU_BAR    ret;
   GLOBAL_APPL * globals = get_globals (apid);
   
-  par.common.call = SRV_MENU_BAR;
-  par.common.apid = apid;
-  par.common.pid = getpid ();
+  PUT_C_ALL(MENU_BAR, &par);
 
   par.tree = tree;
   par.mode = mode;
 
-  Client_send_recv (&par,
-                    sizeof (C_MENU_BAR),
-                    &ret,
-                    sizeof (R_MENU_BAR));
+  CLIENT_SEND_RECV(&par,
+                   sizeof (C_MENU_BAR),
+                   &ret,
+                   sizeof (R_MENU_BAR));
 
   /*
   ** FIXME
@@ -318,8 +315,6 @@ AES_PB *apb)      /* Pointer to AES parameter block.                        */
 /*
 ** Description
 ** Implementation of menu_register ()
-**
-** 1999-04-11 CG
 */
 static
 WORD
@@ -328,16 +323,15 @@ Menu_do_register (WORD   apid,
   C_MENU_REGISTER par;
   R_MENU_REGISTER ret;
  
-  par.common.call = SRV_MENU_REGISTER;
-  par.common.apid = apid;
-  par.common.pid = getpid ();
+  PUT_C_ALL(MENU_REGISTER, &par);
+
   strncpy (par.title, title, sizeof (par.title) - 1);
   par.title[sizeof (par.title) - 1] = 0;
 
-  Client_send_recv (&par,
-                    sizeof (C_MENU_REGISTER),
-                    &ret,
-                    sizeof (R_MENU_REGISTER));
+  CLIENT_SEND_RECV(&par,
+                   sizeof (C_MENU_REGISTER),
+                   &ret,
+                   sizeof (R_MENU_REGISTER));
 
   return ret.common.retval;
 }
