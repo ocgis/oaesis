@@ -13,6 +13,9 @@ AM_INIT_AUTOMAKE($PACKAGE, $VERSION, no-define)
 dnl Make a header based on the things we will find out
 AM_CONFIG_HEADER(config.h)
 
+dnl Use libtool to create liboaesis
+AM_PROG_LIBTOOL
+
 dnl Check for programs
 AC_ARG_PROGRAM
 AC_PROG_CC
@@ -22,10 +25,57 @@ AC_PROG_RANLIB
 
 dnl Check for libraries
 AC_CHECK_LIB(mint,main)
-AC_CHECK_LIB(m,main)
-AC_CHECK_LIB(fb,main)
-AC_CHECK_LIB(ovdisis,main)
-dnl AC_CHECK_LIB(gem,main)
+
+if test x$with_ovdisis = xyes ; then
+  AC_MSG_ERROR([
+*** Directory must be specified for --with-ovdisis])
+fi
+
+if test x$with_ovdisis = x ; then 
+  # Look for separately installed ovdisis
+
+  AM_PATH_OVDISIS(0.0.0,,
+    AC_MSG_ERROR([
+*** ovdisis 0.0.0 or better is required. The latest version of ovdisis
+*** is always available from ftp://ftp.nocrew.org.]),
+    libfb)
+
+  ovdisis_cflags=$OVDISIS_CFLAGS
+  ovdisis_libs=$OVDISIS_LIBS
+else
+  # Use uninstalled ovdisis (assume they got the version right)
+
+  if test -x $with_ovdisis/ovdisis-config ; then 
+    :
+  else
+    AC_MSG_ERROR([ovdisis directory ($with_ovdisis) not present or not configured])
+  fi
+
+  # For use in ovdisis-config
+  ovdisis_cflags=`$with_ovdisis/ovdisis-config --cflags`
+  ovdisis_libs=`$with_ovdisis/ovdisis-config --libs`
+
+  ovdisis_release=`$with_ovdisis/ovdisis-config --version | sed 's%\\.[[0-9]]*$%%'`
+
+  # canonicalize relative paths
+  case $with_ovdisis in 
+    /*)
+      ovdisis_dir=$with_ovdisis
+      ;;
+    *)
+      ovdisis_dir="\$(top_builddir)/$with_ovdisis"
+      ;;
+  esac
+
+  OVDISIS_CFLAGS="-I$ovdisis_dir"
+  OVDISIS_LIBS=$ovdisis_dir/libfb.la
+
+  AC_SUBST(OVDISIS_CFLAGS)
+  AC_SUBST(OVDISIS_LIBS)
+fi
+
+AC_SUBST(ovdisis_cflags)
+AC_SUBST(ovdisis_libs)
 
 dnl Set target specific things
 case "${target}" in

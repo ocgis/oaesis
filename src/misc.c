@@ -45,6 +45,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "gemdefs.h"
 #include "global.h"
@@ -121,9 +122,17 @@ LONG
 Misc_fork (WORD (*func)(LONG),
 	   LONG arg,
 	   BYTE * name) {
-  fprintf (stderr, "oAESis: Implement server thread start in misc.c\n");
+  LONG pid;
 
-  return 42;
+  pid = fork ();
+
+  /* For the new process pid will be 0 */
+  if (pid == 0) {
+    (func) (arg);
+    exit (0);
+  }
+
+  return pid;
 }
 	   
 #endif /* MINT_TARGET */
@@ -271,29 +280,29 @@ BYTE *cmdlin,       /* Command line buffer.                                 */
 BYTE *fname)        /* File name buffer.                                    */
 /****************************************************************************/
 {
-	BYTE pname[30];
-	_DTA *olddta,newdta;
+  BYTE pname[30];
+  _DTA *olddta,newdta;
 	
-	olddta = Fgetdta();
-	Fsetdta(&newdta);
+  olddta = Fgetdta();
+  Fsetdta(&newdta);
 	
-	sprintf(pname,"u:\\proc\\*.%03d",pid);
-	if(Fsfirst(pname,0) == 0) {
-		LONG fd;
+  sprintf(pname,"u:\\proc\\*.%03d",pid);
+  if(Fsfirst(pname,0) == 0) {
+    LONG fd;
 		
-		sprintf(pname,"u:\\proc\\%s",newdta.dta_name);
+    sprintf(pname,"u:\\proc\\%s",newdta.dta_name);
 		
-		if((fd = Fopen(pname,0)) >= 0) {
-			struct __ploadinfo li;
+    if((fd = Fopen(pname,0)) >= 0) {
+      struct __ploadinfo li;
 			
-			li.fnamelen = fnamelen;
-			li.cmdlin = cmdlin;
-			li.fname = fname;
+      li.fnamelen = fnamelen;
+      li.cmdlin = cmdlin;
+      li.fname = fname;
 			
-			Fcntl((WORD)fd,&li,PLOADINFO);
-			Fclose((WORD)fd);
-		};
-	};
+      Fcntl((WORD)fd,&li,PLOADINFO);
+      Fclose((WORD)fd);
+    };
+  };
 	
-	Fsetdta(olddta);
+  Fsetdta(olddta);
 }

@@ -179,7 +179,6 @@ RSHDR  *rsc)      /* Resource structure to fix.                             */
     WORD     nr_cicon;
     WORD     i = 0;
 
-    fprintf (stderr, "cicon_offset=0x%x\n", extension->cicon_offset);
     /* What if there are no colour icons? Check for cicon_offset == -1! */
     cicons = (CICONBLK **)((LONG)extension->cicon_offset + (LONG)rsc);
     
@@ -187,23 +186,13 @@ RSHDR  *rsc)      /* Resource structure to fix.                             */
     
     nr_cicon = i - 1;
 
-    fprintf (stderr, "rsrc.c: Rsrc_do_rcfix: Number of colour icons found: %d\n", nr_cicon);
-
     cwalk = (CICONBLK *)&cicons[i];
 
-    fprintf (stderr, "rsrc.c: Offset to cicons = 0x%x\n", (LONG)cwalk - (LONG)rsc);
-    fprintf (stderr, "rsrc.c: iconblksize = %d  ciconblksize= %d\n", sizeof (ICONBLK), sizeof (CICONBLK));
-        
     for(i = 0; i < nr_cicon; i++) {
       LONG monosize = (((cwalk->monoblk.ib_wicon + 15) >> 4) << 1) * cwalk->monoblk.ib_hicon;
       CICON *cicwalk;
       WORD last_res = FALSE;
 
-      fprintf (stderr, "rsrc.c: cicon nr = %d  n_cicons = %d @ 0x%x\n",
-               i, (LONG)cwalk->mainlist, (LONG)&cwalk->mainlist - (LONG)rsc);
-      fprintf (stderr, "rsrc.c: ib_wicon = %d ib_hicon = %d\n",
-               cwalk->monoblk.ib_wicon, cwalk->monoblk.ib_hicon);
-      fprintf (stderr, "rsrc.c: monosize = %d\n", monosize);
       cicons[i] = cwalk;
       
       cwalk->monoblk.ib_pdata = (WORD *)((LONG)cwalk + sizeof(ICONBLK) + sizeof(LONG));
@@ -218,7 +207,6 @@ RSHDR  *rsc)      /* Resource structure to fix.                             */
         LONG planesize = monosize * cicwalk->num_planes;
         MFDB s,d;
         
-        fprintf (stderr, "cicwalk->next_res=0x%x\n", (LONG)cicwalk->next_res);
         /* If next_res is equal to 1 there are more resolutions to follow */
         if ((LONG)cicwalk->next_res == 1) {
           last_res = FALSE;
@@ -259,12 +247,7 @@ RSHDR  *rsc)      /* Resource structure to fix.                             */
           Vdi_vr_trnfm(vid,&s,&d);
         };
 
-        fprintf (stderr,"cicwalk=0x%x\n", (unsigned int)cicwalk);
-
-
         if(last_res == TRUE) {
-          fprintf (stderr, "rsrc.c: Do_rsrc_rcfix: No more resolutions for this icon\n");
-
           /*
           ** This is the last resolution for this icon.
           ** Update cwalk to point to the beginning of the next icon.
@@ -272,8 +255,6 @@ RSHDR  *rsc)      /* Resource structure to fix.                             */
           cwalk = (CICONBLK *)cicwalk->next_res;
           cicwalk->next_res = NULL;
         } else {
-          fprintf (stderr, "Getting next resolution (cicwalk == 0x%x)\n",
-                   (unsigned int)cicwalk);
           cicwalk = cicwalk->next_res;
         }
       }
@@ -336,7 +317,6 @@ RSHDR  *rsc)      /* Resource structure to fix.                             */
     (LONG)frstrwalk[i] += (LONG)rsc;
   };    
   
-  fprintf (stderr, "Returning from Rsrc_do_rcfix\n");
   return 0;
 }
 

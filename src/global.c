@@ -287,31 +287,19 @@ void init_global(WORD nocnf) {
   strcpy (globals.mousename, "/dev/mouse");
 #endif  
 
-  fprintf (stderr,"Calling Rsrc_do_rcfix\n");
   Rsrc_do_rcfix(globals.vid,(RSHDR *)RESOURCE);
   
-  fprintf (stderr,"Calling Rsrc_do_gaddr 1\n");
   Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,AICONS,&globals.aiconstad);
-  fprintf (stderr,"Calling Rsrc_do_gaddr 2\n");
   Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,ALERT,&globals.alerttad);
-  fprintf (stderr,"Calling Rsrc_do_gaddr 3\n");
   Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,DESKBG,&globals.deskbgtad);
-  fprintf (stderr,"Calling Rsrc_do_gaddr 4\n");
   Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,FISEL,&globals.fiseltad);
-  fprintf (stderr,"Calling Rsrc_do_gaddr 5\n");
   Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,INFORM,&globals.informtad);
-  fprintf (stderr,"Calling Rsrc_do_gaddr 6\n");
   Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,MENU,&globals.menutad);
-  fprintf (stderr,"Calling Rsrc_do_gaddr 7\n");
   Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,MOUSEFORMS,&globals.mouseformstad);
-  fprintf (stderr,"Calling Rsrc_do_gaddr 8\n");
   Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,PMENU,&globals.pmenutad);
-  fprintf (stderr,"Calling Rsrc_do_gaddr 9\n");
   Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,WINDOW,&globals.windowtad);
-  fprintf (stderr,"Calling Rsrc_do_gaddr 10\n");
   Rsrc_do_gaddr((RSHDR *)RESOURCE,R_FRSTR,0,(OBJECT **)&globals.fr_string);
   
-  fprintf (stderr,"Building version string\n");
   sprintf(versionstring,"Version %s",VERSIONTEXT);
   globals.informtad[INFOVERSION].ob_spec.tedinfo->te_ptext = versionstring;
   

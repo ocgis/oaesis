@@ -64,49 +64,72 @@ host_triplet = @host@
 target_alias = @target_alias@
 target_triplet = @target@
 CC = @CC@
+LD = @LD@
+LIBTOOL = @LIBTOOL@
+LN_S = @LN_S@
 MAKEINFO = @MAKEINFO@
+NM = @NM@
+OVDISIS_CFLAGS = @OVDISIS_CFLAGS@
+OVDISIS_CONFIG = @OVDISIS_CONFIG@
+OVDISIS_LIBS = @OVDISIS_LIBS@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
 VERSION = @VERSION@
+ovdisis_cflags = @ovdisis_cflags@
+ovdisis_libs = @ovdisis_libs@
 target_cpu = @target_cpu@
 target_os = @target_os@
 
 bin_PROGRAMS = oaesis
 
 oaesis_SOURCES = \
-         appl.c boot.c debug.c docalls.c evnt.c evnthndl.c form.c fsel.c \
+         boot.c debug.c evnt.c evnthndl.c form.c fsel.c \
          global.c graf.c main.c menu.c misc.c objc.c \
-         resource.c rlist.c rsrc.c scrp.c shel.c srv.c srv_call.c vdi.c \
+         resource.c rlist.c rsrc.c scrp.c shel.c \
+         srv.c srv_get_pmsg.c srv_put_pmsg.c vdi.c \
          wind.c \
          appl.h boot.h debug.h evnt.h evnthndl.h form.h fsel.h gemdefs.h \
          global.h \
          graf.h lxgemdos.h mintdefs.h menu.h mesagdef.h misc.h mousedev.h \
          oconfig.h \
-         objc.h resource.h rlist.h rsrc.h scrp.h shel.h srv.h srv_call.h \
-         types.h \
+         objc.h resource.h rlist.h rsrc.h scrp.h shel.h srv.h srv_get.h \
+         srv_put.h types.h \
          version.h vdi.h wind.h
 
 EXTRA_oaesis_SOURCES = \
          mousedev.c
+
+# Make a shared library using libtool
+
+lib_LTLIBRARIES = liboaesis.la
+
+liboaesis_la_SOURCES = \
+	appl.c appl.h docalls.c
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../config.h
 CONFIG_CLEAN_FILES = 
-PROGRAMS =  $(bin_PROGRAMS)
+LTLIBRARIES =  $(lib_LTLIBRARIES)
 
 
 DEFS = @DEFS@ -I. -I$(srcdir) -I..
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
-oaesis_OBJECTS =  appl.o boot.o debug.o docalls.o evnt.o evnthndl.o \
-form.o fsel.o global.o graf.o main.o menu.o misc.o objc.o resource.o \
-rlist.o rsrc.o scrp.o shel.o srv.o srv_call.o vdi.o wind.o
+liboaesis_la_LDFLAGS = 
+liboaesis_la_LIBADD = 
+liboaesis_la_OBJECTS =  appl.lo docalls.lo
+PROGRAMS =  $(bin_PROGRAMS)
+
+oaesis_OBJECTS =  boot.o debug.o evnt.o evnthndl.o form.o fsel.o \
+global.o graf.o main.o menu.o misc.o objc.o resource.o rlist.o rsrc.o \
+scrp.o shel.o srv.o srv_get_pmsg.o srv_put_pmsg.o vdi.o wind.o
 oaesis_LDADD = $(LDADD)
 oaesis_DEPENDENCIES = 
 oaesis_LDFLAGS = 
 CFLAGS = @CFLAGS@
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
-LINK = $(CC) $(CFLAGS) $(LDFLAGS) -o $@
+LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
+LINK = $(LIBTOOL) --mode=link $(CC) $(CFLAGS) $(LDFLAGS) -o $@
 DIST_COMMON =  Makefile.am Makefile.in
 
 
@@ -118,14 +141,15 @@ DEP_FILES =  .deps/appl.P .deps/boot.P .deps/debug.P .deps/docalls.P \
 .deps/evnt.P .deps/evnthndl.P .deps/form.P .deps/fsel.P .deps/global.P \
 .deps/graf.P .deps/main.P .deps/menu.P .deps/misc.P .deps/mousedev.P \
 .deps/objc.P .deps/resource.P .deps/rlist.P .deps/rsrc.P .deps/scrp.P \
-.deps/shel.P .deps/srv.P .deps/srv_call.P .deps/vdi.P .deps/wind.P
-SOURCES = $(oaesis_SOURCES) $(EXTRA_oaesis_SOURCES)
-OBJECTS = $(oaesis_OBJECTS)
+.deps/shel.P .deps/srv.P .deps/srv_get_pmsg.P .deps/srv_put_pmsg.P \
+.deps/vdi.P .deps/wind.P
+SOURCES = $(liboaesis_la_SOURCES) $(oaesis_SOURCES) $(EXTRA_oaesis_SOURCES)
+OBJECTS = $(liboaesis_la_OBJECTS) $(oaesis_OBJECTS)
 
-all: Makefile $(PROGRAMS)
+all: Makefile $(LTLIBRARIES) $(PROGRAMS)
 
 .SUFFIXES:
-.SUFFIXES: .S .c .o .s
+.SUFFIXES: .S .c .lo .o .s
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4)
 	cd $(top_srcdir) && $(AUTOMAKE) --gnu src/Makefile
 
@@ -134,29 +158,29 @@ Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
 	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
 
-mostlyclean-binPROGRAMS:
+mostlyclean-libLTLIBRARIES:
 
-clean-binPROGRAMS:
-	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
+clean-libLTLIBRARIES:
+	-test -z "$(lib_LTLIBRARIES)" || rm -f $(lib_LTLIBRARIES)
 
-distclean-binPROGRAMS:
+distclean-libLTLIBRARIES:
 
-maintainer-clean-binPROGRAMS:
+maintainer-clean-libLTLIBRARIES:
 
-install-binPROGRAMS: $(bin_PROGRAMS)
+install-libLTLIBRARIES: $(lib_LTLIBRARIES)
 	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) $(DESTDIR)$(bindir)
-	@list='$(bin_PROGRAMS)'; for p in $$list; do \
+	$(mkinstalldirs) $(DESTDIR)$(libdir)
+	@list='$(lib_LTLIBRARIES)'; for p in $$list; do \
 	  if test -f $$p; then \
-	    echo "  $(INSTALL_PROGRAM) $$p $(DESTDIR)$(bindir)/`echo $$p|sed '$(transform)'`"; \
-	     $(INSTALL_PROGRAM) $$p $(DESTDIR)$(bindir)/`echo $$p|sed '$(transform)'`; \
+	    echo "$(LIBTOOL)  --mode=install $(INSTALL_DATA) $$p $(DESTDIR)$(libdir)/$$p"; \
+	    $(LIBTOOL)  --mode=install $(INSTALL_DATA) $$p $(DESTDIR)$(libdir)/$$p; \
 	  else :; fi; \
 	done
 
-uninstall-binPROGRAMS:
+uninstall-libLTLIBRARIES:
 	@$(NORMAL_UNINSTALL)
-	list='$(bin_PROGRAMS)'; for p in $$list; do \
-	  rm -f $(DESTDIR)$(bindir)/`echo $$p|sed '$(transform)'`; \
+	list='$(lib_LTLIBRARIES)'; for p in $$list; do \
+	  $(LIBTOOL)  --mode=uninstall rm -f $(DESTDIR)$(libdir)/$$p; \
 	done
 
 .s.o:
@@ -174,6 +198,50 @@ distclean-compile:
 	-rm -f *.tab.c
 
 maintainer-clean-compile:
+
+.s.lo:
+	$(LIBTOOL) --mode=compile $(COMPILE) -c $<
+
+.S.lo:
+	$(LIBTOOL) --mode=compile $(COMPILE) -c $<
+
+mostlyclean-libtool:
+	-rm -f *.lo
+
+clean-libtool:
+	-rm -rf .libs _libs
+
+distclean-libtool:
+
+maintainer-clean-libtool:
+
+liboaesis.la: $(liboaesis_la_OBJECTS) $(liboaesis_la_DEPENDENCIES)
+	$(LINK) -rpath $(libdir) $(liboaesis_la_LDFLAGS) $(liboaesis_la_OBJECTS) $(liboaesis_la_LIBADD) $(LIBS)
+
+mostlyclean-binPROGRAMS:
+
+clean-binPROGRAMS:
+	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
+
+distclean-binPROGRAMS:
+
+maintainer-clean-binPROGRAMS:
+
+install-binPROGRAMS: $(bin_PROGRAMS)
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(DESTDIR)$(bindir)
+	@list='$(bin_PROGRAMS)'; for p in $$list; do \
+	  if test -f $$p; then \
+	    echo " $(LIBTOOL)  --mode=install $(INSTALL_PROGRAM) $$p $(DESTDIR)$(bindir)/`echo $$p|sed '$(transform)'`"; \
+	    $(LIBTOOL)  --mode=install $(INSTALL_PROGRAM) $$p $(DESTDIR)$(bindir)/`echo $$p|sed '$(transform)'`; \
+	  else :; fi; \
+	done
+
+uninstall-binPROGRAMS:
+	@$(NORMAL_UNINSTALL)
+	list='$(bin_PROGRAMS)'; for p in $$list; do \
+	  rm -f $(DESTDIR)$(bindir)/`echo $$p|sed '$(transform)'`; \
+	done
 
 oaesis: $(oaesis_OBJECTS) $(oaesis_DEPENDENCIES)
 	@rm -f oaesis
@@ -249,7 +317,7 @@ dvi:
 check: all
 	$(MAKE)
 installcheck:
-install-exec: install-binPROGRAMS
+install-exec: install-libLTLIBRARIES install-binPROGRAMS
 	@$(NORMAL_INSTALL)
 
 install-data: 
@@ -258,12 +326,12 @@ install-data:
 install: install-exec install-data all
 	@:
 
-uninstall: uninstall-binPROGRAMS
+uninstall: uninstall-libLTLIBRARIES uninstall-binPROGRAMS
 
 install-strip:
 	$(MAKE) INSTALL_PROGRAM='$(INSTALL_PROGRAM) -s' INSTALL_SCRIPT='$(INSTALL_PROGRAM)' install
 installdirs:
-	$(mkinstalldirs)  $(DATADIR)$(bindir)
+	$(mkinstalldirs)  $(DATADIR)$(libdir) $(DATADIR)$(bindir)
 
 
 mostlyclean-generic:
@@ -280,31 +348,41 @@ distclean-generic:
 maintainer-clean-generic:
 	-test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
 	-test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
-mostlyclean:  mostlyclean-binPROGRAMS mostlyclean-compile \
+mostlyclean:  mostlyclean-libLTLIBRARIES mostlyclean-compile \
+		mostlyclean-libtool mostlyclean-binPROGRAMS \
 		mostlyclean-tags mostlyclean-depend mostlyclean-generic
 
-clean:  clean-binPROGRAMS clean-compile clean-tags clean-depend \
-		clean-generic mostlyclean
+clean:  clean-libLTLIBRARIES clean-compile clean-libtool \
+		clean-binPROGRAMS clean-tags clean-depend clean-generic \
+		mostlyclean
 
-distclean:  distclean-binPROGRAMS distclean-compile distclean-tags \
-		distclean-depend distclean-generic clean
+distclean:  distclean-libLTLIBRARIES distclean-compile distclean-libtool \
+		distclean-binPROGRAMS distclean-tags distclean-depend \
+		distclean-generic clean
 	-rm -f config.status
+	-rm -f libtool
 
-maintainer-clean:  maintainer-clean-binPROGRAMS maintainer-clean-compile \
-		maintainer-clean-tags maintainer-clean-depend \
-		maintainer-clean-generic distclean
+maintainer-clean:  maintainer-clean-libLTLIBRARIES \
+		maintainer-clean-compile maintainer-clean-libtool \
+		maintainer-clean-binPROGRAMS maintainer-clean-tags \
+		maintainer-clean-depend maintainer-clean-generic \
+		distclean
 	@echo "This command is intended for maintainers to use;"
 	@echo "it deletes files that may require special tools to rebuild."
 
-.PHONY: mostlyclean-binPROGRAMS distclean-binPROGRAMS clean-binPROGRAMS \
-maintainer-clean-binPROGRAMS uninstall-binPROGRAMS install-binPROGRAMS \
-mostlyclean-compile distclean-compile clean-compile \
-maintainer-clean-compile tags mostlyclean-tags distclean-tags \
-clean-tags maintainer-clean-tags distdir mostlyclean-depend \
-distclean-depend clean-depend maintainer-clean-depend info dvi \
-installcheck install-exec install-data install uninstall all \
-installdirs mostlyclean-generic distclean-generic clean-generic \
-maintainer-clean-generic clean mostlyclean distclean maintainer-clean
+.PHONY: mostlyclean-libLTLIBRARIES distclean-libLTLIBRARIES \
+clean-libLTLIBRARIES maintainer-clean-libLTLIBRARIES \
+uninstall-libLTLIBRARIES install-libLTLIBRARIES mostlyclean-compile \
+distclean-compile clean-compile maintainer-clean-compile \
+mostlyclean-libtool distclean-libtool clean-libtool \
+maintainer-clean-libtool mostlyclean-binPROGRAMS distclean-binPROGRAMS \
+clean-binPROGRAMS maintainer-clean-binPROGRAMS uninstall-binPROGRAMS \
+install-binPROGRAMS tags mostlyclean-tags distclean-tags clean-tags \
+maintainer-clean-tags distdir mostlyclean-depend distclean-depend \
+clean-depend maintainer-clean-depend info dvi installcheck install-exec \
+install-data install uninstall all installdirs mostlyclean-generic \
+distclean-generic clean-generic maintainer-clean-generic clean \
+mostlyclean distclean maintainer-clean
 
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

@@ -39,14 +39,5 @@
 /* Define if you have the <vdibind.h> header file.  */
 #undef HAVE_VDIBIND_H
 
-/* Define if you have the fb library (-lfb).  */
-#undef HAVE_LIBFB
-
-/* Define if you have the m library (-lm).  */
-#undef HAVE_LIBM
-
 /* Define if you have the mint library (-lmint).  */
 #undef HAVE_LIBMINT
-
-/* Define if you have the ovdisis library (-lovdisis).  */
-#undef HAVE_LIBOVDISIS

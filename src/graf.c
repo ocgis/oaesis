@@ -89,8 +89,6 @@ icon2mform(MFORM  *  mf,
            OBJECT * icon) {
   WORD  i;
   
-  fprintf (stderr, "graf.c: icon2mform: mf=0x%x icon=0x%x\n",
-           (LONG)mf, (LONG)icon);
   /*convert resource icons to MFORM's*/
   
   mf->mf_xhot = 0;
@@ -99,15 +97,7 @@ icon2mform(MFORM  *  mf,
   mf->mf_fg = 1;
   mf->mf_bg = 0;
   
-  fprintf (stderr, "graf.c: ob_spec = 0x%x\n",
-           icon->ob_spec.index);
-  fprintf (stderr, "graf.c: ib_pmask = 0x%x  ib_pdata = 0x%x\n",
-           (LONG)icon->ob_spec.iconblk->ib_pmask,
-           (LONG)icon->ob_spec.iconblk->ib_pdata);
-
   for(i = 0; i < 16; i++) {
-    fprintf (stderr, "graf.c: i = %d  type = %d (0x%x)\n",
-             i, icon->ob_type, icon->ob_type);
     mf->mf_mask[i] = icon->ob_spec.iconblk->ib_pmask[i];
     mf->mf_data[i] = icon->ob_spec.iconblk->ib_pdata[i];
   };
@@ -127,21 +117,13 @@ void Graf_init_module(void) {
   Psemaphore(SEM_CREATE,GRAFSEM,-1);
   Psemaphore(SEM_UNLOCK,GRAFSEM,-1);
 
-  fprintf (stderr, "1\n");
   icon2mform(&m_arrow,&globals.mouseformstad[MARROW]);
-  fprintf (stderr, "2\n");
   icon2mform(&m_text_crsr,&globals.mouseformstad[MTEXT_CRSR]);
-  fprintf (stderr, "3\n");
   icon2mform(&m_busy_bee,&globals.mouseformstad[MBUSY_BEE]);
-  fprintf (stderr, "4\n");
   icon2mform(&m_point_hand,&globals.mouseformstad[MPOINT_HAND]);
-  fprintf (stderr, "5\n");
   icon2mform(&m_flat_hand,&globals.mouseformstad[MFLAT_HAND]);
-  fprintf (stderr, "6\n");
   icon2mform(&m_thin_cross,&globals.mouseformstad[MTHIN_CROSS]);
-  fprintf (stderr, "7\n");
   icon2mform(&m_thick_cross,&globals.mouseformstad[MTHICK_CROSS]);
-  fprintf (stderr, "8\n");
   icon2mform(&m_outln_cross,&globals.mouseformstad[MOUTLN_CROSS]);
   
   current = m_arrow;

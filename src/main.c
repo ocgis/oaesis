@@ -41,8 +41,14 @@
 #include	<sysvars.h>
 #endif
 
+/*
+** Description
+** Initialize oAESis
+**
+** 1998-09-20 CG
+*/
 void init_aes(WORD nocnf) {
-  fprintf(stderr,"Initializing global:\n");
+  fprintf(stderr,"oaesis: main.c: Entering init_aes:\n");
   
   init_global(nocnf);
 
@@ -68,10 +74,10 @@ void init_aes(WORD nocnf) {
   Moudev_init_module();
 #endif /* MINT_TARGET */
 
-  fprintf(stderr,"Event handler\r\n");
+  fprintf(stderr,"Initializing Event handler\n");
   Evhd_init_module();
   
-  fprintf(stderr,"Done.\r\n");
+  fprintf(stderr,"oaesis: main.c: Leaving init_aes\n");
 }
 
 void exit_aes(void) {
@@ -104,9 +110,7 @@ void exit_aes(void) {
   exit_global();
   
   fprintf(stderr,"Server\r\n");
-  Srv_exit_module();
-  
-  fprintf(stderr,"Done.\r\n");
+  Srv_exit_module();  
 }
 
 
@@ -186,15 +190,20 @@ int main(int argc,BYTE *argv[],BYTE *envp[]) {
     };
   };
   
-  init_aes(nocnf);
+  init_aes (nocnf);
   
-  Misc_setpath("u:\\");
+  Misc_setpath ("u:\\");
   
-  Menu_handler(envp);
+  sleep (5);
+  /*  Menu_handler(envp); */
   
-  exit_aes();
+  exit_aes ();
   
   return 0;
 }
 
-
+/*
+** Revision history
+** 1998-09-20 CG
+**            Added some debug output to init_aes
+*/

@@ -156,7 +156,9 @@ BYTE *envp[])          /* Environment string.                               */
   MENUMSG msg;
   WORD    quit = FALSE;
   WORD    i = 0;
-  
+
+  fprintf (stderr, "oaesis: menu.c: Entering Menu_handler\n");
+
   mglob.menu_handl_apid = Srv_appl_init(&global_array);
   
   Srv_get_appl_info(mglob.menu_handl_apid,&appl_info);
@@ -284,6 +286,8 @@ BYTE *envp[])          /* Environment string.                               */
       };
     };
   };
+
+  fprintf (stderr, "oaesis: menu.c: Leaving Menu_handler\n");
 }
 
 /****************************************************************************

@@ -44,7 +44,9 @@ WORD DB_printf(BYTE *fmt, ...) {
   va_start(arguments, fmt);
   r = vsprintf(s, fmt, arguments);
   va_end(arguments);
-  DEBUG(s);
+
+  /*DEBUG(s);*/
+  fprintf (stderr, "%s\n", s);
   
   return r;
 }

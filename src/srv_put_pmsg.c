@@ -20,23 +20,35 @@
 #endif
 
 #include "mintdefs.h"
-#include "srv_call.h"
+#include "srv_put.h"
 
 #define SRVBOX 0x6f535256l /*'oSRV'*/
 
+typedef struct {
+  union {
+    WORD call;
+    WORD retval;
+  } cr;
+
+  WORD    apid;
+  void    *spec;
+  WORD    pid;
+} PMSG;
+
+
 /* Client call of server */
-void Srvc_operation(WORD mode,PMSG *msg) {
-  if(mode == MSG_WRITE) {
-    Pmsg(mode,0xffff0000L | msg->pid,msg);
-  }
-  else {
-    Pmsg(mode,SRVBOX,msg);
-  };
+LONG
+Srv_put (WORD   apid,
+         WORD   call,
+         void * spec)
+{
+  PMSG msg;
+
+  msg.apid = apid;
+  msg.cr.call = call;
+  msg.spec = spec;
+  
+  Pmsg(MSG_READWRITE, SRVBOX, &msg);
+
+  return (LONG)msg.cr.retval;
 }
-
-/* Server select/read/reply */
-LONG Srvc_select(LONG *rhndl,WORD timeout) {
-  return 0;
-}
-
-

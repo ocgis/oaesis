@@ -57,9 +57,11 @@
 #include "resource.h"
 #include "rlist.h"
 #include "srv.h"
-#include "srv_call.h"
+#include "srv_get.h"
+#include "srv_put.h"
 #include "types.h"
 #include "vdi.h"
+
 
 /****************************************************************************
  * Macros                                                                   *
@@ -71,33 +73,33 @@
 /* Server calls */
 
 enum {
-	SRV_SHAKE,
-	SRV_SHUTDOWN,
-	SRV_APPL_CONTROL,
-	SRV_APPL_EXIT,
-	SRV_APPL_FIND,
-	SRV_APPL_INIT,
-	SRV_APPL_SEARCH,
-	SRV_APPL_WRITE,
-	SRV_CLICK_OWNER,
-	SRV_GET_APPL_INFO,
-	SRV_GET_TOP_MENU,
-	SRV_GET_WM_INFO,
-	SRV_MENU_BAR,
-	SRV_MENU_REGISTER,
-	SRV_PUT_EVENT,
-	SRV_SHEL_ENVRN,
-	SRV_SHEL_WRITE,
-	SRV_WIND_CHANGE,
-	SRV_WIND_CLOSE,
-	SRV_WIND_CREATE,
-	SRV_WIND_DELETE,
-	SRV_WIND_DRAW,
-	SRV_WIND_FIND,
-	SRV_WIND_GET,
-	SRV_WIND_NEW,
-	SRV_WIND_OPEN,
-	SRV_WIND_SET
+  SRV_SHAKE,
+  SRV_SHUTDOWN,
+  SRV_APPL_CONTROL,
+  SRV_APPL_EXIT,
+  SRV_APPL_FIND,
+  SRV_APPL_INIT,
+  SRV_APPL_SEARCH,
+  SRV_APPL_WRITE,
+  SRV_CLICK_OWNER,
+  SRV_GET_APPL_INFO,
+  SRV_GET_TOP_MENU,
+  SRV_GET_WM_INFO,
+  SRV_MENU_BAR,
+  SRV_MENU_REGISTER,
+  SRV_PUT_EVENT,
+  SRV_SHEL_ENVRN,
+  SRV_SHEL_WRITE,
+  SRV_WIND_CHANGE,
+  SRV_WIND_CLOSE,
+  SRV_WIND_CREATE,
+  SRV_WIND_DELETE,
+  SRV_WIND_DRAW,
+  SRV_WIND_FIND,
+  SRV_WIND_GET,
+  SRV_WIND_NEW,
+  SRV_WIND_OPEN,
+  SRV_WIND_SET
 };
 
 /* appl_* related */
@@ -283,33 +285,32 @@ typedef struct {
 }C_WIND_OPEN;
 
 typedef union {
-	C_APPL_CONTROL  *appl_control;
-	C_APPL_EXIT     *appl_exit;
-	C_APPL_FIND     *appl_find;
-	C_APPL_INIT     *appl_init;
-	C_APPL_SEARCH   *appl_search;
-	C_APPL_WRITE    *appl_write;
-	C_CLICK_OWNER   *click_owner;
-	C_GET_APPL_INFO *get_appl_info;
-	C_GET_TOP_MENU  *get_top_menu;
-	C_GET_WM_INFO   *get_wm_info;
-	C_MENU_BAR      *menu_bar;
-	C_MENU_REGISTER *menu_register;
-	C_PUT_EVENT     *put_event;
-	C_REGISTER_PRG  *register_prg;
-	C_SHEL_ENVRN    *shel_envrn;
-	C_SHEL_WRITE    *shel_write;
-	C_WIND_CHANGE   *wind_change;
-	C_WIND_CLOSE    *wind_close;
-	C_WIND_CREATE   *wind_create;
-	C_WIND_DELETE   *wind_delete;
-	C_WIND_DRAW     *wind_draw;
-	C_WIND_FIND     *wind_find;
-	C_WIND_GET      *wind_get;
-	C_WIND_NEW      *wind_new;
-	C_WIND_OPEN     *wind_open;
-	C_WIND_SET      *wind_set;
-	void            *par;
+	C_APPL_CONTROL  appl_control;
+	C_APPL_EXIT     appl_exit;
+	C_APPL_FIND     appl_find;
+	C_APPL_INIT     appl_init;
+	C_APPL_SEARCH   appl_search;
+	C_APPL_WRITE    appl_write;
+	C_CLICK_OWNER   click_owner;
+	C_GET_APPL_INFO get_appl_info;
+	C_GET_TOP_MENU  get_top_menu;
+	C_GET_WM_INFO   get_wm_info;
+	C_MENU_BAR      menu_bar;
+	C_MENU_REGISTER menu_register;
+	C_PUT_EVENT     put_event;
+	C_REGISTER_PRG  register_prg;
+	C_SHEL_ENVRN    shel_envrn;
+	C_SHEL_WRITE    shel_write;
+	C_WIND_CHANGE   wind_change;
+	C_WIND_CLOSE    wind_close;
+	C_WIND_CREATE   wind_create;
+	C_WIND_DELETE   wind_delete;
+	C_WIND_DRAW     wind_draw;
+	C_WIND_FIND     wind_find;
+	C_WIND_GET      wind_get;
+	C_WIND_NEW      wind_new;
+	C_WIND_OPEN     wind_open;
+	C_WIND_SET      wind_set;
 }C_SRV;
 
 /****************************************************************************
@@ -1224,26 +1225,26 @@ WORD apid,                 /* Application id.                               */
 SRV_APPL_INFO *appl_info)  /* Returned info.                                */
 /****************************************************************************/
 {
-	AP_INFO *ai;
-	WORD    retval = 0;
+  AP_INFO *ai;
+  WORD    retval = 0;
 
-	ai = internal_appl_info(apid);			
+  ai = internal_appl_info(apid);			
 
-	if(ai) {
-		appl_info->eventpipe = ai->eventpipe;
-		appl_info->msgpipe = ai->msgpipe;
-		appl_info->vid = ai->vid;
-	}
-	else
-	{
-		DB_printf(
-			"%s: Line %d: Couldn't find description of application %d\r\n",
-			__FILE__,__LINE__,apid);
+  if(ai) {
+    appl_info->eventpipe = ai->eventpipe;
+    appl_info->msgpipe = ai->msgpipe;
+    appl_info->vid = ai->vid;
+  }
+  else
+  {
+    DB_printf(
+              "%s: Line %d: Couldn't find description of application %d\r\n",
+              __FILE__,__LINE__,apid);
 
-		retval = -1;
-	};
+    retval = -1;
+  };
 
-	return retval;
+  return retval;
 }
 
 /****************************************************************************
@@ -4158,14 +4159,23 @@ C_PUT_EVENT *msg)
 
 
 static WORD server(LONG arg) {
-  PMSG msg;
-  WORD work_in[] = {1,7,1,1,1,1,1,1,1,1,2};
-  WORD work_out[57];
-  RECT r;
+  WORD          work_in[] = {1,7,1,1,1,1,1,1,1,1,2};
+  WORD          work_out[57];
+  RECT          r;
   C_WIND_CREATE c_wind_create;
   C_WIND_GET    c_wind_get;
   C_WIND_OPEN   c_wind_open;
+
+  /* These variables are passed from clients */
+  WORD          client_pid;
+  WORD          apid;
+  WORD          call;
+  C_SRV         par;
+  void *        handle;
+
+  WORD          code;
   
+  /* Stop warnings from compiler about unused parameters */
   NOT_USED(arg);
   
   svid = globals.vid;
@@ -4195,202 +4205,201 @@ static WORD server(LONG arg) {
 #ifdef SRV_DEBUG
     DB_printf("///");
 #endif
-    
-    Srvc_operation(MSG_READ,&msg);
+
+    /* Wait for another call from a client */
+    handle = Srv_get (&apid, &client_pid, &call, &par);
     
 #ifdef SRV_DEBUG
     DB_printf("Call: %d pid: %d",msg.cr.call,msg.pid);
 #endif		
     
-    switch(msg.cr.call) {
+    switch(call) {
     case SRV_SHAKE:
-      DB_printf("I'm fine process %d!",msg.pid);
-      DB_printf("How are you doing yourself?");
-      Srvc_operation(MSG_WRITE,&msg);
+      DB_printf ("I'm fine application %d (process %d)!", apid, client_pid);
+      DB_printf ("How are you doing yourself?");
+      Srv_reply (handle, &par, 0);
       break;
       
     case SRV_SHUTDOWN:
       DB_printf("OK! Nice chatting with you! Bye!");
       
-      Srvc_operation (MSG_WRITE,&msg);
+      Srv_reply (handle, &par, 0);
       Vdi_v_clsvwk(svid);
       return 0;
       
     case SRV_APPL_CONTROL:
-      msg.cr.retval = 
-	srv_appl_control(msg.spec);
+      code = srv_appl_control (&par.appl_control);
       
-      Srvc_operation(MSG_WRITE,&msg);
+      Srv_reply (handle, &par, code);
       break;
       
     case SRV_APPL_EXIT:
-      msg.cr.retval = srv_appl_exit(msg.apid);
+      code = srv_appl_exit (apid);
       
-      Srvc_operation(MSG_WRITE,&msg);
+      Srv_reply (handle, &par, code);
       break;
       
     case SRV_APPL_FIND:
-      msg.cr.retval = srv_appl_find(msg.spec);
+      code = srv_appl_find (&par.appl_find);
       
-      Srvc_operation(MSG_WRITE,&msg);
+      Srv_reply (handle, &par, code);
       break;
       
     case SRV_APPL_INIT:
-      srv_appl_init(msg.pid, msg.spec);
+      srv_appl_init (client_pid, &par.appl_init);
       
-      Srvc_operation(MSG_WRITE,&msg);
+      Srv_reply (handle, &par, 0);
       break;
       
     case SRV_APPL_SEARCH:
-      msg.cr.retval =
-	srv_appl_search(msg.apid,msg.spec);
+      code = srv_appl_search (apid, &par.appl_search);
       
-      Srvc_operation(MSG_WRITE,&msg);
+      Srv_reply (handle, &par, code);
       break;
       
     case SRV_APPL_WRITE:
-      msg.cr.retval = srv_appl_write(msg.spec);
+      code = srv_appl_write (&par.appl_write);
       
-      Srvc_operation(MSG_WRITE,&msg);
+      Srv_reply (handle, &par, code);
       break;
       
     case SRV_CLICK_OWNER:
-      msg.cr.retval = 
+      code = 
 	srv_click_owner();
       
-      Srvc_operation(MSG_WRITE,&msg);
+      Srv_reply (handle, &par, code);
       break;
       
     case SRV_GET_APPL_INFO:
-      msg.cr.retval = 
-	srv_get_appl_info(msg.apid,msg.spec);
+      code = 
+	srv_get_appl_info (apid, &par.get_appl_info);
       
-      Srvc_operation(MSG_WRITE,&msg);
+      Srv_reply (handle, &par, code);
       break;
       
     case SRV_GET_TOP_MENU:
-      msg.cr.retval = 
-	srv_get_top_menu (msg.spec);
+      code = 
+	srv_get_top_menu (&par.get_top_menu);
       
-      Srvc_operation(MSG_WRITE,&msg);
+      Srv_reply (handle, &par, code);
       break;
       
     case SRV_GET_WM_INFO:
-      msg.cr.retval = 
-	srv_get_wm_info(msg.spec);
+      code = 
+	srv_get_wm_info (&par.get_wm_info);
       
-      Srvc_operation(MSG_WRITE,&msg);
+      Srv_reply (handle, &par, code);
       break;
       
     case SRV_MENU_BAR:
-      msg.cr.retval = 
-	srv_menu_bar(msg.spec);
+      code = 
+	srv_menu_bar (&par.menu_bar);
       
-      Srvc_operation(MSG_WRITE,&msg);
+      Srv_reply (handle, &par, code);
       break;
       
     case SRV_MENU_REGISTER:
-      msg.cr.retval = 
-	srv_menu_register(msg.apid,msg.spec);
+      code = 
+	srv_menu_register (apid, &par.menu_register);
       
-      Srvc_operation(MSG_WRITE,&msg);
+      Srv_reply (handle, &par, code);
       break;
       
     case SRV_PUT_EVENT:
-      msg.cr.retval = 
-	srv_put_event(msg.apid, msg.spec);
+      code = 
+	srv_put_event (apid, &par.put_event);
       
-      Srvc_operation(MSG_WRITE,&msg);
+      Srv_reply (handle, &par, code);
       break;
       
-		case SRV_SHEL_ENVRN:
-      msg.cr.retval = 
-	srv_shel_envrn(msg.spec);
+    case SRV_SHEL_ENVRN:
+      code = 
+	srv_shel_envrn (&par.shel_envrn);
       
-      Srvc_operation(MSG_WRITE,&msg);
+      Srv_reply (handle, &par, code);
       break;
       
     case SRV_SHEL_WRITE:
-      msg.cr.retval = srv_shel_write(msg.apid,msg.spec);
+      code = srv_shel_write(apid, &par.shel_write);
       
-      Srvc_operation(MSG_WRITE,&msg);
+      Srv_reply (handle, &par, code);
       break;
       
     case SRV_WIND_CHANGE:
-      msg.cr.retval = 
-	srv_wind_change(msg.spec);
+      code = 
+	srv_wind_change(&par.wind_change);
       
-      Srvc_operation(MSG_WRITE,&msg);
+      Srv_reply (handle, &par, code);
       break;
       
     case SRV_WIND_CLOSE:
-      msg.cr.retval = 
-	srv_wind_close(msg.spec);
+      code = 
+	srv_wind_close(&par.wind_close);
       
-      Srvc_operation(MSG_WRITE,&msg);
+      Srv_reply (handle, &par, code);
       break;
       
     case SRV_WIND_CREATE:
-      msg.cr.retval = 
-	srv_wind_create(msg.spec);
+      code = 
+	srv_wind_create(&par.wind_create);
       
-      Srvc_operation(MSG_WRITE,&msg);
+      Srv_reply (handle, &par, code);
       break;
       
     case SRV_WIND_DELETE:
-      msg.cr.retval = 
-	srv_wind_delete(msg.spec);
+      code = 
+	srv_wind_delete (&par.wind_delete);
       
-      Srvc_operation(MSG_WRITE,&msg);
+      Srv_reply (handle, &par, code);
       break;
       
     case SRV_WIND_DRAW:
-      msg.cr.retval = 
-	srv_wind_draw(msg.spec);
+      code = 
+	srv_wind_draw (&par.wind_draw);
       
-      Srvc_operation(MSG_WRITE,&msg);
+      Srv_reply (handle, &par, code);
       break;
       
     case SRV_WIND_FIND:
-      msg.cr.retval = 
-	srv_wind_find(msg.spec);
+      code = 
+	srv_wind_find(&par.wind_find);
       
-      Srvc_operation(MSG_WRITE,&msg);
+      Srv_reply (handle, &par, code);
       break;
       
     case SRV_WIND_GET:
-      msg.cr.retval = 
-	srv_wind_get(msg.spec);
+      code = 
+	srv_wind_get (&par.wind_get);
       
-      Srvc_operation(MSG_WRITE,&msg);
+      Srv_reply (handle, &par, code);
       break;
       
     case SRV_WIND_NEW:
-      msg.cr.retval = 
-	srv_wind_new(msg.apid);
+      code = 
+	srv_wind_new(&par.wind_new);
       
-      Srvc_operation(MSG_WRITE,&msg);
+      Srv_reply (handle, &par, code);
       break;
       
     case SRV_WIND_OPEN:
-      msg.cr.retval = 
-	srv_wind_open(msg.spec);
+      code = 
+	srv_wind_open(&par.wind_open);
       
-      Srvc_operation(MSG_WRITE,&msg);
+      Srv_reply (handle, &par, code);
       break;
       
     case SRV_WIND_SET:
-      msg.cr.retval = 
-	srv_wind_set(msg.apid,msg.spec);
+      code = 
+	srv_wind_set(apid, &par.wind_set);
       
-      Srvc_operation(MSG_WRITE,&msg);
+      Srv_reply (handle, &par, code);
       break;
       
     default:
       DB_printf("%s: Line %d:\r\n"
 		"Unknown call %d to server!",
-		__FILE__,__LINE__,msg.cr.call);
-      Srvc_operation(MSG_WRITE,&msg);
+		__FILE__, __LINE__, call);
+      Srv_reply (handle, &par, -1);
     };
   };
 }
@@ -4473,8 +4482,6 @@ void                   /*                                                   */
 Srv_exit_module(void)  /*                                                   */
 /****************************************************************************/
 {
-  PMSG msg;
-  
   DB_printf("Killing off alive processes");
   
   /* Kill all AES processes */
@@ -4491,19 +4498,17 @@ Srv_exit_module(void)  /*                                                   */
 
   DB_printf("Server we have to quit now! Bye!");
   
-  msg.cr.call = SRV_SHUTDOWN;
-  Srvc_operation(MSG_READWRITE,&msg);
+  Srv_put (0, SRV_SHUTDOWN, NULL);
 }
 
 void Srv_shake(void) {
-	PMSG msg;
-
-	DB_printf("How are you doing server?");
+  fprintf (stderr, "srv.c: Entering Srv_shake\n");
+  DB_printf("How are you doing server?");
 	
-	msg.cr.call = SRV_SHAKE;
-	Srvc_operation(MSG_READWRITE,&msg);
+  Srv_put (0, SRV_SHAKE, NULL);
 	
-	DB_printf("I'm fine too process %d!",msg.pid);
+  DB_printf("I'm fine too process!");
+  fprintf (stderr, "srv.c: Leaving Srv_shake\n");
 }
 
 /****************************************************************************
@@ -4515,17 +4520,12 @@ WORD apid,          /* Application to control.                              */
 WORD mode)          /* What to do.                                          */
 /****************************************************************************/
 {
-	C_APPL_CONTROL par;
-	PMSG           msg;
+  C_APPL_CONTROL par;
 	
-	par.apid = apid;
-	par.mode = mode;
-	msg.cr.call = SRV_APPL_CONTROL;
-	msg.spec = &par;
+  par.apid = apid;
+  par.mode = mode;
 
-	Srvc_operation(MSG_READWRITE,&msg);
-
-	return msg.cr.retval;
+  return Srv_put (apid, SRV_APPL_CONTROL, &par);
 }
 
 /****************************************************************************
@@ -4537,24 +4537,19 @@ Srv_appl_exit(  /*                                                          */
 WORD apid)      /* Application id.                                          */
 /****************************************************************************/
 {
-	C_APPL_EXIT   par;
-	PMSG          msg;
-	SRV_APPL_INFO apinf;
+  C_APPL_EXIT   par;
+  SRV_APPL_INFO apinf;
+  WORD          code;
 
-	Srv_get_appl_info(apid,&apinf);
+  Srv_get_appl_info(apid, &apinf);
 
-	msg.apid = apid;
-	
-	msg.cr.call = SRV_APPL_EXIT;
-	msg.spec = &par;
+  code = Srv_put (apid, SRV_APPL_EXIT, &par);
 
-	Srvc_operation(MSG_READWRITE,&msg);
+  Fclose(apinf.msgpipe);
+  Fclose(apinf.eventpipe);
+  Vdi_v_clsvwk(apinf.vid);
 
-	Fclose(apinf.msgpipe);
-	Fclose(apinf.eventpipe);
-	Vdi_v_clsvwk(apinf.vid);
-
-	return msg.cr.retval;
+  return code;
 }
 
 /****************************************************************************
@@ -4566,17 +4561,11 @@ Srv_appl_find(    /*                                                        */
 BYTE *fname)      /* File name of application to seek.                      */
 /****************************************************************************/
 {
-	C_APPL_FIND par;
-	PMSG        msg;
+  C_APPL_FIND par;
 	
-	par.fname = fname;
-	
-	msg.cr.call = SRV_APPL_FIND;
-	msg.spec = &par;
+  par.fname = fname;
 
-	Srvc_operation(MSG_READWRITE,&msg);
-
-	return msg.cr.retval;
+  return Srv_put (0, SRV_APPL_FIND, &par);
 }
 
 /****************************************************************************
@@ -4588,60 +4577,60 @@ Srv_appl_init(         /*                                                   */
 GLOBAL_ARRAY *global)  /* Global array.                                     */
 /****************************************************************************/
 {
-	WORD        pid = Pgetpid();
-	C_APPL_INIT par;
-	LONG        fnr;
-	PMSG        msg;
-	WORD        work_in[] = {1,7,1,1,1,1,1,1,1,1,2};
-	WORD        work_out[57];
+  WORD        pid = Pgetpid();
+  C_APPL_INIT par;
+  LONG        fnr;
+  WORD        work_in[] = {1,7,1,1,1,1,1,1,1,1,2};
+  WORD        work_out[57];
 	
 
-	sprintf(par.msgname,"u:\\pipe\\applmsg.%03d",pid);		
-	sprintf(par.eventname,"u:\\pipe\\applevnt.%03d",pid);		
+  sprintf(par.msgname,"u:\\pipe\\applmsg.%03d",pid);		
+  sprintf(par.eventname,"u:\\pipe\\applevnt.%03d",pid);		
 
-	par.msghandle = par.eventhandle = 0;
+  par.msghandle = par.eventhandle = 0;
 
-	if((fnr = Fopen(par.msgname,0)) >= 0) {
-		Fclose((WORD)fnr);
-	}
-	else if((par.msghandle = (WORD)Fcreate(par.msgname,0)) < 0) {
-		Fclose(par.msghandle);
+  if((fnr = Fopen(par.msgname,0)) >= 0)
+  {
+    Fclose((WORD)fnr);
+  }
+  else if((par.msghandle = (WORD)Fcreate(par.msgname,0)) < 0)
+  {
+    Fclose(par.msghandle);
 		
-		return -1;
-	}
+    return -1;
+  }
 	
-	if((fnr = Fopen(par.eventname,0)) >= 0) {
-		Fclose((WORD)fnr);
-	}
-	else if((par.eventhandle = (WORD)Fcreate(par.eventname,0)) < 0) {
-		Fclose(par.msghandle);
-		Fclose(par.eventhandle);
+  if((fnr = Fopen(par.eventname,0)) >= 0)
+  {
+    Fclose((WORD)fnr);
+  }
+  else if((par.eventhandle = (WORD)Fcreate(par.eventname,0)) < 0)
+  {
+    Fclose(par.msghandle);
+    Fclose(par.eventhandle);
 		
-		return -1;
-	}
+    return -1;
+  }
 	
 
-	par.global = global;
+  par.global = global;
 
-	par.vid = globals.vid;
-	Vdi_v_opnvwk(work_in,&par.vid,work_out);
+  par.vid = globals.vid;
+  Vdi_v_opnvwk(work_in, &par.vid, work_out);
 
-	msg.cr.call = SRV_APPL_INIT;
-	msg.apid = -1;
-	msg.spec = &par;
-
-	Srvc_operation(MSG_READWRITE,&msg);
+  Srv_put (0, SRV_APPL_INIT, &par);
 		
-	if(global->apid >= 0) {
-		return global->apid;
-	};
+  if(global->apid >= 0) {
+    return global->apid;
+  };
 			
-	Vdi_v_clsvwk(par.vid);
-	Fclose(par.msghandle);
-	Fclose(par.eventhandle);
+  Vdi_v_clsvwk(par.vid);
+  Fclose(par.msghandle);
+  Fclose(par.eventhandle);
 	
-	return -1;
+  return -1;
 }
+
 
 /****************************************************************************
  * Srv_appl_search                                                          *
@@ -4656,23 +4645,20 @@ WORD *type,       /* Type of found application.                             */
 WORD *ap_id)      /* Application id of found application.                   */
 /****************************************************************************/
 {
-	C_APPL_SEARCH par;
-	PMSG          msg;
+  C_APPL_SEARCH par;
+  WORD          code;
 	
-	par.mode = mode;
-	par.name = name;
+  par.mode = mode;
+  par.name = name;
 
-	msg.apid = apid;
-	msg.cr.call = SRV_APPL_SEARCH;
-	msg.spec = &par;
+  code = Srv_put (apid, SRV_APPL_SEARCH, &par);
 
-	Srvc_operation(MSG_READWRITE,&msg);
+  *type = par.type;
+  *ap_id = par.ap_id;
 
-	*type = par.type;
-	*ap_id = par.ap_id;
-
-	return msg.cr.retval;
+  return code;
 }
+
 
 /****************************************************************************
  * Srv_appl_write                                                           *
@@ -4685,20 +4671,15 @@ WORD length,    /* Length of message structure.                             */
 void *m)        /* Pointer to message structure.                            */
 /****************************************************************************/
 {
-	C_APPL_WRITE par;
-	PMSG         msg;
-	
-	par.apid = apid;
-	par.length = length;
-	par.msg = m;
-	
-	msg.cr.call = SRV_APPL_WRITE;
-	msg.spec = &par;
+  C_APPL_WRITE par;
 
-	Srvc_operation(MSG_READWRITE,&msg);
-
-	return msg.cr.retval;
+  par.apid = apid;
+  par.length = length;
+  par.msg = m;
+	
+  return Srv_put (apid, SRV_APPL_WRITE, &par);
 }
+
 
 /****************************************************************************
  * Srv_click_owner                                                          *
@@ -4708,16 +4689,11 @@ WORD                    /* Application to receive clicks.                   */
 Srv_click_owner(void)   /*                                                  */
 /****************************************************************************/
 {
-	C_CLICK_OWNER par;
-	PMSG          msg;
+  C_CLICK_OWNER par;
 	
-	msg.cr.call = SRV_CLICK_OWNER;
-	msg.spec = &par;
-
-	Srvc_operation(MSG_READWRITE,&msg);
-
-	return msg.cr.retval;
+  return Srv_put (0, SRV_CLICK_OWNER, &par);
 }
+
 
 /****************************************************************************
  * Srv_get_appl_info                                                        *
@@ -4758,16 +4734,11 @@ OBJECT *                /* Resource tree, or NULL.                          */
 Srv_get_top_menu(void)  /*                                                  */
 /****************************************************************************/
 {
-	C_GET_TOP_MENU par;
-	PMSG           msg;
+  C_GET_TOP_MENU par;
 	
-	msg.cr.call = SRV_GET_TOP_MENU;
-	msg.spec = &par;
-
-	Srvc_operation(MSG_READWRITE,&msg);
-
-	return par.retval;
+  return (OBJECT *)Srv_put (0, SRV_GET_TOP_MENU, &par);
 }
+
 
 /****************************************************************************
  * Srv_get_wm_info                                                          *
@@ -4778,18 +4749,13 @@ Srv_get_wm_info(  /*                                                        */
 WORD id)          /* Window handle.                                         */
 /****************************************************************************/
 {
-	C_GET_WM_INFO par;
-	PMSG          msg;
+  C_GET_WM_INFO par;
 	
-	par.id = id;
+  par.id = id;
 	
-	msg.cr.call = SRV_GET_WM_INFO;
-	msg.spec = &par;
-
-	Srvc_operation(MSG_READWRITE,&msg);
-
-	return par.retval;
+  return (OBJECT *)Srv_put (0, SRV_GET_WM_INFO, &par);
 }
+
 
 /****************************************************************************
  * Srv_menu_bar                                                             *
@@ -4802,21 +4768,15 @@ OBJECT *tree,     /* Menu object tree.                                      */
 WORD   mode)      /* Mode.                                                  */
 /****************************************************************************/
 {
-	C_MENU_BAR par;
-	PMSG       msg;
-	
-	par.apid = apid;
-	par.tree = tree;
-	par.mode = mode;
-	
-	msg.cr.call = SRV_MENU_BAR;
-	msg.apid = apid;
-	msg.spec = &par;
+  C_MENU_BAR par;
 
-	Srvc_operation(MSG_READWRITE,&msg);
-
-	return msg.cr.retval;
+  par.apid = apid;
+  par.tree = tree;
+  par.mode = mode;
+	
+  return Srv_put (apid, SRV_MENU_BAR, &par);
 }
+
 
 /****************************************************************************
  * Srv_menu_register                                                        *
@@ -4828,18 +4788,11 @@ WORD apid,         /* Application id, or -1.                                */
 BYTE *title)       /* Title to register application under.                  */
 /****************************************************************************/
 {
-	C_MENU_REGISTER par;
-	PMSG            msg;
+  C_MENU_REGISTER par;
 	
-	par.title = title;
+  par.title = title;
 	
-	msg.cr.call = SRV_MENU_REGISTER;
-	msg.apid = apid;
-	msg.spec = &par;
-
-	Srvc_operation(MSG_READWRITE,&msg);
-
-	return msg.cr.retval;
+  return Srv_put (apid, SRV_MENU_REGISTER, &par);
 }
 
 /****************************************************************************
@@ -4852,18 +4805,12 @@ BYTE **value,    /* Return address.                                         */
 BYTE *name)      /* Name of variable to find.                               */
 /****************************************************************************/
 {
-	C_SHEL_ENVRN par;
-	PMSG         msg;
+  C_SHEL_ENVRN par;
 	
-	par.value = value;
-	par.name = name;
+  par.value = value;
+  par.name = name;
 
-	msg.cr.call = SRV_SHEL_ENVRN;
-	msg.spec = &par;
-
-	Srvc_operation(MSG_READWRITE,&msg);
-
-	return msg.cr.retval;
+  return Srv_put (0, SRV_SHEL_ENVRN, &par);
 }
 
 
@@ -4881,23 +4828,17 @@ BYTE *cmd,       /* Command line.                                           */
 BYTE *tail)      /* Command tail.                                           */
 /****************************************************************************/
 {
-	C_SHEL_WRITE par;
-	PMSG         msg;
+  C_SHEL_WRITE par;
 	
-	par.mode = mode;
-	par.wisgr = wisgr;
-	par.wiscr = wiscr;
-	par.cmd = cmd;
-	par.tail = tail;
+  par.mode = mode;
+  par.wisgr = wisgr;
+  par.wiscr = wiscr;
+  par.cmd = cmd;
+  par.tail = tail;
 
-	msg.apid = apid;	
-	msg.cr.call = SRV_SHEL_WRITE;
-	msg.spec = &par;
-
-	Srvc_operation(MSG_READWRITE,&msg);
-	
-	return msg.cr.retval;
+  return Srv_put (apid, SRV_SHEL_WRITE, &par);
 }
+
 
 /****************************************************************************
  * Srv_wind_change                                                          *
@@ -4910,20 +4851,15 @@ WORD object,       /* Widget to change state for.                           */
 WORD newstate)     /* New state of widget.                                  */
 /****************************************************************************/
 {
-	C_WIND_CHANGE par;
-	PMSG          msg;
+  C_WIND_CHANGE par;
 	
-	par.id = id;
-	par.object = object;
-	par.newstate = newstate;
+  par.id = id;
+  par.object = object;
+  par.newstate = newstate;
 	
-	msg.cr.call = SRV_WIND_CHANGE;
-	msg.spec = &par;
-
-	Srvc_operation(MSG_READWRITE,&msg);
-	
-	return msg.cr.retval;
+  return Srv_put (0, SRV_WIND_CHANGE, &par);
 }
+
 
 /****************************************************************************
  * Srv_wind_close                                                           *
@@ -4934,18 +4870,11 @@ Srv_wind_close( /*                                                          */
 WORD wid)       /* Identification number of window to close.                */
 /****************************************************************************/
 {
-	C_WIND_CLOSE par;
-	PMSG         msg;
+  C_WIND_CLOSE par;
 	
-	par.id = wid;
+  par.id = wid;
 	
-	msg.cr.call = SRV_WIND_CLOSE;
-/*	msg.apid = apid; */
-	msg.spec = &par;
-
-	Srvc_operation(MSG_READWRITE,&msg);
-	
-	return msg.cr.retval;
+  return Srv_put (0, SRV_WIND_CLOSE, &par);
 }
 
 /****************************************************************************
@@ -4960,21 +4889,14 @@ RECT *maxsize,   /* Maximum size allowed.                                   */
 WORD status)     /* Status of window.                                       */
 /****************************************************************************/
 {
-	C_WIND_CREATE par;
-	PMSG          msg;
+  C_WIND_CREATE par;
 	
-	par.owner = owner;
-	par.elements = elements;
-	par.maxsize = maxsize;
-	par.status = status;
+  par.owner = owner;
+  par.elements = elements;
+  par.maxsize = maxsize;
+  par.status = status;
 	
-	msg.cr.call = SRV_WIND_CREATE;
-/*	msg.apid = apid; */
-	msg.spec = &par;
-
-	Srvc_operation(MSG_READWRITE,&msg);
-	
-	return msg.cr.retval;
+  return Srv_put (0, SRV_WIND_CREATE, &par);
 }
 
 /****************************************************************************
@@ -4986,19 +4908,13 @@ Srv_wind_delete( /*                                                         */
 WORD wid)        /* Identification number of window to close.               */
 /****************************************************************************/
 {
-	C_WIND_DELETE par;
-	PMSG          msg;
+  C_WIND_DELETE par;
 	
-	par.id = wid;
+  par.id = wid;
 	
-	msg.cr.call = SRV_WIND_DELETE;
-/*	msg.apid = apid; */
-	msg.spec = &par;
-
-	Srvc_operation(MSG_READWRITE,&msg);
-	
-	return msg.cr.retval;
+  return Srv_put (0, SRV_WIND_DELETE, &par);
 }
+
 
 /****************************************************************************
  * Srv_wind_draw                                                            *
@@ -5010,18 +4926,12 @@ WORD handle,     /* Handle of window.                                       */
 WORD object)     /* Object to be drawn (see WF_COLOR modes).                */
 /****************************************************************************/
 {
-	C_WIND_DRAW par;
-	PMSG msg;
+  C_WIND_DRAW par;
 	
-	par.handle = handle;
-	par.object = object;
+  par.handle = handle;
+  par.object = object;
 	
-	msg.cr.call = SRV_WIND_DRAW;
-	msg.spec = &par;
-
-	Srvc_operation(MSG_READWRITE,&msg);
-
-	return msg.cr.retval;
+  return Srv_put (0, SRV_WIND_DRAW, &par);
 }
 
 /****************************************************************************
@@ -5034,18 +4944,12 @@ WORD x,        /* X coordinate.                                             */
 WORD y)        /* Y coordinate.                                             */
 /****************************************************************************/
 {
-	C_WIND_FIND par;
-	PMSG        msg;
+  C_WIND_FIND par;
 	
-	par.x = x;
-	par.y = y;
+  par.x = x;
+  par.y = y;
 	
-	msg.cr.call = SRV_WIND_FIND;
-	msg.spec = &par;
-
-	Srvc_operation(MSG_READWRITE,&msg);
-
-	return msg.cr.retval;
+  return Srv_put (0, SRV_WIND_FIND, &par);
 }
 
 /****************************************************************************
@@ -5062,24 +4966,20 @@ WORD *parm3,   /* Parameter 3.                                              */
 WORD *parm4)   /* Parameter 4.                                              */
 /****************************************************************************/
 {
-	C_WIND_GET par;
-	PMSG       msg;
+  C_WIND_GET par;
+  WORD       code;
 	
-	par.handle = handle;
-	par.mode = mode;
+  par.handle = handle;
+  par.mode = mode;
 	
-	msg.cr.call = SRV_WIND_GET;
-/*	msg.apid = apid; */
-	msg.spec = &par;
+  code = Srv_put (0, SRV_WIND_GET, &par);
 
-	Srvc_operation(MSG_READWRITE,&msg);
-
-	*parm1 = par.parm1;
-	*parm2 = par.parm2;
-	*parm3 = par.parm3;
-	*parm4 = par.parm4;
+  *parm1 = par.parm1;
+  *parm2 = par.parm2;
+  *parm3 = par.parm3;
+  *parm4 = par.parm4;
 	
-	return msg.cr.retval;
+  return code;
 }
 
 /****************************************************************************
@@ -5092,15 +4992,8 @@ WORD apid)     /* Application whose windows should be erased.               */
 /****************************************************************************/
 {
 	C_WIND_NEW par;
-	PMSG       msg;
-	
-	msg.cr.call = SRV_WIND_NEW;
-	msg.apid = apid;
-	msg.spec = &par;
 
-	Srvc_operation(MSG_READWRITE,&msg);
-	
-	return msg.cr.retval;
+	return Srv_put (apid, SRV_WIND_NEW, &par);
 }
 
 /****************************************************************************
@@ -5114,17 +5007,11 @@ RECT *size)    /* Initial size of window.                                   */
 /****************************************************************************/
 {
 	C_WIND_OPEN par;
-	PMSG        msg;
 	
 	par.id = id;
 	par.size = size;
 	
-	msg.cr.call = SRV_WIND_OPEN;
-	msg.spec = &par;
-
-	Srvc_operation(MSG_READWRITE,&msg);
-	
-	return msg.cr.retval;
+	return Srv_put (0, SRV_WIND_OPEN, &par);
 }
 
 /****************************************************************************
@@ -5142,7 +5029,6 @@ WORD parm4)    /* Parameter 4.                                              */
 /****************************************************************************/
 {
 	C_WIND_SET par;
-	PMSG msg;
 	
 	par.handle = handle;
 	par.mode = mode;
@@ -5152,13 +5038,7 @@ WORD parm4)    /* Parameter 4.                                              */
 	par.parm3 = parm3;
 	par.parm4 = parm4;
 
-	msg.cr.call = SRV_WIND_SET;
-	msg.apid = apid;
-	msg.spec = &par;
-
-	Srvc_operation(MSG_READWRITE,&msg);
-	
-	return msg.cr.retval;
+	return Srv_put (apid, SRV_WIND_SET, &par);
 }
 
 /****************************************************************************
@@ -5173,18 +5053,11 @@ WORD    length)   /* Length of message.                                     */
 /****************************************************************************/
 {
 	C_PUT_EVENT par;
-	PMSG msg;
 	
 	par.apid = apid;
 	par.er = m;
 	par.length = length;
 	
-	msg.cr.call = SRV_PUT_EVENT;
-/*	msg.apid = apid; */
-	msg.spec = &par;
-
-	Srvc_operation(MSG_READWRITE,&msg);
-	
-	return msg.cr.retval;
+	return Srv_put (apid, SRV_PUT_EVENT, &par);
 }
 

@@ -1603,7 +1603,7 @@ Evhd_init_module(void) /*                                                   */
   Vdi_vq_mouse(globals.vid,&globals.mouse_button,
 	       &globals.mouse_x,&globals.mouse_y);
   
-  globals.evntpid = (WORD)Misc_fork(evnt_handler,0,"EvntHndl");
+  /*  globals.evntpid = (WORD)Misc_fork(evnt_handler,0,"EvntHndl");*/
 
   Psemaphore(SEM_CREATE,MOUSE_LOCK,-1);
   Psemaphore(SEM_UNLOCK,MOUSE_LOCK,-1);
