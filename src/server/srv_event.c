@@ -284,6 +284,7 @@ srv_wake_appl_if_waiting_for_msg (WORD id) {
                                               &ret);
     
     if (ret.eventout.events != 0) {
+      PUT_R_ALL(EVNT_MULTI, &ret, 0);
       SRV_REPLY(apps [id].handle, &ret, sizeof (R_EVNT_MULTI));
       
       /* The application is not waiting anymore */
@@ -520,6 +521,7 @@ srv_wait_for_event (COMM_HANDLE    handle,
   if (ret.eventout.events == 0) {
     queue_appl (handle, par);
   } else {
+    PUT_R_ALL(EVNT_MULTI, &ret, 0);
     SRV_REPLY(handle, &ret, sizeof (R_EVNT_MULTI));
   }
 }
@@ -556,6 +558,7 @@ handle_mouse_buttons (void) {
                                                  &ret);
 
       if (ret.eventout.events != 0) {
+        PUT_R_ALL(EVNT_MULTI, &ret, 0);
         SRV_REPLY(apps [click_owner].handle, &ret, sizeof (R_EVNT_MULTI));
 
         /* The application is not waiting anymore */
@@ -618,6 +621,7 @@ handle_keys (WORD vdi_workstation_id) {
                                         &ret);
 
       if (ret.eventout.events != 0) {
+        PUT_R_ALL(EVNT_MULTI, &ret, 0);
         SRV_REPLY(apps [topped_appl].handle, &ret, sizeof (R_EVNT_MULTI));
 
         /* The application is not waiting anymore */
@@ -652,6 +656,7 @@ handle_mouse_motion (void) {
                                                 &this_appl->par,
                                                 &ret);
       if (ret.eventout.events != 0) {
+        PUT_R_ALL(EVNT_MULTI, &ret, 0);
         SRV_REPLY(this_appl->handle, &ret, sizeof (R_EVNT_MULTI));
 
         /* The application is not waiting anymore */
@@ -688,6 +693,7 @@ handle_timer (void) {
       ret.eventout.events = check_timer (&this_appl->par,
                                          &ret);
       if (ret.eventout.events != 0) {
+        PUT_R_ALL(EVNT_MULTI, &ret, 0);
         SRV_REPLY(this_appl->handle, &ret, sizeof (R_EVNT_MULTI));
 
         /* The application is not waiting anymore */
@@ -723,8 +729,6 @@ srv_handle_events (WORD vdi_workstation_id) {
 
 /*
 ** Exported
-**
-** 1998-12-23 CG
 */
 void
 srv_graf_mkstate (C_GRAF_MKSTATE * par,
@@ -737,15 +741,12 @@ srv_graf_mkstate (C_GRAF_MKSTATE * par,
                */
 
   /* Return OK */
-  ret->common.retval = 1;
+  PUT_R_ALL(GRAF_MKSTATE, ret, 1);
 }
 
 
 /*
 ** Exported
-**
-** 1999-01-03 CG
-** 1999-05-22 CG
 */
 void
 srv_graf_mouse (WORD           vid,
@@ -760,4 +761,6 @@ srv_graf_mouse (WORD           vid,
     v_hide_c (vid);
     break;
   }
+
+  PUT_R_ALL(GRAF_MOUSE, ret, 0);
 }

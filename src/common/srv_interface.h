@@ -70,6 +70,8 @@ typedef struct {
   R_ALL common;
 }R_APPL_CONTROL;
 
+#define R_APPL_CONTROL_WORDS 0
+
 typedef struct {
   C_ALL common;
 }C_APPL_EXIT;
@@ -79,6 +81,8 @@ typedef struct {
 typedef struct {
   R_ALL common;
 }R_APPL_EXIT;
+
+#define R_APPL_EXIT_WORDS 0
 
 #define APPL_FIND_NAME_TO_APID 0
 #define APPL_FIND_PID_TO_APID  1
@@ -99,6 +103,8 @@ typedef struct {
 typedef struct {
   R_ALL common;
 } R_APPL_FIND;
+
+#define R_APPL_FIND_WORDS 0
 
 typedef struct {
   C_ALL          common;
@@ -123,9 +129,9 @@ typedef struct {
 #define C_APPL_SEARCH_WORDS 1
 
 typedef struct {
-  BYTE   name[20];
   WORD   type;
   WORD   ap_id;
+  BYTE   name[20];
 } APPL_SEARCH_INFO;
 
 typedef struct {
@@ -133,6 +139,8 @@ typedef struct {
   WORD             count;
   APPL_SEARCH_INFO info;
 } R_APPL_SEARCH;
+
+#define R_APPL_SEARCH_WORDS 3
 
 typedef struct {
   C_ALL common;
@@ -151,6 +159,8 @@ typedef struct {
 typedef struct {
   R_ALL common;
 } R_APPL_WRITE;
+
+#define R_APPL_WRITE_WORDS 0
 
 /*
 ** Events used in evnt_multi
@@ -175,6 +185,8 @@ typedef struct {
   EVENTOUT eventout;
 }R_EVNT_MULTI;
 
+#define R_EVNT_MULTI_WORDS ((sizeof(COMMSG) + sizeof(EVENTOUT)) / sizeof(WORD))
+
 typedef struct {
   C_ALL common;
 } C_GRAF_MKSTATE;
@@ -189,6 +201,8 @@ typedef struct {
   WORD  ks;
 } R_GRAF_MKSTATE;
 
+#define R_GRAF_MKSTATE_WORDS 4
+
 typedef struct {
   C_ALL common;
   WORD  mode;
@@ -200,6 +214,8 @@ typedef struct {
 typedef struct {
   R_ALL common;
 } R_GRAF_MOUSE;
+
+#define R_GRAF_MOUSE_WORDS 0
 
 typedef struct {
   C_ALL    common;
@@ -240,6 +256,8 @@ typedef struct {
   R_ALL common;
 } R_WIND_CLOSE;
 
+#define R_WIND_CLOSE_WORDS 0
+
 typedef struct {
   C_ALL  common;
   WORD   elements;
@@ -266,6 +284,8 @@ typedef struct {
   R_ALL common;
 }R_WIND_DELETE;
 
+#define R_WIND_DELETE_WORDS 0
+
 typedef struct {
   C_ALL common;
   WORD  x;
@@ -277,6 +297,8 @@ typedef struct {
 typedef struct {
   R_ALL common;
 } R_WIND_FIND;
+
+#define R_WIND_FIND_WORDS 0
 
 typedef struct {
   C_ALL common;
@@ -294,6 +316,8 @@ typedef struct {
   WORD  parm4;
 }R_WIND_GET;
 
+#define R_WIND_GET_WORDS 4
+
 typedef struct {
   C_ALL common;
 }C_WIND_NEW;
@@ -303,6 +327,8 @@ typedef struct {
 typedef struct {
   R_ALL common;
 }R_WIND_NEW;
+
+#define R_WIND_NEW_WORDS 0
 
 typedef struct {
   C_ALL common;
@@ -320,6 +346,8 @@ typedef struct {
   R_ALL common;
 }R_WIND_SET;
 
+#define R_WIND_SET_WORDS 0
+
 typedef struct {
   C_ALL common;
   WORD  id;
@@ -332,6 +360,8 @@ typedef struct {
   R_ALL common;
 }R_WIND_OPEN;
 
+#define R_WIND_OPEN_WORDS 0
+
 typedef struct {
   C_ALL common;
   WORD  mode;
@@ -342,6 +372,8 @@ typedef struct {
 typedef struct {
   R_ALL common;
 }R_WIND_UPDATE;
+
+#define R_WIND_UPDATE_WORDS 0
 
 typedef struct {
   C_ALL common;
@@ -367,6 +399,8 @@ typedef struct {
   ULONG address;
 } R_MALLOC;
 
+#define R_MALLOC_WORDS 0
+
 typedef struct {
   C_ALL common;
   ULONG address;
@@ -377,6 +411,8 @@ typedef struct {
 typedef struct {
   R_ALL common;
 } R_FREE;
+
+#define R_FREE_WORDS 0
 
 typedef union {
   C_ALL           common;

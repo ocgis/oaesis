@@ -104,7 +104,7 @@ get_lock (COMM_HANDLE handle,
       (*lock_cnt)++;
       
       /* Return OK */
-      ret.common.retval = 1;
+      PUT_R_ALL(WIND_UPDATE, &ret, 1);
       SRV_REPLY(handle, &ret, sizeof (R_WIND_UPDATE));
     } else {
       /* Queue application */
@@ -117,7 +117,7 @@ get_lock (COMM_HANDLE handle,
     *lock_cnt = 1;
     
     /* Return OK */
-    ret.common.retval = 1;
+    PUT_R_ALL(WIND_UPDATE, &ret, 1);
     SRV_REPLY(handle, &ret, sizeof (R_WIND_UPDATE));
   }
 }
@@ -143,7 +143,7 @@ return_lock (COMM_HANDLE handle,
 
     DEBUG2 ("srv_wind.c: return_lock: appl %d", apid);
     /* Return ok */
-    ret.common.retval = 1;
+    PUT_R_ALL(WIND_UPDATE, &ret, 1);
     SRV_REPLY(handle, &ret, sizeof (R_WIND_UPDATE));
     
     if (*lock_cnt == 0) {
@@ -157,7 +157,7 @@ return_lock (COMM_HANDLE handle,
     }
   } else {
     /* Return error */
-    ret.common.retval = 0;
+    PUT_R_ALL(WIND_UPDATE, &ret, 0);
     SRV_REPLY(handle, &ret, sizeof (R_WIND_UPDATE));
   }
 }
@@ -232,19 +232,20 @@ srv_wind_update (COMM_HANDLE     handle,
 void
 srv_wind_get (C_WIND_GET * msg,
               R_WIND_GET * ret) {
-  WINSTRUCT	*win;
+  WINSTRUCT * win;
+  WORD        retval;
   
   win = find_wind_description(msg->handle);
   
   if(win) {
     switch(msg->mode) {	
     case WF_KIND: /* 0x0001 */
-      ret->common.retval = 1;
+      retval = 1;
       ret->parm1 = win->elements;
       break;
       
     case WF_WORKXYWH	:	/*0x0004*/
-      ret->common.retval = 1;
+      retval = 1;
       ret->parm1 = win->worksize.x;
       ret->parm2 = win->worksize.y;
       ret->parm3 = win->worksize.width;
@@ -252,7 +253,7 @@ srv_wind_get (C_WIND_GET * msg,
       break;
       
     case	WF_CURRXYWH	:	/*0x0005*/
-      ret->common.retval = 1;
+      retval = 1;
       ret->parm1 = win->totsize.x;
       ret->parm2 = win->totsize.y;
       ret->parm3 = win->totsize.width;
@@ -260,7 +261,7 @@ srv_wind_get (C_WIND_GET * msg,
 				break;
       
     case	WF_PREVXYWH	:	/*0x0006*/
-      ret->common.retval = 1;
+      retval = 1;
       ret->parm1 = win->lastsize.x;
       ret->parm2 = win->lastsize.y;
       ret->parm3 = win->lastsize.width;
@@ -268,7 +269,7 @@ srv_wind_get (C_WIND_GET * msg,
       break;
       
     case	WF_FULLXYWH	:	/*0x0007*/
-      ret->common.retval = 1;
+      retval = 1;
       ret->parm1 = win->maxsize.x;
       ret->parm2 = win->maxsize.y;
       ret->parm3 = win->maxsize.width;
@@ -276,12 +277,12 @@ srv_wind_get (C_WIND_GET * msg,
       break;
       
     case WF_HSLIDE: /*0x08*/
-      ret->common.retval = 1;
+      retval = 1;
       ret->parm1 = win->hslidepos;
       break;
       
     case WF_VSLIDE: /*0x09*/
-      ret->common.retval = 1;
+      retval = 1;
       ret->parm1 = win->vslidepos;
       break;
       
@@ -297,10 +298,10 @@ srv_wind_get (C_WIND_GET * msg,
 	  ret->parm3 = -1;
 	};
 	
-	ret->common.retval = 1;
+	retval = 1;
       }
       else {
-	ret->common.retval = 0;
+        retval = 0;
       }
       break;
       
@@ -310,7 +311,7 @@ srv_wind_get (C_WIND_GET * msg,
       {
 	RECT r;
 	
-	ret->common.retval = 1;
+	retval = 1;
 	
 	while(win->rpos) {
 	  if(srv_intersect(&win->rpos->r,&win->totsize,&r)) {
@@ -337,17 +338,17 @@ srv_wind_get (C_WIND_GET * msg,
       break;
       
     case WF_HSLSIZE: /*0x0f*/
-      ret->common.retval = 1;
+      retval = 1;
       ret->parm1 = win->hslidesize;
       break;				
       
     case WF_VSLSIZE: /*0x10*/
-      ret->common.retval = 1;
+      retval = 1;
       ret->parm1 = win->vslidesize;
       break;				
       
     case WF_SCREEN: /*0x11*/
-      ret->common.retval = 1;
+      retval = 1;
       ret->parm1 = 0;
       ret->parm2 = 0;
       ret->parm3 = 0;
@@ -356,7 +357,7 @@ srv_wind_get (C_WIND_GET * msg,
       
     case WF_OWNER: /*0x14*/
       if(win) {
-	ret->common.retval = 1;
+	retval = 1;
 	ret->parm1 = win->owner;
 	ret->parm2 = win->status;
 	
@@ -396,8 +397,9 @@ srv_wind_get (C_WIND_GET * msg,
 	  ret->parm4 = -1;
 	}
       }
-      else {
-	ret->common.retval = 0;
+      else
+      {
+	retval = 0;
       }
       break;
       
@@ -412,11 +414,11 @@ srv_wind_get (C_WIND_GET * msg,
       ret->parm2 = globals.icon_width;
       ret->parm3 = globals.icon_height;
       
-      ret->common.retval = 1;
+      retval = 1;
       break;
       
     case WF_UNICONIFY: /* 0x1b */
-      ret->common.retval = 1;
+      retval = 1;
       ret->parm1 = win->origsize.x;
       ret->parm2 = win->origsize.y;
       ret->parm3 = win->origsize.width;
@@ -425,7 +427,7 @@ srv_wind_get (C_WIND_GET * msg,
       
     case WF_WINX:
     case WF_WINXCFG:
-      ret->common.retval = 0;
+      retval = 0;
       break;
       
     default:
@@ -433,11 +435,13 @@ srv_wind_get (C_WIND_GET * msg,
 		"Unknown mode %d  (0x%x) wind_get(%d,%d,...)",
 		__FILE__,__LINE__,msg->mode,msg->mode,
 		msg->handle,msg->mode);
-      ret->common.retval = 0;
+      retval = 0;
     }
   } else {
-    ret->common.retval = 0;
+    retval = 0;
   }
+
+  PUT_R_ALL(WIND_GET, ret, retval);
 }
 
 
@@ -447,18 +451,19 @@ srv_wind_get (C_WIND_GET * msg,
 void
 srv_wind_find (C_WIND_FIND * par,
                R_WIND_FIND * ret) {
-  WINLIST *l = win_vis;
-
-  ret->common.retval = 0;
+  WINLIST * l = win_vis;
+  WORD      retval = 0;
 
   while(l) {
     if (srv_inside (&l->win->totsize, par->x, par->y)) {
-      ret->common.retval = l->win->id;
+      retval = l->win->id;
       break;
     }
     
     l = l->next;
   }
+
+  PUT_R_ALL(WIND_FIND, ret, retval);
 }
 
 

@@ -627,13 +627,13 @@ srv_menu_register (C_MENU_REGISTER * par,
 /*
 ** Description
 ** Server part of srv_appl_control
-**
-** 1999-04-18 CG
 */
 static
 void
 srv_appl_control (C_APPL_CONTROL * msg,
                   R_APPL_CONTROL * ret) {
+  WORD retval;
+
   switch(msg->mode) {
   case APC_TOPNEXT:
     {
@@ -650,7 +650,7 @@ srv_appl_control (C_APPL_CONTROL * msg,
 	top_appl(nexttop);
       }
       
-      ret->common.retval = 1;
+      retval = 1;
     }
     break;
     
@@ -689,29 +689,26 @@ srv_appl_control (C_APPL_CONTROL * msg,
 	srv_appl_exit (&par, &ret);
       }
       
-      ret->common.retval = 1;
+      retval = 1;
     }
     break;
     
   case APC_TOP:
     top_appl (msg->ap_id);
-    ret->common.retval = 1;
+    retval = 1;
     break;
 
   default:
     DB_printf("srv_appl_control doesn't support mode %d", msg->mode);
-    ret->common.retval = 0;
+    retval = 0;
   }
+
+  PUT_R_ALL(APPL_CONTROL, ret, retval);
 }
 
 /*
 ** Description
 ** Implementation of appl_exit ()
-**
-** 1999-01-09 CG
-** 1999-05-20 CG
-** 1999-05-25 CG
-** 1999-07-27 CG
 */
 static
 void
@@ -732,26 +729,25 @@ srv_appl_exit (C_APPL_EXIT * par,
   /*  srv_wind_set(par->common.apid,&cws);*/
   srv_wind_new(par->common.apid);
   apinfofree(par->common.apid);
-  
-  ret->common.retval = 1;
+
+  PUT_R_ALL(APPL_EXIT, ret, 1);
 }
 
 
 /*
 ** Description
 ** Implementation of appl_find ()
-**
-** 1999-06-10 CG
 */
 static
 void
 srv_appl_find (C_APPL_FIND * msg,
                R_APPL_FIND * ret)
 {
-  AP_LIST *al;
-  LONG    w;
-  _DTA    *olddta,newdta;
-  BYTE    pname[ 30];
+  AP_LIST * al;
+  LONG      w;
+  _DTA    * olddta,newdta;
+  BYTE      pname[30];
+  WORD      retval;
 
   switch (msg->mode) {
   case APPL_FIND_PID_TO_APID :
@@ -759,9 +755,9 @@ srv_appl_find (C_APPL_FIND * msg,
     al = search_mpid (msg->data.pid);
     
     if (al) {
-      ret->common.retval = al->ai->id;
+      retval = al->ai->id;
     } else {
-      ret->common.retval = -1;
+      retval = -1;
     }
     break;
 
@@ -769,9 +765,9 @@ srv_appl_find (C_APPL_FIND * msg,
     /* convert from AES to MINT pid */
     al = search_apid (msg->data.apid);
     if(al) {
-      ret->common.retval = al->ai->pid;
+      retval = al->ai->pid;
     } else {
-      ret->common.retval = -1;
+      retval = -1;
     }
     break;
 
@@ -795,14 +791,16 @@ srv_appl_find (C_APPL_FIND * msg,
       al = search_mpid((WORD)w);
       
       if(al) {
-        ret->common.retval = al->ai->id;
+        retval = al->ai->id;
       } else {
-        ret->common.retval = -1;
+        retval = -1;
       }
     } else {
-      ret->common.retval = -1;
+      retval = -1;
     }
   }
+
+  PUT_R_ALL(APPL_FIND, ret, retval);
 }
 
 /*
@@ -876,19 +874,18 @@ srv_appl_init(C_APPL_INIT * par,
 /*
 ** Description
 ** Implementation of appl_search ()
-**
-** 1999-04-12 CG
 */
 void
 srv_appl_search (C_APPL_SEARCH * msg,
                  R_APPL_SEARCH * ret) {
   AP_LIST * this;
   AP_LIST * p;
+  WORD      retval;
   
   this = search_apid (msg->common.apid);
   
   if (this == AP_LIST_REF_NIL) {
-    ret->common.retval = 0;
+    retval = 0;
   } else {
     switch (msg->mode) {
     case APP_FIRST:
@@ -899,7 +896,7 @@ srv_appl_search (C_APPL_SEARCH * msg,
       p = this->ai->ap_search_next;
       
       if (p == AP_LIST_REF_NIL) {
-        ret->common.retval = 0;
+        retval = 0;
       } else {
         strncpy (ret->info.name, p->ai->name, 18); /* the 'pretty name' */
         
@@ -910,36 +907,36 @@ srv_appl_search (C_APPL_SEARCH * msg,
         /* get the next... */	
         this->ai->ap_search_next = p->next;
         
-        ret->common.retval = p->next ? 1: 0;
+        retval = p->next ? 1: 0;
       }
       break;
 
     case 2:        /* search system shell (??) */
       DB_printf("srv_appl_search(2,...) not implemented yet.\r\n");
-      ret->common.retval = 0;
+      retval = 0;
       break;
       
     default:
       DB_printf("%s: Line %d: srv_appl_search\r\n"
                 "Unknown mode %d",__FILE__,__LINE__,msg->mode);
-      ret->common.retval = 0;
+      retval = 0;
     }
   }
+
+  PUT_R_ALL(APPL_SEARCH, ret, retval);
 }
 
 
 /*
 ** Description
 **  Implementation of appl_write().                                         *
-**
-** 1998-10-04 CG
-** 1999-04-07 CG
 */
 void
 srv_appl_write (C_APPL_WRITE * msg,
                 R_APPL_WRITE * ret)
 {
-  AP_INFO	*ai;
+  AP_INFO * ai;
+  WORD      retval;
   
   ai = search_appl_info (msg->addressee);
   
@@ -961,16 +958,18 @@ srv_appl_write (C_APPL_WRITE * msg,
       
       ai->message_size += msg->length;
       
-      ret->common.retval = 0;
+      retval = 0;
 
       srv_wake_appl_if_waiting_for_msg (msg->addressee);
     } else {
-      ret->common.retval = 1;
+      retval = 1;
     }
   } else {
     DB_printf ("srv.c: srv_appl_write: couldn't find appl info");
-    ret->common.retval = 1;
+    retval = 1;
   }
+
+  PUT_R_ALL(APPL_WRITE, ret, retval);
 }
 
 
@@ -2162,16 +2161,14 @@ top_window (WORD winid) {
 /*
 ** Description
 ** Implementation of wind_close ()
-**
-** 1998-12-20 CG
-** 1999-01-10 CG
 */
 static
 void
 srv_wind_close (C_WIND_CLOSE * par,
                 R_WIND_CLOSE * ret) {
-  WINLIST   **wl = &win_vis;
-  WINSTRUCT *newtop = NULL;
+  WINLIST **  wl = &win_vis;
+  WINSTRUCT * newtop = NULL;
+  WORD        retval;
 
   while (*wl) {
     if((*wl)->win->id == par->id) {
@@ -2271,10 +2268,12 @@ srv_wind_close (C_WIND_CLOSE * par,
       */
     }
     
-    ret->common.retval = 1;
+    retval = 1;
   } else {
-    ret->common.retval = 0;
+    retval = 0;
   }
+
+  PUT_R_ALL(WIND_CLOSE, ret, retval);
 }
 
 
@@ -2353,15 +2352,14 @@ R_WIND_CREATE * ret)
 /*
 ** Description
 ** Implementation of wind_delete()
-**
-** 1998-12-07 CG
 */
 static
 void
 srv_wind_delete (C_WIND_DELETE * msg,
                  R_WIND_DELETE * ret) {
-  WINLIST	**wl;
-  
+  WINLIST ** wl;
+  WORD       retval;
+
   wl = &win_list;
   
   while(*wl) {		
@@ -2373,7 +2371,7 @@ srv_wind_delete (C_WIND_DELETE * msg,
   
   if(!(*wl)) {
     /* No such window found! */
-    ret->common.retval = 0;
+    retval = 0;
   } else {
     /* We found the window */
     if((*wl)->win->status & WIN_OPEN) {
@@ -2445,16 +2443,16 @@ srv_wind_delete (C_WIND_DELETE * msg,
       win_free = wt;
     }
     
-    ret->common.retval = 1;
+    retval = 1;
   }
+
+  PUT_R_ALL(WIND_DELETE, ret, retval);
 }
 
 
 /*
 ** Description
 ** Implementation of wind_open ()
-**
-** 1999-01-09 CG
 */
 void
 srv_wind_open (C_WIND_OPEN * msg,
@@ -2465,6 +2463,9 @@ srv_wind_open (C_WIND_OPEN * msg,
   REDRAWSTRUCT m;
   WORD         owner;
   WORD         wastopped = 0;
+  WORD         retval;
+
+  retval = 1;
 
   ws = find_wind_description (msg->id);
   
@@ -2579,13 +2580,13 @@ srv_wind_open (C_WIND_OPEN * msg,
       }
       */
     } else {
-      ret->common.retval = 0;
+      retval = 0;
     }
   } else {
-    ret->common.retval = 0;
+    retval = 0;
   }
   
-  ret->common.retval = 1;
+  PUT_R_ALL(WIND_OPEN, ret, retval);
 }
 
 
@@ -2594,17 +2595,13 @@ srv_wind_open (C_WIND_OPEN * msg,
 /*
 ** Description
 ** Server part of wind_set ()
-**
-** 1998-12-25 CG
-** 1998-12-26 CG
-** 1999-01-01 CG
-** 1999-01-09 CG
 */
 static
 void
 srv_wind_set (C_WIND_SET * msg,
               R_WIND_SET * ret) {
   WINSTRUCT * win;
+  WORD        retval;
   
   win = find_wind_description(msg->handle);
   
@@ -2618,22 +2615,22 @@ srv_wind_set (C_WIND_SET * msg,
       break;
       
     case WF_CURRXYWH: /*0x0005*/
-      ret->common.retval = changewinsize (win,
-                                          (RECT *)&msg->parm1,
-                                          globals.vid,
-                                          0);
+      retval = changewinsize (win,
+                              (RECT *)&msg->parm1,
+                              globals.vid,
+                              0);
       break;
 
     case WF_HSLIDE: /*0x08*/
-      ret->common.retval = changeslider(win,1,HSLIDE,msg->parm1,-1);
+      retval = changeslider(win,1,HSLIDE,msg->parm1,-1);
       break;
 
     case WF_VSLIDE: /*0x09*/
-      ret->common.retval = changeslider(win,1,VSLIDE,msg->parm1,-1);
+      retval = changeslider(win,1,VSLIDE,msg->parm1,-1);
       break;
 
     case WF_TOP  :       /*0x000a*/
-      ret->common.retval = top_window(msg->handle);
+      retval = top_window(msg->handle);
       break;
 
     case WF_NEWDESK: /*0x000e*/
@@ -2641,31 +2638,31 @@ srv_wind_set (C_WIND_SET * msg,
       OBJECT *tree = (OBJECT *)INTS2LONG(msg->parm1, msg->parm2);
       
       if (set_desktop_background (msg->common.apid, tree) == 0) {
-        ret->common.retval = 1;
+        retval = 1;
       } else {
-        ret->common.retval = 0;
+        retval = 0;
       }
     }
     break;
 
     case WF_HSLSIZE: /*0x0f*/
-      ret->common.retval = changeslider(win,1,HSLIDE,-1,msg->parm1);
+      retval = changeslider(win,1,HSLIDE,-1,msg->parm1);
       break;
 
     case WF_VSLSIZE: /*0x10*/
-      ret->common.retval = changeslider(win,1,VSLIDE,-1,msg->parm1);
+      retval = changeslider(win,1,VSLIDE,-1,msg->parm1);
       break;
       
     case WF_COLOR:  /*0x12*/
       DB_printf("srv_wind_set WF_COLOR not implemented");
-      ret->common.retval = 0;
+      retval = 0;
       break;
 
     case WF_DCOLOR: /*0x13*/
       top_colour[msg->parm1] = *(OBJC_COLORWORD *)&msg->parm2;
       untop_colour[msg->parm1] = *(OBJC_COLORWORD *)&msg->parm3;
       
-      ret->common.retval = 0;
+      retval = 0;
       break;
 
     case WF_BEVENT: /*0x18*/
@@ -2675,11 +2672,11 @@ srv_wind_set (C_WIND_SET * msg,
         win->status &= ~WIN_UNTOPPABLE;
       }
       
-      ret->common.retval = 1;
+      retval = 1;
       break;
 
     case WF_BOTTOM: /*0x0019*/
-      ret->common.retval = bottom_window(msg->handle);
+      retval = bottom_window(msg->handle);
       break;
 
     case WF_ICONIFY: /*0x1a*/
@@ -2687,7 +2684,7 @@ srv_wind_set (C_WIND_SET * msg,
       set_win_elem(win->tree,IMOVER);
       win->status |= WIN_ICONIFIED;
       calcworksize(IMOVER,&win->totsize,&win->worksize,WC_WORK);
-      ret->common.retval = changewinsize(win,
+      retval = changewinsize(win,
                                          (RECT *)&msg->parm1,
                                          globals.vid,
                                          1);
@@ -2699,7 +2696,7 @@ srv_wind_set (C_WIND_SET * msg,
       set_win_elem(win->tree,win->elements);
       win->status &= ~WIN_ICONIFIED;
       calcworksize(win->elements,&win->totsize,&win->worksize,WC_WORK);
-      ret->common.retval = changewinsize (win,
+      retval = changewinsize (win,
                                           (RECT *)&msg->parm1,
                                           globals.vid,
                                           1);
@@ -2709,11 +2706,13 @@ srv_wind_set (C_WIND_SET * msg,
     default:
       DB_printf("%s: Line %d: srv_wind_set:\r\n"
                 "Unknown mode %d",__FILE__,__LINE__,msg->mode);
-      ret->common.retval = 0;
+      retval = 0;
     }
   } else {
-    ret->common.retval = 0;     
+    retval = 0;     
   }
+
+  PUT_R_ALL(WIND_SET, ret, retval);
 }
 
 /****************************************************************************
@@ -3065,7 +3064,8 @@ server (LONG arg) {
       case SRV_WIND_NEW:
         ret.common.retval = 
           srv_wind_new (par.wind_new.common.apid);
-        
+        PUT_R_ALL(WIND_NEW, &ret, ret.common.retval);
+
         SRV_REPLY(handle, &ret, sizeof (R_WIND_NEW));
         break;
         
@@ -3093,12 +3093,14 @@ server (LONG arg) {
 
       case SRV_MALLOC:
         ret.malloc.address = (ULONG)malloc (par.malloc.amount);
+        PUT_R_ALL(MALLOC, &ret, 0);
         SRV_REPLY(handle, &ret, sizeof (R_MALLOC));
         break;
 
       case SRV_FREE:
         free ((void *)par.free.address);
 
+        PUT_R_ALL(FREE, &ret, 0);
         SRV_REPLY(handle, &ret, sizeof (R_FREE));
         break;
 
