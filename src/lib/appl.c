@@ -253,20 +253,57 @@ Appl_find(        /*                                                        */
   };
 }
 
-/****************************************************************************
- * Appl_search                                                              *
- *  0x0012 appl_search().                                                   *
- ****************************************************************************/
-void              /*                                                        */
-Appl_search(      /*                                                        */
-            AES_PB *apb)      /* AES parameter block.                                   */
-     /****************************************************************************/
-{
-  apb->int_out[ 0] = Srv_appl_search(apb->global->apid, apb->int_in[0], 
+
+/*
+** Exported
+** Implementation of appl_search ()
+**
+** 1999-04-11 CG
+** 1999-04-12 CG
+*/
+WORD
+Appl_do_search (WORD   apid,
+                WORD   mode,
+                BYTE * name,
+                WORD * type,
+                WORD * ap_id) {
+  C_APPL_SEARCH par;
+  R_APPL_SEARCH ret;
+
+  par.common.call = SRV_APPL_SEARCH;
+  par.common.apid = apid;
+  par.common.pid = getpid ();
+
+  par.mode = mode; /* FIXME: Needed? */
+
+  Client_send_recv (&par,
+                    sizeof (C_APPL_SEARCH),
+                    &ret,
+                    sizeof (R_APPL_SEARCH));
+
+  strcpy (name, ret.info.name);
+  *type = ret.info.type;
+  *ap_id = ret.info.ap_id;
+
+  return ret.common.retval;
+}
+
+
+/*
+** Exported
+** 0x0012 appl_search ()
+**
+** 1999-04-11 CG
+*/
+void
+Appl_search (AES_PB * apb) {
+  apb->int_out[ 0] = Appl_do_search (apb->global->apid,
+                                     apb->int_in[0], 
                                      (BYTE *)apb->addr_in[0],
                                      &apb->int_out[1],
                                      &apb->int_out[2]);
 }
+
 
 /* 0x0013 appl_exit */
 

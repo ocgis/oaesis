@@ -167,6 +167,7 @@ WORD own_graf_handle(void) {
 ** 1999-01-09 CG
 ** 1999-01-13 CG
 ** 1999-03-11 CG
+** 1999-04-13 CG
 */
 void
 init_global (WORD nocnf,
@@ -316,8 +317,12 @@ init_global (WORD nocnf,
                  &global_common.fiseltad);
   /*
   Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,MOUSEFORMS,&global_common.mouseformstad);
-  Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,PMENU,&global_common.pmenutad);
   */
+
+  Rsrc_do_gaddr ((RSHDR *)resource,
+                 R_TREE,
+                 PMENU,
+                 &global_common.pmenutad);
   Rsrc_do_gaddr ((RSHDR *)resource,
                  R_FRSTR,
                  0,

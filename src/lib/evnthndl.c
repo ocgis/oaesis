@@ -34,7 +34,7 @@ v   Fixed mover grabbing bug; if the mouse was moved during click on
  
  ****************************************************************************/
 
-#define DEBUGLEVEL 0
+#define DEBUGLEVEL 3
 
 /****************************************************************************
  * Used interfaces                                                          *
@@ -1161,6 +1161,90 @@ static void check_rectevents(WORD x,WORD y) {
   Psemaphore(SEM_UNLOCK,MOUSE_SEM,-1);
 }
 
+
+/*
+** Description
+** Update the application menu
+**
+** ToDo
+** Fix separation of accessories and applications
+**
+** 1999-04-13 CG
+*/
+static
+WORD
+update_appl_menu (WORD apid) {
+  WORD            rwalk;
+  WORD            topappl;
+  GLOBAL_COMMON * globals = get_global_common ();
+
+  char name[20];
+  WORD type;
+  WORD ap_id;
+  WORD more;  
+
+  topappl = 0; /* FIXME: get_top_appl(); */
+
+  rwalk = PMENU_FIRST;
+
+  more = Appl_do_search (apid, APP_FIRST, name, &type, &ap_id);
+  while (TRUE) {
+    strcpy (globals->pmenutad[rwalk].ob_spec.free_string, name);
+
+    if (ap_id == topappl) {
+      globals->pmenutad[rwalk].ob_state |= CHECKED;
+    } else {
+      globals->pmenutad[rwalk].ob_state &= ~CHECKED;
+    }
+	
+    globals->pmenutad[rwalk].ob_flags &= ~HIDETREE;
+    globals->pmenutad[rwalk].ob_state &= ~DISABLED;
+
+    rwalk++;
+
+    if (more == 0) {
+      break;
+    }
+    
+    more = Appl_do_search (apid, APP_NEXT, name, &type, &ap_id);
+  }
+
+  /*
+  if(globals.accmenu) {
+    strcpy(globals.pmenutad[rwalk].ob_spec.free_string,
+           "----------------------");
+    globals.pmenutad[rwalk].ob_flags &= ~HIDETREE;
+    globals.pmenutad[rwalk].ob_state &= ~CHECKED;
+    globals.pmenutad[rwalk].ob_state |= DISABLED;
+    rwalk++;
+  };
+
+  mwalk = globals.accmenu;
+	
+  while(mwalk) {
+    strcpy(globals.pmenutad[rwalk].ob_spec.free_string,mwalk->ai->name);
+    if(mwalk->ai->id == topappl) {			globals.pmenutad[rwalk].ob_state |= CHECKED;
+    }
+    else {
+      globals.pmenutad[rwalk].ob_state &= ~CHECKED;
+    };
+	
+    globals.pmenutad[rwalk].ob_flags &= ~HIDETREE;
+    globals.pmenutad[rwalk].ob_state &= ~DISABLED;
+
+    mwalk = mwalk->mn_next;
+    rwalk++;
+  }
+  */
+
+  globals->pmenutad[rwalk].ob_flags |= HIDETREE;
+	
+  globals->pmenutad[0].ob_height = globals->pmenutad[rwalk].ob_y;
+	
+  return topappl;
+}
+
+
 static void     getmenuxpos(WORD *x,WORD *width) {
   OBJECT        *t;
         
@@ -1225,6 +1309,7 @@ static WORD     get_matching_menu(OBJECT *t,WORD n) {
 **
 ** 1999-01-09 CG
 ** 1999-04-10 CG
+** 1999-04-13 CG
 */
 static
 WORD
@@ -1241,11 +1326,10 @@ handle_drop_down (WORD        apid,
   
   deskbox = globals->menu[globals->menu[0].ob_tail].ob_head;
 
-  /*  if((deskbox == menubox) && (mouse_y >= globals.pmenutad[0].ob_y)) {
-    nmenu = globals.pmenutad;
-    entry = Objc_do_find(nmenu,0,9,mouse_x,mouse_y,0);
-    } else*/
-  {
+  if ((deskbox == menubox) && (my >= globals->common->pmenutad[0].ob_y)) {
+    nmenu = globals->common->pmenutad;
+    entry = Objc_do_find (nmenu, 0, 9, mx, my, 0);
+  } else {
     nmenu = globals->menu;
     entry = Objc_do_find (nmenu, menubox, 9, mx, my, 0);
   }
@@ -1265,7 +1349,7 @@ handle_drop_down (WORD        apid,
     };
     COMMSG        buffer;
     EVENTOUT      eo;
-    
+
     Objc_area_needed (nmenu, entry, &ei.m1r);
     
     if (!(nmenu[entry].ob_state & DISABLED) && (entry != 0)) {
@@ -1368,6 +1452,7 @@ handle_drop_down (WORD        apid,
 ** 1999-01-09 CG
 ** 1999-03-17 CG
 ** 1999-04-10 CG
+** 1999-04-13 CG
 */
 static
 WORD
@@ -1424,20 +1509,20 @@ handle_selected_title (WORD        apid,
     if(box == deskbox) {
       WORD i;
 
-      /*
-      Objc_do_offset(menu.tree,box,&globals.pmenutad[0].ob_x);
+      Objc_do_offset (globals->menu, box, &globals->common->pmenutad[0].ob_x);
      
-      globals.pmenutad[0].ob_y +=
-        (menu.tree[menu.tree[box].ob_head].ob_height << 1);
-      globals.pmenutad[0].ob_width = menu.tree[box].ob_width;
+      globals->common->pmenutad[0].ob_y +=
+        (globals->menu[globals->menu[box].ob_head].ob_height << 1);
+      globals->common->pmenutad[0].ob_width = globals->menu[box].ob_width;
 
       for(i = PMENU_FIRST; i <= PMENU_LAST; i++) {
-        globals.pmenutad[i].ob_width = globals.pmenutad[0].ob_width;
+        globals->common->pmenutad[i].ob_width =
+          globals->common->pmenutad[0].ob_width;
       }
-                
-      area.height = globals.pmenutad[0].ob_height + 
-        (globals.pmenutad[1].ob_height << 1) + 2;
-        */
+      
+      area.height =
+        globals->common->pmenutad[0].ob_height +
+        (globals->common->pmenutad[1].ob_height << 1) + 2;
     }
 
     dropwin = Wind_do_create (apid, 0, &area, WIN_MENU);
@@ -1447,17 +1532,18 @@ handle_selected_title (WORD        apid,
 
     globals->menu[box].ob_flags &= ~HIDETREE;
 
-    if(FALSE /*box == deskbox*/) {
+    if (box == deskbox) {
       RECT clip = area;
 
-      /*
-      clip.height = globals.pmenutad[0].ob_y - area.y;
-      Objc_do_draw (globals->vid, menu.tree,box,9,&clip);
+      /* Get applications for menu */
+      update_appl_menu (apid);
+
+      clip.height = globals->common->pmenutad[0].ob_y - area.y;
+      Objc_do_draw (globals->vid, globals->menu, box, 9, &clip);
       
-      clip.y = globals.pmenutad[0].ob_y;
-      clip.height = globals.pmenutad[0].ob_height + 1;
-      Objc_do_draw (apid, globals.pmenutad,0,9,&clip);
-      */
+      clip.y = globals->common->pmenutad[0].ob_y;
+      clip.height = globals->common->pmenutad[0].ob_height + 1;
+      Objc_do_draw (globals->vid, globals->common->pmenutad, 0, 9, &clip);
     } else {
       Graf_do_mouse (apid, M_OFF, NULL);
       Objc_do_draw (globals->vid, globals->menu, box, 9, &area);
@@ -1475,17 +1561,32 @@ handle_selected_title (WORD        apid,
       if (eo.events & MU_M1) {
         WORD closebox = 0;
         
-        /* FIXME
-        if((deskbox == box) && (mouse_y >= globals.pmenutad[0].ob_y)) {
-          if(!Misc_inside((RECT *)&globals.pmenutad[0].ob_x, eo.mx, eo.my) ||
-             (Objc_do_find(globals.pmenutad, 0, 9, eo.mx, eo.my, 0) < 0) ||
-             handle_drop_down (apid, hm_buffer, box, title)) {
+        if ((deskbox == box) &&
+            (mouse_y >= globals->common->pmenutad[0].ob_y)) {
+          if (!Misc_inside ((RECT *)&globals->common->pmenutad[0].ob_x,
+                            eo.mx,
+                            eo.my) ||
+              (Objc_do_find (globals->common->pmenutad,
+                             0,
+                             9,
+                             eo.mx,
+                             eo.my,
+                             0) < 0) ||
+              handle_drop_down (apid, eo.mx, eo.my, hm_buffer, box, title)) {
             closebox = 1;
           }
-        } else
-        */
-        if ((Objc_do_find (globals->menu, box, 9, eo.mx, eo.my, 0) < 0) ||
-            handle_drop_down (apid, eo.mx, eo.my, hm_buffer, box, title)) {
+        } else if ((Objc_do_find (globals->menu,
+                                  box,
+                                  9,
+                                  eo.mx,
+                                  eo.my,
+                                  0) < 0) ||
+                   handle_drop_down (apid,
+                                     eo.mx,
+                                     eo.my,
+                                     hm_buffer,
+                                     box,
+                                     title)) {
           closebox = 1;
         }
 

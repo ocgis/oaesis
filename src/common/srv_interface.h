@@ -83,12 +83,21 @@ typedef struct {
 }R_APPL_INIT;
 
 typedef struct {
-  WORD mode;
-  BYTE *name;
-  WORD type;
-  WORD ap_id;
-  WORD retval;
-}C_APPL_SEARCH;
+  C_ALL  common;
+  WORD   mode;
+} C_APPL_SEARCH;
+
+typedef struct {
+  BYTE   name[20];
+  WORD   type;
+  WORD   ap_id;
+} APPL_SEARCH_INFO;
+
+typedef struct {
+  R_ALL            common;
+  WORD             count;
+  APPL_SEARCH_INFO info;
+} R_APPL_SEARCH;
 
 typedef struct {
   C_ALL common;
@@ -183,7 +192,7 @@ typedef struct {
 
 typedef struct {
   C_ALL common;
-  BYTE  title[10];
+  BYTE  title[20];
 } C_MENU_REGISTER;
 
 typedef struct {
@@ -354,6 +363,7 @@ typedef union {
   R_ALL           common;
   R_APPL_EXIT     appl_exit;
   R_APPL_INIT     appl_init;
+  R_APPL_SEARCH   appl_search;
   R_APPL_WRITE    appl_write;
   R_EVNT_MULTI    evnt_multi;
   R_GET_VDI_ID    get_vdi_id;

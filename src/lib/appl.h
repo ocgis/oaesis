@@ -43,6 +43,19 @@ Appl_find(        /*                                                        */
 AES_PB *apb);     /* AES parameter block.                                   */
 /****************************************************************************/
 
+/*
+** Description
+** Implementation of appl_search ()
+**
+** 1999-04-11 CG
+*/
+WORD
+Appl_do_search (WORD   apid,
+                WORD   mode,
+                BYTE * name,
+                WORD * type,
+                WORD * ap_id);
+
 /****************************************************************************
  * Appl_search                                                              *
  *  0x0012 appl_search().                                                   *

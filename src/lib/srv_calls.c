@@ -143,34 +143,6 @@ BYTE *fname)      /* File name of application to seek.                      */
 
 
 /****************************************************************************
- * Srv_appl_search                                                          *
- *  Implementation of appl_search().                                        *
- ****************************************************************************/
-WORD              /* 0 if no more applications exist, or 1.                 */
-Srv_appl_search(  /*                                                        */
-WORD apid,        /* pid of caller..                                        */
-WORD mode,        /* Search mode.                                           */
-BYTE *name,       /* Pretty name of found application.                      */
-WORD *type,       /* Type of found application.                             */
-WORD *ap_id)      /* Application id of found application.                   */
-/****************************************************************************/
-{
-  C_APPL_SEARCH par;
-  WORD          code;
-	
-  par.mode = mode;
-  par.name = name;
-
-  code = Srv_put (apid, SRV_APPL_SEARCH, &par);
-
-  *type = par.type;
-  *ap_id = par.ap_id;
-
-  return code;
-}
-
-
-/****************************************************************************
  * Srv_click_owner                                                          *
  *  Find out which application that "owns" mouse clicks.                    *
  ****************************************************************************/

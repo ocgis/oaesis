@@ -70,11 +70,6 @@
 
 
 /****************************************************************************
- * Typedefs of module global interest                                       *
- ****************************************************************************/
-
-
-/****************************************************************************
  * Module global variables                                                  *
  ****************************************************************************/
 
@@ -345,70 +340,6 @@ get_top_appl(void) /*                                                       */
 		return -1;
 	};
 }
-
-/****************************************************************************
- * update_appl_menu                                                         *
- *  Update the application menu.                                            *
- ****************************************************************************/
-WORD                   /* Top application id.                               */
-update_appl_menu(void) /*                                                   */
-/****************************************************************************/
-{
-  AP_LIST *mwalk;
-  WORD    rwalk;
-  WORD    topappl;
-	
-  return 0;
-
-  topappl = get_top_appl();
-
-  mwalk = globals.applmenu;
-  rwalk = PMENU_FIRST;
-	
-  while(mwalk) {
-    strcpy(globals.pmenutad[rwalk].ob_spec.free_string,mwalk->ai->name);
-    if(mwalk->ai->id == topappl) {			globals.pmenutad[rwalk].ob_state |= CHECKED;
-    }
-    else {
-      globals.pmenutad[rwalk].ob_state &= ~CHECKED;
-    };
-	
-    globals.pmenutad[rwalk].ob_flags &= ~HIDETREE;
-    globals.pmenutad[rwalk].ob_state &= ~DISABLED;
-
-    mwalk = mwalk->mn_next;		rwalk++;
-  };
-	
-  if(globals.accmenu) {
-    strcpy(globals.pmenutad[rwalk].ob_spec.free_string,
-           "----------------------");
-    globals.pmenutad[rwalk].ob_flags &= ~HIDETREE;
-    globals.pmenutad[rwalk].ob_state &= ~CHECKED;
-    globals.pmenutad[rwalk].ob_state |= DISABLED;
-    rwalk++;
-  };
-
-  mwalk = globals.accmenu;
-	
-  while(mwalk) {
-    strcpy(globals.pmenutad[rwalk].ob_spec.free_string,mwalk->ai->name);
-    if(mwalk->ai->id == topappl) {			globals.pmenutad[rwalk].ob_state |= CHECKED;
-    }
-    else {
-      globals.pmenutad[rwalk].ob_state &= ~CHECKED;
-    };
-	
-    globals.pmenutad[rwalk].ob_flags &= ~HIDETREE;
-    globals.pmenutad[rwalk].ob_state &= ~DISABLED;
-
-    mwalk = mwalk->mn_next;		rwalk++;
-  };
-
-  globals.pmenutad[rwalk].ob_flags |= HIDETREE;
-	
-  globals.pmenutad[0].ob_height = globals.pmenutad[rwalk].ob_y;
-	
-  return topappl;}
 
 /*
 ** FIXME
@@ -1419,58 +1350,60 @@ srv_appl_init(C_APPL_INIT * par,
 }
 
 
-/****************************************************************************
- * srv_appl_search                                                          *
- *  Implementation of appl_search().                                        *
- ****************************************************************************/
-WORD                /* 0 if no more applications exist, or 1.               */
-srv_appl_search(    /*                                                      */
-WORD          apid, /* pid of caller..                                      */
-C_APPL_SEARCH *msg)
-/****************************************************************************/
-{
-  AP_LIST *this,*p;
+/*
+** Description
+** Implementation of appl_search ()
+**
+** 1999-04-12 CG
+*/
+void
+srv_appl_search (C_APPL_SEARCH * msg,
+                 R_APPL_SEARCH * ret) {
+  AP_LIST * this;
+  AP_LIST * p;
   
-  this = search_apid(apid);
+  this = search_apid (msg->common.apid);
   
-  if(!this) {
-    return 0;
-  };
-  
-  switch(msg->mode) {
-  case APP_FIRST:
-    this->ai->ap_search_next = ap_pri;
-    /* there will always have atleast ourself to return */
-    
-  case APP_NEXT:
-    p = this->ai->ap_search_next;
-    
-    if(!p) {
-      return 0;
-    };
-    
-    strncpy(msg->name, p->ai->name, 18); /* the 'pretty name' */
-    
-    msg->type =  p->ai->type;           /* sys/app/acc */
-    
-    msg->ap_id = p->ai->id;
-    
-    /* get the next... */	
-    this->ai->ap_search_next = p->next;
-    
-    return (p->next) ? 1: 0;
-    
-  case 2:        /* search system shell (??) */
-    DB_printf("srv_appl_search(2,...) not implemented yet.\r\n");
-    break;
-    
-  default:
-    DB_printf("%s: Line %d: srv_appl_search\r\n"
-	      "Unknown mode %d",__FILE__,__LINE__,msg->mode);
+  if (this == AP_LIST_REF_NIL) {
+    ret->common.retval = 0;
+  } else {
+    switch (msg->mode) {
+    case APP_FIRST:
+      this->ai->ap_search_next = ap_pri;
+      /* there will always have atleast ourself to return */
+
+    case APP_NEXT:
+      p = this->ai->ap_search_next;
+      
+      if (p == AP_LIST_REF_NIL) {
+        ret->common.retval = 0;
+      } else {
+        strncpy (ret->info.name, p->ai->name, 18); /* the 'pretty name' */
+        
+        ret->info.type =  p->ai->type;           /* sys/app/acc */
+        
+        ret->info.ap_id = p->ai->id;
+        
+        /* get the next... */	
+        this->ai->ap_search_next = p->next;
+        
+        ret->common.retval = p->next ? 1: 0;
+      }
+      break;
+
+    case 2:        /* search system shell (??) */
+      DB_printf("srv_appl_search(2,...) not implemented yet.\r\n");
+      ret->common.retval = 0;
+      break;
+      
+    default:
+      DB_printf("%s: Line %d: srv_appl_search\r\n"
+                "Unknown mode %d",__FILE__,__LINE__,msg->mode);
+      ret->common.retval = 0;
+    }
   }
-  
-  return 0;
 }
+
 
 /*
 ** Description
@@ -1645,6 +1578,7 @@ set_desktop_background (WORD     apid,
 ** Place application on top
 **
 ** 1999-01-01 CG
+** 1999-04-13 CG
 */
 static
 WORD
@@ -1682,7 +1616,6 @@ top_appl (WORD apid) {
     update_desktop_background ();
   }
   
-  update_appl_menu();
   redraw_menu_bar();
   
   return lasttop;
@@ -3693,6 +3626,8 @@ C_PUT_EVENT *msg)
 ** 1999-01-03 CG
 ** 1999-01-09 CG
 ** 1999-03-28 CG
+** 1999-04-11 CG
+** 1999-04-12 CG
 */
 static
 WORD
@@ -3838,9 +3773,9 @@ server (LONG arg) {
         break;
         
       case SRV_APPL_SEARCH:
-        code = srv_appl_search (apid, &par.appl_search);
+        srv_appl_search (&par.appl_search, &ret.appl_search);
         
-        Srv_reply (handle, &par, code);
+        Srv_reply (handle, &ret, sizeof (R_APPL_SEARCH));
         break;
         
       case SRV_APPL_WRITE:
