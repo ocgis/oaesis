@@ -12,10 +12,11 @@
 
 #include "debug.h"
 
-#define DEBUGPATH "u:\\dev\\null"
+#define DEBUGPATH "u:\\dev\\ttya"
 
 static char debugpath[128] = DEBUGPATH;
 
+#ifdef MINT_TARGET
 static
 void
 DEBUG (char * s) {
@@ -32,16 +33,18 @@ DEBUG (char * s) {
     if((debug = fopen(debugpath,"a+"))) {
       fprintf(debug,"%s: %s\r\n",newdta.dta_name,s);
       fclose(debug);
-    };
-  };
+    }
+  }
   
   Fsetdta(olddta);
 }
+#endif
 
 /*
 ** Exported
 **
 ** 1999-03-28 CG
+** 1999-08-14 CG
 */
 void
 DB_printf (char * fmt, ...) {
@@ -52,8 +55,11 @@ DB_printf (char * fmt, ...) {
   vsprintf(s, fmt, arguments);
   va_end(arguments);
 
-  /*DEBUG(s);*/
-  fprintf (stderr, "oaesis: %s\n", s);
+#ifdef MINT_TARGET
+  DEBUG(s);
+#else
+  fprintf (stderr, "oaesis: %s\r\n", s);
+#endif
 }
 
 

@@ -468,13 +468,11 @@ static AESCB aescalls[] = {
 void
 aes_call(AESPB * apb) {
 #if 0
-  if(globals.aes_trace) {
-    if((apb->global[2] != 0) /*&& (apb->contrl[0] != 25)*/) {
-      DB_printf ("Aes call %d (0x%x) %s\n",
-		 apb->contrl[0],
-		 apb->contrl[0],
-		 aescalls[apb->contrl[0]].name);
-    }
+  if((apb->global[2] != 0) /*&& (apb->contrl[0] != 25)*/) {
+    DB_printf ("Aes call %d (0x%x) %s",
+	       apb->contrl[0],
+	       apb->contrl[0],
+	       aescalls[apb->contrl[0]].name);
   }
 #endif
   

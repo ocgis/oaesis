@@ -11,6 +11,14 @@
 ** Read the file COPYING for more information.
 */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#ifdef MINT_TARGET
+#include <mintbind.h>
+#endif
+
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -64,8 +72,48 @@ min (WORD a,
 #define NUM_LINES       10
 
 /*static char progpath[500] = "c:\\*";*/
-static char progpath[500] = "/usr/local/src/osis/cvs/otermis/src/*";
+#ifdef MINT_TARGET
+static char progpath[500] = "u:\\d\\nytto\\*";
+#else
+static char progpath[500] = "/usr/local/src/osis/ppc-linux"
+#endif
+
 static char progfile[70] = "toswin_w.prg";
+
+#ifdef MINT_TARGET
+/*
+** Description
+** Set current working directory
+**
+** 1999-08-14 CG
+*/
+int
+setpath (char * dir) {
+  int    drv, old;
+  char * d;
+  
+  d = dir;
+  old = Dgetdrv();
+  if(*d && (*(d+1) == ':')) {
+    drv = toupper(*d) - 'A';
+    d += 2;
+    (void)Dsetdrv(drv);
+  }
+  
+  if(!*d) {		/* empty path means root directory */
+    *d = '\\';
+    *(d + 1) = '\0';
+  }
+  
+  if(Dsetpath(d) < 0) {
+    (void)Dsetdrv(old);
+    return -1;
+  }
+  
+  return 0;
+}
+#endif /* MINT_TARGET */
+
 
 /*
 ** Description
@@ -105,11 +153,11 @@ launch_application (void) {
 
 #ifdef MINT_TARGET
     Dgetpath (oldpath, 0);
-    Misc_setpath (newpath);
+    setpath (newpath);
 
     err = Pexec (100, execpath, 0L, 0L);
 
-    Misc_setpath (oldpath);
+    setpath (oldpath);
 #else
     getcwd (oldpath, 128);
     chdir (newpath);
@@ -257,7 +305,7 @@ updatewait (int wid) {
   lines[0].v_y2 = winy + 100;
 
   while (!quit) {
-    happ = evnt_multi(MU_KEYBD | MU_MESAG | MU_BUTTON | MU_TIMER,
+    happ = evnt_multi(MU_KEYBD | MU_MESAG | MU_BUTTON,
                       0,0,0,0,0,0,0,0,0,0,0,0,0,
                       buffert,0,&x,&y,&knapplage,&tanglage,
                       &tangent,&ant_klick);
@@ -482,11 +530,11 @@ void testwin(void)
 
   wind_set (wid, WF_NAME, (long)title >> 16, (long)title & 0xffff, 0, 0);
   
-  wind_open (wid, xoff, yoff, woff / 2, hoff / 2);
+  /*  wind_open (wid, xoff, yoff, woff / 2, hoff / 2); */
 
   updatewait(wid);
 
-  wind_close (wid);
+  /* wind_close (wid); */
   
   /*
   wind_delete(wid);
@@ -519,21 +567,16 @@ main ()
   
   int      wc, hc, wb, hb;
 
-  fprintf (stderr, "launcher.c: before Pdomain\n");
   /* Pdomain (1); FIXME decide where to put this */
   /* Get application id */
-  fprintf (stderr, "launcher.c: before appl_init\n");
   appl_init();
 
-  fprintf (stderr, "launcher.c: before rsrc_rcfix\n");
   /* Fix resource data */
   rsrc_rcfix (launch);
 
-  fprintf (stderr, "launcher.c: before rsrc_gaddr\n");
   /* Get address of desktop background */
   rsrc_gaddr (R_TREE, DESKBG, &desktop_bg);
 
-  fprintf (stderr, "launcher.c: before wind_set\n");
   /* Set desktop background */
   wind_set (0,
             WF_NEWDESK,
@@ -542,19 +585,14 @@ main ()
             0,
             0);
 
-  fprintf (stderr, "launcher.c: before rsrc_gaddr\n");
   /* Get address of the menu */
   rsrc_gaddr (R_TREE, MENU, &menu);
 
-  fprintf (stderr, "launcher.c: before menu_bar\n");
   /* Install menu */
   menu_bar (menu, MENU_INSTALL);
 
-  fprintf (stderr, "launcher.c: before graf_handle\n");
   vid = graf_handle (&wc, &hc, &wb, &hb);
-  fprintf (stderr, "launcher.c: vid = %d\n", vid);
   v_opnvwk(work_in,&vid,work_out);
-  fprintf (stderr, "launcher.c: vid = %d\n", vid);
   num_colors = work_out[39];
 
   vsf_interior(vid,1);

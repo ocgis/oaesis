@@ -423,6 +423,7 @@ check_mouse_motion (WORD           x,
 ** 1999-03-08 CG
 ** 1999-04-06 CG
 ** 1999-08-05 CG
+** 1999-08-13 CG
 */
 static
 WORD
@@ -436,7 +437,7 @@ check_keys (C_EVNT_MULTI * par,
   if (par->eventin.events & MU_KEYBD) {
     if (apps [par->common.apid].key_size > 0) {
       ret->eventout.ks = KEY_BUFFER_HEAD.state;
-      ret->eventout.kc = KEY_BUFFER_HEAD.ascii;
+      ret->eventout.kc = (KEY_BUFFER_HEAD.scan << 8) | KEY_BUFFER_HEAD.ascii;
       
       DEBUG2 ("srv_event.c: ks = 0x%x  kc = 0x%x",
 	      ret->eventout.ks,

@@ -393,6 +393,11 @@ Evnt_do_multi (WORD       apid,
     }
   } /* end while (events_out == 0) */
 
+  if (events_out & MU_KEYBD) {
+    DEBUG2 ("Got key to apid %d 0x%x events = 0x%x",
+	    apid, ret.eventout.kc, events_out);
+  }
+
   *eventout = ret.eventout;
   eventout->events = events_out;
 }
@@ -412,6 +417,9 @@ Evnt_multi (AES_PB *apb) {
                 (EVENTOUT *)apb->int_out,
                 0,
                 HANDLE_MENU_BAR);
+  if (apb->int_out[0] & MU_KEYBD) {
+    DEBUG2 ("Evnt_multi: key out = 0x%x", apb->int_out[5]);
+  }
 }
 
 

@@ -123,7 +123,8 @@ Rsrc_do_load_mint (WORD   apid,
         
   RSHDR   *rsc;
 
-  strcpy( namebuf, filename);
+  strcpy (namebuf, filename);
+  DEBUG2 ("rsrc.c: Rsrc_do_load_mint: trying to load %s", namebuf);
   if (Shel_do_find (apid, namebuf) == SHEL_FIND_ERROR) {
     DB_printf("rsrc.c: loadrsc: Could not find %s",namebuf);
                 
@@ -153,7 +154,7 @@ Rsrc_do_load_mint (WORD   apid,
   Fclose((WORD)fnr);
 
   Rsrc_do_rcfix (vid, rsc, flen != rsc->rsh_rssize);
-        
+
   return rsc;
 }
 
@@ -235,8 +236,10 @@ Rsrc_do_load (WORD   apid,
   GLOBAL_APPL * globals = get_globals (apid);
 
   if (globals->use_mint_paths) {
+    DEBUG2 ("rsrc.c: Rsrc_do_load: Calling Rsrc_do_load_mint");
     return Rsrc_do_load_mint (apid, vid, filename);
   } else {
+    DEBUG2 ("rsrc.c: Rsrc_do_load: Calling Rsrc_do_load_unix");
     return Rsrc_do_load_unix (apid, vid, filename);
   }
 }

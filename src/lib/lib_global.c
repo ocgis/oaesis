@@ -340,6 +340,7 @@ init_global (WORD nocnf,
 ** Initialize application specific variables
 **
 ** 1999-08-08 CG
+** 1999-08-14 CG
 */
 void
 init_global_appl (int apid,
@@ -369,8 +370,12 @@ init_global_appl (int apid,
   globals->rscfile = NULL;
   globals->rshdr = NULL;
 
+#ifdef MINT_TARGET
+  globals->use_mint_paths = TRUE;
+#else
   /* Default is not to use MiNT pathnames, at least under unix */
   globals->use_mint_paths = FALSE;
+#endif
 
   /* Initialize application and accessory list as empty */
   globals->appl_menu.count = 0;
@@ -404,7 +409,7 @@ void	exit_global(void) {
 }
 
 
-#ifdef MINT_TARGET */
+#ifdef MINT_TARGET
 
 /*
 ** Description
