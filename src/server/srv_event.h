@@ -45,12 +45,9 @@ srv_wait_for_event (COMM_HANDLE    handle,
 ** Description
 ** Handle waiting events collected from event vectors and distribute
 ** them to the applictions.
-**
-** 1998-12-07 CG
-** 1999-08-05 CG
 */
 void
-srv_handle_events (WORD vdi_workstation_id);
+srv_handle_events(void);
 
 /*
 ** Description
@@ -104,5 +101,12 @@ catch_mouse_motion(int x,
 */
 void
 catch_timer_click(void);
+
+/*
+** Description
+** Get new keys for the kernel to process
+*/
+void
+srv_update_keys(WORD vdi_workstation_id);
 
 #endif /* _SRV_EVENT_H_ */
