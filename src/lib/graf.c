@@ -70,9 +70,14 @@ icon2mform(MFORM  *  mf,
   mf->mf_fg = 1;
   mf->mf_bg = 0;
   
-  for(i = 0; i < 16; i++) {
-    mf->mf_mask[i] = icon->ob_spec.iconblk->ib_pmask[i];
-    mf->mf_data[i] = icon->ob_spec.iconblk->ib_pdata[i];
+  for(i = 0; i < 16; i++)
+  {
+    /*
+    ** I'm not sure that this is the right place to convert the byte order
+    ** or if it should be converted at all
+    */
+    mf->mf_mask[i] = ntohs(icon->ob_spec.iconblk->ib_pmask[i]);
+    mf->mf_data[i] = ntohs(icon->ob_spec.iconblk->ib_pdata[i]);
   }
 }
 
