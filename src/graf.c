@@ -19,6 +19,10 @@
  
   960501 cg
    Fixed bug in graf_mouse() in the M_LAST and M_RESTORE code.
+
+  960816 jps
+   All this graf settings variables checks.
+
    
  Copyright notice
   The copyright to the program code herein belongs to the authors. It may
@@ -442,6 +446,8 @@ AES_PB *apb)      /* AES parameter block.                                   */
 
 	SRV_APPL_INFO appl_info;
 	
+    if(globals.graf_mbox) {
+
 	Srv_get_appl_info(apb->global->apid,&appl_info);
 	
 	
@@ -460,6 +466,10 @@ AES_PB *apb)      /* AES parameter block.                                   */
 	apb->int_out[0] = Graf_do_grmobox(appl_info.vid,&r1,&r2);
 	
 	Srv_wind_update(Pgetpid(),END_UPDATE);
+    }
+    else {
+    	apb->int_out[0] = 1;
+    };
 }
 
 /****************************************************************************
@@ -473,6 +483,7 @@ AES_PB *apb)      /* AES parameter block.                                   */
 {
 	SRV_APPL_INFO appl_info;
 	
+    if(globals.graf_growbox) {
 	Srv_get_appl_info(apb->global->apid,&appl_info);
 	
 	Srv_wind_update(Pgetpid(),BEG_UPDATE);
@@ -482,6 +493,10 @@ AES_PB *apb)      /* AES parameter block.                                   */
 																		(RECT *)&apb->int_in[4]);
 
 	Srv_wind_update(Pgetpid(),END_UPDATE);
+	}
+	else {
+		apb->int_out[0] = 1;
+	};
 }
 
 /****************************************************************************
@@ -493,7 +508,14 @@ Graf_shrinkbox(   /*                                                        */
 AES_PB *apb)      /* AES parameter block.                                   */
 /****************************************************************************/
 {
-	apb->int_out[0] = 1;
+    if(globals.graf_shrinkbox) {
+	Srv_wind_update(Pgetpid(),BEG_UPDATE);
+	apb->int_out[0] = Graf_do_grmobox(apb->global->int_info->vid, (RECT *)&apb->int_in[4], (RECT *)&apb->int_in[0]);
+	Srv_wind_update(Pgetpid(),END_UPDATE);
+    }
+    else {
+        apb->int_out[0] = 1;
+    }
 }
 
 /****************************************************************************

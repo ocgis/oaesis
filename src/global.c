@@ -18,6 +18,9 @@
   960507 jps
    Added globals.realslide initialisation.
 
+  960816 jps
+   Initialisation of some new variables
+
  Copyright notice
   The copyright to the program code herein belongs to the authors. It may
   be freely duplicated and distributed without fee, but not charged for.
@@ -54,6 +57,8 @@ extern WORD _global[];
  ****************************************************************************/
 
 GLOBALVARS	globals;
+char *p_fsel_extern = (char *)&globals.fsel_extern;
+
 
 /****************************************************************************
  * Module global variables                                                  *
@@ -94,6 +99,11 @@ void init_global(WORD physical) {
   globals.icon_width = 48;
   globals.icon_height = 56;
   globals.wind_appl = 1;
+    globals.graf_mbox = 1;
+    globals.graf_growbox = 1;
+    globals.graf_shrinkbox = 1;
+    globals.fsel_sorted = 1;
+    globals.fsel_extern = 0;
   
   Boot_parse_cnf();
   

@@ -8,6 +8,7 @@
   
  Author(s)
  	cg (Christer Gustavsson <d2cg@dtek.chalmers.se>)
+   jps (Jan Paul Schmidt <Jan.P.Schmidt@mni.fh-giessen.de>)
  	
  Revision history
  
@@ -17,6 +18,10 @@
   960103 cg
    Added Fsel_exinput().
  
+  960816 jps
+   Added directory_sort().
+
+
  Copyright notice
   The copyright to the program code herein belongs to the authors. It may
   be freely duplicated and distributed without fee, but not charged for.
@@ -75,6 +80,45 @@ static BYTE	nullstr[] = "";
 /****************************************************************************
  * Local functions (use static!)                                            *
  ****************************************************************************/
+
+static void directory_sort(DIRDESC *dd) {
+    if(globals.fsel_sorted) {
+        DIRENTRY *p1, *p2, *p3, *p4;
+
+        int change;
+
+        if(dd->dent != NULL) {
+            do {
+                p1 = dd->dent;
+                p3 = NULL;
+                change = 0;
+
+                while(p1 != NULL) {
+                    p2 = p1->next;
+                    if(p2 != NULL) {
+                        if(strcmp(p1->name, p2->name) > 0) {
+                            if(p3 == NULL) {
+                                p4 = dd->dent;
+                                dd->dent = p1->next;
+                                p1->next = p2->next;
+                                p2->next = p4;
+                            }
+                            else {
+                                p4 = p3->next;
+                                p3->next = p1->next;
+                                p1->next = p2->next;
+                                p2->next = p4;
+                            }
+                            change = 1;
+                        }
+                    }
+                    p3 = p1;
+                    p1 = p2;
+                }
+            }while(change);
+        }
+    }
+}
 
 static WORD	globcmp(BYTE *pattern,BYTE *str) {
 	while(1) {
@@ -292,11 +336,14 @@ BYTE *file)         /* File name buffer.                                    */
 	DIRDESC dd = { NULL,0,0 };
 	RECT src,dst;
 
+    Graf_do_mouse(vid, BUSY_BEE, NULL);
+
 	tree = Rsrc_duplicate(globals.fiseltad);	
 	
 	Graf_do_handle(&cwidth,&cheight,&width,&height);
 	
 	set_path(path,&dd);
+    directory_sort(&dd);
 
 	get_files(tree,&dd);
 
@@ -320,17 +367,22 @@ BYTE *file)         /* File name buffer.                                    */
 
 	Objc_do_draw(vid,tree,0,9,&clip);
 
+    Graf_do_mouse(vid, ARROW, NULL);
+
 	while(1) {
 		but_chosen = Form_do_do(apid,vid,eventpipe,tree,FISEL_DIRECTORY);
 	
 		switch(but_chosen & 0x7fff) {
 		case FISEL_OK:
 			if(strcmp(oldpath,path)) {
+                Graf_do_mouse(vid, BUSY_BEE, NULL);
+
 				tree[FISEL_OK].ob_state &= ~SELECTED;
 				Objc_do_draw(vid,tree,FISEL_OK,9,&clip);
 				
 				reset_dirdesc(&dd);
 				set_path(path,&dd);
+                directory_sort(&dd);
 
 				get_files(tree,&dd);
 
@@ -338,6 +390,7 @@ BYTE *file)         /* File name buffer.                                    */
 				Objc_do_draw(vid,tree,FISEL_SB,9,&clip);	
 				
 				strcpy(oldpath,path);
+                Graf_do_mouse(vid, M_LAST, NULL);
 				break;
 			};
 			
@@ -470,6 +523,9 @@ BYTE *file)         /* File name buffer.                                    */
 			{
 				WORD newpos;
 				
+
+                Graf_do_mouse(vid, FLAT_HAND, NULL);
+			
 				Objc_do_change(vid,tree,FISEL_SLIDER,&clip,SELECTED,REDRAW);
 				newpos = Graf_do_slidebox(apid,vid,eventpipe,tree,FISEL_SB,FISEL_SLIDER,1);
 				
@@ -479,6 +535,9 @@ BYTE *file)         /* File name buffer.                                    */
 				Objc_do_change(vid,tree,FISEL_SLIDER,&clip,0,NO_DRAW);
 				Objc_do_draw(vid,tree,FISEL_ENTBG,9,&clip);
 				Objc_do_draw(vid,tree,FISEL_SB,9,&clip);
+
+                Graf_do_mouse(vid, M_LAST, NULL);
+
 			};
 			break;
 			
@@ -508,8 +567,12 @@ BYTE *file)         /* File name buffer.                                    */
 				strcat(newpath,tmp);
 				strcpy(path,newpath);
 
+                Graf_do_mouse(vid, BUSY_BEE, NULL);
+
+
 				reset_dirdesc(&dd);
 				set_path(path,&dd);
+                directory_sort(&dd);
 
 				Objc_area_needed(tree,FISEL_DIRECTORY,&area);	
 				Objc_do_draw(vid,tree,0,9,&area);	
@@ -520,6 +583,7 @@ BYTE *file)         /* File name buffer.                                    */
 				Objc_do_draw(vid,tree,FISEL_SB,9,&clip);	
 				
 				strcpy(oldpath,path);
+                Graf_do_mouse(vid, M_LAST, NULL);
 			};
 			break;
 			
@@ -532,6 +596,9 @@ BYTE *file)         /* File name buffer.                                    */
 				dent = find_entry(&dd,dd.pos + (but_chosen & 0x7fff) - FISEL_FIRST);
 
 				if(dent) {
+
+                        Graf_do_mouse(vid, BUSY_BEE, NULL);
+
 					if(dent->type & S_IFDIR) {
 						BYTE newpath[128];
 						BYTE *tmp;
@@ -555,6 +622,7 @@ BYTE *file)         /* File name buffer.                                    */
 
 						reset_dirdesc(&dd);
 						set_path(path,&dd);
+                        directory_sort(&dd);
 
 
 						Objc_area_needed(tree,FISEL_DIRECTORY,&area);	
@@ -566,6 +634,8 @@ BYTE *file)         /* File name buffer.                                    */
 						Objc_do_draw(vid,tree,FISEL_SB,9,&clip);	
 						
 						strcpy(oldpath,path);
+
+                        Graf_do_mouse(vid, M_LAST, NULL);
 					}
 					else {
 						strcpy(file,&dent->name[3]);

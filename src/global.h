@@ -18,6 +18,15 @@ typedef struct globalvars {
   WORD    realslide;  /* if set realtime sliding of windows is enabled */
 	WORD    wind_appl;  /* show application name in window mover */
 
+    WORD fsel_extern;    /* set 1 to enable extern fileselectors */
+    WORD fsel_sorted;    /* set 1 to have sorted directories with internal fileselecto r*/
+
+    WORD graf_mbox;      /* set 1 to enable graf_mbox/graf_movebox */
+    WORD graf_growbox;   /* set 1 to enable graf_growbox */
+    WORD graf_shrinkbox; /* set 1 to enable graf_shrinkbox */
+
+    WORD aes_trace;      /* set 1 to trace aes calls */
+
 	WORD    num_pens;   /* number of available vdi pens */
 
 	AP_LIST *applmenu;

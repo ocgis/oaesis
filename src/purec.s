@@ -15,6 +15,8 @@
 	XREF oldmvec
 	XREF Moudev_handler
 
+	XREF p_fsel_extern
+
 	TEXT
 	
 myxgemdos:
@@ -22,12 +24,27 @@ myxgemdos:
 	bne		retaddr
 
 	movem.l	d0-d7/a0-a6,-(sp)
+
+    move.l  _p_fsel_extern,a0
+    tst.w   (a0)
+    beq     intern
+
+    move.l  d1,a0
+    move.l  (a0),a0
+    cmp.w   #$5a,(a0)
+    beq    ignore
+    cmp.w   #$5b,(a0)
+    beq    ignore
+
+intern:
 	move.l	d1,a0
 	jsr		h_aes_call
 	movem.l	(sp)+,d0-d7/a0-a6
 
 	rte
 	
+ignore:
+    movem.l (sp)+,d0-d7/a0-a6
 retaddr:
 	jmp		link_in;
 

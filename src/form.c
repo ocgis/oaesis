@@ -168,10 +168,11 @@ void	Form_do(AES_PB *apb) {
 WORD	Form_do_dial(WORD apid,WORD vid,WORD mode,RECT *r1,RECT *r2) {
 	switch(mode) {
 		case	FMD_GROW		:	/*0x0001*/
+			if(globals.graf_growbox) {
 			Srv_wind_update(Pgetpid(),BEG_UPDATE);
 			Graf_do_grmobox(vid,r1,r2);
 			Srv_wind_update(Pgetpid(),END_UPDATE);
-			
+			};
 			return 1;
 					
 		case	FMD_START	:	/*0x0000*/
@@ -205,9 +206,11 @@ WORD	Form_do_dial(WORD apid,WORD vid,WORD mode,RECT *r1,RECT *r2) {
 			};
 
 		case	FMD_SHRINK	:	/*0x0002*/
+			if(globals.graf_shrinkbox) {
 			Srv_wind_update(Pgetpid(),BEG_UPDATE);
 			Graf_do_grmobox(vid,r2,r1);
 			Srv_wind_update(Pgetpid(),END_UPDATE);
+			};
 
 		case	FMD_FINISH	:	/*0x0003*/
 		{
@@ -526,10 +529,11 @@ void	Form_error(AES_PB *apb) {
 /*form_center 0x0036*/
 
 void	Form_do_center(OBJECT *tree,RECT *clip) {
-	tree[0].ob_x = globals.screen.x +
-		((globals.screen.width - tree[0].ob_width) >> 1);
-	tree[0].ob_y = globals.screen.y +
-		((globals.screen.height - tree[0].ob_height) >> 1);
+    WORD pw1, pw2, pw3, pw4;
+
+    Srv_wind_get(0, WF_WORKXYWH, &pw1, &pw2, &pw3, &pw4);
+    tree[0].ob_x = pw1 + ((pw3 - tree[0].ob_width) >> 1);
+    tree[0].ob_y = pw2 + ((pw4 - tree[0].ob_height) >> 1);
 	
 	Objc_area_needed(tree,0,clip);
 }

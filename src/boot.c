@@ -18,6 +18,9 @@
   960507 jps
    added AE_REALSLIDE variable
 
+  960816 jps
+   some new variables
+
  Copyright notice
   The copyright to the program code herein belongs to the authors. It may
   be freely duplicated and distributed without fee, but not charged for.
@@ -46,6 +49,12 @@
 #include "types.h"
 
 #include <sysvars.h>
+
+/****************************************************************************
+ * Local variables                                                          *
+ ****************************************************************************/
+
+static char Boot_acc_path[128] = "\0";
 
 /****************************************************************************
  * Local functions (use static!)                                            *
@@ -207,7 +216,78 @@ void Boot_parse_cnf(void) /*                                                */
 	get_token(fp,lineend);
 	
 	sscanf(size,"%hd",&globals.wind_appl);
-      };
+      }
+			else if(!strcmp(line,"AE_TRACE")) {
+				BYTE size[128];
+				BYTE lineend[128];
+				
+				get_token(fp,size);
+				get_token(fp,size);
+				get_token(fp,lineend);
+
+				sscanf(size,"%hd",&globals.aes_trace);
+			}
+			else if(!strcmp(line, "AE_GRAF_MBOX")) {
+				BYTE size[128];
+				BYTE lineend[128];
+				
+				get_token(fp,size);
+				get_token(fp,size);
+				get_token(fp,lineend);
+
+                                sscanf(size,"%hd",&globals.graf_mbox);
+			}
+			else if(!strcmp(line, "AE_GRAF_GROWBOX")) {
+				BYTE size[128];
+				BYTE lineend[128];
+				
+				get_token(fp,size);
+				get_token(fp,size);
+				get_token(fp,lineend);
+
+                                sscanf(size,"%hd",&globals.graf_growbox);
+			}
+			else if(!strcmp(line, "AE_GRAF_SHRINKBOX")) {
+				BYTE size[128];
+				BYTE lineend[128];
+				
+				get_token(fp,size);
+				get_token(fp,size);
+				get_token(fp,lineend);
+
+                                sscanf(size,"%hd",&globals.graf_shrinkbox);
+			}
+			else if(!strcmp(line, "AE_FSEL_SORTED")) {
+				BYTE size[128];
+				BYTE lineend[128];
+				
+				get_token(fp,size);
+				get_token(fp,size);
+				get_token(fp,lineend);
+
+                                sscanf(size,"%hd",&globals.fsel_sorted);
+			}
+/* this one I need for tests with extern fileselectors. jps */
+			else if(!strcmp(line, "AE_FSEL_EXTERN")) {
+				BYTE size[128];
+				BYTE lineend[128];
+				
+				get_token(fp,size);
+				get_token(fp,size);
+				get_token(fp,lineend);
+
+                                sscanf(size,"%hd",&globals.fsel_extern);
+			}
+			else if(!strcmp(line, "AE_ACC_PATH")) {
+				BYTE path[128];
+				BYTE lineend[128];
+
+				get_token(fp,path);
+				get_token(fp,path);
+				get_token(fp,lineend);
+
+				strcpy(Boot_acc_path, path);
+			}
     }
   }
   
@@ -313,7 +393,17 @@ WORD apid)                     /*                                           */
 	olddta = Fgetdta();
 	Fsetdta(&newdta);
 	
+
+    if(!(*Boot_acc_path)) {
+	Boot_acc_path[0] = (get_sysvar(_bootdev) >> 16) + 'a';
+        Boot_acc_path[1] = ':';
+        Boot_acc_path[2] = '\\';
+    }
+
+    Misc_setpath(Boot_acc_path);
+/*
 	Misc_setpath(bootpath);
+*/
 	
 	found = Fsfirst("*.acc",0);
 	

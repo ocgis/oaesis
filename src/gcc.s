@@ -13,6 +13,7 @@
 	.globl	_oldmvec
 	.globl	_oldbvec
 	.globl	_Moudev_handler
+	.globl	_p_fsel_extern
 
 	.text
 	
@@ -21,12 +22,27 @@ myxgemdos:
 	bne		retaddr
 
 	moveml	d0-d7/a0-a6,sp@-
+    movel _p_fsel_extern,a0
+    tstw   a0@
+    beq    intern
+
+    movel  d1,a0
+    movel  a0@,a0
+    cmpw   #0x5a,a0@
+    beq    ignore
+    cmpw   #0x5b,a0@
+    beq    ignore
+
+intern:
 	movel	d1,sp@-
 	jsr		_h_aes_call
 	addql		#4,sp
 	moveml	sp@+,d0-d7/a0-a6
 
 	rte
+
+ignore:
+	moveml	sp@+,d0-d7/a0-a6
 	
 retaddr:
 	jmp		_link_in|

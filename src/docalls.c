@@ -24,10 +24,6 @@
  
  ****************************************************************************/
 
-/*
-#define DCDEBUG
-*/
-
 /****************************************************************************
  * Used interfaces                                                          *
  ****************************************************************************/
@@ -465,11 +461,11 @@ static AESCB aescalls[] = {
  ****************************************************************************/
 
 void h_aes_call(AES_PB *apb) {
-#ifdef DCDEBUG
-	if((apb->global->apid != 0) && (apb->control[0] != 25)) {
-		DB_printf("Aes call %d (0x%x) %s",apb->control[0],apb->control[0],aescalls[apb->control[0]].name);
-	};
-#endif
+    if(globals.aes_trace) {
+        if((apb->global->apid != 0) && (apb->control[0] != 25)) {
+            DB_printf("Aes call %d (0x%x) %s\r\n",apb->control[0],apb->control[0],aescalls[apb->control[0]].name);
+        }
+    }
 	
 	if(aescalls[apb->control[0]].func) {
 		aescalls[apb->control[0]].func(apb);
