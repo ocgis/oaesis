@@ -137,10 +137,9 @@ Appl_do_read (WORD   apid,
 #define LO_WORD(ptr) ((LONG)ptr & 0xffff)
 #define HI_WORD(ptr) (((LONG)ptr >> 16) & 0xffff)
 
-/* Description
+/*
+** Description
 ** Copy MFDB with network order conversion
-**
-** 1999-05-23 CG
 */
 static
 void
@@ -148,7 +147,7 @@ copy_mfdb (MFDB * dst,
            MFDB * src,
            void * address)
 {
-  dst->fd_addr = (void *)htonl(address);
+  dst->fd_addr = (void *)htonl((LONG)address);
   dst->fd_w = htons (src->fd_w);
   dst->fd_h = htons (src->fd_h);
   dst->fd_wdwidth = htons (src->fd_wdwidth);
