@@ -1532,15 +1532,16 @@ handle_selected_title (WORD        apid,
                   dropwin,
                   &area);
 #else
-    menu_buffer = malloc (20000); /* FIXME */
+    menu_buffer = Misc_Vdi_Malloc (((area.width+16) * area.height * 
+				    globals->common->num_planes)/8);
     pxy[0] = area.x;
-    pxy[1] = area.y + area.height - 1;
+    pxy[1] = area.y;
     pxy[2] = area.x + area.width - 1;
-    pxy[3] = area.y;
+    pxy[3] = area.y + area.height - 1;
     pxy[4] = 0;
-    pxy[5] = area.height - 1;
+    pxy[5] = 0;
     pxy[6] = area.width - 1;
-    pxy[7] = 0;
+    pxy[7] = area.height - 1;
     mfdb_src.fd_addr = NULL;
     mfdb_dst.fd_addr = menu_buffer; /* FIXME */
     mfdb_dst.fd_w = area.width;
@@ -1551,7 +1552,6 @@ handle_selected_title (WORD        apid,
     mfdb_dst.fd_r1 = 0;
     mfdb_dst.fd_r2 = 0;
     mfdb_dst.fd_r3 = 0;
-
     Wind_do_update (apid, BEG_UPDATE);
     Graf_do_mouse (apid, M_OFF, NULL);
     vro_cpyfm (globals->vid, S_ONLY, pxy, &mfdb_src, &mfdb_dst);
@@ -1628,14 +1628,14 @@ handle_selected_title (WORD        apid,
           Wind_do_close (apid, dropwin);
           Wind_do_delete (apid, dropwin);
 #else
-	  pxy[4] = area.x;
-	  pxy[5] = area.y + area.height - 1;
-	  pxy[6] = area.x + area.width - 1;
-	  pxy[7] = area.y;
 	  pxy[0] = 0;
-	  pxy[1] = area.height - 1;
+	  pxy[1] = 0;
 	  pxy[2] = area.width - 1;
-	  pxy[3] = 0;
+	  pxy[3] = area.height - 1;
+	  pxy[4] = area.x;
+	  pxy[5] = area.y;
+	  pxy[6] = area.x + area.width - 1;
+	  pxy[7] = area.y + area.height - 1;
 	  mfdb_dst.fd_addr = NULL;
 	  mfdb_src.fd_addr = menu_buffer; /* FIXME */
 	  mfdb_src.fd_w = area.width;
@@ -1646,12 +1646,11 @@ handle_selected_title (WORD        apid,
 	  mfdb_src.fd_r1 = 0;
 	  mfdb_src.fd_r2 = 0;
 	  mfdb_src.fd_r3 = 0;
-
 	  Graf_do_mouse (apid, M_OFF, NULL);
 	  vro_cpyfm (globals->vid, S_ONLY, pxy, &mfdb_src, &mfdb_dst);
 	  Graf_do_mouse (apid, M_ON, NULL);
 	  Wind_do_update (apid, END_UPDATE);
-	  free (menu_buffer); /* FIXME */
+	  Misc_Vdi_Free (menu_buffer);
 #endif
 
           globals->menu[box].ob_flags |= HIDETREE;
