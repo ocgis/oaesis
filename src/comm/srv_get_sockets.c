@@ -1,7 +1,7 @@
 /*
 ** srv_get_sockets.c
 **
-** Copyright 1999 - 2000 Christer Gustavsson <cg@nocrew.org>
+** Copyright 1999 - 2001 Christer Gustavsson <cg@nocrew.org>
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -143,19 +143,11 @@ Srv_open (void) {
 /*
 ** Description
 ** Wait for a message from a client
-**
-** 1998-09-25 CG
-** 1998-12-13 CG
-** 1998-12-23 CG
-** 1999-02-04 CG
-** 1999-02-07 CG
-** 1999-07-26 CG
-** 1999-08-12 CG
-** 1999-08-22 CG
 */
 COMM_HANDLE
 Srv_get (void * in,
-         int    max_bytes_in) {
+         int    max_bytes_in)
+{
   int                   sin_size = sizeof (struct sockaddr_in);
   struct sockaddr_in    their_addr; /* Client address information */
   fd_set                handle_set;
@@ -207,7 +199,7 @@ Srv_get (void * in,
 
   /* We got a timeout */
   if (QUEUE_EMPTY && (err == 0))
-  {
+  { 
     return NULL;
   }
 
@@ -219,6 +211,7 @@ Srv_get (void * in,
 
     if ((new_fd = accept (sockfd, (struct sockaddr *)&their_addr, &sin_size)) == -1) {
       DEBUG1 ("oaesis: Srv_get: accept: %s", strerror (errno));
+
       return NULL;
     }
 
@@ -250,7 +243,8 @@ Srv_get (void * in,
   /*  DB_printf ("popped %p", handle_walk);*/
 
   /* Something strange has happened */
-  if (handle_walk == NULL) {
+  if(handle_walk == NULL)
+  {
     return NULL;
   }
 
@@ -271,7 +265,14 @@ Srv_get (void * in,
   handle_walk->next = selectable_handles;
   selectable_handles = handle_walk;
 
-  return handle_walk;
+  if(err == 0)
+  {
+    return NULL;
+  }
+  else
+  {
+    return handle_walk;
+  }
 }
 
 
