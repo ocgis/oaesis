@@ -34,25 +34,9 @@ static int  vid;
 static WORD num_colors;
 static char title[] = "Lines";
 
-static
-WORD
-max (WORD a,
-     WORD b) {
-  if(a > b) 
-    return a;
-  else
-    return b;
-}
+#define max(a,b) ((a > b) ? a : b)
+#define min(a,b) ((a < b) ? a : b)
 
-static
-WORD
-min (WORD a,
-     WORD b) {
-  if(a < b) 
-    return a;
-  else
-    return b;
-}
 
 #define NUM_LINES       10
 
@@ -509,7 +493,7 @@ launcher_main()
   short    exit_button;
   
   int      wc, hc, wb, hb;
-  int      ap_id;
+  int      ap_id;  
 
   /* Pdomain (1); FIXME decide where to put this */
   /* Get application id */

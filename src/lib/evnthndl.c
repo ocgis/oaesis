@@ -1166,29 +1166,39 @@ Evhd_handle_button (WORD   apid,
 /*
 ** Description
 ** Update list of running applications and accessories
-**
-** 1999-04-18 CG
 */
 static
 void
-update_appl_list (WORD apid) {
+update_appl_list (WORD   apid,
+                  WORD * topped_application)
+{
   GLOBAL_APPL * globals = get_globals (apid);
   WORD          more;
   char          name[20];
   WORD          type;
   WORD          ap_id;
 
+  *topped_application = -1;
+
   /* Reset menu lists */
   globals->appl_menu.count = 0;
   globals->acc_menu.count = 0;
 
   more = Appl_do_search (apid, APP_FIRST, name, &type, &ap_id);
-  while (TRUE) {
-    if (type & (APP_APPLICATION | APP_ACCESSORY)) {
+  while(TRUE)
+  {
+    if (type & (APP_APPLICATION | APP_ACCESSORY))
+    {
       APPL_LIST * insert_menu;
 
       if (type & APP_APPLICATION) {
         insert_menu = &globals->appl_menu;
+
+        /* For now the first application is the topped application */
+        if(*topped_application == -1)
+        {
+          *topped_application = ap_id;
+        }
       } else { /* Must be APP_ACCESSORY */
         insert_menu = &globals->acc_menu;
       }
@@ -1221,21 +1231,17 @@ update_appl_list (WORD apid) {
 **
 ** ToDo
 ** Fix separation of accessories and applications
-**
-** 1999-04-13 CG
-** 1999-04-18 CG
 */
 static
 WORD
-update_appl_menu (WORD apid) {
+update_appl_menu(WORD apid)
+{
   WORD          rwalk;
   WORD          topappl;
   GLOBAL_APPL * globals = get_globals (apid);
   int           i;
 
-  update_appl_list (apid);
-
-  topappl = 0; /* FIXME: get_top_appl(); */
+  update_appl_list(apid, &topappl);
 
   rwalk = PMENU_FIRST;
 
