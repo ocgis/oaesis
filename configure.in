@@ -18,15 +18,16 @@ AM_INIT_AUTOMAKE($PACKAGE, $VERSION, no-define)
 dnl Make a header based on the things we will find out
 AM_CONFIG_HEADER(config.h)
 
-dnl Use libtool to create liboaesis
-AM_PROG_LIBTOOL
-
 dnl Check for programs
 AC_ARG_PROGRAM
 AC_PROG_CC
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 AC_PROG_RANLIB
+
+dnl Use libtool to create liboaesis
+AM_PROG_LIBTOOL
+
 
 if test x$with_ovdisis = xyes ; then
   AC_MSG_ERROR([
