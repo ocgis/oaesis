@@ -204,7 +204,7 @@ AC_SUBST(target_os)
 AC_SUBST(COMM_IFC)
 
 dnl Set CPPFLAGS
-CPPFLAGS="$CPPFLAGS -Wall"
+CPPFLAGS="$CPPFLAGS -Wall -Wunused -Wmissing-prototypes"
 
 dnl Specify which files that should be created
 AC_OUTPUT(Makefile src/Makefile src/comm/Makefile src/common/Makefile src/launcher/Makefile src/lib/Makefile src/lib/srv_put.c src/server/Makefile src/server/srv_get.c test/Makefile tools/Makefile oaesis.m4 oaesis-config)
