@@ -543,7 +543,7 @@ typedef struct global_array {
   void *  int_info;
   WORD    maxchar;
   WORD    minchar;
-}GLOBAL_ARRAY;
+} __attribute__ ((packed)) GLOBAL_ARRAY;
 
 typedef struct aes_pb {
   WORD         *control;
