@@ -1,4 +1,4 @@
-CFLAGS = -I../comm -I../common
+INCLUDES = -I../comm -I../common -I../lib
 
 bin_PROGRAMS = oaesis
 

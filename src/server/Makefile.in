@@ -85,7 +85,7 @@ VERSION = @VERSION@
 target_cpu = @target_cpu@
 target_os = @target_os@
 
-CFLAGS = -I../comm -I../common
+INCLUDES = -I../comm -I../common -I../lib
 
 bin_PROGRAMS = oaesis
 
@@ -113,6 +113,7 @@ vdi.o
 oaesis_LDADD = $(LDADD)
 oaesis_DEPENDENCIES = 
 oaesis_LDFLAGS = 
+CFLAGS = @CFLAGS@
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
