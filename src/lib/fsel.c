@@ -484,7 +484,7 @@ slider_handle (WORD      apid,
       if(eo.events & MU_BUTTON) {
 
         Objc_do_change (globals->vid, tree, FISEL_SLIDER, clip, 0, REDRAW);
-        Graf_do_mouse (apid, M_LAST, NULL);
+        Graf_do_mouse (apid, M_RESTORE, NULL);
 
         if(eo.mb & RIGHT_BUTTON) {
           dd->pos = oldpos;
@@ -630,7 +630,7 @@ Fsel_do_exinput (WORD   apid,
         Objc_do_draw (globals->vid, tree,FISEL_SB,9,&clip);	
 				
         strcpy(oldpath,path);
-        Graf_do_mouse (apid, M_LAST, NULL);
+        Graf_do_mouse (apid, M_RESTORE, NULL);
         break;
       }
 			
@@ -852,7 +852,7 @@ Fsel_do_exinput (WORD   apid,
       Objc_do_draw (globals->vid, tree,FISEL_SB,9,&clip);	
 				
       strcpy(oldpath,path);
-      Graf_do_mouse (apid, M_LAST, NULL);
+      Graf_do_mouse (apid, M_RESTORE, NULL);
     }
     break;
 			
@@ -922,7 +922,7 @@ Fsel_do_exinput (WORD   apid,
 						
             strcpy(oldpath,path);
 
-            Graf_do_mouse (apid, M_LAST, NULL);
+            Graf_do_mouse (apid, M_RESTORE, NULL);
           } else {
             strcpy(file,&dent->name[3]);
 						
