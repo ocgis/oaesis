@@ -1408,26 +1408,43 @@ draw_cursor (WORD vid,
   v_pline (vid,2,xy);
 }
 
+
 static
 WORD
 handle_ed_char (WORD     vid,
                 WORD     idx,
                 OBJECT * tree,
                 WORD     obj,
-                WORD     kc) {
+                WORD     kc)
+{
   RECT      clip;
   U_OB_SPEC ob_spec;
+  WORD      internal_kc;
 	
-  if(tree[obj].ob_flags & INDIRECT) {
+  if(tree[obj].ob_flags & INDIRECT)
+  {
     ob_spec = *tree[obj].ob_spec.indirect;
   }
-  else {
+  else
+  {
     ob_spec = tree[obj].ob_spec;
-  };
-	
-  switch(kc) {
-  case 0x011b: /* escape */
-    if(idx > 0) {
+  }
+
+  /* Ignore scancode for standard characters */
+  if((kc & 0xff) == 0)
+  {
+    internal_kc = kc;
+  }
+  else
+  {
+    internal_kc = kc & 0xff;
+  }
+
+  switch(internal_kc)
+  {
+  case 0x001b: /* escape */
+    if(idx > 0)
+    {
       draw_cursor (vid, idx, tree, obj);
       get_char_bound (tree, obj, 0,
                       (WORD)strlen(ob_spec.tedinfo->te_ptext), &clip);
@@ -1437,8 +1454,9 @@ handle_ed_char (WORD     vid,
     }
     return(0);
 
-  case 0x0e08: /* backspace */
-    if(idx > 0) {
+  case 0x0008: /* backspace */
+    if(idx > 0)
+    {
       draw_cursor (vid, idx, tree, obj);
 			
       strcpy(&ob_spec.tedinfo->te_ptext[idx - 1],
@@ -1452,19 +1470,21 @@ handle_ed_char (WORD     vid,
 			
       draw_cursor (vid, idx - 1, tree, obj);
       return idx - 1;
-    };
+    }
     return idx;
 		
   case 0x4b00: /* left */
-    if(idx > 0) {
+    if(idx > 0)
+    {
       draw_cursor (vid, idx, tree, obj);
       draw_cursor (vid, idx - 1, tree, obj);
       return idx - 1;
-    };
+    }
     return idx;
 	
   case 0x4b34: /* shift left */
-    if(idx > 0) {
+    if(idx > 0)
+    {
       draw_cursor (vid,idx, tree, obj);
       draw_cursor (vid,0, tree, obj);
       return(0);
@@ -1472,15 +1492,17 @@ handle_ed_char (WORD     vid,
     return(idx);
 
   case 0x4d00: /* right */
-    if(idx < (WORD)strlen(ob_spec.tedinfo->te_ptext)) {
+    if(idx < (WORD)strlen(ob_spec.tedinfo->te_ptext))
+    {
       draw_cursor (vid,idx,tree,obj);
       draw_cursor (vid,idx + 1,tree,obj);
       return idx + 1;
-    };
+    }
     return idx;
 
   case 0x4d36: /* shift right */
-    if(idx < (WORD)strlen(ob_spec.tedinfo->te_ptext)) {
+    if(idx < (WORD)strlen(ob_spec.tedinfo->te_ptext))
+    {
       draw_cursor (vid,idx, tree, obj);
       idx = (WORD)strlen(ob_spec.tedinfo->te_ptext);
       draw_cursor (vid,idx, tree, obj);
@@ -1488,8 +1510,9 @@ handle_ed_char (WORD     vid,
     }
     return idx;
 
-  case 0x537f: /* delete */
-    if(idx < (WORD)strlen(ob_spec.tedinfo->te_ptext)) {
+  case 0x007f: /* delete */
+    if(idx < (WORD)strlen(ob_spec.tedinfo->te_ptext))
+    {
       draw_cursor (vid,idx,tree,obj);
 			
       strcpy(&ob_spec.tedinfo->te_ptext[idx],
@@ -1500,11 +1523,12 @@ handle_ed_char (WORD     vid,
       Objc_do_draw (vid, tree,0,9,&clip);
 			
       draw_cursor (vid,idx,tree,obj);
-    };
+    }
     return idx;
 		
   default:
-    if(ob_spec.tedinfo->te_ptext[idx] != '\0') {
+    if(ob_spec.tedinfo->te_ptext[idx] != '\0')
+    {
       BYTE i = strlen(ob_spec.tedinfo->te_ptext);
 			
       while(i >= idx) {
@@ -1512,13 +1536,14 @@ handle_ed_char (WORD     vid,
           ob_spec.tedinfo->te_ptext[i];
 				
         i--;
-      };
+      }
     }
-    else {
+    else
+    {
       ob_spec.tedinfo->te_ptext[idx + 1] = '\0';
-    };
+    }
 		
-    ob_spec.tedinfo->te_ptext[idx] = (BYTE)kc;
+    ob_spec.tedinfo->te_ptext[idx] = (BYTE)internal_kc;
 
     draw_cursor (vid,idx,tree,obj);
     get_char_bound (tree,obj,idx,
@@ -1527,7 +1552,7 @@ handle_ed_char (WORD     vid,
     draw_cursor (vid,idx + 1,tree,obj);
 		
     return idx + 1;
-  };
+  }
 }
 
 /****************************************************************************

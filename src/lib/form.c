@@ -607,24 +607,38 @@ Form_center (AES_PB *apb) {
   Form_do_center (apb->global->apid,
                   (OBJECT *)apb->addr_in[0],
                   (RECT *)&apb->int_out[1]);
-};
+}
 
-/****************************************************************************
- *  Form_do_keybd                                                           *
- *   Process key input to form.                                             *
- ****************************************************************************/
-WORD              /* 0 if an exit object was selected, or 1.                */
-Form_do_keybd(    /*                                                        */
-WORD     apid,
-OBJECT * tree,    /* Resource tree of form.                                 */
-WORD     obj,     /* Object with edit focus (0 => none).                    */
-WORD     kc,      /* Keypress to process.                                   */
-WORD   * newobj,  /* New object with edit focus.                            */
-WORD   * keyout)  /* Keypress that couldn't be processed.                   */
-/****************************************************************************/
+
+/*
+** Description
+** Process key input to form
+*/
+WORD
+Form_do_keybd(WORD     apid,
+              OBJECT * tree,
+              WORD     obj,
+              WORD     kc,
+              WORD   * newobj,
+              WORD   * keyout)
 {
-  switch(kc) {
-  case 0x0f09: /* tab */
+  WORD internal_kc;
+
+  if((kc & 0xff) != 0)
+  {
+    /* Don't worry about scancodes for anything but special keys */
+    internal_kc = kc & 0xff;
+  }
+  else
+  {
+    internal_kc = kc;
+  }
+
+  fprintf(stderr, "internal_kc = 0x%x, kc = 0x%x\n", internal_kc, kc);
+
+  switch(internal_kc)
+  {
+  case 0x0009: /* tab */
   case 0x5000: /* arrow down */
   {
     WORD i = obj + 1;
@@ -632,23 +646,28 @@ WORD   * keyout)  /* Keypress that couldn't be processed.                   */
     *newobj = obj;
     *keyout = 0;
 			
-    if((obj != 0) && !(tree[obj].ob_flags & LASTOB)) {
-      while(1) {
-        if(tree[i].ob_flags & EDITABLE) {
+    if((obj != 0) && !(tree[obj].ob_flags & LASTOB))
+    {
+      while(TRUE)
+      {
+        if(tree[i].ob_flags & EDITABLE)
+        {
           *newobj = i;
 
           break;
-        };
+        }
 	
-        if(tree[i].ob_flags & LASTOB) {
+        if(tree[i].ob_flags & LASTOB)
+        {
           break;
-        };
+        }
 				
         i++;
-      };
-    };
-  };
+      }
+    }
+  }
   return 1;
+
   case 0x4800: /* arrow up */
   {
     WORD i = obj - 1;
@@ -656,25 +675,30 @@ WORD   * keyout)  /* Keypress that couldn't be processed.                   */
     *newobj = obj;
     *keyout = 0;
 			
-    while(i >= 0) {
-      if(tree[i].ob_flags & EDITABLE) {
+    while(i >= 0)
+    {
+      if(tree[i].ob_flags & EDITABLE)
+      {
         *newobj = i;
 
         break;
-      };
+      }
 
       i--;
-    };
-  };
+    }
+  }
   return 1;
-  case 0x1c0d: /* return */
+
+  case 0x000d: /* return */
   {
     WORD i = 0;
 			
     *newobj = -1;
 			
-    while(1) {
-      if(tree[i].ob_flags & DEFAULT) {
+    while(TRUE)
+    {
+      if(tree[i].ob_flags & DEFAULT)
+      {
         RECT clip;
 					
         *newobj = i;
@@ -684,23 +708,25 @@ WORD   * keyout)  /* Keypress that couldn't be processed.                   */
         Objc_do_change (apid, tree,i,&clip,SELECTED,REDRAW);
 					
         return 0;
-      };
+      }
 	
-      if(tree[i].ob_flags & LASTOB) {
+      if(tree[i].ob_flags & LASTOB)
+      {
         break;
-      };
+      }
 				
       i++;
-    };
-  };
+    }
+  }
   break;
-  };	
+  }	
 	
   *newobj = obj;
   *keyout = kc;
 
   return 1;
 }
+
 
 /****************************************************************************
  *  Form_keybd                                                              *
