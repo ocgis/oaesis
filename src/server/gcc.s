@@ -5,7 +5,7 @@
 	.globl  _newbvec
 	.globl  _newtvec
 	.globl _vdicall
-	.globl _accstart
+	.globl _prgstart
 	.globl _VsetScreen
 	.globl _VsetMode
 
@@ -104,14 +104,14 @@ _vdicall:
 	trap   #2
 	rts
 	
-_accstart:
+_prgstart:
 	movel sp@(4),a0        | Get pointer to basepage
 	movel a0@(16),a1       | Get data segment base
 	movel a1,a0@(8)        | Put data segment base in text base segment
 	addl  a0@(12),a1       | Add text length to data segment base
 	movel a1,a0@(16)       | Make result data segment base
 	movel a0@(8),a1        | Get text segment base
-	movel a1,sp@-          | Save basepage address
+	movel a1,sp@-          | Save text segment address
 	movel #-1,sp@-         | Timeout
 	movel #0x6f415357,sp@- | oASW
 	movew #2,sp@-          | SEM_LOCK
@@ -124,7 +124,7 @@ _accstart:
 	movew #0x134,sp@-      | Psemaphore
 	trap #1                | Call Gemdos
 	lea   sp@(12),sp       | Restore stack pointer
-	movel sp@+,a1          | Restore basepage address
+	movel sp@+,a1          | Restore text segment address
 	jmp a1@                | Jump to start of accessory
 
 _VsetScreen:

@@ -93,7 +93,11 @@ static BYTE versionstring[50];
 
 /* These few functions can only be used if we run TOS/MiNT */
 #ifdef MINT_TARGET
-WORD own_appl_init(void) {
+static
+inline
+WORD
+own_appl_init(void)
+{
   LONG addr_in[3],
   addr_out[1];
   WORD contrl[5] = { 10, 0, 1 , 0, 0 },
@@ -117,7 +121,12 @@ WORD own_appl_init(void) {
   return(int_out[0]);
 }
 
-WORD own_appl_exit(void) {
+
+static
+inline
+WORD
+own_appl_exit(void)
+{
   LONG addr_in[3],
   addr_out[1];
   WORD contrl[5] = { 19, 0, 1 , 0, 0 },
@@ -138,7 +147,12 @@ WORD own_appl_exit(void) {
   return(int_out[0]);
 }
 
-WORD own_graf_handle(void) {
+
+static
+inline
+WORD
+own_graf_handle(void)
+{
   LONG addr_in[3],
   addr_out[1];
   WORD contrl[5] = { 77, 0, 5 , 0, 0 },
@@ -207,11 +221,22 @@ srv_init_global (WORD no_configuration_file)
   signal (SIGTERM, handle_signal);
 
   DEBUG3("In srv_init_global: 2");
-  v_opnwk (work_in, &globals.vid, work_out);
-
-  DEBUG3("In srv_init_global: 3");
 #ifdef MINT_TARGET
-  init_global (globals.vid);
+  own_appl_init();
+
+  if(open_physical_ws)
+  {
+    v_opnwk(work_in, &globals.vid, work_out);
+  }
+  else
+  {
+    globals.vid = own_graf_handle();
+    v_clrwk(globals.vid);
+  }
+
+  init_global(globals.vid);
+#else
+  v_opnwk (work_in, &globals.vid, work_out);
 #endif
 
   DEBUG3("In srv_init_global: 4");
@@ -267,24 +292,28 @@ srv_init_global (WORD no_configuration_file)
 
 /*
 ** Exported
-**
-** 1999-01-09 CG
-** 1999-05-22 CG
 */
 void
-srv_exit_global (void) {
-#if 0 /* FIXME def MINT_TARGET */
-  if(open_physical_ws) {
+srv_exit_global (void)
+{
+#ifdef MINT_TARGET
+  if(open_physical_ws)
+  {
+    /*
     if(globals.video == 0x00030000L) {
       VsetScreen(NULL, NULL, oldmode, oldmodecode);
     }
     else {
       VsetScreen((void *)-1, (void *)-1, oldmode, oldmodecode);
-    };
+    }
+    */
     
-    v_clswk (globals.vid);
+    v_clswk(globals.vid);
+  }
+  else
+  {
     own_appl_exit();
-  };
+  }
 #else
   v_clswk (globals.vid);
 #endif

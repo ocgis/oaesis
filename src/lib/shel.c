@@ -61,7 +61,7 @@
 #define GEMAPP 1
 
 #ifdef MINT_TARGET
-extern void accstart(); /* In gcc.s or purec.s FIXME: make .h-file */
+extern void prgstart(); /* In gcc.s or purec.s FIXME: make .h-file */
 #endif
 
 
@@ -136,11 +136,13 @@ start_gem_program(WORD   apid,
                   BYTE * cmd,
                   BYTE * tail)
 {
-  BYTE * tmp;
-  BYTE   oldpath[128];
-  BYTE   exepath[128];
-  WORD   pid = -1;
-  WORD   ap_id;
+  BYTE *     tmp;
+  BYTE       oldpath[128];
+  BYTE       exepath[128];
+  WORD       pid = -1;
+  WORD       ap_id;
+  BASEPAGE * b;
+
 
   Dgetpath(oldpath,0);
   
@@ -172,33 +174,27 @@ start_gem_program(WORD   apid,
   /* Get semaphore */
   Psemaphore(SEM_LOCK, SHEL_WRITE_LOCK, -1);
 
-  if(type == APP_APPLICATION)
+  /* Load accessory or application into memory but don't start it */
+  b = (BASEPAGE *)Pexec(3, tmp, tail, envir);
+  
+  if(((LONG)b) > 0)
   {
-    pid = (WORD)Pexec(100, tmp, tail, envir);
-  }
-  else if(type == APP_ACCESSORY)
-  {
-    BASEPAGE * b;
-
-    /* Load accessory into memory but don't start it */
-    b = (BASEPAGE *)Pexec(3, tmp, tail, envir);
-    
-    if(((LONG)b) > 0)
+    if(type == APP_ACCESSORY)
     {
       Mshrink(b,256 + b->p_tlen + b->p_dlen + b->p_blen);
-      
+    }
+    
 #ifdef MINT_TARGET      
-      b->p_dbase = b->p_tbase;
-      b->p_tbase = (BYTE *)accstart;
+    b->p_dbase = b->p_tbase;
+    b->p_tbase = (BYTE *)prgstart;
 #endif
-      
-      /* Start accessory */
-      pid = (WORD)Pexec(104, tmp, (BYTE *)b, NULL);
-    }
-    else
-    {
-      DEBUG1("Pexec failed: code %ld",(LONG)b);
-    }
+
+    /* Start accessory or application */
+    pid = (WORD)Pexec(104, tmp, (BYTE *)b, NULL);
+  }
+  else
+  {
+    DEBUG1("Pexec failed: code %ld",(LONG)b);
   }
   
   Misc_setpath(oldpath);
