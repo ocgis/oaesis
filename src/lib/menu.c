@@ -318,14 +318,17 @@ AES_PB *apb)      /* Pointer to AES parameter block.                        */
 */
 static
 WORD
-Menu_do_register (WORD   apid,
-                  BYTE * title) {
+Menu_do_register(WORD   apid,
+                 WORD   register_apid,
+                 BYTE * title)
+{
   C_MENU_REGISTER par;
   R_MENU_REGISTER ret;
   GLOBAL_APPL *   globals = get_globals(apid);
  
   PUT_C_ALL(MENU_REGISTER, &par);
 
+  par.register_apid = register_apid;
   strncpy (par.title, title, sizeof (par.title) - 1);
   par.title[sizeof (par.title) - 1] = 0;
 
@@ -342,12 +345,12 @@ Menu_do_register (WORD   apid,
 /*
 ** Exported
 ** 0x0023 menu_register ()
-**
-** 1999-04-11 CG
 */
 void
-Menu_register (AES_PB * apb) {
-  apb->int_out[0] = Menu_do_register (apb->int_in[0],
-                                      (BYTE *)apb->addr_in[0]);
+Menu_register(AES_PB * apb)
+{
+  apb->int_out[0] = Menu_do_register(apb->global->apid,
+                                     apb->int_in[0],
+                                     (BYTE *)apb->addr_in[0]);
 }
 
