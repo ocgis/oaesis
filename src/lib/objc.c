@@ -982,6 +982,13 @@ draw_frame (WORD     vid,
   };
 }
 
+
+/*
+** Description
+** Draw bitblock image
+**
+** 1999-04-24 CG
+*/
 static
 void
 drawimage (WORD vid,
@@ -1024,7 +1031,10 @@ drawimage (WORD vid,
     colour[0] = invertcolor(colour[0]);
   };
 
+  /*
+  ** FIXME
   Vdi_vrt_cpyfm(vid,MD_TRANS,xyarray,&s,&d,colour);
+  */
 }
 
 static

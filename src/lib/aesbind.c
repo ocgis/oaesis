@@ -902,22 +902,22 @@ objc_order (OBJECT * tree,
 }
 
 
-short
-rsrc_gaddr (short  Type,
-            short  Index,
-            void * Address) {
+int
+rsrc_gaddr (int     type,
+            int     index,
+            void ** addr) {
   OPCODE     = 112;
   NO_INTIN   = 2;
-  NO_ADDRIN  = 1;
+  NO_ADDRIN  = 0;
   NO_INTOUT  = 1;
   NO_ADDROUT = 1;
 
-  aespb.intin[0] = Type;
-  aespb.intin[1] = Index;
+  aespb.intin[0] = type;
+  aespb.intin[1] = index;
 
   aes_call (&aespb);
 
-  *(long *)Address = aespb.addrout[0];
+  *(long *)addr = aespb.addrout[0];
 
   return aespb.intout[0];
 }

@@ -989,10 +989,10 @@ objc_order (OBJECT * tree,
 int     objc_sysvar (int mode, int which, int in1, int in2, int *out1, int *out2);
 
 int     rsrc_free (void);
-short
-rsrc_gaddr (short  Type,
-            short  Index,
-            void * Address);
+int
+rsrc_gaddr (int     type,
+            int     index,
+            void ** addr);
 short
 rsrc_load (char * fname);
 short

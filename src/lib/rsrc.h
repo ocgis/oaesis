@@ -7,15 +7,16 @@
  * Library routines                                                         *
  ****************************************************************************/
 
-/****************************************************************************
- *  Rsrc_do_rcfix                                                           *
- *   Implementation of rsrc_rcfix().                                        *
- ****************************************************************************/
-WORD              /* 0 if ok or != 0 if error.                              */
-Rsrc_do_rcfix(    /*                                                        */
-WORD     vid,     /* VDI workstation id.                                    */
-RSHDR  * rshdr);  /* Resource structure to fix.                             */
-/****************************************************************************/
+/*
+** Description
+** Implementation of rsrc_rcfix ()
+**
+** 1999-04-24 CG
+*/
+WORD
+Rsrc_do_rcfix (WORD     vid,
+               RSHDR  * rshdr,
+               WORD     swap_endian);
 
 /****************************************************************************
  *  Rsrc_duplicate                                                          *

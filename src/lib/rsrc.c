@@ -30,6 +30,8 @@
  
  ****************************************************************************/
 
+#define DEBUGLEVEL 0
+
 /****************************************************************************
  * Used interfaces                                                          *
  ****************************************************************************/
@@ -109,6 +111,7 @@ fix_object_coordinates (OBJECT *ob) {
 ** Load a resource file that is found in the path
 **
 ** 1999-03-14 CG
+** 1999-04-24 CG
 */
 static
 RSHDR *
@@ -150,7 +153,7 @@ Rsrc_do_load_mint (WORD   apid,
   Fread((WORD)fnr,flen,rsc);
   Fclose((WORD)fnr);
 
-  Rsrc_do_rcfix (vid, rsc);
+  Rsrc_do_rcfix (vid, rsc, flen != rsc->rsh_rssize);
         
   return rsc;
 }
@@ -161,6 +164,7 @@ Rsrc_do_load_mint (WORD   apid,
 ** Load a resource file that is found in the path
 **
 ** 1999-03-14 CG
+** 1999-04-24 CG
 */
 static
 RSHDR *
@@ -207,7 +211,9 @@ Rsrc_do_load_unix (WORD   apid,
   
   close(fnr);
 
-  Rsrc_do_rcfix (vid, rsc);
+  Rsrc_do_rcfix (vid,
+                 rsc,
+                 (st.st_size != rsc->rsh_rssize) && (rsc->rsh_vrsn == 0));
         
   return rsc;
 }
@@ -239,29 +245,36 @@ Rsrc_do_load (WORD   apid,
 ** Calculate the address of an resource object
 **
 ** 1998-10-01 CG
+** 1999-04-24 CG
 */
 static
 void *
 calculate_element_address (RSHDR * rsc,
                            WORD    type,
                            WORD    nr) {
-  switch(type) {
-  case R_TREE:  /*0x00*/
+  switch (type) {
+  case R_TREE:    /* 0x00 */
     return ((OBJECT **)(rsc->rsh_trindex + (LONG)rsc))[nr];
-  case R_STRING: /*0x05*/
+
+  case R_BITBLK:  /* 0x04 */
+    return &((BITBLK *)(rsc->rsh_bitblk + (LONG)rsc))[nr];
+
+  case R_STRING:  /* 0x05 */
     return ((BYTE **)(rsc->rsh_frstr + (LONG)rsc))[nr];
                 
-  case R_FRSTR:  /*0x0f*/
+  case R_FRSTR:   /* 0x0f */
     return &((BYTE **)(rsc->rsh_frstr + (LONG)rsc))[nr];
                         
-  case R_FRIMG: /* 0x10 */
+  case R_FRIMG:   /* 0x10 */
     return &((void **)(rsc->rsh_frimg + (LONG)rsc))[nr];
                         
   default:
-    DB_printf("%s: Line %d: Rsrc_gaddr: unknown type %d\r\n",
-              __FILE__,__LINE__,type);
+    DEBUG2 ("%s: Line %d: Rsrc_gaddr: unknown type %d",
+            __FILE__,
+            __LINE__,
+            type);
     return 0L;
-  };
+  }
 }
 
 
@@ -269,27 +282,48 @@ calculate_element_address (RSHDR * rsc,
  * Public functions                                                         *
  ****************************************************************************/
 
-/****************************************************************************
- *  Rsrc_do_rcfix                                                           *
- *   Implementation of rsrc_rcfix().                                        *
- ****************************************************************************/
-WORD              /* 0 if ok or != 0 if error.                              */
-Rsrc_do_rcfix(    /*                                                        */
-WORD     vid,     /* VDI workstation id.                                    */
-RSHDR  * rsc)     /* Resource structure to fix.                             */
-     /***********************************************************************/
-{
+/*
+** Exported
+**
+** 1999-04-24 CG
+*/
+WORD
+Rsrc_do_rcfix(WORD     vid,
+              RSHDR  * rsc,
+              WORD     swap_endian) {
+#define SWAP_WORD(w) (swap_endian ? (((UWORD)w >> 8) | ((UWORD)w << 8)) : w)
+#define SWAP_LONG(l) (swap_endian ? (((l >> 24) & 0x000000ff) |    \
+                                     ((l >>  8) & 0x0000ff00) |    \
+                                     ((l <<  8) & 0x00ff0000) |    \
+                                     ((l << 24) & 0xff000000)) : l)
   WORD  i;
+
+  UWORD *     iwalk;
+  OBJECT *    owalk;
+  TEDINFO *   tiwalk;
+  ICONBLK *   ibwalk;
+  BITBLK *    bbwalk;
+  LONG *      treewalk;
+  LONG *      frstrwalk;
+  CICONBLK ** cicons = NULL;
   
-  OBJECT        *owalk = (OBJECT *)((LONG)rsc->rsh_object + (LONG)rsc); 
-  TEDINFO       *tiwalk = (TEDINFO *)((LONG)rsc->rsh_tedinfo + (LONG)rsc);
-  ICONBLK       *ibwalk = (ICONBLK *)((LONG)rsc->rsh_iconblk + (LONG)rsc);
-  BITBLK        *bbwalk = (BITBLK *)((LONG)rsc->rsh_bitblk + (LONG)rsc);
-  LONG          *treewalk = (LONG *)((LONG)rsc->rsh_trindex + (LONG)rsc);
-  LONG    *frstrwalk = (LONG *)((LONG)rsc->rsh_frstr + (LONG)rsc);
-  CICONBLK      **cicons = NULL;
-  
-  if(rsc->rsh_vrsn & 0x4) {
+  /* Swap words if necessary */
+  if (swap_endian) {
+    DEBUG3 ("Rsrc_do_rcfix: Swapping words in header");
+    for (iwalk = (UWORD *)rsc; iwalk <= (UWORD *)&rsc->rsh_rssize; iwalk++) {
+      *iwalk = SWAP_WORD(*iwalk);
+    }
+  }
+
+  /* Initialize pointers */
+  owalk = (OBJECT *)((LONG)rsc->rsh_object + (LONG)rsc); 
+  tiwalk = (TEDINFO *)((LONG)rsc->rsh_tedinfo + (LONG)rsc);
+  ibwalk = (ICONBLK *)((LONG)rsc->rsh_iconblk + (LONG)rsc);
+  bbwalk = (BITBLK *)((LONG)rsc->rsh_bitblk + (LONG)rsc);
+  treewalk = (LONG *)((LONG)rsc->rsh_trindex + (LONG)rsc);
+  frstrwalk = (LONG *)((LONG)rsc->rsh_frstr + (LONG)rsc);
+
+  if (rsc->rsh_vrsn & 0x4) {
     RSHD_EXT *extension = (RSHD_EXT *)((LONG)rsc + (LONG)rsc->rsh_rssize);
     CICONBLK *cwalk;
   
@@ -378,8 +412,24 @@ RSHDR  * rsc)     /* Resource structure to fix.                             */
     }
   }
   
-  for(i = 0; i < rsc->rsh_nobs; i++) {
-    switch((BYTE)owalk[i].ob_type) {
+  DEBUG3 ("rsrc.c: Rsrc_do_rcfix: rsh_nobs = %d", rsc->rsh_nobs);
+  for (i = 0; i < rsc->rsh_nobs; i++) {
+    /* Swap endian if necesary */
+    if (swap_endian) {
+      owalk[i].ob_next = SWAP_WORD(owalk[i].ob_next);
+      owalk[i].ob_head = SWAP_WORD(owalk[i].ob_head);
+      owalk[i].ob_tail = SWAP_WORD(owalk[i].ob_tail);
+      owalk[i].ob_type = SWAP_WORD(owalk[i].ob_type);
+      owalk[i].ob_flags = SWAP_WORD(owalk[i].ob_flags);
+      owalk[i].ob_state = SWAP_WORD(owalk[i].ob_state);
+      owalk[i].ob_spec.index = SWAP_LONG(owalk[i].ob_spec.index);
+      owalk[i].ob_x = SWAP_WORD(owalk[i].ob_x);
+      owalk[i].ob_y = SWAP_WORD(owalk[i].ob_y);
+      owalk[i].ob_width = SWAP_WORD(owalk[i].ob_width);
+      owalk[i].ob_height = SWAP_WORD(owalk[i].ob_height);
+    }
+
+    switch (owalk[i].ob_type) {
     case        G_BOX:
     case        G_IBOX:
     case        G_BOXCHAR:
@@ -402,39 +452,45 @@ RSHDR  * rsc)     /* Resource structure to fix.                             */
       break;
       
     default:
-      DB_printf("fixrsc: unsupported type: %d\r\n"
-                ,owalk[i].ob_type);
-      sleep(1);
-    };
+      DB_printf ("rsrc.c: Rsrc_do_rcfix: Unsupported type: 0x%04x",
+                 owalk[i].ob_type);
+    }
     
     fix_object_coordinates (&owalk[i]);
-  };
+  }
   
-  for(i = 0; i < rsc->rsh_nted; i++) {
-    (LONG)tiwalk[i].te_ptext += (LONG)rsc;
-    (LONG)tiwalk[i].te_ptmplt += (LONG)rsc;
-    (LONG)tiwalk[i].te_pvalid += (LONG)rsc;
-  };
+  for (i = 0; i < rsc->rsh_nted; i++) {
+    (LONG)tiwalk[i].te_ptext =
+      SWAP_LONG((LONG)tiwalk[i].te_ptext) + (LONG)rsc;
+    (LONG)tiwalk[i].te_ptmplt =
+      SWAP_LONG((LONG)tiwalk[i].te_ptmplt) + (LONG)rsc;
+    (LONG)tiwalk[i].te_pvalid =
+      SWAP_LONG((LONG)tiwalk[i].te_pvalid) + (LONG)rsc;
+  }
   
-  for(i = 0; i < rsc->rsh_nib; i++) {
-    (LONG)ibwalk[i].ib_pmask += (LONG)rsc;
-    (LONG)ibwalk[i].ib_pdata += (LONG)rsc;
-    (LONG)ibwalk[i].ib_ptext += (LONG)rsc;
-  };
+  for (i = 0; i < rsc->rsh_nib; i++) {
+    (LONG)ibwalk[i].ib_pmask = SWAP_LONG((LONG)ibwalk[i].ib_pmask) + (LONG)rsc;
+    (LONG)ibwalk[i].ib_pdata = SWAP_LONG((LONG)ibwalk[i].ib_pdata) + (LONG)rsc;
+    (LONG)ibwalk[i].ib_ptext = SWAP_LONG((LONG)ibwalk[i].ib_ptext) + (LONG)rsc;
+  }
   
-  for(i = 0; i < rsc->rsh_nbb; i++) {
-    (LONG)bbwalk[i].bi_pdata += (LONG)rsc;
-  };
+  for (i = 0; i < rsc->rsh_nbb; i++) {
+    (LONG)bbwalk[i].bi_pdata = SWAP_LONG((LONG)bbwalk[i].bi_pdata) + (LONG)rsc;
+  }
   
-  for(i = 0; i < rsc->rsh_ntree; i++) {
-    (LONG)treewalk[i] += (LONG)rsc;
-  };    
+  for (i = 0; i < rsc->rsh_ntree; i++) {
+    (LONG)treewalk[i] = SWAP_LONG((LONG)treewalk[i]) + (LONG)rsc;
+  }    
   
-  for(i = 0; i < rsc->rsh_nstring; i++) {
-    (LONG)frstrwalk[i] += (LONG)rsc;
-  };    
+  for (i = 0; i < rsc->rsh_nstring; i++) {
+    DEBUG3 ("frstr %d %p %p", i, frstrwalk[i], SWAP_LONG(frstrwalk[i]));
+    (LONG)frstrwalk[i] = SWAP_LONG((LONG)frstrwalk[i]) + (LONG)rsc;
+  }    
   
   return 0;
+
+#undef SWAP_WORD
+#undef SWAP_LONG
 }
 
 
@@ -513,7 +569,8 @@ Rsrc_gaddr (AES_PB *apb) {
   GLOBAL_APPL * globals = get_globals (apb->global->apid);
 
   apb->int_out[0] = Rsrc_do_gaddr (globals->rshdr,
-                                   apb->int_in[0],apb->int_in[1],
+                                   apb->int_in[0],
+                                   apb->int_in[1],
                                    (OBJECT **)&apb->addr_out[0]);
 }
 
@@ -532,6 +589,7 @@ void    Rsrc_obfix(AES_PB *apb) /*0x0072*/ {
 **
 ** 1998-12-20 CG
 ** 1999-01-06 CG
+** 1999-04-24 CG
 */
 void
 Rsrc_rcfix (AES_PB *apb) /*0x0073*/ {
@@ -539,7 +597,8 @@ Rsrc_rcfix (AES_PB *apb) /*0x0073*/ {
   GLOBAL_APPL * globals = get_globals (apb->global->apid);
   
   Rsrc_do_rcfix (globals->vid,
-                 rsc);
+                 rsc,
+                 FALSE);
         
   globals->rscfile = (OBJECT **)((LONG)rsc->rsh_trindex + (LONG)rsc);
   globals->rshdr = rsc;

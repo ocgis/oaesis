@@ -170,6 +170,7 @@ WORD own_graf_handle(void) {
 ** 1999-03-11 CG
 ** 1999-04-13 CG
 ** 1999-04-18 CG
+** 1999-04-24 CG
 */
 void
 init_global (WORD nocnf,
@@ -309,7 +310,8 @@ init_global (WORD nocnf,
 #endif  
 
   Rsrc_do_rcfix (global_common.vid,
-                 (RSHDR *)resource);
+                 (RSHDR *)resource,
+                 FALSE /* FIXME: Swap if low_endian*/);
 
   Rsrc_do_gaddr ((RSHDR *)resource, R_TREE, AICONS, &global_common.aiconstad);
   Rsrc_do_gaddr ((RSHDR *)resource, R_TREE, ALERT, &global_common.alerttad);
