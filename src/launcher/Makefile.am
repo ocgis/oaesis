@@ -6,6 +6,9 @@ bin_PROGRAMS = launcher.prg
 launcher_prg_SOURCES = \
         launch.c launcher.c
 
+EXTRA_launcher_prg_SOURCES = \
+	launch.rsc launch.hrd
+
 launcher_prg_LDFLAGS = ../lib/liboaesis.la
 
 launch.c launch.h: launch.rsc launch.hrd

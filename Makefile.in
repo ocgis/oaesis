@@ -92,7 +92,7 @@ bin_SCRIPTS = oaesis-config
 m4datadir = $(datadir)/aclocal
 m4data_DATA = oaesis.m4
 
-EXTRA_DIST = OAESIS-VERSION
+EXTRA_DIST = OAESIS-VERSION ltconfig ltmain.sh
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = config.h
