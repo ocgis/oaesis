@@ -379,10 +379,12 @@ Evnt_do_multi (WORD       apid,
     }
     
     if (ret.eventout.events & MU_BUTTON) {
+      DEBUG2 ("evnt.c: Evnt_do_multi: bclicks = 0x%x", par.eventin.bclicks);
       events_out |= Evhd_handle_button (apid,
                                         ret.eventout.mb,
                                         ret.eventout.mx,
                                         ret.eventout.my,
+					par.eventin.bclicks,
                                         par.eventin.bmask,
                                         par.eventin.bstate);
     }

@@ -265,7 +265,7 @@ check_for_messages (C_EVNT_MULTI * par,
 
     if (ai != NULL) {
       if (ai->message_size > 0) {
-        /*        DB_printf ("srv_event.c: srv_wait_for_event; got ai = 0x%x: message size = %d  apid = %d", ai, ai->message_size, ai->id);*/
+        /*        DB_printf ("srv_event.c: check_for_messages: got ai = 0x%x: message size = %d  apid = %d", ai, ai->message_size, ai->id);*/
         memcpy (&ret->msg,
                 &ai->message_buffer [ai->message_head],
                 MSG_LENGTH);
@@ -313,6 +313,7 @@ srv_wake_appl_if_waiting_for_msg (WORD id) {
 ** 1998-12-13 CG
 ** 1999-01-30 CG
 ** 1999-04-07 CG
+** 1999-08-16 CG
 */
 static
 WORD
@@ -324,11 +325,8 @@ check_mouse_buttons (C_EVNT_MULTI * par,
   WORD retval = 0;
 
   if (apps [par->common.apid].mouse_size > 0) {
-    /*        if (ret->eventout.mc == 0) {*/
     ret->eventout.mx = MOUSE_BUFFER_HEAD.x;
     ret->eventout.my = MOUSE_BUFFER_HEAD.y;
-    /*        }*/
-    
     ret->eventout.mb = MOUSE_BUFFER_HEAD.buttons;
     ret->eventout.mc = 1; /* FIXME */
     
@@ -341,6 +339,24 @@ check_mouse_buttons (C_EVNT_MULTI * par,
     apps [par->common.apid].mouse_head =
       (apps [par->common.apid].mouse_head + 1) % MOUSE_BUFFER_SIZE;
     apps [par->common.apid].mouse_size--;
+  } else if (par->eventin.events & MU_BUTTON) {
+    if (par->eventin.bclicks & 0x100) {
+      if (par->eventin.bmask & buttons_last) {
+	ret->eventout.mx = x_last;
+	ret->eventout.my = y_last;
+	ret->eventout.mb = buttons_last;
+	ret->eventout.mc = 1;
+	
+	retval = MU_BUTTON;
+      }
+    } else if ((buttons_last & par->eventin.bmask) == par->eventin.bstate) {
+      ret->eventout.mx = x_last;
+      ret->eventout.my = y_last;
+      ret->eventout.mb = buttons_last;
+      ret->eventout.mc = 0;
+      
+      retval = MU_BUTTON;
+    }
   }
 
   return retval;

@@ -687,13 +687,21 @@ handle_slider_click (WORD     apid,
 ** FIXME: Count number of clicks and return them
 **
 ** 1999-05-24 CG
+** 1999-08-17 CG
 */
 static
 WORD
 handle_user_click (WORD mouse_button,
-                   WORD mask,
+		   WORD bclicks,
+                   WORD bmask,
                    WORD bstate) {
-  if ((mouse_button & mask) == bstate) {
+  if (bclicks & 0x100) {
+    if (mouse_button & bmask) {
+      return MU_BUTTON;
+    } else {
+      return 0;
+    }
+  } else if ((mouse_button & bmask) == bstate) {
     return MU_BUTTON;
   } else {
     return 0;
@@ -706,6 +714,7 @@ handle_user_click (WORD mouse_button,
 ** Handle mouse click on window element
 **
 ** 1999-05-24 CG
+** 1999-08-17 CG
 */
 static
 WORD
@@ -715,7 +724,10 @@ handle_window_element_click (WORD apid,
                              WORD top,
                              WORD mouse_button,
                              WORD mouse_x,
-                             WORD mouse_y) {
+                             WORD mouse_y,
+			     WORD bclicks,
+			     WORD bmask,
+			     WORD bstate) {
   WORD     obj;
   OBJECT * tree;
   COMMSG   mesag;
@@ -884,7 +896,10 @@ handle_window_element_click (WORD apid,
     }
   }
   
-  return handle_user_click;
+  return handle_user_click (mouse_button,
+			    bclicks,
+			    bmask,
+			    bstate);
 }
 
 
@@ -896,17 +911,21 @@ handle_window_element_click (WORD apid,
 ** 1999-04-09 CG
 ** 1999-05-16 CG
 ** 1999-05-24 CG
+** 1999-08-17 CG
 */
 WORD
 Evhd_handle_button (WORD apid,
                     WORD mouse_button,
                     WORD mouse_x,
                     WORD mouse_y,
-                    WORD mask,
+		    WORD bclicks,
+                    WORD bmask,
                     WORD bstate) {
   EVNTREC     er;
 
   DEBUG2 ("evnthndl.c: Entering Evhd_handle_button");
+  DEBUG2 ("evnthndl.c: apid = %d mb = %d mx = %d my = %d bclicks = %x bmask = %d bstate = %d",
+	  apid, mouse_button, mouse_x, mouse_y, bclicks, bmask, bstate);
   if (mouse_button & LEFT_BUTTON) {
     WORD     win_id;
     WORD     owner;
@@ -938,19 +957,22 @@ Evhd_handle_button (WORD apid,
     if (status & (WIN_DESKTOP | WIN_DIALOG)) {
       /* Return the click to the user */
       return handle_user_click (mouse_button,
-                                mask,
+				bclicks,
+                                bmask,
                                 bstate);
     } else if (Misc_inside (&worksize, mouse_x, mouse_y)) {
       if((status & (WIN_UNTOPPABLE | WIN_ICONIFIED)) == WIN_UNTOPPABLE) {
         /* Return the click to the user */
         return handle_user_click (mouse_button,
-                                  mask,
+				  bclicks,
+                                  bmask,
                                   bstate);
       } else {
         COMMSG      m;
         
         return handle_user_click (mouse_button,
-                                  mask,
+				  bclicks,
+                                  bmask,
                                   bstate);
 
         /* FIXME!! */
@@ -1000,7 +1022,8 @@ Evhd_handle_button (WORD apid,
           return 0;
         } else {
           return handle_user_click (mouse_button,
-                                    mask,
+				    bclicks,
+                                    bmask,
                                     bstate);
         }
       }
@@ -1011,11 +1034,15 @@ Evhd_handle_button (WORD apid,
                                           top,
                                           mouse_button,
                                           mouse_x,
-                                          mouse_y);
+                                          mouse_y,
+					  bclicks,
+					  bmask,
+					  bstate);
     }
   } else { /* not handle & LEFT_BUTTON */
     return handle_user_click (mouse_button,
-                              mask,
+			      bclicks,
+                              bmask,
                               bstate);
   }
 }
@@ -1189,6 +1216,7 @@ static WORD     get_matching_menu(OBJECT *t,WORD n) {
 ** 1999-04-10 CG
 ** 1999-04-13 CG
 ** 1999-04-18 CG
+** 1999-08-17 CG
 */
 static
 WORD
@@ -1218,7 +1246,7 @@ handle_drop_down (WORD        apid,
       MU_BUTTON | MU_M1,
       0,
       LEFT_BUTTON,
-      0,
+      LEFT_BUTTON,
       MO_LEAVE,
       {0,0,1,1},
       0,
@@ -1242,6 +1270,7 @@ handle_drop_down (WORD        apid,
     }
 
     while(TRUE) {
+      DEBUG3 ("Calling Evnt_do_multi with LEFT_BUTTON");
       Evnt_do_multi (apid, &ei, &buffer, &eo, 0, DONT_HANDLE_MENU_BAR);
 
       if (eo.events & MU_M1) {
@@ -1255,6 +1284,18 @@ handle_drop_down (WORD        apid,
         
         return 0;
       } else if (eo.events & MU_BUTTON) {
+	WORD dummy;
+
+	/* Wait for button to be released */
+	Evnt_do_button (apid,
+			1,
+			LEFT_BUTTON,
+			0,
+			&dummy,
+			&dummy,
+			&dummy,
+			&dummy);
+
         nmenu[entry].ob_state &= ~SELECTED;
                 
         if (nmenu == globals->common->pmenutad) {

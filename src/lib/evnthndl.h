@@ -9,13 +9,15 @@
 **
 ** 1998-12-20 CG
 ** 1999-05-24 CG
+** 1999-08-17 CG
 */
 WORD
 Evhd_handle_button (WORD apid,
                     WORD newbutton,
                     WORD x,
                     WORD y,
-                    WORD mask,
+		    WORD bclicks,
+                    WORD bmask,
                     WORD bstate);
 
 

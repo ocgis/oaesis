@@ -304,16 +304,10 @@ updatewait (int wid) {
   lines[0].v_y2 = winy + 100;
 
   while (!quit) {
-    happ = evnt_multi(MU_KEYBD | MU_MESAG | MU_BUTTON,
+    happ = evnt_multi(MU_KEYBD | MU_MESAG,
                       0,0,0,0,0,0,0,0,0,0,0,0,0,
                       buffert,0,&x,&y,&knapplage,&tanglage,
                       &tangent,&ant_klick);
-
-    if (happ & MU_BUTTON) {
-      fprintf (stderr,
-               "lines.prg: evnt_multi returned MU_BUTTON x = %d y = %d buttons = %d\n",
-               x, y, knapplage);
-    }
 
     if (happ & MU_MESAG) {
       if (buffert[0] == MN_SELECTED) {
