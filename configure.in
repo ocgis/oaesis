@@ -23,16 +23,25 @@ AC_PROG_RANLIB
 dnl Check for libraries
 AC_CHECK_LIB(mint,main)
 
+dnl Set target specific things
+case "${target}" in
+    *mint*)    DEFS="$DEFS -DMINT_TARGET" ;;
+
+dnl Assume that MiNTwrapper includes are in /usr/local/include/tos
+    *)    CPPFLAGS="$CPPFLAGS -I/usr/local/include/tos" ;;
+esac
+
 dnl Check for header files
 AC_HEADER_STDC
 AC_CHECK_HEADERS(alloc.h)
+AC_CHECK_HEADERS(process.h)
+AC_CHECK_HEADERS(support.h)
+AC_CHECK_HEADERS(mintbind.h)
 AC_CHECK_HEADERS(basepage.h)
 AC_CHECK_HEADERS(compiler.h)
+AC_CHECK_HEADERS(fcntl.h)
 AC_CHECK_HEADERS(ioctl.h)
-AC_CHECK_HEADERS(mintbind.h)
-AC_CHECK_HEADERS(process.h)
 AC_CHECK_HEADERS(osbind.h)
-AC_CHECK_HEADERS(support.h)
 AC_CHECK_HEADERS(sysvars.h)
 
 dnl Specify which variables that should be exchanged
@@ -40,11 +49,6 @@ AC_SUBST(PACKAGE)
 AC_SUBST(VERSION)
 AC_SUBST(target_cpu)
 AC_SUBST(target_os)
-
-case "${target}" in
-    *mint*)    CFLAGS="$CFLAGS -DMINT_TARGET" ;;
-    *)   ;;
-esac
 
 dnl Set CFLAGS
 CFLAGS="$CFLAGS -Wall"
