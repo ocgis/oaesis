@@ -578,6 +578,7 @@ WORD     level)      /* Number of times the function has been called by     */
 ** 1998-12-19 CG
 ** 1999-01-01 CG
 ** 1999-01-09 CG
+** 1999-03-21 CG
 */
 void
 Evnt_do_multi (WORD       apid,
@@ -630,7 +631,10 @@ Evnt_do_multi (WORD       apid,
                         ret.eventout.my);
   }
 
-  *msg = ret.msg;
+  if (eventin->events & MU_MESAG) {
+    *msg = ret.msg;
+  }
+
   *eventout = ret.eventout;
 }
 

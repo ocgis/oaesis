@@ -1314,7 +1314,7 @@ handle_drop_down (WORD        apid,
 
     while(TRUE) {
       Evnt_do_multi (apid, &ei, &buffer, &eo, 0, DONT_HANDLE_MENU_BAR);
-      
+
       if (eo.events & MU_M1) {
         if(!(nmenu[entry].ob_state & DISABLED)) {
           nmenu[entry].ob_state &= ~SELECTED;
@@ -1398,6 +1398,7 @@ handle_drop_down (WORD        apid,
 **
 ** 1998-12-20 CG
 ** 1999-01-09 CG
+** 1999-03-17 CG
 */
 static
 WORD
@@ -1467,7 +1468,7 @@ handle_selected_title (WORD        apid,
         */
     }
 
-    dropwin = Wind_do_create (0, 0, &area, WIN_MENU);
+    dropwin = Wind_do_create (apid, 0, &area, WIN_MENU);
     Wind_do_open (apid,
                   dropwin,
                   &area);
@@ -1538,6 +1539,7 @@ handle_selected_title (WORD        apid,
 **
 ** 1998-12-20 CG
 ** 1999-01-09 CG
+** 1999-03-17 CG
 */
 void
 Evhd_handle_menu (WORD apid) {
@@ -1586,7 +1588,7 @@ Evhd_handle_menu (WORD apid) {
       m.tree = hm_buffer.tree;
       m.parent = hm_buffer.parent;
       
-      Appl_do_write (apid, TOP_MENU_OWNER, 16, &m);
+      Appl_do_write (apid, apid, 16, &m);
     }
     break;
 

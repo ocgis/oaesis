@@ -938,6 +938,24 @@ OBJECT *tree)     /* Resource tree.                                         */
 }
 
 
+/*
+** Description
+** Get the owner of the topped menu
+**
+** 1999-03-15 CHGU
+*/
+WORD
+get_top_menu_owner (void) {
+  AP_INFO * ai = search_appl_info (TOP_MENU_OWNER);
+
+  if (ai == NULL) {
+    return -1;
+  } else {
+    return ai->id;
+  }
+}
+
+
 /****************************************************************************
  * srv_get_top_menu                                                         *
  *  Get the resource tree of the menu of an application                     *
@@ -993,6 +1011,7 @@ WORD apid)        /* Application id.                                        */
 ** Redraw the menu bar
 **
 ** 1999-01-09 CG
+** 1999-03-21 CG
 */
 static
 void
@@ -1010,7 +1029,7 @@ redraw_menu_bar (void) {
     m.wid = MENU_BAR_WINDOW;
     m.area = win->totsize;
       
-    c_appl_write.addressee = win->owner;
+    c_appl_write.addressee = get_top_menu_owner ();
     c_appl_write.length = MSG_LENGTH;
     c_appl_write.is_reference = TRUE;
     c_appl_write.msg.ref = &m;
@@ -1024,6 +1043,7 @@ redraw_menu_bar (void) {
 ** Creates and updates the menu list entries for the specified menu. 
 **
 ** 1999-01-09 CG
+** 1999-03-21 CG
 */
 static
 WORD
@@ -1033,17 +1053,11 @@ menu_bar_install (OBJECT * tree,
 
   set_menu (capid, tree);
   
-  ai = search_appl_info (TOP_MENU_OWNER);
-
-  if (ai != NULL) {
-    if (ai->id == capid) {
-      redraw_menu_bar();
-    }
-
-    return 1;
-  } else {
-    return 0;
+  if (get_top_menu_owner () == capid) {
+    redraw_menu_bar();
   }
+
+  return 1;
 }
 
 
@@ -1079,6 +1093,7 @@ WORD apid)        /* Application whose menu is to be removed.               */
 ** Server part of 0x001e menu_bar ()
 **
 ** 1999-01-09 CG
+** 1999-03-15 CG
 */
 static
 void
@@ -1087,13 +1102,16 @@ srv_menu_bar (C_MENU_BAR * msg,
   switch (msg->mode) {
   case MENU_INSTALL: 
     ret->common.retval = menu_bar_install (msg->tree, msg->common.apid);
-    
+    break;
+
   case MENU_REMOVE:
     ret->common.retval = menu_bar_remove (msg->common.apid);
+    break;
     
   case MENU_INQUIRE:
     ret->common.retval = menu_bar_inquire ();
-    
+    break;
+
   default:
     ret->common.retval = 0;
   }
@@ -3139,7 +3157,7 @@ R_WIND_CREATE * ret)
   
   ws->status = msg->status;
   ws->owner = msg->common.apid; 
-	
+
   ws->maxsize = msg->maxsize;
 
   ws->rlist = NULL;

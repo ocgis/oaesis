@@ -765,14 +765,14 @@ appl_write (short  ap_id,
             short  length,
             void * msg);
 
-short
-evnt_button (short clicks,
-             short mask,
-             short state,
-             short * mx,
-             short * my,
-             short * button,
-             short * kstate); 
+int
+evnt_button (int clicks,
+             int mask,
+             int state,
+             int * mx,
+             int * my,
+             int * button,
+             int * kstate); 
 int     evnt_dclick (int ToSet, int SetGet);
 int     evnt_keybd (void);
 short
@@ -780,29 +780,29 @@ evnt_mesag (short MesagBuf[]);
 int     evnt_mouse (int EnterExit, int InX, int InY,
                                   int InW, int InH, int *OutX, int *OutY, 
                                   int *ButtonState, int *KeyState); 
-short
-evnt_multi (short         Type,
-            short         Clicks,
-            short         WhichButton,
-            short         WhichState,
-            short         EnterExit1,
-            short         In1X,
-            short         In1Y,
-            short         In1W,
-            short         In1H,
-            short         EnterExit2,
-            short         In2X, 
-            short         In2Y,
-            short         In2W,
-            short         In2H,
+int
+evnt_multi (int           Type,
+            int           Clicks,
+            int           WhichButton,
+            int           WhichState,
+            int           EnterExit1,
+            int           In1X,
+            int           In1Y,
+            int           In1W,
+            int           In1H,
+            int           EnterExit2,
+            int           In2X, 
+            int           In2Y,
+            int           In2W,
+            int           In2H,
             short         MesagBuf[],
             unsigned long Interval,
-            short *       OutX,
-            short *       OutY,
-            short *       ButtonState,
-            short *       KeyState,
-            short *       Key,
-            short *       ReturnCount);
+            int *         OutX,
+            int *         OutY,
+            int *         ButtonState,
+            int *         KeyState,
+            int *         Key,
+            int *         ReturnCount);
 short
 evnt_timer (unsigned long interval);
 
@@ -811,12 +811,12 @@ form_alert (short  DefButton,
             char * Str);
 int form_button (void *Btree, int Bobject, int Bclicks,
                                   int *Bnxtobj);
-short
-form_center (void *  tree,
-             short * cx,
-             short * cy,
-             short * cw,
-             short * ch);
+int
+form_center (OBJECT * tree,
+             int *    cx,
+             int *    cy,
+             int *    cw,
+             int *    ch);
 short
 form_dial (short flag,
            short sx,
@@ -835,25 +835,27 @@ form_error (short code);
 int form_keybd (void *Ktree, int Kobject, int Kobnext,
                                  int Kchar, int *Knxtobject, int *Knxtchar);
 
-short fsel_exinput (char *  Path,
-                    char *  File,
-                    short * ExitButton,
-                    char *  Prompt);
-short fsel_input (char *  path,
-                  char *  file,
-                  short * button);
+int
+fsel_exinput (char *  Path,
+              char *  File,
+              int *   ExitButton,
+              char *  Prompt);
+int
+fsel_input (char *  path,
+            char *  file,
+            int *   button);
 
-short
-graf_dragbox (short   w,
-              short   h,
-              short   sx,
-              short   sy,
-              short   bx,
-              short   by,
-              short   bw,
-              short   bh,
-              short * endx,
-              short * endy); 
+int
+graf_dragbox (int   w,
+              int   h,
+              int   sx,
+              int   sy,
+              int   bx,
+              int   by,
+              int   bw,
+              int   bh,
+              int * endx,
+              int * endy); 
 short
 graf_growbox (short x1,
               short y1,
@@ -863,27 +865,29 @@ graf_growbox (short x1,
               short y2,
               short w2,
               short h2); 
-extern short graf_handle (short * Wchar,
-                          short * Hchar,
-                          short * Wbox, 
-                          short * Hbox);
-short
-graf_mkstate (short * mx,
-              short * my,
-              short * mb,
-              short * ks); 
+
+int
+graf_handle (int * Wchar,
+             int * Hchar,
+             int * Wbox, 
+             int * Hbox);
+int
+graf_mkstate (int * mx,
+              int * my,
+              int * mb,
+              int * ks); 
 short
 graf_mouse (int    Form,
             void * FormAddress);
 int graf_movebox (int Sw, int Sh, int Sx, int Sy, int Dx,
                                    int Dy);
-short
-graf_rubberbox (short   bx,
-                short   by,
-                short   minw,
-                short   minh,
-                short * endw,
-                short * endh);
+int
+graf_rubberbox (int   bx,
+                int   by,
+                int   minw,
+                int   minh,
+                int * endw,
+                int * endh);
 short
 graf_shrinkbox (short x1,
                 short y1,
@@ -956,11 +960,11 @@ objc_find (OBJECT * tree,
            short    depth,
            short    ox,
            short    oy);
-short
+int
 objc_offset (OBJECT * Tree,
-             short    Object,
-             short *  X,
-             short *  Y);
+             int      Object,
+             int *    X,
+             int *    Y);
 int     objc_order (void *Tree, int Object, int NewPos);
 int     objc_sysvar (int mode, int which, int in1, int in2, int *out1, int *out2);
 
@@ -992,17 +996,17 @@ int     shel_read (char *Command, char *Tail);
 int     shel_write (int Exit, int Graphic, int Aes,
                                     char *Command, char *Tail);
 
-short
-wind_calc (short   request,
-           short   kind,
-           short   x1,
-           short   y1,
-           short   w1,
-           short   h1,
-           short * x2,
-           short * y2,
-           short * w2,
-           short * h2);  
+int
+wind_calc (int   request,
+           int   kind,
+           int   x1,
+           int   y1,
+           int   w1,
+           int   h1,
+           int * x2,
+           int * y2,
+           int * w2,
+           int * h2);  
 extern short wind_close (short WindowHandle);
 extern short wind_create (short Parts,
                           short Wx,
@@ -1012,12 +1016,13 @@ extern short wind_create (short Parts,
 short
 wind_delete (short handle);
 int     wind_find (int X, int Y);
-extern short wind_get (short   WindowHandle,
-                       short   What,
-                       short * W1,
-                       short * W2,
-                       short * W3,
-                       short * W4); 
+int
+wind_get (int   WindowHandle,
+          int   What,
+          int * W1,
+          int * W2,
+          int * W3,
+          int * W4); 
 void    wind_new (void);
 extern short wind_open (short WindowHandle,
                         short Wx,

@@ -1,7 +1,7 @@
 /*
 ** launcher.c
 **
-** Copyright 1998 Christer Gustavsson <cg@nocrew.org>
+** Copyright 1998-1999 Christer Gustavsson <cg@nocrew.org>
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -31,7 +31,11 @@
 #define HI_WORD(l) ((WORD)((LONG)l >> 16))
 #define LO_WORD(l) ((WORD)((LONG)l & 0xffff))
 
+#ifdef MINT_TARGET
+#define PATH_SEPARATOR '\\'
+#else
 #define PATH_SEPARATOR '/'
+#endif
 
 static int  vid;
 static WORD num_colors;
@@ -69,6 +73,7 @@ static char progfile[70] = "toswin_w.prg";
 **
 ** 1999-01-11 CG
 ** 1999-03-11 CG
+** 1999-03-21 CG
 */
 static
 void
@@ -76,7 +81,7 @@ launch_application (void) {
   char   execpath[128]; /*FIXME length of string */
   char   oldpath[128];
   char * tmp;
-  WORD   button;
+  int    button;
 
   /* Open file selector */
   fsel_exinput (progpath, progfile, &button, "Select program to start");
@@ -97,15 +102,17 @@ launch_application (void) {
       strcpy (execpath, progfile);
     }
 
-    /*
-    Dgetpath (oldpath, 0);
-    
-    Misc_setpath (newpath);
-    */
 
-    /*
+#ifdef MINT_TARGET
+    Dgetpath (oldpath, 0);
+    Misc_setpath (newpath);
+
     err = Pexec (100, execpath, 0L, 0L);
-    */
+
+    Misc_setpath (oldpath);
+#else
+    getcwd (oldpath, 128);
+    chdir (newpath);
 
     if (fork () == 0) {
       execlp (execpath, NULL);
@@ -113,9 +120,8 @@ launch_application (void) {
       exit (0);
     }
 
-    /*
-    Misc_setpath (oldpath);
-    */
+    chdir (oldpath);
+#endif
 
     if (err < 0) {
       form_error ((WORD) -err - 31);
@@ -135,10 +141,10 @@ static
 void
 show_information (void) {
   OBJECT * information;
-  WORD     x;
-  WORD     y;
-  WORD     w;
-  WORD     h;
+  int      x;
+  int      y;
+  int      w;
+  int      h;
 
   /* Get address if information resource */
   rsrc_gaddr (R_TREE, INFORM, &information);
@@ -219,20 +225,21 @@ handle_menu (WORD * buffert) {
 ** Wait for events and update windows
 **
 ** 1999-01-10 CG
+** 1999-03-21 CG
 */
 static
 void
 updatewait (int wid) {
   WORD  quit = FALSE;
-  WORD  ant_klick;
+  int   ant_klick;
   WORD  buffert[16];
   WORD  happ;
-  WORD  knapplage;
+  int   knapplage;
   WORD  lastline = 0;
   WORD  num_lines = 1;
-  WORD  tangent,tanglage;
-  WORD  winx,winy,winw,winh;
-  WORD  x,y,w,h;
+  int   tangent,tanglage;
+  int   winx,winy,winw,winh;
+  int   x,y,w,h;
   VRECT lines[NUM_LINES];
   
   WORD  sx1 = 5,sy1 = 10,sx2 = 15,sy2 = 5;
@@ -265,7 +272,7 @@ updatewait (int wid) {
       if (buffert[0] == MN_SELECTED) {
         quit = handle_menu (buffert);
       } else if (buffert[0] == WM_REDRAW) {
-        WORD      x,y,w,h;
+        int x, y, w, h;
         wind_update(BEG_UPDATE);
         
         wind_get (wid, WF_FIRSTXYWH, &x, &y, &w, &h);
@@ -275,9 +282,8 @@ updatewait (int wid) {
           x, y, w, h);
         */
         
-        while((w > 0) && (h > 0))
-        {
-          WORD    xn,yn,wn,hn;
+        while((w > 0) && (h > 0)) {
+          int xn, yn, wn, hn;
           
           xn = max(x,buffert[4]);
           wn = min(x + w, buffert[4] + buffert[6]) - xn;
@@ -311,7 +317,7 @@ updatewait (int wid) {
             vs_clip(vid,0,xyxy);
           }
           
-          wind_get(wid,WF_NEXTXYWH,&x,&y,&w,&h);
+          wind_get (wid, WF_NEXTXYWH, &x, &y, &w, &h);
         }                         
         wind_update(END_UPDATE);
       } else if (buffert[0] == WM_TOPPED) {
@@ -319,8 +325,8 @@ updatewait (int wid) {
       } else if (buffert[0] == WM_CLOSED) {
         quit = TRUE;
       } else if (buffert[0] == WM_SIZED) {          
-        WORD      i;
-        WORD      newx,newy,neww,newh;
+        int i;
+        int newx, newy, neww, newh;
         
         wind_set(wid,WF_CURRXYWH,buffert[4],buffert[5]
                  ,buffert[6],buffert[7]);
@@ -350,8 +356,8 @@ updatewait (int wid) {
         winw = neww;
         winh = newh;
       } else if (buffert[0] == WM_MOVED) {
-        WORD      i;
-        WORD      newx,newy,neww,newh;
+        int i;
+        int newx, newy, neww, newh;
         
         wind_set (wid,
                   WF_CURRXYWH,
@@ -458,7 +464,7 @@ updatewait (int wid) {
 
 void testwin(void)
 {
-  WORD  xoff,yoff,woff,hoff;
+  int xoff,yoff,woff,hoff;
   
   WORD  wid;
   
@@ -489,6 +495,7 @@ void testwin(void)
 ** 1999-01-03 CG
 ** 1999-01-06 CG
 ** 1999-01-09 CG
+** 1999-03-21 CG
 */
 int
 main ()
@@ -502,7 +509,7 @@ main ()
   char     file[] = "djuro";
   short    exit_button;
   
-  WORD     wc, hc, wb, hb;
+  int      wc, hc, wb, hb;
 
   fprintf (stderr, "launcher.c: before Pdomain\n");
   Pdomain (1); /* FIXME decide where to put this */

@@ -97,14 +97,14 @@ appl_write (short  ap_id,
 }
 
 
-short
-evnt_button (short clicks,
-             short mask,
-             short state,
-             short * mx,
-             short * my,
-             short * button,
-             short * kstate) {
+int
+evnt_button (int   clicks,
+             int   mask,
+             int   state,
+             int * mx,
+             int * my,
+             int * button,
+             int * kstate) {
   OPCODE = 21;
   NO_INTIN = 3;
   NO_ADDRIN = 0;
@@ -143,29 +143,29 @@ evnt_mesag (short msg[])
 }
 
 
-short
-evnt_multi (short         Type,
-            short         Clicks,
-            short         WhichButton,
-            short         WhichState,
-            short         EnterExit1,
-            short         In1X,
-            short         In1Y,
-            short         In1W,
-            short         In1H,
-            short         EnterExit2,
-            short         In2X, 
-            short         In2Y,
-            short         In2W,
-            short         In2H,
+int
+evnt_multi (int           Type,
+            int           Clicks,
+            int           WhichButton,
+            int           WhichState,
+            int           EnterExit1,
+            int           In1X,
+            int           In1Y,
+            int           In1W,
+            int           In1H,
+            int           EnterExit2,
+            int           In2X, 
+            int           In2Y,
+            int           In2W,
+            int           In2H,
             short         MesagBuf[],
             unsigned long Interval,
-            short *       OutX,
-            short *       OutY,
-            short *       ButtonState,
-            short *       KeyState,
-            short *       Key,
-            short *       ReturnCount)
+            int *         OutX,
+            int *         OutY,
+            int *         ButtonState,
+            int *         KeyState,
+            int *         Key,
+            int *         ReturnCount)
 {
   OPCODE = 25;
   NO_INTIN = 16;
@@ -242,12 +242,12 @@ form_alert (short  default_button,
 }
 
 
-short
-form_center (void *  tree,
-             short * cx,
-             short * cy,
-             short * cw,
-             short * ch) {
+int
+form_center (OBJECT * tree,
+             int *    cx,
+             int *    cy,
+             int *    cw,
+             int *    ch) {
   OPCODE = 54;
   NO_INTIN = 0;
   NO_ADDRIN = 1;
@@ -336,10 +336,10 @@ form_error (short code) {
 }
 
 
-short
+int
 fsel_exinput (char *  Path,
               char *  File,
-              short * ExitButton,
+              int *   ExitButton,
               char *  Prompt) {
   OPCODE = 91;
   NO_INTIN = 0;
@@ -359,10 +359,10 @@ fsel_exinput (char *  Path,
 }
 
 
-short
+int
 fsel_input (char *  path,
             char *  file,
-            short * button) {
+            int *   button) {
   OPCODE = 90;
   NO_INTIN = 0;
   NO_ADDRIN = 2;
@@ -380,17 +380,17 @@ fsel_input (char *  path,
 }
 
 
-short
-graf_dragbox (short   w,
-              short   h,
-              short   sx,
-              short   sy,
-              short   bx,
-              short   by,
-              short   bw,
-              short   bh,
-              short * endx,
-              short * endy) {
+int
+graf_dragbox (int   w,
+              int   h,
+              int   sx,
+              int   sy,
+              int   bx,
+              int   by,
+              int   bw,
+              int   bh,
+              int * endx,
+              int * endy) {
   OPCODE = 71;
   NO_INTIN = 8;
   NO_ADDRIN = 0;
@@ -443,11 +443,11 @@ graf_growbox (short x1,
 }
 
 
-short
-graf_handle (short * Wchar,
-             short * Hchar,
-             short * Wbox, 
-             short * Hbox)
+int
+graf_handle (int * Wchar,
+             int * Hchar,
+             int * Wbox, 
+             int * Hbox)
 {
   OPCODE = 77;
   NO_INTIN = 0;
@@ -464,11 +464,11 @@ graf_handle (short * Wchar,
 }
 
 
-short
-graf_mkstate (short * mx,
-              short * my,
-              short * mb,
-              short * ks) {
+int
+graf_mkstate (int * mx,
+              int * my,
+              int * mb,
+              int * ks) {
   OPCODE = 79;
   NO_INTIN = 0;
   NO_ADDRIN = 0;
@@ -504,13 +504,13 @@ graf_mouse (int    Form,
 }
 
 
-short
-graf_rubberbox (short   bx,
-                short   by,
-                short   minw,
-                short   minh,
-                short * endw,
-                short * endh) {
+int
+graf_rubberbox (int   bx,
+                int   by,
+                int   minw,
+                int   minh,
+                int * endw,
+                int * endh) {
   OPCODE = 70;
   NO_INTIN = 4;
   NO_ADDRIN = 0;
@@ -770,11 +770,11 @@ objc_find (OBJECT * tree,
 }
 
 
-short
+int
 objc_offset (OBJECT * tree,
-             short    obj,
-             short *  ox,
-             short *  oy) {
+             int      obj,
+             int *    ox,
+             int *    oy) {
   OPCODE = 44;
   NO_INTIN = 1;
   NO_ADDRIN = 1;
@@ -913,17 +913,17 @@ shel_find (char * buf) {
 }
 
 
-short
-wind_calc (short   request,
-           short   kind,
-           short   x1,
-           short   y1,
-           short   w1,
-           short   h1,
-           short * x2,
-           short * y2,
-           short * w2,
-           short * h2)
+int
+wind_calc (int   request,
+           int   kind,
+           int   x1,
+           int   y1,
+           int   w1,
+           int   h1,
+           int * x2,
+           int * y2,
+           int * w2,
+           int * h2)
 {
   OPCODE = 108;
   NO_INTIN = 6;
@@ -1005,13 +1005,13 @@ wind_delete (short handle)
 }
 
 
-short
-wind_get (short   WindowHandle,
-          short   What,
-          short * W1,
-          short * W2,
-          short * W3,
-          short * W4)
+int
+wind_get (int   WindowHandle,
+          int   What,
+          int * W1,
+          int * W2,
+          int * W3,
+          int * W4)
 {
   OPCODE = 104;
   NO_INTIN = 2;

@@ -604,7 +604,7 @@ Form_do_center (WORD     apid,
                TRUE);
   tree[0].ob_x = pw1 + ((pw3 - tree[0].ob_width) >> 1);
   tree[0].ob_y = pw2 + ((pw4 - tree[0].ob_height) >> 1);
-  
+
   Objc_area_needed (tree, 0, clip);
 }
 

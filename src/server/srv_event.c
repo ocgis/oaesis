@@ -350,6 +350,7 @@ check_mouse_buttons (C_EVNT_MULTI * par,
 ** 1998-12-13 CG
 ** 1998-12-25 CG
 ** 1999-01-09 CG
+** 1999-03-15 CG
 */
 static
 WORD
@@ -378,10 +379,10 @@ check_mouse_motion (WORD           x,
   }
 
   /*
-  ** FIXME
-  ** Check that the application owns the menu
+  ** Check if the menu bar area has been entered
   */
-  if (par->eventin.events & MU_MENU_BAR) {
+  if ((par->common.apid == get_top_menu_owner ()) &&
+      (par->eventin.events & MU_MENU_BAR)) {
     if (Misc_inside (&par->eventin.menu_bar, x, y)) {
       retval |= MU_MENU_BAR;
     }
