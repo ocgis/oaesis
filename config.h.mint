@@ -54,7 +54,7 @@
 #define MINT_TARGET 1
 
 /* Define to build launcher.prg not attached to the server */
-#define LAUNCHER_AS_PRG 1
+#undef LAUNCHER_AS_PRG
 
 /* Missing POSIX types */
 #define int8_t signed char
