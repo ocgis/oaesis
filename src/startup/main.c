@@ -1,7 +1,7 @@
 /*
 ** main.c
 **
-** Copyright 1999 Christer Gustavsson <cg@nocrew.org>
+** Copyright 1999 - 2000 Christer Gustavsson <cg@nocrew.org>
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -46,7 +46,6 @@
 #include "lxgemdos.h"
 #include "mousedev.h"
 #include "srv.h"
-#include "srv_global.h"
 #include "srv_misc.h"
 #include "version.h"
 
