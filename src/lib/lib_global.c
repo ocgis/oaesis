@@ -55,6 +55,7 @@
 #include "debug.h"
 #include "lib_global.h"
 /*#include "lxgemdos.h"*/
+#include "oaesis.h"
 #include "resource.h"
 #include "rsrc.h"
 #include "types.h"
@@ -88,6 +89,10 @@ static WORD global[15];
 static WORD open_physical_ws; /* set in own_appl_init. jps */
 
 static WORD oldmode,oldmodecode;
+#else
+static
+short
+(*oaesis_callback)(void *, void *) = NULL;
 #endif /* MINT_TARGET */
 
 static BYTE versionstring[50];
@@ -289,6 +294,10 @@ init_global (WORD physical_vdi_id) {
   
   global_common.time = 0L;
 
+#ifndef MINT_TARGET
+  global_common.callback_handler = oaesis_callback;
+#endif
+
   DEBUG2("lib_global.c: init_global: Calling Rsrc_do_rcfix");
   Rsrc_do_rcfix (physical_vdi_id,
                  (RSHDR *)resource,
@@ -433,3 +442,18 @@ get_globals (WORD apid) {
 }
 
 #endif /* MINT_TARGET */
+
+
+#ifndef MINT_TARGET
+
+/*
+** Description
+** Install a callback handler
+*/
+void
+Oaesis_callback_handler(void * callback_handler)
+{
+  oaesis_callback = callback_handler;
+}
+
+#endif MINT_TARGET

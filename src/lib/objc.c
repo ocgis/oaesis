@@ -1251,7 +1251,7 @@ draw_object (WORD     vid,
   } else {
     ob_spec = tree[object].ob_spec;
   }
-			
+
   switch(type) {			
   case G_IMAGE: /*0x17*/
     drawimage (vid,tree[object].ob_x + par_x,tree[object].ob_y + par_y
@@ -1275,14 +1275,31 @@ draw_object (WORD     vid,
 				
     Objc_calc_clip(tree,object,&oclip);
 				
-    if(Misc_intersect(&oclip,clip,(RECT *)&pb.pb_xc)) {
+    if(Misc_intersect(&oclip,clip,(RECT *)&pb.pb_xc))
+    {
       pb.pb_parm = ob_spec.userblk->ub_parm;
 
+#ifdef MINT_TARGET
       remainstate = ob_spec.userblk->ub_code(&pb);
+#else
+      {
+        GLOBAL_COMMON * globals = get_global_common();
+
+        if(globals->callback_handler == NULL)
+        {
+          remainstate = ob_spec.userblk->ub_code(&pb);
+        }
+        else
+        {
+          remainstate = globals->callback_handler(ob_spec.userblk->ub_code,
+                                                  &pb);
+        }
+      }
+#endif
 					
       NOT_USED(remainstate);
-    };
-  };
+    }
+  }
   break;
 
   case	G_ICON:
@@ -1542,8 +1559,11 @@ void	Objc_add(AES_PB *apb) {
 
 
 /* objc_delete	0x0029 */
-
-void Objc_do_delete(OBJECT *tree,WORD object) {
+static
+inline
+void
+Objc_do_delete(OBJECT *tree,WORD object)
+{
 	WORD i;
 	WORD prev = -1;
 	WORD next;
@@ -1592,10 +1612,13 @@ void Objc_do_delete(OBJECT *tree,WORD object) {
 	}
 }
 
-void	Objc_delete(AES_PB *apb) {
-	Objc_do_delete((OBJECT *)apb->addr_in[0],apb->int_in[0]);
-	
-	apb->int_out[0] = 1;
+
+void
+Objc_delete(AES_PB *apb)
+{
+  Objc_do_delete((OBJECT *)apb->addr_in[0],apb->int_in[0]);
+  
+  apb->int_out[0] = 1;
 }
 
 /*objc_draw	0x002a*/
@@ -1955,80 +1978,86 @@ Objc_change (AES_PB * apb) {
                                     apb->int_in[6],apb->int_in[7]);
 }
 
-/****************************************************************************
- * Objc_do_sysvar                                                           *
- *  Implementation of objc_sysvar().                                        *
- ****************************************************************************/
-WORD              /* 0 if an error occured, or 1.                           */
-Objc_do_sysvar(   /*                                                        */
-WORD   mode,      /* Operation mode.                                        */
-WORD   which,     /* Variable to read/alter.                                */
-WORD   in1,       /* Inparameter 1.                                         */
-WORD   in2,       /* Inparameter 2.                                         */
-WORD   *out1,     /* Outparameter 1.                                        */
-WORD   *out2)     /* Outparameter 2.                                        */
-/****************************************************************************/
+
+/*
+** Description
+** Implementation of objc_sysvar()
+*/
+static
+inline
+WORD
+Objc_do_sysvar(WORD   mode,
+               WORD   which,
+               WORD   in1,
+               WORD   in2,
+               WORD * out1,
+               WORD * out2)
 {
-	if(mode == SV_INQUIRE) {
-		switch(which) {
-		case LK3DIND:
-			*out1 = ocolours.move_ind;
-			*out2 = ocolours.alter_ind;
-			return 1;
-
-		case LK3DACT:
-			*out1 = ocolours.move_act;
-			*out2 = ocolours.alter_act;
-			return 1;
-		
-		case INDBUTCOL:
-			*out1 = ocolours.colour_ind;
-			return 1;
-
-		case ACTBUTCOL:
-			*out1 = ocolours.colour_act;
-			return 1;
-
-		case BACKGRCOL:
-			*out1 = ocolours.colour_bkg;
-			return 1;
-		
-		case AD3DVAL:
-			*out1 = D3DSIZE;
-			*out2 = D3DSIZE;
-			return 1;
-		};
-	}
-	else if(mode == SV_SET) {
-		switch(which) {
-		case LK3DIND:
-			ocolours.move_ind = in1;
-			ocolours.alter_ind = in2;
-			return 1;
-
-		case LK3DACT:
-			ocolours.move_act = in1;
-			ocolours.alter_act = in2;
-			return 1;
-		
-		case INDBUTCOL:
-			ocolours.colour_ind = in1;
-			return 1;
-
-		case ACTBUTCOL:
-			ocolours.colour_act = in1;
-			return 1;
-
-		case BACKGRCOL:
-			ocolours.colour_bkg = in1;
-			return 1;
-		};
-	};
-
-	DB_printf("Objc_do_sysvar: mode=%d which=%d",mode,which);
-
-	return 0;
+  if(mode == SV_INQUIRE)
+  {
+    switch(which)
+    {
+    case LK3DIND:
+      *out1 = ocolours.move_ind;
+      *out2 = ocolours.alter_ind;
+      return 1;
+      
+    case LK3DACT:
+      *out1 = ocolours.move_act;
+      *out2 = ocolours.alter_act;
+      return 1;
+      
+    case INDBUTCOL:
+      *out1 = ocolours.colour_ind;
+      return 1;
+      
+    case ACTBUTCOL:
+      *out1 = ocolours.colour_act;
+      return 1;
+      
+    case BACKGRCOL:
+      *out1 = ocolours.colour_bkg;
+      return 1;
+      
+    case AD3DVAL:
+      *out1 = D3DSIZE;
+      *out2 = D3DSIZE;
+      return 1;
+    }
+  }
+  else if(mode == SV_SET)
+  {
+    switch(which)
+    {
+    case LK3DIND:
+      ocolours.move_ind = in1;
+      ocolours.alter_ind = in2;
+      return 1;
+      
+    case LK3DACT:
+      ocolours.move_act = in1;
+      ocolours.alter_act = in2;
+      return 1;
+      
+    case INDBUTCOL:
+      ocolours.colour_ind = in1;
+      return 1;
+      
+    case ACTBUTCOL:
+      ocolours.colour_act = in1;
+      return 1;
+      
+    case BACKGRCOL:
+      ocolours.colour_bkg = in1;
+      return 1;
+    }
+  }
+  
+  DB_printf("Objc_do_sysvar: mode=%d which=%d",mode,which);
+  
+  return 0;
 }
+
 
 /****************************************************************************
  * Objc_sysvar                                                              *

@@ -1,7 +1,8 @@
 #ifndef	__LIB_GLOBAL__
 #define	__LIB_GLOBAL__
 
-#include	"types.h"
+#include "config.h"
+#include "types.h"
 
 #define	STKSIZE	4096
 
@@ -80,6 +81,10 @@ typedef struct global_common {
 
   OBJC_COLORWORD top_colour[20];
   OBJC_COLORWORD untop_colour[20];
+
+#ifndef MINT_TARGET
+  WORD           (*callback_handler)(void *, void *);
+#endif
 }GLOBAL_COMMON;
 
 
@@ -113,7 +118,7 @@ typedef struct global_appl {
   APPL_LIST       appl_menu;
   APPL_LIST       acc_menu;
   BYTE            application_name[20];
-}GLOBAL_APPL;
+} GLOBAL_APPL;
 
 /*
 ** Description
