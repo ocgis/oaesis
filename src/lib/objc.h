@@ -19,7 +19,9 @@
 #define	FILLNUMBER	1
 #define	FILLCOLOR	1
 
-void Objc_init_module(void);
+void
+Objc_init_module (WORD apid);
+
 void Objc_exit_module(void);
 
 void do_objc_add(OBJECT *t,WORD p,WORD c);
@@ -30,10 +32,11 @@ void do_objc_add(OBJECT *t,WORD p,WORD c);
  ****************************************************************************/
 WORD              /* 0 if an error occured, or 1.                           */
 Objc_do_draw(     /*                                                        */
-OBJECT *t,        /* Resource tree.                                         */
-WORD   start,     /* Start object.                                          */
-WORD   depth,     /* Maximum draw depth.                                    */
-RECT   *xywh);    /* Clipping rectangle.                                    */
+WORD     vid,
+OBJECT * t,       /* Resource tree.                                         */
+WORD     start,   /* Start object.                                          */
+WORD     depth,   /* Maximum draw depth.                                    */
+RECT   * xywh);   /* Clipping rectangle.                                    */
 /****************************************************************************/
 
 /****************************************************************************
@@ -67,24 +70,26 @@ WORD level);      /* Current depth of search.                               */
  ****************************************************************************/
 WORD              /* 0 if an error occured, or 1.                           */
 Objc_do_edit(     /*                                                        */
-OBJECT *tree,     /* Resource tree.                                         */
-WORD   obj,       /* Object index.                                          */
-WORD   kc,        /* Key code to process.                                   */
-WORD   *idx,      /* Character index.                                       */
-WORD   mode);     /* Edit mode.                                             */
+WORD     vid,
+OBJECT * tree,    /* Resource tree.                                         */
+WORD     obj,     /* Object index.                                          */
+WORD     kc,      /* Key code to process.                                   */
+WORD   * idx,     /* Character index.                                       */
+WORD     mode);   /* Edit mode.                                             */
 /****************************************************************************/
 
 /****************************************************************************
  * Objc_do_change                                                           *
  *  Implementation of objc_change().                                        *
  ****************************************************************************/
-WORD              /* 0 if an error occured, or 1.                           */
-Objc_do_change(   /*                                                        */
-OBJECT *tree,     /* Resource tree.                                         */
-WORD   obj,       /* Object index.                                          */
-RECT   *clip,     /* Clipping rectangle.                                    */
-WORD   newstate,  /* New object state.                                      */
-WORD   drawflag); /* Drawing flag.                                          */
+WORD                /* 0 if an error occured, or 1.                         */
+Objc_do_change(     /*                                                      */
+WORD     vid,
+OBJECT * tree,      /* Resource tree.                                       */
+WORD     obj,       /* Object index.                                        */
+RECT   * clip,      /* Clipping rectangle.                                  */
+WORD     newstate,  /* New object state.                                    */
+WORD     drawflag); /* Drawing flag.                                        */
 /****************************************************************************/
 
 /****************************************************************************

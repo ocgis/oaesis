@@ -110,22 +110,26 @@ icon2mform(MFORM  *  mf,
 void Graf_init_module(void) {   
   WORD work_in[] = {1,7,1,1,1,1,1,1,1,1,2};
   WORD work_out[57];
-  
-  grafvid = globals.vid;
+
+  /*
+  grafvid = globals->common->vid;
+  */
   Vdi_v_opnvwk(work_in,&grafvid,work_out);
   
   Psemaphore(SEM_CREATE,GRAFSEM,-1);
   Psemaphore(SEM_UNLOCK,GRAFSEM,-1);
 
-  icon2mform(&m_arrow,&globals.mouseformstad[MARROW]);
-  icon2mform(&m_text_crsr,&globals.mouseformstad[MTEXT_CRSR]);
-  icon2mform(&m_busy_bee,&globals.mouseformstad[MBUSY_BEE]);
-  icon2mform(&m_point_hand,&globals.mouseformstad[MPOINT_HAND]);
-  icon2mform(&m_flat_hand,&globals.mouseformstad[MFLAT_HAND]);
-  icon2mform(&m_thin_cross,&globals.mouseformstad[MTHIN_CROSS]);
-  icon2mform(&m_thick_cross,&globals.mouseformstad[MTHICK_CROSS]);
-  icon2mform(&m_outln_cross,&globals.mouseformstad[MOUTLN_CROSS]);
-  
+  /*
+  icon2mform(&m_arrow,&globals->common->mouseformstad[MARROW]);
+  icon2mform(&m_text_crsr,&globals->common->mouseformstad[MTEXT_CRSR]);
+  icon2mform(&m_busy_bee,&globals->common->mouseformstad[MBUSY_BEE]);
+  icon2mform(&m_point_hand,&globals->common->mouseformstad[MPOINT_HAND]);
+  icon2mform(&m_flat_hand,&globals->common->mouseformstad[MFLAT_HAND]);
+  icon2mform(&m_thin_cross,&globals->common->mouseformstad[MTHIN_CROSS]);
+  icon2mform(&m_thick_cross,&globals->common->mouseformstad[MTHICK_CROSS]);
+  icon2mform(&m_outln_cross,&globals->common->mouseformstad[MOUTLN_CROSS]);
+  */
+
   current = m_arrow;
   last = m_arrow;
   last_saved = m_arrow;
@@ -157,13 +161,15 @@ WORD   *endh)       /* Final height.                                        */
 {
   EVNTREC er;
   WORD    xyarray[10];
-  WORD    lastw = globals.mouse_x - bx,lasth = globals.mouse_y - by;
+  WORD    lastw = 0 /*globals->common->mouse_x*/ - bx;
+  WORD    lasth = 0 /*globals->common->mouse_y*/ - by;
   WORD    neww,newh;
 
-  if(!(globals.mouse_button & LEFT_BUTTON)) {     
-    *endw = globals.mouse_x - bx;
-    *endh = globals.mouse_y - by;
-
+  if(!(/*globals->common->mouse_button &*/ LEFT_BUTTON)) {     
+    /*
+    *endw = globals->common->mouse_x - bx;
+    *endh = globals->common->mouse_y - by;
+    */
     if(*endw < minw) {
       *endw = minw;
     };
@@ -293,13 +299,13 @@ WORD   *endy)     /* Ending y.                                              */
 /****************************************************************************/
 {
   EVNTREC er;
-  WORD    relx = sx - globals.mouse_x;
-  WORD    rely = sy - globals.mouse_y;
+  WORD    relx = sx /*- globals->common->mouse_x*/;
+  WORD    rely = sy /*- globals->common->mouse_y*/;
   WORD    xyarray[10];
   WORD    lastx = sx,lasty = sy;
   WORD    newx,newy;
   
-  if(!(globals.mouse_button & LEFT_BUTTON)) {   
+  if(!(/*globals->common->mouse_button & */LEFT_BUTTON)) {   
     *endx = sx;
     *endy = sy;
     
@@ -486,8 +492,9 @@ AES_PB *apb)      /* AES parameter block.                                   */
 /****************************************************************************/
 {
   RECT r1,r2;
-  
-  if(globals.graf_mbox) {
+  GLOBAL_APPL * globals = get_globals (apb->global->apid);
+
+  if(globals->common->graf_mbox) {
     r1.x = apb->int_in[2];
     r1.y = apb->int_in[3];
     r1.width = apb->int_in[0];
@@ -518,7 +525,9 @@ Graf_growbox(     /*                                                        */
 AES_PB *apb)      /* AES parameter block.                                   */
 /****************************************************************************/
 {
-  if(globals.graf_growbox) {
+  GLOBAL_APPL * globals = get_globals (apb->global->apid);
+
+  if(globals->common->graf_growbox) {
     Evhd_wind_update(Pgetpid(),BEG_UPDATE);
     
     apb->int_out[0] = Graf_do_grmobox((RECT *)&apb->int_in[0],
@@ -540,7 +549,9 @@ Graf_shrinkbox(   /*                                                        */
 AES_PB *apb)      /* AES parameter block.                                   */
 /****************************************************************************/
 {
-  if(globals.graf_shrinkbox) {
+  GLOBAL_APPL * globals = get_globals (apb->global->apid);
+
+  if(globals->common->graf_shrinkbox) {
     Evhd_wind_update(Pgetpid(),BEG_UPDATE);
     apb->int_out[0] = Graf_do_grmobox((RECT *)&apb->int_in[4], 
                                       (RECT *)&apb->int_in[0]);
@@ -565,6 +576,8 @@ WORD   instate,   /* State when inside object.                              */
 WORD   outstate)  /* State when outside object.                             */
 /****************************************************************************/
 {
+  GLOBAL_APPL * globals = get_globals (apid);
+
   EVENTIN ei = {
     MU_BUTTON | MU_M1,
     0,
@@ -587,15 +600,15 @@ WORD   outstate)  /* State when outside object.                             */
   ei.m1r.width = tree[obj].ob_width;
   ei.m1r.height = tree[obj].ob_height;
   
-  if(Misc_inside(&ei.m1r,globals.mouse_x,globals.mouse_y)) {
+  if(Misc_inside(&ei.m1r,globals->common->mouse_x,globals->common->mouse_y)) {
     ei.m1flag = MO_LEAVE;
     
-    Objc_do_change(tree,obj,&clip,instate,REDRAW);
+    Objc_do_change (apid, tree,obj,&clip,instate,REDRAW);
   }
   else {
     ei.m1flag = MO_ENTER;
     
-    Objc_do_change(tree,obj,&clip,outstate,REDRAW);
+    Objc_do_change (apid, tree,obj,&clip,outstate,REDRAW);
   };
   
   Evhd_wind_update(apid,BEG_MCTRL);
@@ -610,12 +623,12 @@ WORD   outstate)  /* State when outside object.                             */
     if(ei.m1flag == MO_LEAVE) {
       ei.m1flag = MO_ENTER;
       
-      Objc_do_change(tree,obj,&clip,outstate,REDRAW);
+      Objc_do_change (apid, tree,obj,&clip,outstate,REDRAW);
     }
     else {
       ei.m1flag = MO_LEAVE;
       
-      Objc_do_change(tree,obj,&clip,instate,REDRAW);
+      Objc_do_change (apid, tree,obj,&clip,instate,REDRAW);
     };
   };
   
@@ -721,14 +734,18 @@ AES_PB *apb)      /* AES parameter block.                                   */
 
 void Graf_do_handle(WORD *cwidth,WORD *cheight,WORD *width
                     ,WORD *height) {
-  *cwidth = globals.clwidth;
-  *cheight = globals.clheight;
-  *width = globals.blwidth;
-  *height = globals.blheight;
+  /*
+  *cwidth = globals->common->clwidth;
+  *cheight = globals->common->clheight;
+  *width = globals->common->blwidth;
+  *height = globals->common->blheight;
+  */
 }
 
 void    Graf_handle(AES_PB *apb) {
-  apb->int_out[0] = globals.vid;
+  GLOBAL_APPL * globals = get_globals (apb->global->apid);
+
+  apb->int_out[0] = globals->common->vid;
         
   Graf_do_handle(&apb->int_out[1]
                  ,&apb->int_out[2],&apb->int_out[3]
@@ -865,9 +882,11 @@ void Graf_mouse(AES_PB *apb) {
 
 /*graf_mkstate 0x004f*/
 void    Graf_mkstate(AES_PB *apb) {
+  GLOBAL_APPL * globals = get_globals (apb->global->apid);
+
   apb->int_out[0] = 1;
-  apb->int_out[1] = globals.mouse_x;
-  apb->int_out[2] = globals.mouse_y;
-  apb->int_out[3] = globals.mouse_button;
+  apb->int_out[1] = globals->common->mouse_x;
+  apb->int_out[2] = globals->common->mouse_y;
+  apb->int_out[3] = globals->common->mouse_button;
   apb->int_out[4] = (WORD)Kbshift(-1) & 0x1f;
 }

@@ -49,11 +49,12 @@ WORD   error);    /* Error code.                                            */
  ****************************************************************************/
 WORD              /* 0 if an exit object was selected, or 1.                */
 Form_do_keybd(    /*                                                        */
-OBJECT *tree,     /* Resource tree of form.                                 */
-WORD   obj,       /* Object with edit focus (0 => none).                    */
-WORD   kc,        /* Keypress to process.                                   */
-WORD   *newobj,   /* New object with edit focus.                            */
-WORD   *keyout);  /* Keypress that couldn't be processed.                   */
+WORD     apid,
+OBJECT * tree,    /* Resource tree of form.                                 */
+WORD     obj,     /* Object with edit focus (0 => none).                    */
+WORD     kc,      /* Keypress to process.                                   */
+WORD   * newobj,  /* New object with edit focus.                            */
+WORD   * keyout); /* Keypress that couldn't be processed.                   */
 /****************************************************************************/
 
 

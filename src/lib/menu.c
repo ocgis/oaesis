@@ -139,7 +139,7 @@ void                   /*                                                   */
 Menu_exit_module(void) /*                                                   */
 /****************************************************************************/
 {
-  Srv_appl_exit(mglob.menu_handl_apid);
+  do_appl_exit(mglob.menu_handl_apid);
 }
 
 
@@ -149,17 +149,19 @@ Menu_exit_module(void) /*                                                   */
  ****************************************************************************/
 void                   /*                                                   */
 Menu_handler(          /*                                                   */
-BYTE *envp[])          /* Environment string.                               */
+WORD   apid,
+BYTE * envp[])         /* Environment string.                               */
 /****************************************************************************/
 {
   RECT    f;
   MENUMSG msg;
   WORD    quit = FALSE;
   WORD    i = 0;
+  GLOBAL_APPL * globals = get_globals (apid);
 
   fprintf (stderr, "oaesis: menu.c: Entering Menu_handler\n");
 
-  mglob.menu_handl_apid = Srv_appl_init(&global_array);
+  mglob.menu_handl_apid = do_appl_init(&global_array);
   
   Srv_get_appl_info(mglob.menu_handl_apid,&appl_info);
   
@@ -171,17 +173,17 @@ BYTE *envp[])          /* Environment string.                               */
   
   Srv_menu_register(mglob.menu_handl_apid,"  oAESis");
 
-  Srv_menu_bar(mglob.menu_handl_apid,globals.menutad,MENU_INSTALL);
+  Srv_menu_bar(mglob.menu_handl_apid,globals->common->menutad,MENU_INSTALL);
   
   Srv_wind_get(0,WF_CURRXYWH,
-	       &globals.deskbgtad[0].ob_x,
-	       &globals.deskbgtad[0].ob_y,
-	       &globals.deskbgtad[0].ob_width,
-	       &globals.deskbgtad[0].ob_height);
+	       &globals->common->deskbgtad[0].ob_x,
+	       &globals->common->deskbgtad[0].ob_y,
+	       &globals->common->deskbgtad[0].ob_width,
+	       &globals->common->deskbgtad[0].ob_height);
   
   Srv_wind_set(mglob.menu_handl_apid,0,WF_NEWDESK,
-	       (WORD)(((LONG)globals.deskbgtad) >> 16),
-	       (WORD)((LONG)globals.deskbgtad),0,0);
+	       (WORD)(((LONG)globals->common->deskbgtad) >> 16),
+	       (WORD)((LONG)globals->common->deskbgtad),0,0);
   
   /*  Boot_start_programs(mglob.menu_handl_apid);*/
 							
@@ -259,14 +261,14 @@ BYTE *envp[])          /* Environment string.                               */
 	case MENU_OAESIS:
 	  switch(msg.item) {
 	  case MENU_INFO:
-	    Form_do_center(globals.informtad,&f);
+	    Form_do_center(globals->common->informtad,&f);
 	    Form_do_dial(mglob.menu_handl_apid,
 			 FMD_START,&f,&f);
-	    Objc_do_draw(globals.informtad,0,9,&f);
+	    Objc_do_draw (apid, globals->common->informtad,0,9,&f);
 	    Form_do_do(mglob.menu_handl_apid,
 		       appl_info.eventpipe,
-		       globals.informtad,0);
-	    globals.informtad[INFOOK].ob_state &= ~SELECTED;
+		       globals->common->informtad,0);
+	    globals->common->informtad[INFOOK].ob_state &= ~SELECTED;
 	    Form_do_dial(mglob.menu_handl_apid,
 			 FMD_FINISH,&f,&f);
 	    break;

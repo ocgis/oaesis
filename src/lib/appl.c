@@ -173,6 +173,9 @@ GLOBAL_ARRAY *global)  /* Global array.                                     */
   global->minchar = 0;
 
   if(global->apid >= 0) {
+    DB_printf ("appl.c: do_appl_init: Calling init_global");
+    init_global (1);
+
     return global->apid;
   } else {
   /*
@@ -297,17 +300,21 @@ void                      /*                                                */
 Appl_getinfo(AES_PB *apb) /* AES parameter block.                           */
      /***********************************************************************/
 {
+  GLOBAL_APPL * globals;
+
   apb->int_out[0] = 1; /* default: return OK ( ret != 0) */
 
   switch(apb->int_in[0]) {
   case AES_LARGEFONT: /* 0 */
-    apb->int_out[ 1] = globals.fnt_regul_sz;
-    apb->int_out[ 2] = globals.fnt_regul_id;
+    globals = get_globals (apb->global->apid);
+    apb->int_out[ 1] = globals->common->fnt_regul_sz;
+    apb->int_out[ 2] = globals->common->fnt_regul_id;
     apb->int_out[ 3] = 0;
     break;
   case AES_SMALLFONT: /* 1 */
-    apb->int_out[ 1] = globals.fnt_small_sz;
-    apb->int_out[ 2] = globals.fnt_small_id;
+    globals = get_globals (apb->global->apid);
+    apb->int_out[ 1] = globals->common->fnt_small_sz;
+    apb->int_out[ 2] = globals->common->fnt_small_id;
     apb->int_out[ 3] = 0; /* system font */
     break;
   case AES_SYSTEM:    /* 2 */

@@ -602,7 +602,7 @@ typedef struct winstruct {
   
   OBJC_COLORWORD top_colour[20];
   OBJC_COLORWORD untop_colour[20];
-  WORD own_colour;
+  WORD           own_colour;
 }WINSTRUCT;
 
 typedef struct winlist

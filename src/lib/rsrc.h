@@ -13,8 +13,8 @@
  ****************************************************************************/
 WORD              /* 0 if ok or != 0 if error.                              */
 Rsrc_do_rcfix(    /*                                                        */
-WORD   vid,       /* VDI workstation id.                                    */
-RSHDR  *rshdr);   /* Resource structure to fix.                             */
+WORD     vid,     /* VDI workstation id.                                    */
+RSHDR  * rshdr);  /* Resource structure to fix.                             */
 /****************************************************************************/
 
 /****************************************************************************

@@ -170,7 +170,7 @@ static WORD iconify_x = 0;
 static WORD time_message(EVNTREC *er) {
   ULONG	newtime;
   
-  newtime = globals.time;
+  newtime = 0 /*globals.time*/;
   
   if(newtime != evntglbl.lasttime) {
     er->ap_event = APPEVNT_TIMER;
@@ -244,15 +244,19 @@ static void	update_local_mousevalues(EVNTREC *er) {
 }
 
 static void globalize_mousevalues(void) {
+  /*
   globals.mouse_x = mouse_x;
   globals.mouse_y = mouse_y;
   globals.mouse_button = mouse_button;
+  */
 }
 
 static void localize_mousevalues(void) {
+  /*
   mouse_x = globals.mouse_x;
   mouse_y = globals.mouse_y;
   mouse_button = globals.mouse_button;
+  */
 }
 
 static void handle_arrow_click(WORD win_id,WORD object,WORD msg) {
@@ -276,7 +280,7 @@ static void handle_arrow_click(WORD win_id,WORD object,WORD msg) {
   Srv_wind_get(win_id,WF_OWNER,&owner,&dummy,&dummy,&dummy);
   
   do {
-    if(get_evntpacket(&er,globals.arrowrepeat) == 0) {
+    if(get_evntpacket(&er,0 /*globals.arrowrepeat*/) == 0) {
       Srv_appl_write(owner,16,&mesag);
     };
     
@@ -349,7 +353,7 @@ static void handle_mover_click(WORD win_id) {
   else {
     Graf_do_mouse(FLAT_HAND,NULL);
   	
-    if(globals.realmove) {
+    if(0 /*globals.realmove*/) {
       mesag.type = WM_MOVED;
       mesag.sid = 0;
       mesag.length = 0;
@@ -372,8 +376,8 @@ static void handle_mover_click(WORD win_id) {
           
           tmpy = mesag.msg2;
 
-          if(mesag.msg2 < (globals.clheight + 3)) {
-	    mesag.msg2 = globals.clheight + 3;
+          if(mesag.msg2 < (0/*globals.clheight*/ + 3)) {
+	    mesag.msg2 = 0 /*globals.clheight*/ + 3;
           }
   
           Srv_appl_write(owner,16,&mesag);
@@ -408,7 +412,7 @@ static void handle_mover_click(WORD win_id) {
       RECT bound;
       RECT winsize;
       
-      bound.y = globals.clheight + 3;
+      bound.y = 0/*globals.clheight*/ + 3;
       bound.height = 30000;
       bound.x = -15000;
       bound.width = 30000;
@@ -417,25 +421,31 @@ static void handle_mover_click(WORD win_id) {
 
       Srv_wind_get(win_id,WF_CURRXYWH,
 		   &winsize.x,&winsize.y,&winsize.width,&winsize.height);
-			
+		
+      /*
       globals.mouse_button = mouse_button;
-      
+      */
+
       Graf_do_dragbox(evntglbl.mousefd,
 		      winsize.width,winsize.height,
 		      winsize.x,winsize.y,
 		      &bound,
 		      &mesag.msg1,&mesag.msg2);
       
+      /*
       Vdi_vq_mouse(globals.vid,&mouse_button,&mouse_x,&mouse_y);
+      */
 
       mesag.type = WM_MOVED;
       mesag.sid = 0;
       mesag.length = 0;
       mesag.msg0 = win_id;
 
+      /*
       if(mesag.msg2 < (globals.clheight + 3)) {
        	mesag.msg2 = globals.clheight + 3;
       }
+      */
 
       mesag.msg3 = winsize.width;
       mesag.msg4 = winsize.height;
@@ -490,7 +500,7 @@ static void handle_slider_click(WORD win_id, WORD elem,WORD owner,
 
   Srv_wind_change(win_id,widget,SELECTED);
 
-  if(globals.realslide) {
+  if(0 /*globals.realslide*/) {
     while(1) {
       get_evntpacket(&er,0);
       update_local_mousevalues(&er);
@@ -641,19 +651,19 @@ static void handle_slider_click(WORD win_id, WORD elem,WORD owner,
 
 static void handle_button(WORD newbutton) {
   EVNTREC er;
-  WORD    changed = newbutton ^ globals.mouse_button;
+  WORD    changed = newbutton ^ 0 /*globals.mouse_button*/;
   
   localize_mousevalues();
   
   mouse_button = newbutton;
   
-  if(globals.mouse_owner >= 0) {
+  if(0 /*globals.mouse_owner*/ >= 0) {
     EVNTREC	e;
 	  	      
     e.ap_event = APPEVNT_BUTTON;
     e.ap_value = mouse_button | (1L << 16);
     
-    Srv_put_event((WORD)globals.mouse_owner,&e,sizeof(EVNTREC));
+    Srv_put_event((WORD)0 /*globals.mouse_owner*/,&e,sizeof(EVNTREC));
   }
   else {
     if((mouse_button & LEFT_BUTTON & changed)) {
@@ -708,12 +718,16 @@ static void handle_button(WORD newbutton) {
 			   &m.msg3,&m.msg4);
 
 	      Srv_appl_write(owner,(WORD)sizeof(COMMSG),&m);
-	      
+
+	      /*
 	      Vdi_vq_mouse(globals.vid,&mouse_button,&mouse_x,&mouse_y);
+              */
 	    }
 	    else if(top != -1) {
-	      Vdi_vq_mouse(globals.vid,&mouse_button,&mouse_x,&mouse_y);
-	      
+	      /*
+              Vdi_vq_mouse(globals.vid,&mouse_button,&mouse_x,&mouse_y);
+	      */
+
 	      if(mouse_button & LEFT_BUTTON) {
 		do {
 		  get_evntpacket(&er,0);
@@ -786,16 +800,18 @@ static void handle_button(WORD newbutton) {
 	      mesag.sid = 0;
 	      mesag.length = 0;
 	      mesag.msg0 = win_id;
+              /*
 	      mesag.msg3 = globals.icon_width;
 	      mesag.msg4 = globals.icon_height;
 	      mesag.msg1 = iconify_x;
 	      mesag.msg2 = globals.screen.height - mesag.msg4;
-						
+
 	      iconify_x += mesag.msg3;
 	      if(iconify_x + mesag.msg3 > globals.screen.width) {
 		iconify_x = 0;
 	      };
-						
+              */
+
 	      Srv_appl_write(owner,16,&mesag);
 	    };
 	    break;
@@ -827,7 +843,7 @@ static void handle_button(WORD newbutton) {
 	      Srv_wind_get(win_id,WF_CURRXYWH,&totsize.x,&totsize.y,
 			   &totsize.width,&totsize.height);
 	      
-	      if(globals.realsize) {
+	      if(0 /*globals.realsize*/) {
 		WORD	last_x;
 		WORD	last_y;
 		WORD	offsx = mouse_x - totsize.x - totsize.width;
@@ -880,14 +896,18 @@ static void handle_button(WORD newbutton) {
 			 !(er.ap_value & LEFT_BUTTON)));
 	      }
 	      else {
-		globals.mouse_button = mouse_button;
+                /*
+                  globals.mouse_button = mouse_button;
+                  */
 		
 		Graf_do_rubberbox(evntglbl.mousefd,
 				  totsize.x,totsize.y,100,100,
 				  &mesag.msg3,&mesag.msg4);
 		
+                /*
 		Vdi_vq_mouse(globals.vid,&mouse_button,&mouse_x,&mouse_y);
-		
+		*/
+
 		mesag.type = WM_SIZED;
 		mesag.sid = 0;
 		mesag.length = 0;
@@ -975,7 +995,9 @@ static void handle_button(WORD newbutton) {
 	      COMMSG	m;
 	          
 	      if(top != -1) {
+                /*
 		Vdi_vq_mouse(globals.vid,&mouse_button,&mouse_x,&mouse_y);
+                */
 
 		if(mouse_button & LEFT_BUTTON) {
 		  do {
@@ -1047,8 +1069,8 @@ static void check_rectevents(WORD x,WORD y) {
   rl = &evntglbl.eventlist;
   
   while(*rl) {
-    if((globals.mouse_owner == -1) ||
-       (globals.mouse_owner == (*rl)->event.apid)) {
+    if((0 /*globals.mouse_owner*/ == -1) ||
+       (0 /*globals.mouse_owner*/ == (*rl)->event.apid)) {
       WORD    sendflag = 0;
       
       if((*rl)->event.flag1 != -1) {
@@ -1060,7 +1082,7 @@ static void check_rectevents(WORD x,WORD y) {
 	  m.head.ap_value = (*rl)->event.apid;
 	  m.tail.mx = x;
 	  m.tail.my = y;
-	  m.tail.buttons = globals.mouse_button;
+	  m.tail.buttons = 0 /*globals.mouse_button*/;
 	  /*m.tail.kstate = TODO <--*/
 	  
 	  sendflag = 1;	
@@ -1075,7 +1097,7 @@ static void check_rectevents(WORD x,WORD y) {
 	  m.head.ap_value = (*rl)->event.apid;
 	  m.tail.mx = x;
 	  m.tail.my = y;
-	  m.tail.buttons = globals.mouse_button;
+	  m.tail.buttons = 0 /*globals.mouse_button*/;
 	  /*m.tail.kstate = TODO <--*/
 	  
 	  sendflag = 1;
@@ -1163,14 +1185,17 @@ static WORD	get_matching_menu(OBJECT *t,WORD n) {
   return start;
 }
 
-static WORD handle_drop_down(HM_BUFFER *hm_buffer,WORD menubox,WORD title) {
+static WORD handle_drop_down(WORD apid,
+                             HM_BUFFER *hm_buffer,
+                             WORD menubox,
+                             WORD title) {
   WORD     entry;
   WORD     deskbox = menu.tree[menu.tree[0].ob_tail].ob_head;
   
   OBJECT   *nmenu;
   
-  if((deskbox == menubox) && (mouse_y >= globals.pmenutad[0].ob_y)) {
-    nmenu = globals.pmenutad;
+  if((deskbox == menubox) && (mouse_y >= 0 /*globals.pmenutad[0].ob_y*/)) {
+    /*nmenu = globals.pmenutad*/;
     entry = Objc_do_find(nmenu,0,9,mouse_x,mouse_y,0);
   }
   else {
@@ -1188,7 +1213,7 @@ static WORD handle_drop_down(HM_BUFFER *hm_buffer,WORD menubox,WORD title) {
 
       nmenu[entry].ob_state |= SELECTED;
       
-      Objc_do_draw(nmenu,0,9,&entryarea);
+      Objc_do_draw (apid, nmenu,0,9,&entryarea);
     };
 
     while(TRUE) {
@@ -1209,7 +1234,7 @@ static WORD handle_drop_down(HM_BUFFER *hm_buffer,WORD menubox,WORD title) {
 	  if(!(nmenu[entry].ob_state & DISABLED)) {
 	    nmenu[entry].ob_state &= ~SELECTED;
 	    
-	    Objc_do_draw(nmenu,0,9,&entryarea);
+	    Objc_do_draw (apid, nmenu,0,9,&entryarea);
 	  };
 					
 	  return 0;
@@ -1225,12 +1250,14 @@ static WORD handle_drop_down(HM_BUFFER *hm_buffer,WORD menubox,WORD title) {
 	  if(changebut & LEFT_BUTTON & (!mouse_button)) {
 	    nmenu[entry].ob_state &= ~SELECTED;
 		
-	    if(nmenu == globals.pmenutad) {
+	    if(nmenu == 0 /*globals.pmenutad*/) {
 	      AP_LIST *mr;
 	      WORD    walk = entry - PMENU_FIRST;
-						
+			
+              /*
 	      mr = globals.applmenu;
-						
+              */
+				
 	      while(walk && mr) {
 		mr = mr->mn_next;
 		walk--;
@@ -1238,8 +1265,9 @@ static WORD handle_drop_down(HM_BUFFER *hm_buffer,WORD menubox,WORD title) {
 							
 	      if(walk) {
 		walk--;
+                /*
 		mr = globals.accmenu;
-		
+		*/
 		while(walk && mr) {
 		  mr = mr->mn_next;
 		  walk--;
@@ -1317,15 +1345,16 @@ static WORD handle_selected_title(HM_BUFFER *hm_buffer) {
     menu.tree[title].ob_state |= SELECTED;
 
     Objc_area_needed(menu.tree,title,&titlearea);
-    Objc_do_draw(menu.tree,0,9,&titlearea);
+    Objc_do_draw (apid, menu.tree,0,9,&titlearea);
 
     Objc_area_needed(menu.tree,box,&area);
     
     if(box == deskbox) {
       WORD i;
-			
+
+      /*
       Objc_do_offset(menu.tree,box,&globals.pmenutad[0].ob_x);
-    
+     
       globals.pmenutad[0].ob_y +=
 	(menu.tree[menu.tree[box].ob_head].ob_height << 1);
       globals.pmenutad[0].ob_width = menu.tree[box].ob_width;
@@ -1336,6 +1365,7 @@ static WORD handle_selected_title(HM_BUFFER *hm_buffer) {
 		
       area.height = globals.pmenutad[0].ob_height + 
 	(globals.pmenutad[1].ob_height << 1) + 2;
+        */
     };
 
     menu.dropwin = do_wind_create(0,0,&area,WIN_MENU);
@@ -1345,16 +1375,18 @@ static WORD handle_selected_title(HM_BUFFER *hm_buffer) {
 
     if(box == deskbox) {
       RECT clip = area;
-      
+
+      /*
       clip.height = globals.pmenutad[0].ob_y - area.y;
-      Objc_do_draw(menu.tree,box,9,&clip);
+      Objc_do_draw (apid, menu.tree,box,9,&clip);
       
       clip.y = globals.pmenutad[0].ob_y;
       clip.height = globals.pmenutad[0].ob_height + 1;
-      Objc_do_draw(globals.pmenutad,0,9,&clip);
+      Objc_do_draw (apid, globals.pmenutad,0,9,&clip);
+      */
     }
     else {
-      Objc_do_draw(menu.tree,box,9,&area);
+      Objc_do_draw (apid, menu.tree,box,9,&area);
     };
 
     /* Start to wait for messages and rect 1 */
@@ -1373,7 +1405,8 @@ static WORD handle_selected_title(HM_BUFFER *hm_buffer) {
 	
 	if(!Misc_inside(&titlearea,mouse_x,mouse_y)) {
 	  WORD closebox = 0;
-	      	
+
+          /*
 	  if((deskbox == box) && (mouse_y >= globals.pmenutad[0].ob_y)) {
 	    if(!Misc_inside((RECT *)&globals.pmenutad[0].ob_x,
 			    mouse_x,mouse_y) ||
@@ -1386,10 +1419,10 @@ static WORD handle_selected_title(HM_BUFFER *hm_buffer) {
 		   < 0) || handle_drop_down(hm_buffer,box,title)) {
 	    closebox = 1;
 	  };
-	  
+	  */
 	  if(closebox) {
 	    menu.tree[title].ob_state &= ~SELECTED;
-	    Objc_do_draw(menu.tree,0,9,&titlearea);
+	    Objc_do_draw (apid, menu.tree,0,9,&titlearea);
 	    
 	    Srv_wind_close(menu.dropwin);
 	    do_wind_delete(apid, menu.dropwin);
@@ -1510,19 +1543,25 @@ static WORD evnt_handler(LONG arg) {
   /* Create a pipe to take commands from */
   evhd_pipe = Fcreate(EVHD_PIPE,0);
 
+  /*
   menu.area.height = globals.clheight + 3;
+  */
 
+  /*
   evntglbl.mousefd = (WORD)Fopen(globals.mousename,0);
-  
+  */
+
   if(evntglbl.mousefd < 0) {
     DB_printf("Couldn't open mouse pipe! Error %d",evntglbl.mousefd);
   };
   
+  /*
   evntglbl.lasttime = globals.time;
-
+  */
   /* open up a vdi workstation to use in the process */
-  
+  /*
   evntglbl.evid = globals.vid;
+  */
   Vdi_v_opnvwk(work_in,&evntglbl.evid,work_out);
   
   while(1) {
@@ -1537,6 +1576,7 @@ static WORD evnt_handler(LONG arg) {
       break;	
       
     case APPEVNT_MOUSE	:
+      /*
       globals.mouse_x = (WORD)(er.ap_value & 0xffff);
       globals.mouse_y = (WORD)(er.ap_value >> 16);
 
@@ -1555,6 +1595,7 @@ static WORD evnt_handler(LONG arg) {
 	    check_rectevents(globals.mouse_x,globals.mouse_y);
 	  };
 	};
+        */
 	break;
       
       case APPEVNT_KEYBOARD :
@@ -1564,10 +1605,12 @@ static WORD evnt_handler(LONG arg) {
     	}
     	else if(er.ap_value == 0x4a1f000cL) {
 	  DB_printf("Killing oAESis");
-    		
+
+          /*
 	  (void)Pkill(globals.srvpid,SIGQUIT);
 	  (void)Pkill(globals.applpid,SIGQUIT);
 	  (void)Pkill(globals.evntpid,SIGQUIT);
+          */
     	}
     	else if(er.ap_value == 0x1910000cL) {
 	  DB_printf("Event handler OK.");
@@ -1601,10 +1644,12 @@ Evhd_init_module(void) /*                                                   */
 /****************************************************************************/
 {	
   /* Initialize internal mouse variables */
-  
+
+  /*
   Vdi_vq_mouse(globals.vid,&globals.mouse_button,
 	       &globals.mouse_x,&globals.mouse_y);
-  
+               */
+
   /*  globals.evntpid = (WORD)Misc_fork(evnt_handler,0,"EvntHndl");*/
 
   Psemaphore(SEM_CREATE,MOUSE_LOCK,-1);
@@ -1625,7 +1670,9 @@ Evhd_exit_module(void) /*                                                   */
 {
   Psemaphore(SEM_LOCK,MOUSE_SEM,-1);
 
+  /*
   (void)Pkill(globals.evntpid,SIGKILL);
+  */
   
   Psemaphore(SEM_DESTROY,MOUSE_SEM,-1);
 }
@@ -1648,8 +1695,10 @@ RECTEVENT *re)         /* Description of events that should be reported.    */
   evntglbl.eventlist = rl;
   
   Psemaphore(SEM_UNLOCK,MOUSE_SEM,-1);
-  
+
+  /*
   check_rectevents(globals.mouse_x,globals.mouse_y);
+  */
 }
 
 /****************************************************************************

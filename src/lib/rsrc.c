@@ -80,18 +80,33 @@ typedef struct {
  * Local functions (use static!)                                            *
  ****************************************************************************/
 
-static WORD     fixobcoord(OBJECT *ob) {
+/*
+** Description
+** Fix the coordinates of an object
+**
+** 1998-10-01 CG
+*/
+static
+WORD
+fix_object_coordinates (OBJECT *ob) {
+  GLOBAL_COMMON * globals = get_global_common ();
+
   UBYTE *dumchar = (UBYTE *)&ob->ob_x;
         
-  ob->ob_x = dumchar[0] + ((WORD)dumchar[1]) * globals.clwidth;
-  ob->ob_y = dumchar[2] + ((WORD)dumchar[3]) * globals.clheight;
-  ob->ob_width = dumchar[4] + ((WORD)dumchar[5]) * globals.clwidth;
-  ob->ob_height = dumchar[6] + ((WORD)dumchar[7]) * globals.clheight;
+  ob->ob_x = dumchar[0] + ((WORD)dumchar[1]) * globals->clwidth;
+  ob->ob_y = dumchar[2] + ((WORD)dumchar[3]) * globals->clheight;
+  ob->ob_width = dumchar[4] + ((WORD)dumchar[5]) * globals->clwidth;
+  ob->ob_height = dumchar[6] + ((WORD)dumchar[7]) * globals->clheight;
 
   return  0;
 };
 
-static RSHDR    *loadrsc(WORD vid,BYTE *filename) {
+
+static
+RSHDR *
+loadrsc (WORD apid,
+         WORD vid,
+         BYTE *filename) {
   LONG    fnr;
   BYTE    namebuf[200];
   LONG    flen;
@@ -123,12 +138,23 @@ static RSHDR    *loadrsc(WORD vid,BYTE *filename) {
   Fread((WORD)fnr,flen,rsc);
   Fclose((WORD)fnr);
 
-  Rsrc_do_rcfix(vid,rsc);
+  Rsrc_do_rcfix (vid, rsc);
         
   return rsc;
 }
 
-static void     *calcelemaddr(RSHDR *rsc,WORD type,WORD nr) {
+
+/*
+** Description
+** Calculate the address of an resource object
+**
+** 1998-10-01 CG
+*/
+static
+void *
+calculate_element_address (RSHDR * rsc,
+                           WORD    type,
+                           WORD    nr) {
   switch(type) {
   case R_TREE:  /*0x00*/
     return ((OBJECT **)(rsc->rsh_trindex + (LONG)rsc))[nr];
@@ -148,6 +174,7 @@ static void     *calcelemaddr(RSHDR *rsc,WORD type,WORD nr) {
   };
 }
 
+
 /****************************************************************************
  * Public functions                                                         *
  ****************************************************************************/
@@ -158,8 +185,8 @@ static void     *calcelemaddr(RSHDR *rsc,WORD type,WORD nr) {
  ****************************************************************************/
 WORD              /* 0 if ok or != 0 if error.                              */
 Rsrc_do_rcfix(    /*                                                        */
-WORD   vid,       /* VDI workstation id.                                    */
-RSHDR  *rsc)      /* Resource structure to fix.                             */
+WORD     vid,     /* VDI workstation id.                                    */
+RSHDR  * rsc)     /* Resource structure to fix.                             */
      /***********************************************************************/
 {
   WORD  i;
@@ -290,7 +317,7 @@ RSHDR  *rsc)      /* Resource structure to fix.                             */
       sleep(1);
     };
     
-    fixobcoord(&owalk[i]);
+    fix_object_coordinates (&owalk[i]);
   };
   
   for(i = 0; i < rsc->rsh_nted; i++) {
@@ -328,7 +355,9 @@ void    Rsrc_load(AES_PB *apb)  /*0x006e*/ {
         
   Srv_get_appl_info(apb->global->apid,&appl_info);
         
-  rsc = loadrsc(appl_info.vid,(BYTE *)apb->addr_in[0]);
+  rsc = loadrsc (apb->global->apid,
+                 appl_info.vid,
+                 (BYTE *)apb->addr_in[0]);
 
   apb->global->rscfile = (OBJECT **)((LONG)rsc->rsh_trindex + (LONG)rsc);
   apb->global->rshdr = (RSHDR *)rsc;
@@ -360,16 +389,17 @@ void    Rsrc_free(AES_PB *apb)  /*0x006f*/ {
  ****************************************************************************/
 WORD              /* 0 if ok or != 0 if error.                              */
 Rsrc_do_gaddr(    /*                                                        */
-RSHDR  *rshdr,    /* Resource structure to search.                          */
-WORD   type,      /* Type of object.                                        */
-WORD   index,     /* Index of object.                                       */
-OBJECT **addr)    /* Object address.                                        */
+RSHDR  *  rshdr,  /* Resource structure to search.                          */
+WORD      type,   /* Type of object.                                        */
+WORD      index,  /* Index of object.                                       */
+OBJECT ** addr)   /* Object address.                                        */
 /****************************************************************************/
 {
-  if(rshdr) {
-    *addr = calcelemaddr(rshdr,type,index);
+  DB_printf ("rsrc.c: Rsrc_do_gaddr: rshdr=0x%x", rshdr);
+  if (rshdr) {
+    *addr = calculate_element_address (rshdr, type, index);
                 
-    if(*addr) {
+    if (*addr) {
       return 1;
     };
   };
@@ -388,7 +418,8 @@ void    Rsrc_saddr(AES_PB *apb) /*0x0071*/ {
 };
 
 void    Rsrc_obfix(AES_PB *apb) /*0x0072*/ {
-  apb->int_out[0] = fixobcoord(&((OBJECT *)apb->addr_in[0])[apb->int_in[0]]);
+  apb->int_out[0] =
+    fix_object_coordinates (&((OBJECT *)apb->addr_in[0])[apb->int_in[0]]);
 };
 
 void    Rsrc_rcfix(AES_PB *apb) /*0x0073*/ {
@@ -398,7 +429,8 @@ void    Rsrc_rcfix(AES_PB *apb) /*0x0073*/ {
         
   Srv_get_appl_info(apb->global->apid,&appl_info);
         
-  Rsrc_do_rcfix(appl_info.vid,rsc);
+  Rsrc_do_rcfix(appl_info.vid,
+                rsc);
         
   apb->global->rscfile = (OBJECT **)((LONG)rsc->rsh_trindex + (LONG)rsc);
   apb->global->rshdr = apb->global->int_info->rshdr = rsc;

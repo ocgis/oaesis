@@ -94,43 +94,43 @@ static BYTE	nullstr[] = "";
  * Local functions (use static!)                                            *
  ****************************************************************************/
 
-static void directory_sort(DIRDESC *dd) {
-    if(globals.fsel_sorted) {
-        DIRENTRY *p1, *p2, *p3, *p4;
+static void directory_sort(DIRDESC *dd, WORD fsel_sorted) {
+  if(fsel_sorted) {
+    DIRENTRY *p1, *p2, *p3, *p4;
 
-        int change;
+    int change;
 
-        if(dd->dent != NULL) {
-            do {
-                p1 = dd->dent;
-                p3 = NULL;
-                change = 0;
+    if(dd->dent != NULL) {
+      do {
+        p1 = dd->dent;
+        p3 = NULL;
+        change = 0;
 
-                while(p1 != NULL) {
-                    p2 = p1->next;
-                    if(p2 != NULL) {
-                        if(strcmp(p1->name, p2->name) > 0) {
-                            if(p3 == NULL) {
-                                p4 = dd->dent;
-                                dd->dent = p1->next;
-                                p1->next = p2->next;
-                                p2->next = p4;
-                            }
-                            else {
-                                p4 = p3->next;
-                                p3->next = p1->next;
-                                p1->next = p2->next;
-                                p2->next = p4;
-                            }
-                            change = 1;
-                        }
-                    }
-                    p3 = p1;
-                    p1 = p2;
-                }
-            }while(change);
+        while(p1 != NULL) {
+          p2 = p1->next;
+          if(p2 != NULL) {
+            if(strcmp(p1->name, p2->name) > 0) {
+              if(p3 == NULL) {
+                p4 = dd->dent;
+                dd->dent = p1->next;
+                p1->next = p2->next;
+                p2->next = p4;
+              }
+              else {
+                p4 = p3->next;
+                p3->next = p1->next;
+                p1->next = p2->next;
+                p2->next = p4;
+              }
+              change = 1;
+            }
+          }
+          p3 = p1;
+          p1 = p2;
         }
+      }while(change);
     }
+  }
 }
 
 static WORD	globcmp(BYTE *pattern,BYTE *str) {
@@ -318,17 +318,23 @@ static DIRENTRY *find_entry(DIRDESC *dd,WORD pos) {
 	return walk;
 }
 
-static void slider_handle (WORD apid, WORD vid, WORD eventpipe, OBJECT *tree,
-			  RECT *clip, DIRDESC *dd) {
+static void slider_handle (WORD      apid,
+                           WORD      vid,
+                           WORD      eventpipe,
+                           OBJECT  * tree,
+                           RECT    * clip,
+                           DIRDESC * dd,
+                           WORD      global_x,
+                           WORD      global_y) {
 
   if(tree[FISEL_SLIDER].ob_height != tree[FISEL_SB].ob_height) {
 
     WORD newpos,
-         oldpos = dd->pos,
-         slidpos,
-         oldslidpos = tree[FISEL_SLIDER].ob_y,
-         slidmax = tree[FISEL_SB].ob_height
-	             - tree[FISEL_SLIDER].ob_height, buffer[16];
+      oldpos = dd->pos,
+      slidpos,
+      oldslidpos = tree[FISEL_SLIDER].ob_y,
+      slidmax = tree[FISEL_SB].ob_height
+      - tree[FISEL_SLIDER].ob_height, buffer[16];
 
     EVENTIN ei = { MU_BUTTON | MU_M1,
                    0x102,
@@ -343,26 +349,26 @@ static void slider_handle (WORD apid, WORD vid, WORD eventpipe, OBJECT *tree,
 
     EVENTOUT eo;
 
-	  ei.m1r.x = globals.mouse_x;
-	  ei.m1r.y = globals.mouse_y;
+    ei.m1r.x = global_x;
+    ei.m1r.y = global_y;
 
     Evhd_wind_update(apid, BEG_MCTRL);
     Graf_do_mouse(FLAT_HAND, NULL);
-    Objc_do_change(tree, FISEL_SLIDER, clip, SELECTED, REDRAW);
+    Objc_do_change (apid, tree, FISEL_SLIDER, clip, SELECTED, REDRAW);
 
     while(1) {
       Evnt_do_multi(apid, eventpipe, -1, &ei, (COMMSG *)buffer, &eo, 0);
 
       if(eo.events & MU_BUTTON) {
 
-        Objc_do_change(tree, FISEL_SLIDER, clip, 0, REDRAW);
+        Objc_do_change (apid, tree, FISEL_SLIDER, clip, 0, REDRAW);
         Graf_do_mouse(M_LAST, NULL);
 
         if(eo.mb & RIGHT_BUTTON) {
           dd->pos = oldpos;
           get_files(tree, dd);
-          Objc_do_draw(tree, FISEL_ENTBG, 9, clip);
-          Objc_do_draw(tree, FISEL_SB, 9, clip);
+          Objc_do_draw (apid, tree, FISEL_ENTBG, 9, clip);
+          Objc_do_draw (apid, tree, FISEL_SB, 9, clip);
 
           if(eo.mb & LEFT_BUTTON) {
             WORD dummy;
@@ -388,10 +394,10 @@ static void slider_handle (WORD apid, WORD vid, WORD eventpipe, OBJECT *tree,
         if(slidpos != oldslidpos) {
           newpos = (WORD)(((LONG)(dd->num_files - FISEL_LAST + FISEL_FIRST - 1) * ((LONG)slidpos * 1000L / (LONG)slidmax)) / 1000L);
           if(newpos != dd->pos) {
-             dd->pos = newpos;
-             get_files(tree, dd);
-             Objc_do_draw(tree, FISEL_ENTBG, 9, clip);
-             Objc_do_draw(tree, FISEL_SB, 9, clip);
+            dd->pos = newpos;
+            get_files(tree, dd);
+            Objc_do_draw (apid, tree, FISEL_ENTBG, 9, clip);
+            Objc_do_draw (apid, tree, FISEL_SB, 9, clip);
           }
           oldslidpos = slidpos;
         }
@@ -422,335 +428,343 @@ BYTE *path,         /* Path buffer.                                         */
 BYTE *file)         /* File name buffer.                                    */
 /****************************************************************************/
 {
-	WORD cwidth,cheight,width,height;
-	WORD selected = -1;
-	BYTE oldpath[128];
+  WORD cwidth,cheight,width,height;
+  WORD selected = -1;
+  BYTE oldpath[128];
 		
-	OBJECT	*tree;
+  OBJECT	*tree;
 	
-	RECT	area,clip;
+  RECT	area,clip;
 	
-	WORD but_chosen;
-	DIRDESC dd = { NULL,0,0 };
-	RECT src,dst;
+  WORD but_chosen;
+  DIRDESC dd = { NULL,0,0 };
+  RECT src,dst;
+  GLOBAL_APPL * globals = get_globals (apid);
 
-    Graf_do_mouse(BUSY_BEE, NULL);
+  Graf_do_mouse(BUSY_BEE, NULL);
 
-	tree = Rsrc_duplicate(globals.fiseltad);	
+  tree = Rsrc_duplicate(globals->common->fiseltad);	
 	
-	Graf_do_handle(&cwidth,&cheight,&width,&height);
+  Graf_do_handle(&cwidth,&cheight,&width,&height);
 	
-	set_path(path,&dd);
-    directory_sort(&dd);
+  set_path(path,&dd);
+  directory_sort(&dd, globals->common->fsel_sorted);
 
-	get_files(tree,&dd);
+  get_files(tree,&dd);
 
-	tree[FISEL_DESCR].ob_spec.tedinfo->te_ptext = description;
-	tree[FISEL_DIRECTORY].ob_spec.tedinfo->te_ptext = path;
-	tree[FISEL_SELECTION].ob_spec.tedinfo->te_ptext = file;
+  tree[FISEL_DESCR].ob_spec.tedinfo->te_ptext = description;
+  tree[FISEL_DIRECTORY].ob_spec.tedinfo->te_ptext = path;
+  tree[FISEL_SELECTION].ob_spec.tedinfo->te_ptext = file;
 
-	strcpy(oldpath,path);
+  strcpy(oldpath,path);
 
-	Form_do_center(tree,&clip);
+  Form_do_center(tree,&clip);
 
-	Objc_do_offset(tree,FISEL_FIRST,(WORD *)&dst);
-	dst.width = tree[FISEL_FIRST].ob_width;
-	dst.height = tree[FISEL_FIRST].ob_height *
-		(FISEL_LAST - FISEL_FIRST);
+  Objc_do_offset(tree,FISEL_FIRST,(WORD *)&dst);
+  dst.width = tree[FISEL_FIRST].ob_width;
+  dst.height = tree[FISEL_FIRST].ob_height *
+    (FISEL_LAST - FISEL_FIRST);
 
-	src = dst;
-	src.y = dst.y + tree[FISEL_FIRST].ob_height;
+  src = dst;
+  src.y = dst.y + tree[FISEL_FIRST].ob_height;
 
-	Form_do_dial(apid,FMD_START,&clip,&clip);
+  Form_do_dial(apid,FMD_START,&clip,&clip);
 
-	Objc_do_draw(tree,0,9,&clip);
+  Objc_do_draw (apid, tree,0,9,&clip);
 
-    Graf_do_mouse(ARROW, NULL);
+  Graf_do_mouse(ARROW, NULL);
 
-	while(1) {
-		but_chosen = Form_do_do(apid,eventpipe,tree,FISEL_DIRECTORY);
+  while(1) {
+    but_chosen = Form_do_do(apid,eventpipe,tree,FISEL_DIRECTORY);
 	
-		switch(but_chosen & 0x7fff) {
-		case FISEL_OK:
-			if(strcmp(oldpath,path)) {
-                Graf_do_mouse(BUSY_BEE, NULL);
+    switch(but_chosen & 0x7fff) {
+    case FISEL_OK:
+      if(strcmp(oldpath,path)) {
+        Graf_do_mouse(BUSY_BEE, NULL);
 
-				tree[FISEL_OK].ob_state &= ~SELECTED;
-				Objc_do_draw(tree,FISEL_OK,9,&clip);
+        tree[FISEL_OK].ob_state &= ~SELECTED;
+        Objc_do_draw (apid, tree,FISEL_OK,9,&clip);
 				
-				reset_dirdesc(&dd);
-				set_path(path,&dd);
-                directory_sort(&dd);
+        reset_dirdesc(&dd);
+        set_path(path,&dd);
+        directory_sort(&dd, globals->common->fsel_sorted);
 
-				get_files(tree,&dd);
+        get_files(tree,&dd);
 
-				Objc_do_draw(tree,FISEL_ENTBG,9,&clip);	
-				Objc_do_draw(tree,FISEL_SB,9,&clip);	
+        Objc_do_draw (apid, tree,FISEL_ENTBG,9,&clip);	
+        Objc_do_draw (apid, tree,FISEL_SB,9,&clip);	
 				
-				strcpy(oldpath,path);
-                Graf_do_mouse(M_LAST, NULL);
-				break;
-			};
+        strcpy(oldpath,path);
+        Graf_do_mouse(M_LAST, NULL);
+        break;
+      };
 			
-			/* Fall through... */
+      /* Fall through... */
 			
-		case FISEL_CANCEL:
-			Form_do_dial(apid,FMD_FINISH,&clip,&clip);
+    case FISEL_CANCEL:
+      Form_do_dial(apid,FMD_FINISH,&clip,&clip);
 		
-			Rsrc_free_tree(tree);
+      Rsrc_free_tree(tree);
 		
-			if(but_chosen == FISEL_OK) {
-				*button = FSEL_OK;
-			}
-			else {
-				*button = FSEL_CANCEL;
-			};
+      if(but_chosen == FISEL_OK) {
+        *button = FSEL_OK;
+      }
+      else {
+        *button = FSEL_CANCEL;
+      };
 				
-			reset_dirdesc(&dd);
+      reset_dirdesc(&dd);
 	
-			return 1;
+      return 1;
 				
-		case FISEL_UP:
-			if(dd.pos > 0) {
-				tree[FISEL_UP].ob_state |= SELECTED;
-				Objc_do_draw(tree,FISEL_UP,9,&clip);					
+    case FISEL_UP:
+      if(dd.pos > 0) {
+        tree[FISEL_UP].ob_state |= SELECTED;
+        Objc_do_draw (apid, tree,FISEL_UP,9,&clip);					
 
-				if(((selected - dd.pos) >= 0) &&
-					((selected - dd.pos) <= (FISEL_LAST - FISEL_FIRST))) {
-					WORD oldobj = selected - dd.pos + FISEL_FIRST;
+        if(((selected - dd.pos) >= 0) &&
+           ((selected - dd.pos) <= (FISEL_LAST - FISEL_FIRST))) {
+          WORD oldobj = selected - dd.pos + FISEL_FIRST;
 												
-					Objc_do_change(tree,oldobj,&clip,
-							tree[oldobj].ob_state &= ~SELECTED,NO_DRAW);								
-				};
+          Objc_do_change (apid, tree,oldobj,&clip,
+                         tree[oldobj].ob_state &= ~SELECTED,NO_DRAW);								
+        };
 						
-				dd.pos--;
+        dd.pos--;
 
-				if(((selected - dd.pos) >= 0) &&
-					((selected - dd.pos) <= (FISEL_LAST - FISEL_FIRST))) {
-					WORD oldobj = selected - dd.pos + FISEL_FIRST;
+        if(((selected - dd.pos) >= 0) &&
+           ((selected - dd.pos) <= (FISEL_LAST - FISEL_FIRST))) {
+          WORD oldobj = selected - dd.pos + FISEL_FIRST;
 											
-					Objc_do_change(tree,oldobj,&clip,
-							tree[oldobj].ob_state |= SELECTED,NO_DRAW);								
-				};
+          Objc_do_change (apid, tree,oldobj,&clip,
+                         tree[oldobj].ob_state |= SELECTED,NO_DRAW);								
+        };
 					
-				get_files(tree,&dd);
-				Misc_copy_area(vid,&src,&dst);
+        get_files(tree,&dd);
+        Misc_copy_area(vid,&src,&dst);
 
-				Objc_do_draw(tree,FISEL_FIRST,9,&clip);
-				tree[FISEL_UP].ob_state &= ~SELECTED;
-				Objc_do_draw(tree,FISEL_UP,9,&clip);					
-				Objc_do_draw(tree,FISEL_SB,9,&clip);					
-			};
-			break;
+        Objc_do_draw (apid, tree,FISEL_FIRST,9,&clip);
+        tree[FISEL_UP].ob_state &= ~SELECTED;
+        Objc_do_draw (apid, tree,FISEL_UP,9,&clip);					
+        Objc_do_draw (apid, tree,FISEL_SB,9,&clip);					
+      };
+      break;
 			
-		case FISEL_DOWN:
-			if(dd.pos < (dd.num_files - FISEL_LAST + FISEL_FIRST - 1)) {
-				tree[FISEL_DOWN].ob_state |= SELECTED;
-				Objc_do_draw(tree,FISEL_DOWN,9,&clip);					
+    case FISEL_DOWN:
+      if(dd.pos < (dd.num_files - FISEL_LAST + FISEL_FIRST - 1)) {
+        tree[FISEL_DOWN].ob_state |= SELECTED;
+        Objc_do_draw (apid, tree,FISEL_DOWN,9,&clip);					
 
-				if(((selected - dd.pos) >= 0) &&
-					((selected - dd.pos) <= (FISEL_LAST - FISEL_FIRST))) {
-					WORD oldobj = selected - dd.pos + FISEL_FIRST;
+        if(((selected - dd.pos) >= 0) &&
+           ((selected - dd.pos) <= (FISEL_LAST - FISEL_FIRST))) {
+          WORD oldobj = selected - dd.pos + FISEL_FIRST;
 											
-					Objc_do_change(tree,oldobj,&clip,
-							tree[oldobj].ob_state &= ~SELECTED,NO_DRAW);								
-				};
+          Objc_do_change (apid, tree,oldobj,&clip,
+                         tree[oldobj].ob_state &= ~SELECTED,NO_DRAW);								
+        };
 					
-				dd.pos++;
+        dd.pos++;
 
-				if(((selected - dd.pos) >= 0) &&
-					((selected - dd.pos) <= (FISEL_LAST - FISEL_FIRST))) {
-					WORD oldobj = selected - dd.pos + FISEL_FIRST;
+        if(((selected - dd.pos) >= 0) &&
+           ((selected - dd.pos) <= (FISEL_LAST - FISEL_FIRST))) {
+          WORD oldobj = selected - dd.pos + FISEL_FIRST;
 											
-					Objc_do_change(tree,oldobj,&clip,
-							tree[oldobj].ob_state |= SELECTED,NO_DRAW);								
-				};
+          Objc_do_change (apid, tree,oldobj,&clip,
+                         tree[oldobj].ob_state |= SELECTED,NO_DRAW);								
+        };
 					
-				get_files(tree,&dd);
-				Misc_copy_area(vid,&dst,&src);
-				Objc_do_draw(tree,FISEL_LAST,9,&clip);
-				tree[FISEL_DOWN].ob_state &= ~SELECTED;
-				Objc_do_draw(tree,FISEL_DOWN,9,&clip);					
-				Objc_do_draw(tree,FISEL_SB,9,&clip);					
-			};
-			break;
+        get_files(tree,&dd);
+        Misc_copy_area(vid,&dst,&src);
+        Objc_do_draw (apid, tree,FISEL_LAST,9,&clip);
+        tree[FISEL_DOWN].ob_state &= ~SELECTED;
+        Objc_do_draw (apid, tree,FISEL_DOWN,9,&clip);					
+        Objc_do_draw (apid, tree,FISEL_SB,9,&clip);					
+      };
+      break;
 			
-		case FISEL_SB:
-			{
-				WORD xy[2];
+    case FISEL_SB:
+    {
+      WORD xy[2];
 				
-				Objc_do_offset(tree,FISEL_SLIDER,xy);
+      Objc_do_offset(tree,FISEL_SLIDER,xy);
 				
-				if(((selected - dd.pos) >= 0) &&
-					((selected - dd.pos) <= (FISEL_LAST - FISEL_FIRST))) {
-					WORD oldobj = selected - dd.pos + FISEL_FIRST;
+      if(((selected - dd.pos) >= 0) &&
+         ((selected - dd.pos) <= (FISEL_LAST - FISEL_FIRST))) {
+        WORD oldobj = selected - dd.pos + FISEL_FIRST;
 											
-					Objc_do_change(tree,oldobj,&clip,
-							tree[oldobj].ob_state &= ~SELECTED,NO_DRAW);								
-				};
+        Objc_do_change (apid, tree,oldobj,&clip,
+                       tree[oldobj].ob_state &= ~SELECTED,NO_DRAW);								
+      };
 					
-				if(globals.mouse_y > xy[1]) {
-					dd.pos += FISEL_LAST - FISEL_FIRST + 1;
-					if(dd.pos >= (dd.num_files - FISEL_LAST + FISEL_FIRST)) {
-						dd.pos = dd.num_files - FISEL_LAST + FISEL_FIRST - 1;
-					};
-				}
-				else {
-					dd.pos -= FISEL_LAST - FISEL_FIRST + 1;
-					if(dd.pos < 0) {
-						dd.pos = 0;
-					};
-				};
+      if(globals->common->mouse_y > xy[1]) {
+        dd.pos += FISEL_LAST - FISEL_FIRST + 1;
+        if(dd.pos >= (dd.num_files - FISEL_LAST + FISEL_FIRST)) {
+          dd.pos = dd.num_files - FISEL_LAST + FISEL_FIRST - 1;
+        };
+      }
+      else {
+        dd.pos -= FISEL_LAST - FISEL_FIRST + 1;
+        if(dd.pos < 0) {
+          dd.pos = 0;
+        };
+      };
 				
 
-				if(((selected - dd.pos) >= 0) &&
-					((selected - dd.pos) <= (FISEL_LAST - FISEL_FIRST))) {
-					WORD oldobj = selected - dd.pos + FISEL_FIRST;
+      if(((selected - dd.pos) >= 0) &&
+         ((selected - dd.pos) <= (FISEL_LAST - FISEL_FIRST))) {
+        WORD oldobj = selected - dd.pos + FISEL_FIRST;
 											
-					Objc_do_change(tree,oldobj,&clip,
-							tree[oldobj].ob_state |= SELECTED,NO_DRAW);								
-				};
+        Objc_do_change (apid, tree,oldobj,&clip,
+                       tree[oldobj].ob_state |= SELECTED,NO_DRAW);								
+      };
 
-				get_files(tree,&dd);
-				Objc_do_draw(tree,FISEL_ENTBG,9,&clip);
-				Objc_do_draw(tree,FISEL_SB,9,&clip);
-			};
-			break;
+      get_files(tree,&dd);
+      Objc_do_draw (apid, tree,FISEL_ENTBG,9,&clip);
+      Objc_do_draw (apid, tree,FISEL_SB,9,&clip);
+    };
+    break;
 		
-		case FISEL_SLIDER:
-      slider_handle(apid, vid, eventpipe, tree, &clip, &dd);
-			break;
+    case FISEL_SLIDER:
+      slider_handle(apid,
+                    vid,
+                    eventpipe,
+                    tree,
+                    &clip,
+                    &dd,
+                    globals->common->mouse_x,
+                    globals->common->mouse_y);
+      break;
 			
-		case FISEL_BACK:
-			{
-				BYTE newpath[128],*tmp;
+    case FISEL_BACK:
+    {
+      BYTE newpath[128],*tmp;
 				
-				tree[FISEL_BACK].ob_state &= ~SELECTED;
-				Objc_do_draw(tree,FISEL_BACK,9,&clip);	
+      tree[FISEL_BACK].ob_state &= ~SELECTED;
+      Objc_do_draw (apid, tree,FISEL_BACK,9,&clip);	
 
-				strcpy(newpath,path);
+      strcpy(newpath,path);
 								
-				tmp = strrchr(newpath,'\\');
+      tmp = strrchr(newpath,'\\');
 
-				if(!tmp)
-					break;
+      if(!tmp)
+        break;
 					
-				*tmp = '\0';
-				tmp = strrchr(newpath,'\\');
+      *tmp = '\0';
+      tmp = strrchr(newpath,'\\');
 				
-				if(!tmp)
-					break;
+      if(!tmp)
+        break;
 					
-				*tmp = '\0';
+      *tmp = '\0';
 							
-				tmp = strrchr(path,'\\');
-				strcat(newpath,tmp);
-				strcpy(path,newpath);
+      tmp = strrchr(path,'\\');
+      strcat(newpath,tmp);
+      strcpy(path,newpath);
 
-                Graf_do_mouse(BUSY_BEE, NULL);
+      Graf_do_mouse(BUSY_BEE, NULL);
 
 
-				reset_dirdesc(&dd);
-				set_path(path,&dd);
-                directory_sort(&dd);
+      reset_dirdesc(&dd);
+      set_path(path,&dd);
+      directory_sort(&dd, globals->common->fsel_sorted);
 
-				Objc_area_needed(tree,FISEL_DIRECTORY,&area);	
-				Objc_do_draw(tree,0,9,&area);	
+      Objc_area_needed(tree,FISEL_DIRECTORY,&area);	
+      Objc_do_draw (apid, tree,0,9,&area);	
 
-				get_files(tree,&dd);
+      get_files(tree,&dd);
 
-				Objc_do_draw(tree,FISEL_ENTBG,9,&clip);	
-				Objc_do_draw(tree,FISEL_SB,9,&clip);	
+      Objc_do_draw (apid, tree,FISEL_ENTBG,9,&clip);	
+      Objc_do_draw (apid, tree,FISEL_SB,9,&clip);	
 				
-				strcpy(oldpath,path);
-                Graf_do_mouse(M_LAST, NULL);
-			};
-			break;
+      strcpy(oldpath,path);
+      Graf_do_mouse(M_LAST, NULL);
+    };
+    break;
 			
-		default:
-			if(((but_chosen & 0x7fff) >= FISEL_FIRST) &&
-				((but_chosen & 0x7fff) <= FISEL_LAST)) {
-				WORD     obj = but_chosen & 0x7fff;
-				DIRENTRY *dent;
+    default:
+      if(((but_chosen & 0x7fff) >= FISEL_FIRST) &&
+         ((but_chosen & 0x7fff) <= FISEL_LAST)) {
+        WORD     obj = but_chosen & 0x7fff;
+        DIRENTRY *dent;
 				
-				dent = find_entry(&dd,dd.pos + (but_chosen & 0x7fff) - FISEL_FIRST);
+        dent = find_entry(&dd,dd.pos + (but_chosen & 0x7fff) - FISEL_FIRST);
 
-				if(dent) {
+        if(dent) {
 
-					if(dent->type & S_IFDIR) {
-						BYTE newpath[128];
-						BYTE *tmp;
+          if(dent->type & S_IFDIR) {
+            BYTE newpath[128];
+            BYTE *tmp;
 						
             Graf_do_mouse(BUSY_BEE, NULL);
 		
-						strcpy(newpath,path);
+            strcpy(newpath,path);
 							
-						tmp = strrchr(newpath,'\\');
+            tmp = strrchr(newpath,'\\');
 							
-						sprintf(tmp,"\\%s\\",&dent->name[3]);
+            sprintf(tmp,"\\%s\\",&dent->name[3]);
 							
-						tmp = strrchr(path,'\\');
-						tmp++;
-						strcat(newpath,tmp);
-						strcpy(path,newpath);
+            tmp = strrchr(path,'\\');
+            tmp++;
+            strcat(newpath,tmp);
+            strcpy(path,newpath);
 						
-						Objc_do_change(tree,obj,&clip,
-								tree[obj].ob_state |= SELECTED,REDRAW);
+            Objc_do_change (apid, tree,obj,&clip,
+                           tree[obj].ob_state |= SELECTED,REDRAW);
 
-						Objc_do_change(tree,obj,&clip,
-								tree[obj].ob_state &= ~SELECTED,REDRAW);		
+            Objc_do_change (apid, tree,obj,&clip,
+                           tree[obj].ob_state &= ~SELECTED,REDRAW);		
 
-						reset_dirdesc(&dd);
-						set_path(path,&dd);
-                        directory_sort(&dd);
+            reset_dirdesc(&dd);
+            set_path(path,&dd);
+            directory_sort(&dd, globals->common->fsel_sorted);
 
 
-						Objc_area_needed(tree,FISEL_DIRECTORY,&area);	
-						Objc_do_draw(tree,0,9,&area);	
+            Objc_area_needed(tree,FISEL_DIRECTORY,&area);	
+            Objc_do_draw (apid, tree,0,9,&area);	
 
-						get_files(tree,&dd);
+            get_files(tree,&dd);
 
-						Objc_do_draw(tree,FISEL_ENTBG,9,&clip);	
-						Objc_do_draw(tree,FISEL_SB,9,&clip);	
+            Objc_do_draw (apid, tree,FISEL_ENTBG,9,&clip);	
+            Objc_do_draw (apid, tree,FISEL_SB,9,&clip);	
 						
-						strcpy(oldpath,path);
+            strcpy(oldpath,path);
 
-                        Graf_do_mouse(M_LAST, NULL);
-					}
-					else {
-						strcpy(file,&dent->name[3]);
+            Graf_do_mouse(M_LAST, NULL);
+          }
+          else {
+            strcpy(file,&dent->name[3]);
 						
-						if(((selected - dd.pos) >= 0) &&
-							((selected - dd.pos) <= (FISEL_LAST - FISEL_FIRST))) {
-							WORD oldobj = selected - dd.pos + FISEL_FIRST;
+            if(((selected - dd.pos) >= 0) &&
+               ((selected - dd.pos) <= (FISEL_LAST - FISEL_FIRST))) {
+              WORD oldobj = selected - dd.pos + FISEL_FIRST;
 													
-							Objc_do_change(tree,oldobj,&clip,
-									tree[oldobj].ob_state &= ~SELECTED,REDRAW);								
-						};
+              Objc_do_change (apid, tree,oldobj,&clip,
+                             tree[oldobj].ob_state &= ~SELECTED,REDRAW);								
+            };
 					
-						Objc_do_change(tree,obj,&clip,
-								tree[obj].ob_state | SELECTED,REDRAW);
+            Objc_do_change (apid, tree,obj,&clip,
+                           tree[obj].ob_state | SELECTED,REDRAW);
 					
-						selected = obj - FISEL_FIRST + dd.pos;
+            selected = obj - FISEL_FIRST + dd.pos;
 					
-						Objc_area_needed(tree,FISEL_SELECTION,&area);	
-						Objc_do_draw(tree,0,9,&area);	
+            Objc_area_needed(tree,FISEL_SELECTION,&area);	
+            Objc_do_draw (apid, tree,0,9,&area);	
 
-						if(but_chosen & 0x8000) {						
-							Form_do_dial(apid,FMD_FINISH,&clip,&clip);
+            if(but_chosen & 0x8000) {						
+              Form_do_dial(apid,FMD_FINISH,&clip,&clip);
 
-							Rsrc_free_tree(tree);
+              Rsrc_free_tree(tree);
 	
-							*button = FSEL_OK;
-							reset_dirdesc(&dd);
+              *button = FSEL_OK;
+              reset_dirdesc(&dd);
 
-							return 1;
-						};						
-					};
-				};
-			};
-		};
-	};
+              return 1;
+            };						
+          };
+        };
+      };
+    };
+  };
 }
 
 /****************************************************************************

@@ -5,7 +5,11 @@
 
 #define	STKSIZE	4096
 
-typedef struct globalvars {
+
+/*
+** global_common contains variables that are global across applications.
+*/
+typedef struct global_common {
   WORD    vid;	      /* physical vdi id of the screen */
   WORD    vmode;
   WORD    vmodecode;
@@ -65,8 +69,12 @@ typedef struct globalvars {
   OBJECT  *menutad;
   OBJECT  *mouseformstad;
   OBJECT  *pmenutad;
-  OBJECT  *windowtad;
   BYTE    **fr_string;
+
+  /* Window elements resource and counters */
+  OBJECT  * windowtad;
+  WORD      elemnumber;
+  WORD      tednumber;
 
   BYTE    mousename[30];
 	
@@ -76,12 +84,31 @@ typedef struct globalvars {
   WORD    srvpid;
   WORD    evntpid;
   WORD    applpid;
-}GLOBALVARS;
 
-extern GLOBALVARS	globals;
+  OBJC_COLORWORD top_colour[20];
+  OBJC_COLORWORD untop_colour[20];
+}GLOBAL_COMMON;
+
+/*
+** global_appl contains variables that are global within a special application
+*/
+typedef struct global_appl {
+  GLOBAL_COMMON * common;
+  WORD            vid;
+  void          * windows;
+}GLOBAL_APPL;
 
 void	init_global(WORD physical);
 void	exit_global(void);
 
+#ifdef MINT_TARGET
+GLOBAL_COMMON * get_global_common (void);
+GLOBAL_APPL   * get_globals (WORD apid);
+#else
+extern GLOBAL_APPL global_appl;
+#define get_globals(apid) (&global_appl)
+extern GLOBAL_COMMON global_common;
+#define get_global_common() (&global_common)
 #endif
 
+#endif

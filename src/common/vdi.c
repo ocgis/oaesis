@@ -34,11 +34,11 @@
  ****************************************************************************/
 
 typedef struct {
-	WORD *contrl;
-	WORD *intin;
-	WORD *ptsin;
-	WORD *intout;
-	WORD *ptsout;
+  WORD * contrl;
+  WORD * intin;
+  WORD * ptsin;
+  WORD * intout;
+  WORD * ptsout;
 }VDIPB;
 
 /****************************************************************************
@@ -777,22 +777,23 @@ WORD handle,      /* Workstation handle.                                    */
 WORD color)       /* Color number.                                          */
 /****************************************************************************/
 {
-	WORD  contrl[7];
-	WORD  intout;
-	VDIPB vdipb;
-	
-	contrl[0] = 17;
-	contrl[1] = 0;
-	contrl[3] = 1;
-	contrl[6] = handle;
-
-	vdipb.contrl = contrl;
-	vdipb.intin = &color;
-	vdipb.intout = &intout;
-	
-	vdicall(&vdipb);
-	
-	return intout;
+  WORD  contrl[7];
+  WORD  intout;
+  VDIPB vdipb;
+  
+  contrl[0] = 17;
+  contrl[1] = 0;
+  contrl[3] = 1;
+  contrl[6] = handle;
+  
+  vdipb.contrl = contrl;
+  DB_printf ("vdi.c: Vdi_vsl_color: &contrl=0x%x", vdipb.contrl);
+  vdipb.intin = &color;
+  vdipb.intout = &intout;
+  
+  vdicall(&vdipb);
+  
+  return intout;
 }
 
 /****************************************************************************

@@ -61,8 +61,10 @@
  * Global variables                                                         *
  ****************************************************************************/
 
-GLOBALVARS	globals;
-char *p_fsel_extern = (char *)&globals.fsel_extern;
+GLOBAL_COMMON global_common;
+GLOBAL_APPL   global_appl;
+
+char *p_fsel_extern = (char *)&global_common.fsel_extern;
 WORD global[15];
 
 /****************************************************************************
@@ -176,20 +178,20 @@ void init_global(WORD nocnf) {
   };
 #endif /* MINT_TARGET */
   
-  globals.mouse_owner = -1;
-  globals.realmove = 0;
-  globals.realsize = 0;
-  globals.realslide = 0;
-  globals.fnt_regul_id = -1;
-  globals.fnt_regul_sz = -1;
-  globals.icon_width = 48;
-  globals.icon_height = 56;
-  globals.wind_appl = 1;
-  globals.graf_mbox = 1;
-  globals.graf_growbox = 1;
-  globals.graf_shrinkbox = 1;
-  globals.fsel_sorted = 1;
-  globals.fsel_extern = 0;
+  global_common.mouse_owner = -1;
+  global_common.realmove = 0;
+  global_common.realsize = 0;
+  global_common.realslide = 0;
+  global_common.fnt_regul_id = -1;
+  global_common.fnt_regul_sz = -1;
+  global_common.icon_width = 48;
+  global_common.icon_height = 56;
+  global_common.wind_appl = 1;
+  global_common.graf_mbox = 1;
+  global_common.graf_growbox = 1;
+  global_common.graf_shrinkbox = 1;
+  global_common.fsel_sorted = 1;
+  global_common.fsel_extern = 0;
   
   if(!nocnf) {
     /*
@@ -205,122 +207,138 @@ void init_global(WORD nocnf) {
   if(open_physical_ws) {	
     printf("No other AES found. Opening own Workstation.\r\n");
     work_in[0] = 5;
-    Vdi_v_opnwk(work_in,&globals.vid,work_out);
+    Vdi_v_opnwk(work_in,&global_common.vid,work_out);
 
-    if(globals.video == 0x00030000L) {
-      VsetScreen(NULL, NULL, globals.vmode, globals.vmodecode);
+    if(global_common.video == 0x00030000L) {
+      VsetScreen(NULL, NULL, global_common.vmode, global_common.vmodecode);
     }
     else {
-      VsetScreen((void*)-1, (void *)-1, globals.vmode, globals.vmodecode);
+      VsetScreen((void*)-1, (void *)-1, global_common.vmode, global_common.vmodecode);
     };
   }
   else {
     printf("Other AES detected.\r\n");
-    globals.vid = own_graf_handle();
-    Vdi_v_clrwk(globals.vid);
+    global_common.vid = own_graf_handle();
+    Vdi_v_clrwk(global_common.vid);
   }
 #else  /* ! MINT_TARGET */
   work_in[0] = 5;
-  /*  Vdi_v_opnwk(work_in,&globals.vid,work_out);*/
+  Vdi_v_opnwk(work_in, &global_appl.vid, work_out);
+  global_common.vid = global_appl.vid; /* Remove global_common.vid */
+  DB_printf ("lib_global.c: init_global: vid=%d", global_appl.vid);
 #endif /* MINT_TARGET */
+  Vdi_vq_extnd(global_common.vid,0,work_out);
 
-  Vdi_vq_extnd(globals.vid,0,work_out);
   
-  globals.screen.x = 0;
-  globals.screen.y = 0;
-  globals.screen.width = work_out[0] + 1;
-  globals.screen.height = work_out[1] + 1;
+  global_common.screen.x = 0;
+  global_common.screen.y = 0;
+  global_common.screen.width = work_out[0] + 1;
+  global_common.screen.height = work_out[1] + 1;
   
-  globals.num_pens = work_out[13];
+  global_common.num_pens = work_out[13];
   
   /* setup systemfont information */
   
-  if(globals.screen.height >= 400) {
-    if(globals.fnt_regul_id == -1) {
-      globals.fnt_regul_id = 1;
+  if(global_common.screen.height >= 400) {
+    if(global_common.fnt_regul_id == -1) {
+      global_common.fnt_regul_id = 1;
     };
     
-    if(globals.fnt_regul_sz == -1) {
-      globals.fnt_regul_sz = 13;
+    if(global_common.fnt_regul_sz == -1) {
+      global_common.fnt_regul_sz = 13;
     };
   }
   else {
-    if(globals.fnt_regul_id == -1) {
-      globals.fnt_regul_id = 1;
+    if(global_common.fnt_regul_id == -1) {
+      global_common.fnt_regul_id = 1;
     };
     
-    if(globals.fnt_regul_sz == -1) {
-      globals.fnt_regul_sz = 9;
+    if(global_common.fnt_regul_sz == -1) {
+      global_common.fnt_regul_sz = 9;
     };
   };
   
-  globals.fnt_small_id = globals.fnt_regul_id;
-  globals.fnt_small_sz = globals.fnt_regul_sz / 2;
+  global_common.fnt_small_id = global_common.fnt_regul_id;
+  global_common.fnt_small_sz = global_common.fnt_regul_sz / 2;
   
-  Vdi_vst_font(globals.vid, globals.fnt_regul_id);
-  Vdi_vst_point(globals.vid,globals.fnt_regul_sz,&dum,&dum,&dum,&dum);
+  Vdi_vst_font(global_common.vid, global_common.fnt_regul_id);
+  Vdi_vst_point(global_common.vid,global_common.fnt_regul_sz,&dum,&dum,&dum,&dum);
   
-  globals.applmenu = NULL;
-  globals.accmenu = NULL;
+  global_common.applmenu = NULL;
+  global_common.accmenu = NULL;
   
-  globals.mouse_x = 0;
-  globals.mouse_y = 0;
-  globals.mouse_button = 0;
+  global_common.mouse_x = 0;
+  global_common.mouse_y = 0;
+  global_common.mouse_button = 0;
   
-  globals.arrowrepeat = 100;
+  global_common.arrowrepeat = 100;
   
-  Vdi_vqt_attributes(globals.vid,work_out);
+  Vdi_vqt_attributes(global_common.vid,work_out);
   
-  globals.blwidth = work_out[8] + 3;
-  globals.blheight = work_out[9] + 3;
-  globals.clwidth = work_out[8];
-  globals.clheight = work_out[9];
+  global_common.blwidth = work_out[8] + 3;
+  global_common.blheight = work_out[9] + 3;
+  global_common.clwidth = work_out[8];
+  global_common.clheight = work_out[9];
   
-  globals.bswidth = work_out[8] / 2 + 3;
-  globals.bsheight = work_out[9] / 2 + 3;
-  globals.cswidth = work_out[8] / 2;
-  globals.csheight = work_out[9] / 2;
+  global_common.bswidth = work_out[8] / 2 + 3;
+  global_common.bsheight = work_out[9] / 2 + 3;
+  global_common.cswidth = work_out[8] / 2;
+  global_common.csheight = work_out[9] / 2;
   
-  globals.time = 0L;
+  global_common.time = 0L;
 
 #ifdef MINT_TARGET
-  sprintf(globals.mousename,"u:\\dev\\aesmouse.%03d",Pgetpid());
+  sprintf(global_common.mousename,"u:\\dev\\aesmouse.%03d",Pgetpid());
 #else
-  strcpy (globals.mousename, "/dev/mouse");
+  strcpy (global_common.mousename, "/dev/mouse");
 #endif  
 
+  Rsrc_do_rcfix (global_common.vid,
+                 (RSHDR *)RESOURCE);
+
+  /*  
+  Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,AICONS,&global_common.aiconstad);
+  Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,ALERT,&global_common.alerttad);
+  Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,DESKBG,&global_common.deskbgtad);
+  Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,FISEL,&global_common.fiseltad);
+  Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,INFORM,&global_common.informtad);
+  Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,MENU,&global_common.menutad);
+  Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,MOUSEFORMS,&global_common.mouseformstad);
+  Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,PMENU,&global_common.pmenutad);
+  */
   /*
-  Rsrc_do_rcfix(globals.vid,(RSHDR *)RESOURCE);
-  
-  Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,AICONS,&globals.aiconstad);
-  Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,ALERT,&globals.alerttad);
-  Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,DESKBG,&globals.deskbgtad);
-  Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,FISEL,&globals.fiseltad);
-  Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,INFORM,&globals.informtad);
-  Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,MENU,&globals.menutad);
-  Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,MOUSEFORMS,&globals.mouseformstad);
-  Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,PMENU,&globals.pmenutad);
-  Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,WINDOW,&globals.windowtad);
-  Rsrc_do_gaddr((RSHDR *)RESOURCE,R_FRSTR,0,(OBJECT **)&globals.fr_string);
+  Rsrc_do_gaddr((RSHDR *)RESOURCE,R_FRSTR,0,(OBJECT **)&global_common.fr_string);
   */
   
   sprintf(versionstring,"Version %s",VERSIONTEXT);
-  /*  globals.informtad[INFOVERSION].ob_spec.tedinfo->te_ptext = versionstring; */
-  
-  globals.applpid = Pgetpid();
+  /*  global_common.informtad[INFOVERSION].ob_spec.tedinfo->te_ptext = versionstring; */
+
+  /* Initialize window elements and resource counters */
+  Rsrc_do_gaddr((RSHDR *)RESOURCE,
+                R_TREE,
+                WINDOW,
+                &global_common.windowtad);
+  global_common.elemnumber = -1;
+
+  DB_printf ("lib_global.c: init_global: global_common.windowtad=0x%x",
+             global_common.windowtad);
+
+  global_common.applpid = Pgetpid();
+
+  global_appl.common = &global_common;
 }
 
 void	exit_global(void) {
 #ifdef MINT_TARGET
   if(open_physical_ws) {
-    if(globals.video == 0x00030000L) {
+    if(global_common.video == 0x00030000L) {
       VsetScreen(NULL, NULL, oldmode, oldmodecode);
     }
     else {
       VsetScreen((void *)-1, (void *)-1, oldmode, oldmodecode);
     };
     
-    Vdi_v_clswk(globals.vid);
+    Vdi_v_clswk(global_common.vid);
     own_appl_exit();
   };
 #endif
