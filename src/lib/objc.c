@@ -290,27 +290,28 @@ draw_text(WORD     vid,
           WORD     par_y,
           WORD     is_top)
 {
-  WORD txteff = 0;
-  WORD type = ob->ob_type & 0xff;
-  BYTE ctext[100];
-  BYTE *text = NULL;
-  int  temp;
-  WORD tx = par_x + ob->ob_x,ty = par_y + ob->ob_y;
-  WORD tcolour = BLACK,bcolour = WHITE;
-  WORD bfill = 0;
-  WORD writemode = SWRM_TRANS;
-  WORD draw3d = OB_FLAGS(ob) & FLD3DANY;
-  WORD invertcolour = 0;
-  U_OB_SPEC ob_spec;
+  WORD            txteff = 0;
+  WORD            type = OB_TYPE(ob) & 0xff;
+  BYTE            ctext[100];
+  BYTE *          text = NULL;
+  int             temp;
+  WORD            tx = par_x + OB_X(ob);
+  WORD            ty = par_y + OB_Y(ob);
+  WORD            tcolour = BLACK,bcolour = WHITE;
+  WORD            bfill = 0;
+  WORD            writemode = SWRM_TRANS;
+  WORD            draw3d = OB_FLAGS(ob) & FLD3DANY;
+  WORD            invertcolour = 0;
+  U_OB_SPEC       ob_spec;
   GLOBAL_COMMON * globals = get_global_common ();
 
   if(OB_FLAGS(ob) & INDIRECT)
   {
-    ob_spec = *ob->ob_spec.indirect;
+    ob_spec = *((U_OB_SPEC *)OB_SPEC(ob));
   }
   else
   {
-    ob_spec = ob->ob_spec;
+    ob_spec.index = OB_SPEC(ob);
   }
 
   /* find the text string to draw */
@@ -320,9 +321,9 @@ draw_text(WORD     vid,
   case G_FTEXT:
   case G_FBOXTEXT:
   {
-    BYTE *ptmplt = ob_spec.tedinfo->te_ptmplt;
-    BYTE *ptext = ob_spec.tedinfo->te_ptext;
-    BYTE *pctext = ctext;
+    BYTE * ptmplt = TE_PTMPLT(ob_spec.tedinfo);
+    BYTE * ptext = TE_PTEXT(ob_spec.tedinfo);
+    BYTE * pctext = ctext;
 
     if(*ptext == '@')
     {
@@ -354,17 +355,17 @@ draw_text(WORD     vid,
     *pctext = '\0';
     text = ctext;
 			
-    bfill = GET_TE_COLOR_PATTERN(ob_spec.tedinfo->te_color);
-    bcolour = GET_TE_COLOR_FILLC(ob_spec.tedinfo->te_color);
+    bfill = GET_TE_COLOR_PATTERN(TE_COLOR(ob_spec.tedinfo));
+    bcolour = GET_TE_COLOR_FILLC(TE_COLOR(ob_spec.tedinfo));
   }
   break;
 		
   case G_TEXT:
   case G_BOXTEXT:
-    text = ob_spec.tedinfo->te_ptext;
+    text = TE_PTEXT(ob_spec.tedinfo);
 
-    bfill = GET_TE_COLOR_PATTERN(ob_spec.tedinfo->te_color);
-    bcolour = GET_TE_COLOR_FILLC(ob_spec.tedinfo->te_color);
+    bfill = GET_TE_COLOR_PATTERN(TE_COLOR(ob_spec.tedinfo));
+    bcolour = GET_TE_COLOR_FILLC(TE_COLOR(ob_spec.tedinfo));
     break;
 		
   case G_TITLE:
@@ -395,48 +396,48 @@ draw_text(WORD     vid,
     {
       TEDINFO *textblk = (TEDINFO *)ob_spec.tedinfo;
 
-      switch(textblk->te_font)	/* Set the correct text size & font */
+      switch(TE_FONT(textblk)) /* Set the correct text size & font */
       {
       case GDOS_PROP: /* Use a proportional SPEEDOGDOS font (AES4.1 style) */
       case GDOS_MONO: /* Use a monospaced SPEEDOGDOS font (AES4.1 style) */
       case GDOS_BITM: /* Use a GDOS bitmap font (AES4.1 style) */
-        vst_font(vid,textblk->te_fontid);
-        vst_point(vid,textblk->te_fontsize,&temp,&temp,&temp,&temp);
-        ty = par_y + ob->ob_y + ((ob->ob_height - globals->clheight) / 2);
+        vst_font(vid, TE_FONTID(textblk));
+        vst_point(vid, TE_FONTSIZE(textblk), &temp, &temp, &temp, &temp);
+        ty = par_y + OB_Y(ob) + ((OB_HEIGHT(ob) - globals->clheight) / 2);
         break;
         
       case IBM: /* Use the standard system font (probably 10 point) */
-        vst_font(vid,globals->fnt_regul_id);
-        vst_point(vid,globals->fnt_regul_sz,&temp,&temp,&temp,&temp);
-        ty = par_y + ob->ob_y + ((ob->ob_height - globals->clheight) / 2);
+        vst_font(vid, globals->fnt_regul_id);
+        vst_point(vid, globals->fnt_regul_sz, &temp, &temp, &temp, &temp);
+        ty = par_y + OB_Y(ob) + ((OB_HEIGHT(ob) - globals->clheight) / 2);
         break;
 
       case SMALL: /* Use the small system font (probably 8 point) */
-        vst_font(vid,globals->fnt_small_id);
-        vst_point(vid,globals->fnt_small_sz,&temp,&temp,&temp,&temp);
+        vst_font(vid, globals->fnt_small_id);
+        vst_point(vid, globals->fnt_small_sz, &temp, &temp, &temp, &temp);
 						
-        ty = par_y + ob->ob_y + ((ob->ob_height - globals->csheight) / 2);
+        ty = par_y + OB_Y(ob) + ((OB_HEIGHT(ob) - globals->csheight) / 2);
       }
 				
-      switch(textblk->te_just)
+      switch(TE_JUST(textblk))
       {
         /*Set text alignment - why on earth did */
         /* atari use a different horizontal alignment */
         /* code for GEM to the one the VDI uses? */
       case 0:
-        tx = par_x + ob->ob_x;
-        vst_alignment(vid,0,5,&temp,&temp);
+        tx = par_x + OB_X(ob);
+        vst_alignment(vid, 0, 5, &temp, &temp);
         break;
       case 1:
-        tx = par_x + ob->ob_x + ob->ob_width - 1;
-        vst_alignment(vid,2,5,&temp,&temp);
+        tx = par_x + OB_X(ob) + OB_WIDTH(ob) - 1;
+        vst_alignment(vid, 2, 5, &temp, &temp);
         break;
       case 2:
-        tx = par_x + ob->ob_x + (ob->ob_width >> 1);
-        vst_alignment(vid,1,5,&temp,&temp);
+        tx = par_x + OB_X(ob) + (OB_WIDTH(ob) >> 1);
+        vst_alignment(vid, 1, 5, &temp, &temp);
       }
 				
-      tcolour = GET_TE_COLOR_TEXTC(ob_spec.tedinfo->te_color);
+      tcolour = GET_TE_COLOR_TEXTC(TE_COLOR(ob_spec.tedinfo));
 
       if(draw3d)
       {
@@ -444,19 +445,18 @@ draw_text(WORD     vid,
       }
       else
       {
-        writemode = GET_TE_COLOR_OPAQUE(ob_spec.tedinfo->te_color);
+        writemode = GET_TE_COLOR_OPAQUE(TE_COLOR(ob_spec.tedinfo));
       }
       break;
 				
     case G_STRING:
     case G_TITLE:
-      vst_font(vid,globals->fnt_regul_id);
-      vst_point(vid,globals->fnt_regul_sz,&temp,&temp,&temp,&temp);
-      ty =
-        par_y + ob->ob_y + ((ob->ob_height - globals->clheight) / 2);
+      vst_font(vid, globals->fnt_regul_id);
+      vst_point(vid, globals->fnt_regul_sz, &temp, &temp, &temp, &temp);
+      ty = par_y + OB_Y(ob) + ((OB_HEIGHT(ob) - globals->clheight) / 2);
 
-      tx = par_x + ob->ob_x;
-      vst_alignment(vid,0,5,&temp,&temp);
+      tx = par_x + OB_X(ob);
+      vst_alignment(vid, 0, 5, &temp, &temp);
 
       tcolour = BLACK;
 		
@@ -471,12 +471,12 @@ draw_text(WORD     vid,
       break;
 
     case G_BOXCHAR:
-      vst_font(vid,globals->fnt_regul_id);
-      vst_point(vid,globals->fnt_regul_sz,&temp,&temp,&temp,&temp);
-      ty = par_y + ob->ob_y + ((ob->ob_height - globals->clheight) / 2);
+      vst_font(vid, globals->fnt_regul_id);
+      vst_point(vid, globals->fnt_regul_sz, &temp, &temp, &temp, &temp);
+      ty = par_y + OB_Y(ob) + ((OB_HEIGHT(ob) - globals->clheight) / 2);
 
-      tx = par_x + ob->ob_x + (ob->ob_width >> 1);
-      vst_alignment(vid,1,5,&temp,&temp);
+      tx = par_x + OB_X(ob) + (OB_WIDTH(ob) >> 1);
+      vst_alignment(vid, 1, 5, &temp, &temp);
 
       tcolour = GET_OBSPEC_TEXTCOL(ob_spec.index);
 				
@@ -491,12 +491,12 @@ draw_text(WORD     vid,
       break;			
 				
     case G_BUTTON:
-      vst_font(vid,globals->fnt_regul_id);
-      vst_point(vid,globals->fnt_regul_sz,&temp,&temp,&temp,&temp);
-      ty = par_y + ob->ob_y + ((ob->ob_height - globals->clheight) / 2);
+      vst_font(vid, globals->fnt_regul_id);
+      vst_point(vid, globals->fnt_regul_sz, &temp, &temp, &temp, &temp);
+      ty = par_y + OB_Y(ob) + ((OB_HEIGHT(ob) - globals->clheight) / 2);
       
-      tx = par_x + ob->ob_x + (ob->ob_width >> 1);
-      vst_alignment(vid,1,5,&temp,&temp);
+      tx = par_x + OB_X(ob) + (OB_WIDTH(ob) >> 1);
+      vst_alignment(vid, 1, 5, &temp, &temp);
       
       tcolour = BLACK;
       
@@ -585,19 +585,19 @@ draw_text(WORD     vid,
 
     if((writemode == SWRM_REPLACE) && (bcolour != WHITE))
     {
-      set_write_mode(vid,SWRM_INVTRANS);
-      vst_color(vid,bcolour);
-      v_gtext(vid,tx,ty,text);
+      set_write_mode(vid, SWRM_INVTRANS);
+      vst_color(vid, bcolour);
+      v_gtext(vid, tx, ty, text);
 			
-      set_write_mode(vid,SWRM_TRANS);
+      set_write_mode(vid, SWRM_TRANS);
     }
     else
     {
-      set_write_mode(vid,writemode);
+      set_write_mode(vid, writemode);
     }
 
-    vst_color(vid,tcolour);
-    v_gtext(vid,tx,ty,text);
+    vst_color(vid, tcolour);
+    v_gtext(vid, tx, ty, text);
   }
 }
 
@@ -636,7 +636,7 @@ drawframe(WORD   vid,
     
     while(thick > 0)
     {
-      v_pline(vid,5,size);
+      v_pline(vid, 5, size);
       thick--;
       if(!thick)
       {
@@ -670,7 +670,7 @@ draw_filled_rect(WORD   vid,
   size[1] = r->y;
   size[2] = r->width + size[0] - 1;
   size[3] = r->height + size[1] - 1;
-  vr_recfl(vid,size);
+  vr_recfl(vid, size);
 }
 
 
@@ -681,33 +681,34 @@ draw_bg(WORD     vid,
         WORD     par_x,
         WORD     par_y)
 {
-  WORD      type = ob->ob_type & 0xff;
-  RECT      r;
-  WORD      draw = 1;
-  WORD      filltype = 0;
-  WORD      fillcolour = WHITE;
-  WORD      bcolour = WHITE;
-  WORD      mode3d;
-  WORD      invertcolour = 0;
-  U_OB_SPEC ob_spec;
+  WORD            type = OB_TYPE(ob) & 0xff;
+  RECT            r;
+  WORD            draw = 1;
+  WORD            filltype = 0;
+  WORD            fillcolour = WHITE;
+  WORD            bcolour = WHITE;
+  WORD            mode3d;
+  WORD            invertcolour = 0;
+  U_OB_SPEC       ob_spec;
   GLOBAL_COMMON * globals = get_global_common ();
 
-  if(OB_FLAGS(ob) & INDIRECT) {
-    ob_spec = *ob->ob_spec.indirect;
+  if(OB_FLAGS(ob) & INDIRECT)
+  {
+    ob_spec = *((U_OB_SPEC *)OB_SPEC(ob));
   }
   else
   {
-    ob_spec = ob->ob_spec;
+    ob_spec.index = OB_SPEC(ob);
   }
 
   switch(type)
   {
   case G_BOXCHAR:
   case G_BOX:
-    r.x = ob->ob_x + par_x;
-    r.y = ob->ob_y + par_y;
-    r.width = ob->ob_width;
-    r.height = ob->ob_height;
+    r.x      = OB_X(ob) + par_x;
+    r.y      = OB_Y(ob) + par_y;
+    r.width  = OB_WIDTH(ob);
+    r.height = OB_HEIGHT(ob);
 						
     fillcolour = GET_OBSPEC_INTERIORCOL(ob_spec.index);
     filltype = GET_OBSPEC_FILLPATTERN(ob_spec.index);
@@ -716,13 +717,13 @@ draw_bg(WORD     vid,
   case G_BOXTEXT:
   case G_FBOXTEXT:
   {
-    r.x = ob->ob_x + par_x;
-    r.y = ob->ob_y + par_y;
-    r.width = ob->ob_width;
-    r.height = ob->ob_height;
+    r.x      = OB_X(ob) + par_x;
+    r.y      = OB_Y(ob) + par_y;
+    r.width  = OB_WIDTH(ob);
+    r.height = OB_HEIGHT(ob);
 
-    fillcolour = GET_TE_COLOR_FILLC(ob_spec.tedinfo->te_color);
-    filltype = GET_TE_COLOR_PATTERN(ob_spec.tedinfo->te_color);
+    fillcolour = GET_TE_COLOR_FILLC(TE_COLOR(ob_spec.tedinfo));
+    filltype = GET_TE_COLOR_PATTERN(TE_COLOR(ob_spec.tedinfo));
   }
   break;
 
@@ -730,10 +731,10 @@ draw_bg(WORD     vid,
   case G_TITLE:
     if(OB_STATE(ob) & SELECTED)
     {
-      r.x = ob->ob_x + par_x;
-      r.y = ob->ob_y + par_y;
-      r.width = ob->ob_width;
-      r.height = ob->ob_height;
+      r.x      = OB_X(ob) + par_x;
+      r.y      = OB_Y(ob) + par_y;
+      r.width  = OB_WIDTH(ob);
+      r.height = OB_HEIGHT(ob);
 			
       fillcolour = WHITE;
 
@@ -753,10 +754,10 @@ draw_bg(WORD     vid,
     break;
 
   case G_BUTTON:
-    r.x = ob->ob_x + par_x;
-    r.y = ob->ob_y + par_y;
-    r.width = ob->ob_width;
-    r.height = ob->ob_height;
+    r.x      = OB_X(ob) + par_x;
+    r.y      = OB_Y(ob) + par_y;
+    r.width  = OB_WIDTH(ob);
+    r.height = OB_HEIGHT(ob);
 		
     fillcolour = WHITE;
 
@@ -822,7 +823,7 @@ draw_bg(WORD     vid,
       invertcolour = TRUE;
     }
 
-    set_write_mode(vid,SWRM_REPLACE);
+    set_write_mode(vid, SWRM_REPLACE);
 		
     if(!(fillcolour < globals->num_pens))
     {
@@ -842,18 +843,18 @@ draw_bg(WORD     vid,
 		
     if(filltype != 7)
     {
-      vsf_color(vid,bcolour);
-      setfilltype(vid,7);
+      vsf_color(vid, bcolour);
+      setfilltype(vid, 7);
 	
-      draw_filled_rect(vid,&r);
+      draw_filled_rect(vid, &r);
     }
 		
     if(filltype != 0)
     {
-      set_write_mode(vid,SWRM_TRANS);
-      vsf_color(vid,fillcolour);
-      setfilltype(vid,filltype);
-      draw_filled_rect(vid,&r);
+      set_write_mode(vid, SWRM_TRANS);
+      vsf_color(vid, fillcolour);
+      setfilltype(vid, filltype);
+      draw_filled_rect(vid, &r);
     }
   }
 }
@@ -863,17 +864,17 @@ static
 void
 draw_3dshadow(WORD   vid,
               RECT * r,
-              WORD selected)
+              WORD   selected)
 {
   int pnt[6];
   
   if (selected)
   {
-    vsl_color(vid,ocolours.br);
+    vsl_color(vid, ocolours.br);
   }
   else
   {
-    vsl_color(vid,ocolours.tl);
+    vsl_color(vid, ocolours.tl);
   }
 
   pnt[0] = r->x;
@@ -882,15 +883,15 @@ draw_3dshadow(WORD   vid,
   pnt[3] = r->y;
   pnt[4] = r->x + r->width - 1;
   pnt[5] = r->y;
-  v_pline(vid,3,pnt);
+  v_pline(vid, 3, pnt);
   
   if (selected)
   {
-    vsl_color(vid,ocolours.tl);
+    vsl_color(vid, ocolours.tl);
   }
   else
   {
-    vsl_color(vid,ocolours.br);
+    vsl_color(vid, ocolours.br);
   }
 
   pnt[0] = r->x + 1;
@@ -899,7 +900,7 @@ draw_3dshadow(WORD   vid,
   pnt[3] = r->y + r->height - 1;
   pnt[4] = r->x + r->width - 1;
   pnt[5] = r->y + 1;
-  v_pline(vid,3,pnt);
+  v_pline(vid, 3, pnt);
 }
 
 
@@ -912,8 +913,9 @@ void
 draw_frame(WORD     vid,
            OBJECT * ob,
            WORD     par_x,
-           WORD     par_y) {
-  WORD      type = ob->ob_type & 0xff;
+           WORD     par_y)
+{
+  WORD      type = OB_TYPE(ob) & 0xff;
   RECT      r;
   WORD      draw = 1;
   BYTE      framesize = 0;
@@ -921,11 +923,11 @@ draw_frame(WORD     vid,
 
   if(OB_FLAGS(ob) & INDIRECT)
   {
-    ob_spec = *ob->ob_spec.indirect;
+    ob_spec = *((U_OB_SPEC *)OB_SPEC(ob));
   }
   else
   {
-    ob_spec = ob->ob_spec;
+    ob_spec.index = OB_SPEC(ob);
   }
 
   DEBUG3("objc.c: draw_frame: type = %d (0x%x)", type, type);
@@ -935,39 +937,39 @@ draw_frame(WORD     vid,
   case G_BOX  :	/*0x14*/
   case G_BOXCHAR:
   {
-    r.x = ob->ob_x + par_x;
-    r.y = ob->ob_y + par_y;
-    r.width = ob->ob_width;
-    r.height = ob->ob_height;
+    r.x      = OB_X(ob) + par_x;
+    r.y      = OB_Y(ob) + par_y;
+    r.width  = OB_WIDTH(ob);
+    r.height = OB_HEIGHT(ob);
 			
     framesize = GET_OBSPEC_FRAMESIZE(ob_spec.index);
     DEBUG3("objc.c: draw_frame: framesize = %d obspec = 0x%x",
            framesize, ob_spec.index);
 
-    vsl_color(vid,GET_OBSPEC_FRAMECOL(ob_spec.index));
+    vsl_color(vid, GET_OBSPEC_FRAMECOL(ob_spec.index));
   }
   break;
 
   case G_BOXTEXT:
   case G_FBOXTEXT:
   {
-    r.x = ob->ob_x + par_x;
-    r.y = ob->ob_y + par_y;
-    r.width = ob->ob_width;
-    r.height = ob->ob_height;
+    r.x      = OB_X(ob) + par_x;
+    r.y      = OB_Y(ob) + par_y;
+    r.width  = OB_WIDTH(ob);
+    r.height = OB_HEIGHT(ob);
 			
-    framesize = ob_spec.tedinfo->te_thickness;
+    framesize = TE_THICKNESS(ob_spec.tedinfo);
 
-    vsl_color(vid, GET_TE_COLOR_BORDERC(ob_spec.tedinfo->te_color));
+    vsl_color(vid, GET_TE_COLOR_BORDERC(TE_COLOR(ob_spec.tedinfo)));
   }
   break;
 
   case G_STRING:
   {
-    r.x = ob->ob_x + par_x;
-    r.y = ob->ob_y + par_y;
-    r.width = ob->ob_width;
-    r.height = ob->ob_height;
+    r.x      = OB_X(ob) + par_x;
+    r.y      = OB_Y(ob) + par_y;
+    r.width  = OB_WIDTH(ob);
+    r.height = OB_HEIGHT(ob);
 			
     framesize = 0;
   }
@@ -975,10 +977,10 @@ draw_frame(WORD     vid,
 
   case G_BUTTON:
   {
-    r.x = ob->ob_x + par_x;
-    r.y = ob->ob_y + par_y;
-    r.width = ob->ob_width;
-    r.height = ob->ob_height;
+    r.x      = OB_X(ob) + par_x;
+    r.y      = OB_Y(ob) + par_y;
+    r.width  = OB_WIDTH(ob);
+    r.height = OB_HEIGHT(ob);
 			
     if(OB_FLAGS(ob) & DEFAULT)
     {
@@ -989,7 +991,7 @@ draw_frame(WORD     vid,
       framesize = -BUTTONFRAME;
     }
 
-    vsl_color(vid,BLACK);
+    vsl_color(vid, BLACK);
   }
   break;
 			
@@ -1001,9 +1003,9 @@ draw_frame(WORD     vid,
   {
     WORD mode3d = OB_FLAGS(ob) & FLD3DANY;
 
-    vsl_type(vid,1);
+    vsl_type(vid, 1);
 		
-    set_write_mode(vid,SWRM_REPLACE);
+    set_write_mode(vid, SWRM_REPLACE);
 
     if((mode3d == FL3DIND) || (mode3d == FL3DACT))
     {
@@ -1012,7 +1014,7 @@ draw_frame(WORD     vid,
       r.width += D3DSIZE << 1;
       r.height += D3DSIZE << 1;
 			
-      drawframe(vid,&r,framesize);
+      drawframe(vid, &r, framesize);
 
       if(framesize > 0)
       {
@@ -1040,8 +1042,8 @@ draw_frame(WORD     vid,
         {
           WORD i = OUTLINESIZE - 1;
 					
-          vsl_color(vid,ocolours.br);
-          drawframe(vid,&r,1);
+          vsl_color(vid, ocolours.br);
+          drawframe(vid, &r, 1);
 					
           while(i--)
           {
@@ -1049,21 +1051,21 @@ draw_frame(WORD     vid,
             r.y++;
             r.width -= 2;
             r.height -= 2;
-            draw_3dshadow(vid,&r,0);
+            draw_3dshadow(vid, &r, 0);
           }
         }
         else
         {
-          drawframe(vid,&r,1);
+          drawframe(vid, &r, 1);
 
-          vsl_color(vid,WHITE);
+          vsl_color(vid, WHITE);
 			
           r.x += 1;
           r.y += 1;
           r.width -= 2;
           r.height -= 2;
           
-          drawframe(vid,&r,OUTLINESIZE - 1);
+          drawframe(vid, &r, OUTLINESIZE - 1);
         }
       }
     }
@@ -1092,23 +1094,23 @@ drawimage(WORD     vid,
 
   xyarray[0] = 0;
   xyarray[1] = 0;
-  xyarray[2] = (bb->bi_wb << 3) - 1;
-  xyarray[3] = bb->bi_hl - 1;
-  xyarray[4] = x + bb->bi_x;
-  xyarray[5] = y + bb->bi_y;
-  xyarray[6] = x + bb->bi_x + (bb->bi_wb << 3) - 1;
-  xyarray[7] = y + bb->bi_y + bb->bi_hl - 1;
+  xyarray[2] = (BI_WB(bb) << 3) - 1;
+  xyarray[3] = BI_HL(bb) - 1;
+  xyarray[4] = x + BI_X(bb);
+  xyarray[5] = y + BI_Y(bb);
+  xyarray[6] = x + BI_X(bb) + (BI_WB(bb) << 3) - 1;
+  xyarray[7] = y + BI_Y(bb) + BI_HL(bb) - 1;
 
-  (LONG)s.fd_addr = (LONG)bb->bi_pdata;
-  s.fd_w = (bb->bi_wb << 3);
-  s.fd_h = bb->bi_hl;
-  s.fd_wdwidth = (bb->bi_wb >> 1);
+  (LONG)s.fd_addr = (LONG)BI_PDATA(bb);
+  s.fd_w = (BI_WB(bb) << 3);
+  s.fd_h = BI_HL(bb);
+  s.fd_wdwidth = (BI_WB(bb) >> 1);
   s.fd_stand = 0;
   s.fd_nplanes = 1;
 
   (LONG)d.fd_addr = 0L;
 
-  colour[0] = bb->bi_color;
+  colour[0] = BI_COLOR(bb);
 	
   if(!(colour[0] < globals->num_pens))
   {
@@ -1141,8 +1143,8 @@ drawicon(WORD      vid,
 
   int  xyarray[8];
   int  color[2];
-  WORD icon_colour = ib->ib_char >> 12;
-  WORD mask_colour = (ib->ib_char & 0x0f00) >> 8;
+  WORD icon_colour = IB_CHAR(ib) >> 12;
+  WORD mask_colour = (IB_CHAR(ib) & 0x0f00) >> 8;
 	
   RECT	r;
   GLOBAL_COMMON * globals = get_global_common ();
@@ -1159,16 +1161,16 @@ drawicon(WORD      vid,
 	
   xyarray[0] = 0;
   xyarray[1] = 0;
-  xyarray[2] = ib->ib_wicon - 1;
-  xyarray[3] = ib->ib_hicon - 1;
-  xyarray[4] = x + ib->ib_xicon;
-  xyarray[5] = y + ib->ib_yicon;
-  xyarray[6] = x + ib->ib_xicon + ib->ib_wicon - 1;
-  xyarray[7] = y + ib->ib_yicon + ib->ib_hicon - 1;
-  (LONG)s.fd_addr = (LONG)ib->ib_pmask;
-  s.fd_w = ib->ib_wicon;
-  s.fd_h = ib->ib_hicon;
-  s.fd_wdwidth = ((ib->ib_wicon +15) >> 4);
+  xyarray[2] = IB_WICON(ib) - 1;
+  xyarray[3] = IB_HICON(ib) - 1;
+  xyarray[4] = x + IB_XICON(ib);
+  xyarray[5] = y + IB_YICON(ib);
+  xyarray[6] = x + IB_XICON(ib) + IB_WICON(ib) - 1;
+  xyarray[7] = y + IB_YICON(ib) + IB_HICON(ib) - 1;
+  (LONG)s.fd_addr = (LONG)IB_PMASK(ib);
+  s.fd_w = IB_WICON(ib);
+  s.fd_h = IB_HICON(ib);
+  s.fd_wdwidth = ((IB_WICON(ib) + 15) >> 4);
   s.fd_stand = 0;
   s.fd_nplanes = 1;
 
@@ -1183,7 +1185,7 @@ drawicon(WORD      vid,
     color[0] = mask_colour;
   }
 
-  vrt_cpyfm(vid,MD_TRANS,xyarray,&s,&d,color);
+  vrt_cpyfm(vid, MD_TRANS, xyarray, &s, &d, color);
 
   if(state & SELECTED)
   {
@@ -1194,26 +1196,26 @@ drawicon(WORD      vid,
     color[0] = icon_colour;
   }
 	
-  (LONG)s.fd_addr = (LONG)ib->ib_pdata;
+  (LONG)s.fd_addr = (LONG)IB_PDATA(ib);
 
-  vrt_cpyfm(vid,MD_TRANS,xyarray,&s,&d,color);
+  vrt_cpyfm(vid, MD_TRANS, xyarray, &s, &d, color);
 
-  r.x = x + ib->ib_xtext;
-  r.y = y + ib->ib_ytext;
-  r.width = ib->ib_wtext;
-  r.height = ib->ib_htext;
+  r.x = x + IB_XTEXT(ib);
+  r.y = y + IB_YTEXT(ib);
+  r.width = IB_WTEXT(ib);
+  r.height = IB_HTEXT(ib);
 
-  drawtext(vid,ib->ib_ptext,&r,2,ib->ib_char >> 12,5,MD_REPLACE,state);
+  drawtext(vid, IB_PTEXT(ib), &r, 2, IB_CHAR(ib) >> 12, 5, MD_REPLACE, state);
 
-  r.x = x + ib->ib_xchar;
-  r.y = y + ib->ib_ychar;
+  r.x = x + IB_XCHAR(ib);
+  r.y = y + IB_YCHAR(ib);
   r.width = 0;
   r.height = 0;
 	
-  ch[0] = ib->ib_char & 0x00ff;
+  ch[0] = IB_CHAR(ib) & 0x00ff;
   ch[1] = 0;
 
-  drawtext(vid,ch,&r,0,ib->ib_char >> 12,5,MD_REPLACE,state);
+  drawtext(vid, ch, &r, 0, IB_CHAR(ib) >> 12, 5, MD_REPLACE, state);
 }
 
 
@@ -1231,16 +1233,16 @@ drawcicon(WORD       vid,
   int	  color[] = { WHITE,BLACK };
   RECT	  r;
   CICON * best = NULL;
-  CICON * ciwalk = cib->mainlist;
+  CICON * ciwalk = MAINLIST(cib);
   WORD    bestplanes = 0;
 
   while(ciwalk)
   {
-    if((ciwalk->num_planes <= num_planes) &&
-       (ciwalk->num_planes > bestplanes))
+    if((NUM_PLANES(ciwalk) <= num_planes) &&
+       (NUM_PLANES(ciwalk) > bestplanes))
     {
       best = ciwalk;
-      bestplanes = best->num_planes;
+      bestplanes = NUM_PLANES(best);
 			
       if(bestplanes == num_planes)
       {
@@ -1248,56 +1250,70 @@ drawcicon(WORD       vid,
       }
     }
 		
-    ciwalk = ciwalk->next_res;
+    ciwalk = NEXT_RES(ciwalk);
   }
 
   if(!best)
   {
-    drawicon (vid,x,y,&cib->monoblk,state);
+    drawicon(vid, x, y, &cib->monoblk, state);
   }
   else
   {
     xyarray[0] = 0;
     xyarray[1] = 0;
-    xyarray[2] = cib->monoblk.ib_wicon - 1;
-    xyarray[3] = cib->monoblk.ib_hicon - 1;
-    xyarray[4] = x + cib->monoblk.ib_xicon;
-    xyarray[5] = y + cib->monoblk.ib_yicon;
-    xyarray[6] = x + cib->monoblk.ib_xicon + cib->monoblk.ib_wicon - 1;
-    xyarray[7] = y + cib->monoblk.ib_yicon + cib->monoblk.ib_hicon - 1;
+    xyarray[2] = IB_WICON(&cib->monoblk) - 1;
+    xyarray[3] = IB_HICON(&cib->monoblk) - 1;
+    xyarray[4] = x + IB_XICON(&cib->monoblk);
+    xyarray[5] = y + IB_YICON(&cib->monoblk);
+    xyarray[6] = x + IB_XICON(&cib->monoblk) + IB_WICON(&cib->monoblk) - 1;
+    xyarray[7] = y + IB_YICON(&cib->monoblk) + IB_HICON(&cib->monoblk) - 1;
 	
-    (LONG)s.fd_addr = (LONG)best->col_mask;
-    s.fd_w = cib->monoblk.ib_wicon;
-    s.fd_h = cib->monoblk.ib_hicon;
-    s.fd_wdwidth = ((cib->monoblk.ib_wicon +15) >> 4);
+    (LONG)s.fd_addr = (LONG)COL_MASK(best);
+    s.fd_w = IB_WICON(&cib->monoblk);
+    s.fd_h = IB_HICON(&cib->monoblk);
+    s.fd_wdwidth = ((IB_WICON(&cib->monoblk) + 15) >> 4);
     s.fd_stand = 0;
     s.fd_nplanes = 1;
 	
     (LONG)d.fd_addr = 0L;
 	
-    vrt_cpyfm(vid,MD_TRANS,xyarray,&s,&d,color);
+    vrt_cpyfm(vid, MD_TRANS, xyarray, &s, &d, color);
 
-    s.fd_nplanes = best->num_planes;	
-    (LONG)s.fd_addr = (LONG)best->col_data;
+    s.fd_nplanes = NUM_PLANES(best);	
+    (LONG)s.fd_addr = (LONG)COL_DATA(best);
 		
-    vro_cpyfm(vid,S_OR_D,xyarray,&s,&d);
+    vro_cpyfm(vid, S_OR_D, xyarray, &s, &d);
 	
-    r.x = x + cib->monoblk.ib_xtext;
-    r.y = y + cib->monoblk.ib_ytext;
-    r.width = cib->monoblk.ib_wtext;
-    r.height = cib->monoblk.ib_htext;
+    r.x = x + IB_XTEXT(&cib->monoblk);
+    r.y = y + IB_YTEXT(&cib->monoblk);
+    r.width = IB_WTEXT(&cib->monoblk);
+    r.height = IB_HTEXT(&cib->monoblk);
 	
-    drawtext (vid,cib->monoblk.ib_ptext,&r,2,cib->monoblk.ib_char >> 12,5,MD_REPLACE,state);
+    drawtext(vid,
+             IB_PTEXT(&cib->monoblk),
+             &r,
+             2,
+             IB_CHAR(&cib->monoblk) >> 12,
+             5,
+             MD_REPLACE,
+             state);
 	
-    r.x = x + cib->monoblk.ib_xchar;
-    r.y = y + cib->monoblk.ib_ychar;
+    r.x = x + IB_XCHAR(&cib->monoblk);
+    r.y = y + IB_YCHAR(&cib->monoblk);
     r.width = 0;
     r.height = 0;
 		
-    ch[0] = cib->monoblk.ib_char & 0x00ff;
+    ch[0] = IB_CHAR(&cib->monoblk) & 0x00ff;
     ch[1] = 0;
 	
-    drawtext (vid,ch,&r,0,cib->monoblk.ib_char >> 12,5,MD_REPLACE,state);
+    drawtext(vid,
+             ch,
+             &r,
+             0,
+             IB_CHAR(&cib->monoblk) >> 12,
+             5,
+             MD_REPLACE,
+             state);
   }
 }
 
@@ -1316,25 +1332,32 @@ draw_object(WORD     vid,
             WORD     par_y,
             WORD     is_top)
 {
-  WORD      type = tree[object].ob_type & 0xff;
+  WORD      type = OB_TYPE(&tree[object]) & 0xff;
   U_OB_SPEC ob_spec;
-  RECT      ci = *clip, cu;
+  RECT      ci = *clip;
+  RECT      cu;
+  RECT      area;
 	
   ci.x -= par_x;
   ci.y -= par_y;
-	
-  if(!Misc_intersect((RECT *)&tree[object].ob_x,&ci,&cu))
+
+  area.x      = OB_X(&tree[object]);
+  area.y      = OB_Y(&tree[object]);
+  area.width  = OB_WIDTH(&tree[object]);
+  area.height = OB_HEIGHT(&tree[object]);
+
+  if(!Misc_intersect(&area, &ci, &cu))
   {
     return;
   }
 
   if(OB_FLAGS(&tree[object]) & INDIRECT)
   {
-    ob_spec = *tree[object].ob_spec.indirect;
+    ob_spec = *((U_OB_SPEC *)OB_SPEC(&tree[object]));
   }
   else
   {
-    ob_spec = tree[object].ob_spec;
+    ob_spec.index = OB_SPEC(&tree[object]);
   }
 
   switch(type)
@@ -1345,7 +1368,8 @@ draw_object(WORD     vid,
                (BITBLK *)ob_spec.index,
                OB_STATE(&tree[object]));
     break;
-    
+
+    /* CONT HERE */
   case G_PROGDEF: /*0x18*/
   {
     PARMBLK pb;
@@ -1769,8 +1793,6 @@ Objc_delete(AES_PB *apb)
 
 /*
 ** Exported
-**
-** 1999-01-02 CG
 */
 WORD
 Objc_do_draw(WORD     vid,

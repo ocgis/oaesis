@@ -72,6 +72,56 @@
 #define OB_HEIGHT(ob)            CW_TO_HW((ob)->ob_height)
 #define OB_HEIGHT_PUT(ob,val)    (ob)->ob_height = HW_TO_CW(val)
 
+/* Tedinfo handling macros */
+#define TE_PTEXT(ti)           ((char *)CL_TO_HL(((TEDINFO *)ti)->te_ptext))
+#define TE_PTMPLT(ti)          ((char *)CL_TO_HL(((TEDINFO *)ti)->te_ptmplt))
+#define TE_PVALID(ti)          ((char *)CL_TO_HL(((TEDINFO *)ti)->te_pvalid))
+#define TE_FONT(ti)            (CW_TO_HW(((TEDINFO *)ti)->te_font))
+#define TE_FONTID(ti)          (CW_TO_HW(((TEDINFO *)ti)->te_fontid))
+#define TE_JUST(ti)            (CW_TO_HW(((TEDINFO *)ti)->te_just))
+#define TE_COLOR(ti)           (CW_TO_HW(((TEDINFO *)ti)->te_color))
+#define TE_FONTSIZE(ti)        (CW_TO_HW(((TEDINFO *)ti)->te_fontsize))
+#define TE_THICKNESS(ti)       (CW_TO_HW(((TEDINFO *)ti)->te_thickness))
+#define TE_TXTLEN(ti)          (CW_TO_HW(((TEDINFO *)ti)->te_txtlen))
+#define TE_TMPLEN(ti)          (CW_TO_HW(((TEDINFO *)ti)->te_tmplen))
+
+/* Bitblk handling macros */
+#define BI_PDATA(bi)           ((char *)CL_TO_HL(((BITBLK *)bi)->bi_pdata))
+#define BI_WB(bi)              (CW_TO_HW(((BITBLK *)bi)->bi_wb))
+#define BI_HL(bi)              (CW_TO_HW(((BITBLK *)bi)->bi_hl))
+#define BI_X(bi)               (CW_TO_HW(((BITBLK *)bi)->bi_x))
+#define BI_Y(bi)               (CW_TO_HW(((BITBLK *)bi)->bi_y))
+#define BI_COLOR(bi)           (CW_TO_HW(((BITBLK *)bi)->bi_color))
+
+/* Iconblk handling macros */
+#define IB_PMASK(ib)           ((char *)CL_TO_HL(((ICONBLK *)ib)->ib_pmask))
+#define IB_PDATA(ib)           ((char *)CL_TO_HL(((ICONBLK *)ib)->ib_pdata))
+#define IB_PTEXT(ib)           ((char *)CL_TO_HL(((ICONBLK *)ib)->ib_ptext))
+#define IB_CHAR(ib)            (CW_TO_HW(((ICONBLK *)ib)->ib_char))
+#define IB_XCHAR(ib)           (CW_TO_HW(((ICONBLK *)ib)->ib_xchar))
+#define IB_YCHAR(ib)           (CW_TO_HW(((ICONBLK *)ib)->ib_ychar))
+#define IB_XICON(ib)           (CW_TO_HW(((ICONBLK *)ib)->ib_xicon))
+#define IB_YICON(ib)           (CW_TO_HW(((ICONBLK *)ib)->ib_yicon))
+#define IB_WICON(ib)           (CW_TO_HW(((ICONBLK *)ib)->ib_wicon))
+#define IB_HICON(ib)           (CW_TO_HW(((ICONBLK *)ib)->ib_hicon))
+#define IB_XTEXT(ib)           (CW_TO_HW(((ICONBLK *)ib)->ib_xtext))
+#define IB_YTEXT(ib)           (CW_TO_HW(((ICONBLK *)ib)->ib_ytext))
+#define IB_WTEXT(ib)           (CW_TO_HW(((ICONBLK *)ib)->ib_wtext))
+#define IB_HTEXT(ib)           (CW_TO_HW(((ICONBLK *)ib)->ib_htext))
+
+/* Ciconblk handling macros */
+#define MAINLIST(cb)           ((CICON *)CL_TO_HL(((CICONBLK *)cb)->mainlist))
+
+/* Cicon handling macros */
+#define NUM_PLANES(ci)         (CW_TO_HW(((CICON *)ci)->num_planes))
+#define COL_DATA(ci)           ((WORD *)CL_TO_HL(((CICON *)ci)->col_data))
+#define COL_MASK(ci)           ((WORD *)CL_TO_HL(((CICON *)ci)->col_mask))
+#define SEL_DATA(ci)           ((WORD *)CL_TO_HL(((CICON *)ci)->sel_data))
+#define SEL_MASK(ci)           ((WORD *)CL_TO_HL(((CICON *)ci)->sel_mask))
+#define NEXT_RES(ci)           ((CICON *)CL_TO_HL(((CICON *)ci)->next_res))
+
+
+#define IB_HTEXT(ib)           (CW_TO_HW(((ICONBLK *)ib)->ib_htext))
 void do_objc_add(OBJECT *t,WORD p,WORD c);
 
 /****************************************************************************
