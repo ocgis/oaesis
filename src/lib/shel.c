@@ -105,6 +105,92 @@ void	Shel_read(AES_PB *apb) {
 }
 
 
+/*
+** Description
+** Start a GEM program under MiNT
+*/
+static
+WORD
+start_gem_program(WORD   type,
+                  BYTE * envir,
+                  BYTE * ddir,
+                  BYTE * cmd,
+                  BYTE * tail)
+{
+  BYTE *   tmp;
+  BYTE     oldpath[128];
+  BYTE     exepath[128];
+  WORD     r;
+
+  Dgetpath(oldpath,0);
+  
+  strcpy(exepath, cmd);
+  tmp = exepath;
+  
+  if(ddir)
+  {
+    Misc_setpath(ddir);
+  }
+  else
+  {
+    tmp = strrchr(exepath,'\\');
+    if(tmp)
+    {
+      *tmp = 0;
+      Misc_setpath(exepath);
+      tmp++;
+    }
+    else
+    {
+      tmp = exepath;
+    }
+  }
+  
+  if(type == APP_APPLICATION)
+  {
+    r = (WORD)Pexec(100, tmp, tail, envir);
+  }
+  else if(type == APP_ACCESSORY)
+  {
+    BASEPAGE * b;
+
+    /* Load accessory into memory but don't start it */
+    b = (BASEPAGE *)Pexec(3, tmp, tail, envir);
+    
+    if(((LONG)b) > 0)
+    {
+      Mshrink(b,256 + b->p_tlen + b->p_dlen + b->p_blen);
+      
+#ifdef MINT_TARGET      
+      b->p_dbase = b->p_tbase;
+      b->p_tbase = (BYTE *)accstart;
+      
+      /* Start accessory */
+      r = (WORD)Pexec(104,tmp,b,NULL);
+#endif
+    }
+    else
+    {
+      DEBUG1("Pexec failed: code %ld",(LONG)b);
+      r = -1;
+    }
+  }
+  
+  Misc_setpath(oldpath);
+  
+  if(r < 0) {
+    r = 0;
+    /* FIXME: How can this be solved?
+       } else if((ai = srv_info_alloc(r,type,1))) {
+       r = ai->id;
+    */
+  } else {
+    r = 0;
+  }
+
+  return r;
+}
+
 
 /*
 ** Description
@@ -118,12 +204,13 @@ Shel_do_write (WORD   apid,
                BYTE * cmd,
                BYTE * tail)
 {
-  WORD     r = 0;
-  BYTE     *tmp,*ddir = NULL,*envir = NULL;
-  BYTE     oldpath[128];
-  BYTE     exepath[128];			
-  SHELW    *shelw;
-  BASEPAGE *b;
+  WORD    r = 0;
+  BYTE *  tmp;
+  BYTE *  ddir = NULL;
+  BYTE *  envir = NULL;
+  BYTE    oldpath[128];
+  BYTE    exepath[128];			
+  SHELW * shelw;
   
   shelw = (SHELW *)cmd;
   ddir = NULL;
@@ -162,7 +249,6 @@ Shel_do_write (WORD   apid,
     }
       
     /* use enviroment GEMEXT, TOSEXT, and ACCEXT. */
-    
     if((strcasecmp(tmp,".app") == 0) || (strcasecmp(tmp,".prg") == 0)) {
       mode = SWM_LAUNCHNOW;
       wisgr = 1;
@@ -181,41 +267,12 @@ Shel_do_write (WORD   apid,
     break;
     
   case SWM_LAUNCHNOW: /* - run another application in GEM or TOS mode */
-    if (wisgr == GEMAPP) {
-      Dgetpath(oldpath,0);
-      
-      strcpy(exepath, cmd);
-      tmp = exepath;
-      
-      if(ddir) {
-	Misc_setpath(ddir);
-      } else {
-	tmp = strrchr(exepath,'\\');
-	if(tmp) {
-	  *tmp = 0;
-	  Misc_setpath(exepath);
-	  tmp++;
-	} else {
-	  tmp = exepath;
-	}
-      }
-      
-      r = (WORD)Pexec(100, tmp, tail, envir);
-      
-      if(r < 0) {
-	r = 0;
-      }
-      /* FIXME: How can this be solved?
-         else if((ai = srv_info_alloc(r,APP_APPLICATION,1))) {
-         r = ai->id;
-         }
-      */
-      else {
-	r = 0;
-      }
-      
-      Misc_setpath(oldpath);
-    } else if (wisgr == TOSAPP) {
+    if (wisgr == GEMAPP)
+    {
+      r = start_gem_program(APP_APPLICATION, envir, ddir, cmd, tail);
+    }
+    else if (wisgr == TOSAPP)
+    {
       WORD fd;
       BYTE new_cmd[300];
       WORD t;
@@ -243,56 +300,7 @@ Shel_do_write (WORD   apid,
     break;
     
   case SWM_LAUNCHACC: /* - run an accessory */
-    Dgetpath(oldpath,0);
-    
-    strcpy(exepath, cmd);
-    tmp = exepath;
-    if(ddir) {
-      Misc_setpath(ddir);
-    } else {
-      tmp = strrchr(exepath,'\\');
-      
-      if(tmp) {
-	BYTE c = tmp[1];
-	
-	tmp[1] = 0;
-	Misc_setpath(exepath);
-	tmp[1] = c;
-	tmp++;
-      } else {
-	tmp = exepath;
-      }
-    }
-    
-    /* Load accessory into memory but don't start it */
-    b = (BASEPAGE *)Pexec(3, tmp, tail, envir);
-    
-    if(((LONG)b) > 0) {
-      Mshrink(b,256 + b->p_tlen + b->p_dlen + b->p_blen);
-
-#ifdef MINT_TARGET      
-      b->p_dbase = b->p_tbase;
-      b->p_tbase = (BYTE *)accstart;
-
-      /* Start accessory */
-      r = (WORD)Pexec(104,tmp,b,NULL);
-#endif
-      
-      if(r < 0) {
-	r = 0;
-        /* FIXME: How can this be solved?
-           } else if((ai = srv_info_alloc(r,APP_ACCESSORY,1))) {
-           r = ai->id;
-        */
-      } else {
-	r = 0;
-      }
-    } else {
-      DB_printf("Pexec failed: code %ld",(LONG)b);
-      r = 0;
-    }
-    
-    Misc_setpath(oldpath);
+    r = start_gem_program(APP_ACCESSORY, envir, ddir, cmd, tail);
     break;
     
   case SWM_SHUTDOWN: /* - set shutdown mode */
