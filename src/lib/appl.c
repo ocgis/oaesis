@@ -261,6 +261,38 @@ get_loadinfo (WORD   pid,
 	
   Fsetdta(olddta);
 }
+
+
+/*
+** Description
+** Get name of process unde MiNT
+**
+** 1999-08-24 CG
+*/
+static
+void
+get_process_name (int    pid,
+		  char * name,
+		  int    max_length) {
+  char   command_line[256];
+  char   process_name[256];
+  char * short_name;
+
+  get_loadinfo (pid,
+		255,
+		command_line,
+		process_name);
+
+  short_name = strrchr (process_name, '\\');
+  if (short_name == NULL) {
+    short_name = process_name;
+  } else {
+    short_name++;
+  }
+
+  strncpy (name, short_name, max_length);
+}
+
 #endif
 
 
@@ -272,15 +304,12 @@ get_loadinfo (WORD   pid,
 ** 1999-08-08 CG
 ** 1999-08-15 CG
 ** 1999-08-22 CG
+** 1999-08-24 CG
 */
 WORD
 Appl_do_init (GLOBAL_ARRAY * global) {
   C_APPL_INIT   par;
   R_APPL_INIT   ret;
-
-#ifdef MINT_TARGET
-  char          cmdlin[256];
-#endif
 
   DEBUG3 ("appl.c: Appl_do_init");
   /* Open connection to server */
@@ -297,10 +326,9 @@ Appl_do_init (GLOBAL_ARRAY * global) {
   par.common.pid = getpid ();
 
 #ifdef MINT_TARGET
-  get_loadinfo (par.common.pid,
-		sizeof (par.appl_name) - 1,
-		cmdlin,
-		par.appl_name);
+  get_process_name (par.common.pid,
+		    par.appl_name,
+		    sizeof (par.appl_name) - 1);
 #else
   DEBUG3 ("appl.c: Appl_do_init: program_invocation_short_name %s",
           program_invocation_short_name);

@@ -83,7 +83,7 @@ typedef struct {
 
 typedef struct {
   C_ALL          common;
-  BYTE           appl_name[10];
+  BYTE           appl_name[20];
 }C_APPL_INIT;
 
 typedef struct {
