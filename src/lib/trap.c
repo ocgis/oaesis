@@ -1,7 +1,7 @@
 /*
 ** trap.c
 **
-** Copyright 1998 Christer Gustavsson <cg@nocrew.org>
+** Copyright 1998-1999 Christer Gustavsson <cg@nocrew.org>
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -12,14 +12,14 @@
 **
 */
 
+#include <stdio.h>
 
 /*
 ** Exported
-**
-** 1999-08-01 CG
 */
 void
-aes_call (void * aespb) {
+aes_call(void * aespb)
+{
   __asm__ volatile
   ("  movl %0,    d1\n"
    "  movw #0xc8, d0\n"
@@ -29,3 +29,4 @@ aes_call (void * aespb) {
    : "d0", "d1", "d2", "a0", "a1", "a2"  /* Clobbered registers */
    );
 }
+

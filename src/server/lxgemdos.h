@@ -26,4 +26,4 @@ void accstart(void);
 void VsetScreen(void *log,void *phys,WORD mode,WORD modecode);
 WORD VsetMode(WORD mode);
 #endif
-void aescall(void *aespb); 
+void own_aescall(void * aespb); 

@@ -11,6 +11,8 @@
 ** Read the file COPYING for more information.
 */
 
+#define DEBUGLEVEL 3
+
 #include <sys/stat.h>
 #include <unistd.h>
 
@@ -171,30 +173,36 @@ start_gem_program(WORD   apid,
     }
   }
 
+#ifdef MINT_TARGET /* FIXME: Linux version */
   /* Get semaphore */
   Psemaphore(SEM_LOCK, SHEL_WRITE_LOCK, -1);
 
-  /* Load accessory or application into memory but don't start it */
-  b = (BASEPAGE *)Pexec(3, tmp, tail, envir);
-  
-  if(((LONG)b) > 0)
+  if(type == APP_ACCESSORY)
   {
-    if(type == APP_ACCESSORY)
-    {
-      Mshrink(b,256 + b->p_tlen + b->p_dlen + b->p_blen);
-    }
+    /* Load accessory or application into memory but don't start it */
+    b = (BASEPAGE *)Pexec(3, tmp, tail, envir);
     
-#ifdef MINT_TARGET      
-    b->p_dbase = b->p_tbase;
-    b->p_tbase = (BYTE *)prgstart;
-#endif
+    if(((LONG)b) > 0)
+    {
+      Mshrink(b, 256 + b->p_tlen + b->p_dlen + b->p_blen);
+    
+      b->p_dbase = b->p_tbase;
+      b->p_tbase = (BYTE *)prgstart;
+      
+      /* Start accessory */
+      pid = (WORD)Pexec(106, tmp, (BYTE *)b, NULL);
 
-    /* Start accessory or application */
-    pid = (WORD)Pexec(104, tmp, (BYTE *)b, NULL);
+      DEBUG3("pid = %d", pid);
+    }
+    else
+    {
+      DEBUG1("Pexec failed: code %ld",(LONG)b);
+    }
   }
   else
   {
-    DEBUG1("Pexec failed: code %ld",(LONG)b);
+    /* Start application */
+    pid = Pexec(100, tmp, tail, envir);
   }
   
   Misc_setpath(oldpath);
@@ -210,6 +218,7 @@ start_gem_program(WORD   apid,
 
   /* Release the semaphore now that the application id is reserved */
   Psemaphore(SEM_UNLOCK, SHEL_WRITE_LOCK, 0);
+#endif
 
   return ap_id;
 }

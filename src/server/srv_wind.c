@@ -101,10 +101,12 @@ static LOCK_INFO free_lock_info = LOCK_INFO_NIL;
 ** Description
 ** Allocate a new lock info structure
 */
+static
 inline
 LOCK_INFO
-lialloc (COMM_HANDLE handle,
-         WORD        apid) {
+lialloc(COMM_HANDLE handle,
+        WORD        apid)
+{
   LOCK_INFO li;
 
   if (free_lock_info == LOCK_INFO_NIL) {
@@ -126,11 +128,13 @@ lialloc (COMM_HANDLE handle,
 ** Description
 ** Free an lock info structure
 */
+static
 inline
 void
-lifree (LOCK_INFO     li,
-        COMM_HANDLE * handle,
-        WORD *        apid) {
+lifree(LOCK_INFO     li,
+       COMM_HANDLE * handle,
+       WORD *        apid)
+{
   *handle = li->handle;
   *apid = li->apid;
 
@@ -143,13 +147,15 @@ lifree (LOCK_INFO     li,
 ** Description
 ** Get lock
 */
+static
 inline
 void
-get_lock (COMM_HANDLE handle,
-          WORD        apid,
-          WORD *      lock,
-          WORD *      lock_cnt,
-          QUEUE       lock_q) {
+get_lock(COMM_HANDLE handle,
+         WORD        apid,
+         WORD *      lock,
+         WORD *      lock_cnt,
+         QUEUE       lock_q)
+{
   R_WIND_UPDATE ret;
 
   if (*lock_cnt > 0) {
@@ -180,13 +186,15 @@ get_lock (COMM_HANDLE handle,
 ** Description
 ** Try to return lock
 */
+static
 inline
 void
-return_lock (COMM_HANDLE handle,
-             WORD        apid,
-             WORD *      lock,
-             WORD *      lock_cnt,
-             QUEUE       lock_q) {
+return_lock(COMM_HANDLE handle,
+            WORD        apid,
+            WORD *      lock,
+            WORD *      lock_cnt,
+            QUEUE       lock_q)
+{
   R_WIND_UPDATE ret;
 
   if ((*lock_cnt > 0) && (*lock == apid)) {

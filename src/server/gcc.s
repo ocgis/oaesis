@@ -9,14 +9,13 @@
 	.globl _VsetScreen
 	.globl _VsetMode
 
-	.globl	_aes_call
+	.globl	_lib_aes_call
 	.globl	_old_motion_vector
 	.globl	_old_button_vector
 	.globl	_catch_mouse_motion
 	.globl	_catch_mouse_buttons
 	.globl	_catch_timer_click
 	.globl	_p_fsel_extern
-        .globl _aescall
 
 	.text
 	
@@ -38,7 +37,7 @@ myxgemdos:
 
 intern:
 	movel	d1,sp@-
-	jsr		_aes_call
+	jsr		_lib_aes_call
 	addql		#4,sp
 	moveml	sp@+,d0-d7/a0-a6
 
@@ -111,20 +110,6 @@ _prgstart:
 	addl  a0@(12),a1       | Add text length to data segment base
 	movel a1,a0@(16)       | Make result data segment base
 	movel a0@(8),a1        | Get text segment base
-	movel a1,sp@-          | Save text segment address
-	movel #-1,sp@-         | Timeout
-	movel #0x6f415357,sp@- | oASW
-	movew #2,sp@-          | SEM_LOCK
-	movew #0x134,sp@-      | Psemaphore
-	trap #1                | Call Gemdos
-	lea   sp@(12),sp       | Restore stack pointer
-	movel #0,sp@-          | Timeout
-	movel #0x6f415357,sp@- | oASW
-	movew #3,sp@-          | SEM_UNLOCK
-	movew #0x134,sp@-      | Psemaphore
-	trap #1                | Call Gemdos
-	lea   sp@(12),sp       | Restore stack pointer
-	movel sp@+,a1          | Restore text segment address
 	jmp a1@                | Jump to start of accessory
 
 _VsetScreen:
@@ -148,10 +133,10 @@ _VsetMode:
 	unlk  a6
 	rts
 
-_aescall:
+_own_aescall:
 	movel sp@(4),d1
 	movel #200,d0
-	trap   #2
+	trap  #2
 	rts
 
 mmov:

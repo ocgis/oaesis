@@ -91,8 +91,10 @@ static BYTE versionstring[50];
  * Module local functions                                                   *
  ****************************************************************************/
 
-/* These few functions can only be used if we run TOS/MiNT */
 #ifdef MINT_TARGET
+
+/* These few functions can only be used if we run TOS/MiNT */
+
 static
 inline
 WORD
@@ -114,7 +116,9 @@ own_appl_init(void)
   aespb[5] = addr_out;
   
   global[0] = 0;                   /* clear AES version number  */
-  aescall(aespb); 
+  DEBUG3("own_appl_init: Calling aes_call");
+  aes_call(aespb); 
+  DEBUG3("own_appl_init: Returned from aes_call");
   open_physical_ws = !(global[0]); /* if AES version still cleared,
 				      no AES installed */
   
@@ -142,7 +146,7 @@ own_appl_exit(void)
   aespb[4] = addr_in;
   aespb[5] = addr_out;
   
-  aescall(aespb);
+  aes_call(aespb);
 
   return(int_out[0]);
 }
@@ -168,7 +172,7 @@ own_graf_handle(void)
   aespb[4] = addr_in;
   aespb[5] = addr_out;
   
-  aescall(aespb);
+  aes_call(aespb);
   
   return(int_out[0]);
 }
@@ -224,16 +228,21 @@ srv_init_global (WORD no_configuration_file)
 #ifdef MINT_TARGET
   own_appl_init();
 
+  DEBUG3("In srv_init_global: 2.1");
   if(open_physical_ws)
   {
+    DEBUG3("In srv_init_global: 2.2");
     v_opnwk(work_in, &globals.vid, work_out);
   }
   else
   {
+    DEBUG3("In srv_init_global: 2.3");
     globals.vid = own_graf_handle();
+    DEBUG3("In srv_init_global: 2.4");
     v_clrwk(globals.vid);
   }
 
+  DEBUG3("In srv_init_global: 2.5");
   init_global(globals.vid);
 #else
   v_opnwk (work_in, &globals.vid, work_out);

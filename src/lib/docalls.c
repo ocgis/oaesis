@@ -466,7 +466,12 @@ static AESCB aescalls[] = {
 ** Exported
 */
 void
-aes_call(AESPB * apb) {
+#ifdef MINT_TARGET
+lib_aes_call(AESPB * apb)
+#else
+aes_call(AESPB * apb)
+#endif
+{
   DEBUG2("Aes call %d (0x%x) %s",
          apb->contrl[0],
          apb->contrl[0],

@@ -82,6 +82,9 @@
 #include "srv_interface.h"
 #include "types.h"
 
+#ifdef MINT_TARGET
+#include "mintdefs.h"
+#endif
 
 #ifndef MINT_TARGET
 extern char * program_invocation_short_name;
@@ -328,6 +331,11 @@ Appl_do_init (GLOBAL_ARRAY * global) {
   C_APPL_INIT   par;
   R_APPL_INIT   ret;
   WORD          apid = -1;
+
+#ifdef MINT_TARGET
+  Psemaphore(SEM_LOCK, SHEL_WRITE_LOCK, -1);
+  Psemaphore(SEM_UNLOCK, SHEL_WRITE_LOCK, 0);
+#endif
 
   DEBUG3 ("appl.c: Appl_do_init");
   /* Open connection to server */

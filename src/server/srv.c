@@ -445,6 +445,10 @@ Srv_init_module (WORD no_config) {
   DEBUG3 ("Starting server process");
   globals.srvpid = (WORD)srv_fork(server,0,"oAESsrv");
   DEBUG3 ("Started server process");
+
+  /* Wait for the server to initialize itself FIXME */
+  sleep(1);
+  DEBUG3 ("Slept for a while");
 }
 
 
