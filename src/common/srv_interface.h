@@ -416,7 +416,7 @@ typedef union {
 #ifdef WORDS_BIGENDIAN
 #define NTOH(parameters)
 #else
-#define NTOH(parameters,ntoh)
+#define NTOH(parameters) FIX_ENDIAN(parameters,ntoh)
 #endif
 
 #define PUT_R_ALL(callname,parameters) \
