@@ -318,7 +318,7 @@ static void handle_mover_click(WORD win_id) {
     Srv_appl_write(owner,16,&m);
   }
   else {
-  	Graf_do_mouse(evntglbl.evid,FLAT_HAND,NULL);
+  	Graf_do_mouse(FLAT_HAND,NULL);
   	
     if(globals.realmove) {
       mesag.type = WM_MOVED;
@@ -391,7 +391,7 @@ static void handle_mover_click(WORD win_id) {
 			
 			globals.mouse_button = mouse_button;
 
-			Graf_do_dragbox(evntglbl.evid,evntglbl.mousefd,
+			Graf_do_dragbox(evntglbl.mousefd,
 					winsize.width,winsize.height,
 					winsize.x,winsize.y,
 					&bound,
@@ -416,7 +416,7 @@ static void handle_mover_click(WORD win_id) {
       Srv_wind_update(Pgetpid(),END_UPDATE);
     };
     
-   	Graf_do_mouse(evntglbl.evid,M_RESTORE,NULL);
+   	Graf_do_mouse(M_RESTORE,NULL);
   };
 	
 	Srv_wind_change(win_id,W_NAME,0);
@@ -449,7 +449,7 @@ static void handle_slider_click(WORD win_id, WORD elem,WORD owner,OBJECT *tree) 
 
 		WORD widget = (elem == WHSLIDER) ? W_HSLIDE : W_VSLIDE;
 
-    Graf_do_mouse(evntglbl.evid,FLAT_HAND, NULL);
+    Graf_do_mouse(FLAT_HAND, NULL);
 
     Objc_do_offset(tree,elem,(WORD *)&elemrect);
     elemrect.width = tree[elem].ob_width;
@@ -607,7 +607,7 @@ static void handle_slider_click(WORD win_id, WORD elem,WORD owner,OBJECT *tree) 
 
     Srv_wind_change(win_id,widget,0);
 
-    Graf_do_mouse(evntglbl.evid,M_RESTORE, NULL);  
+    Graf_do_mouse(M_RESTORE, NULL);  
 }
 
 
@@ -848,11 +848,11 @@ static void	handle_button(WORD newbutton) {
 				      };
 				    }while(!((er.ap_event == APPEVNT_BUTTON) &&
 				             !(er.ap_value & LEFT_BUTTON)));
-				 	}
+					      }
 					else {
 						globals.mouse_button = mouse_button;
 
-						Graf_do_rubberbox(evntglbl.evid,evntglbl.mousefd,
+						Graf_do_rubberbox(evntglbl.mousefd,
 								totsize.x,totsize.y,100,100,
 								&mesag.msg3,&mesag.msg4);
 							          
@@ -1157,7 +1157,7 @@ static WORD handle_drop_down(HM_BUFFER *hm_buffer,WORD menubox,WORD title) {
 
       nmenu[entry].ob_state |= SELECTED;
       
-      Objc_do_draw(evntglbl.evid,nmenu,0,9,&entryarea);
+      Objc_do_draw(nmenu,0,9,&entryarea);
     };
 
     while(TRUE) {
@@ -1178,7 +1178,7 @@ static WORD handle_drop_down(HM_BUFFER *hm_buffer,WORD menubox,WORD title) {
 	  if(!(nmenu[entry].ob_state & DISABLED)) {
 	    nmenu[entry].ob_state &= ~SELECTED;
 	    
-	    Objc_do_draw(evntglbl.evid,nmenu,0,9,&entryarea);
+	    Objc_do_draw(nmenu,0,9,&entryarea);
 	  };
 					
 	  return 0;
@@ -1285,7 +1285,7 @@ static WORD handle_selected_title(HM_BUFFER *hm_buffer) {
     menu.tree[title].ob_state |= SELECTED;
 
     Objc_area_needed(menu.tree,title,&titlearea);
-    Objc_do_draw(evntglbl.evid,menu.tree,0,9,&titlearea);
+    Objc_do_draw(menu.tree,0,9,&titlearea);
 
     Objc_area_needed(menu.tree,box,&area);
     
@@ -1315,14 +1315,14 @@ static WORD handle_selected_title(HM_BUFFER *hm_buffer) {
       RECT clip = area;
       
       clip.height = globals.pmenutad[0].ob_y - area.y;
-      Objc_do_draw(evntglbl.evid,menu.tree,box,9,&clip);
+      Objc_do_draw(menu.tree,box,9,&clip);
       
       clip.y = globals.pmenutad[0].ob_y;
       clip.height = globals.pmenutad[0].ob_height + 1;
-      Objc_do_draw(evntglbl.evid,globals.pmenutad,0,9,&clip);
+      Objc_do_draw(globals.pmenutad,0,9,&clip);
     }
     else {
-      Objc_do_draw(evntglbl.evid,menu.tree,box,9,&area);
+      Objc_do_draw(menu.tree,box,9,&area);
     };
 
     /* Start to wait for messages and rect 1 */
@@ -1356,7 +1356,7 @@ static WORD handle_selected_title(HM_BUFFER *hm_buffer) {
 	  
 	  if(closebox) {
 	    menu.tree[title].ob_state &= ~SELECTED;
-	    Objc_do_draw(evntglbl.evid,menu.tree,0,9,&titlearea);
+	    Objc_do_draw(menu.tree,0,9,&titlearea);
 	    
 	    Srv_wind_close(menu.dropwin);
 	    Srv_wind_delete(menu.dropwin);

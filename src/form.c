@@ -62,7 +62,6 @@
 WORD           /* Object that was selected.                                 */
 Form_do_do(    /*                                                           */
 WORD apid,     /* Application id.                                           */
-WORD vid,      /* VDI workstation id.                                       */
 WORD eventpipe,/* Event message pipe.                                       */
 OBJECT *tree,  /* Resource tree.                                            */
 WORD editobj)  /* Position of edit cursor.                                  */
@@ -88,7 +87,7 @@ WORD editobj)  /* Position of edit cursor.                                  */
 	EVENTOUT	eo;
 
 	if(editobj != 0) {
-		Objc_do_edit(vid,tree,editobj,0,&idx,ED_INIT);
+		Objc_do_edit(tree,editobj,0,&idx,ED_INIT);
 	};
 
 	Srv_wind_update(apid,BEG_MCTRL);
@@ -100,9 +99,9 @@ WORD editobj)  /* Position of edit cursor.                                  */
 			object = Objc_do_find(tree,0,9,eo.mx,eo.my,0);
 
 			if(object >= 0) {
-				if(!Form_do_button(apid,vid,eventpipe,tree,object,eo.mc,&newobj)) {
+				if(!Form_do_button(apid,eventpipe,tree,object,eo.mc,&newobj)) {
 					if(editobj != 0) {
-						Objc_do_edit(vid,tree,editobj,0,&idx,ED_END);
+						Objc_do_edit(tree,editobj,0,&idx,ED_END);
 					};
 
 					Srv_wind_update(apid,END_MCTRL);
@@ -111,21 +110,21 @@ WORD editobj)  /* Position of edit cursor.                                  */
 				else {
 					if((newobj != 0) && (newobj != editobj)) {
 						if(editobj != 0) {
-							Objc_do_edit(vid,tree,editobj,0,&idx,ED_END);
+							Objc_do_edit(tree,editobj,0,&idx,ED_END);
 						};
 				
 						editobj = newobj;
 
-						Objc_do_edit(vid,tree,editobj,0,&idx,ED_INIT);
+						Objc_do_edit(tree,editobj,0,&idx,ED_INIT);
 					};
 				};
 			};
 		};
 		
 		if(eo.events & MU_KEYBD) {
-			if(!Form_do_keybd(vid,tree,editobj,eo.kc,&newobj,&keyout)) {
+			if(!Form_do_keybd(tree,editobj,eo.kc,&newobj,&keyout)) {
 				if(editobj != 0) {
-					Objc_do_edit(vid,tree,editobj,0,&idx,ED_END);
+					Objc_do_edit(tree,editobj,0,&idx,ED_END);
 				};
 
 				Srv_wind_update(apid,END_MCTRL);
@@ -133,18 +132,18 @@ WORD editobj)  /* Position of edit cursor.                                  */
 			}
 			else if(newobj != editobj) {
 				if(editobj != 0) {
-					Objc_do_edit(vid,tree,editobj,0,&idx,ED_END);
+					Objc_do_edit(tree,editobj,0,&idx,ED_END);
 				};
 				
 				editobj = newobj;
 
 				if(editobj != 0) {
-					Objc_do_edit(vid,tree,editobj,0,&idx,ED_INIT);
+					Objc_do_edit(tree,editobj,0,&idx,ED_INIT);
 				};
 			}
 			else {
 				if((editobj != 0) && (keyout != 0)) {
-					Objc_do_edit(vid,tree,editobj,keyout,&idx,ED_CHAR);
+					Objc_do_edit(tree,editobj,keyout,&idx,ED_CHAR);
 				};
 			};
 		};
@@ -152,25 +151,24 @@ WORD editobj)  /* Position of edit cursor.                                  */
 }
 
 void	Form_do(AES_PB *apb) {
-	SRV_APPL_INFO appl_info;
-	
-	Srv_get_appl_info(apb->global->apid,&appl_info);
-	
-	apb->int_out[0] = Form_do_do(apb->global->apid,
-		appl_info.vid,
-		appl_info.eventpipe,
-		(OBJECT *)apb->addr_in[0],
-		apb->int_in[0]);		
+  SRV_APPL_INFO appl_info;
+  
+  Srv_get_appl_info(apb->global->apid,&appl_info);
+  
+  apb->int_out[0] = Form_do_do(apb->global->apid,
+			       appl_info.eventpipe,
+			       (OBJECT *)apb->addr_in[0],
+			       apb->int_in[0]);		
 }
 
 /*form_dial 0x0033*/
 
-WORD	Form_do_dial(WORD apid,WORD vid,WORD mode,RECT *r1,RECT *r2) {
+WORD	Form_do_dial(WORD apid,WORD mode,RECT *r1,RECT *r2) {
 	switch(mode) {
 		case	FMD_GROW		:	/*0x0001*/
 			if(globals.graf_growbox) {
 			Srv_wind_update(Pgetpid(),BEG_UPDATE);
-			Graf_do_grmobox(vid,r1,r2);
+			Graf_do_grmobox(r1,r2);
 			Srv_wind_update(Pgetpid(),END_UPDATE);
 			};
 			return 1;
@@ -208,7 +206,7 @@ WORD	Form_do_dial(WORD apid,WORD vid,WORD mode,RECT *r1,RECT *r2) {
 		case	FMD_SHRINK	:	/*0x0002*/
 			if(globals.graf_shrinkbox) {
 			Srv_wind_update(Pgetpid(),BEG_UPDATE);
-			Graf_do_grmobox(vid,r2,r1);
+			Graf_do_grmobox(r2,r1);
 			Srv_wind_update(Pgetpid(),END_UPDATE);
 			};
 
@@ -239,18 +237,15 @@ WORD	Form_do_dial(WORD apid,WORD vid,WORD mode,RECT *r1,RECT *r2) {
 }
 
 void	Form_dial(AES_PB *apb) {
-	SRV_APPL_INFO appl_info;
-	
-	Srv_get_appl_info(apb->global->apid,&appl_info);
-	
-	apb->int_out[0] = Form_do_dial(apb->global->apid,
-		appl_info.vid,apb->int_in[0],
-		(RECT *)&apb->int_in[1],(RECT *)&apb->int_in[5]);
+  apb->int_out[0] = Form_do_dial(apb->global->apid,
+				 apb->int_in[0],
+				 (RECT *)&apb->int_in[1],
+				 (RECT *)&apb->int_in[5]);
 };
 
 /*form_alert 0x0034*/
 
-WORD	do_form_alert(WORD apid,WORD vid,WORD eventpipe,WORD def,BYTE *alertstring) {
+WORD	do_form_alert(WORD apid,WORD eventpipe,WORD def,BYTE *alertstring) {
 	BYTE	*s = (BYTE *)Mxalloc(strlen(alertstring) + 1,PRIVATEMEM);
 	
 	WORD	i = 0;
@@ -440,13 +435,13 @@ WORD	do_form_alert(WORD apid,WORD vid,WORD eventpipe,WORD def,BYTE *alertstring)
 	
 	Form_do_center(tree,&clip);
 
-	Form_do_dial(apid,vid,FMD_START,&clip,&clip);
+	Form_do_dial(apid,FMD_START,&clip,&clip);
 
-	Objc_do_draw(vid,tree,0,9,&clip);
+	Objc_do_draw(tree,0,9,&clip);
 
-	but_chosen = Form_do_do(apid,vid,eventpipe,tree,0) & 0x7fff;
+	but_chosen = Form_do_do(apid,eventpipe,tree,0) & 0x7fff;
 	
-	Form_do_dial(apid,vid,FMD_FINISH,&clip,&clip);
+	Form_do_dial(apid,FMD_FINISH,&clip,&clip);
 
 	Mfree(ti);
 	Mfree(tree);
@@ -456,15 +451,14 @@ WORD	do_form_alert(WORD apid,WORD vid,WORD eventpipe,WORD def,BYTE *alertstring)
 }
 
 void	Form_alert(AES_PB *apb) {
-	SRV_APPL_INFO appl_info;
-	
-	Srv_get_appl_info(apb->global->apid,&appl_info);
-	
-	apb->int_out[0] = do_form_alert(apb->global->apid,
-											appl_info.vid,
-											appl_info.eventpipe,
-											apb->int_in[0],
-											(BYTE *)apb->addr_in[0]);
+  SRV_APPL_INFO appl_info;
+  
+  Srv_get_appl_info(apb->global->apid,&appl_info);
+  
+  apb->int_out[0] = do_form_alert(apb->global->apid,
+				  appl_info.eventpipe,
+				  apb->int_in[0],
+				  (BYTE *)apb->addr_in[0]);
 }
 
 /*form_error 0x0035*/
@@ -476,7 +470,6 @@ void	Form_alert(AES_PB *apb) {
 WORD              /* Exit button.                                           */
 Form_do_error(    /*                                                        */
 WORD   apid,      /* Application id number.                                 */
-WORD   vid,       /* VDI workstation id.                                    */
 WORD   eventpipe, /* Event message pipe.                                    */
 WORD   error)     /* Error code.                                            */
 /****************************************************************************/
@@ -512,18 +505,17 @@ WORD   error)     /* Error code.                                            */
 			sprintf(s,globals.fr_string[ERROR_GENERAL],error);
 	};
 	
-	return do_form_alert(apid,vid,eventpipe,1,sp);
+	return do_form_alert(apid,eventpipe,1,sp);
 }
 
 void	Form_error(AES_PB *apb) {
-	SRV_APPL_INFO appl_info;
+  SRV_APPL_INFO appl_info;
 	
-	Srv_get_appl_info(apb->global->apid,&appl_info);
-	
-	apb->int_out[0] = Form_do_error(apb->global->apid,
-											appl_info.vid,
-											appl_info.eventpipe,
-											apb->int_in[0]);
+  Srv_get_appl_info(apb->global->apid,&appl_info);
+  
+  apb->int_out[0] = Form_do_error(apb->global->apid,
+				  appl_info.eventpipe,
+				  apb->int_in[0]);
 }
 
 /*form_center 0x0036*/
@@ -548,7 +540,6 @@ void	Form_center(AES_PB *apb) {
  ****************************************************************************/
 WORD              /* 0 if an exit object was selected, or 1.                */
 Form_do_keybd(    /*                                                        */
-WORD   vid,       /* VDI workstation handle.                                */
 OBJECT *tree,     /* Resource tree of form.                                 */
 WORD   obj,       /* Object with edit focus (0 => none).                    */
 WORD   kc,        /* Keypress to process.                                   */
@@ -614,7 +605,7 @@ WORD   *keyout)   /* Keypress that couldn't be processed.                   */
 					*keyout = 0;
 					
 					Objc_calc_clip(tree,i,&clip);
-					Objc_do_change(vid,tree,i,&clip,SELECTED,REDRAW);
+					Objc_do_change(tree,i,&clip,SELECTED,REDRAW);
 					
 					return 0;
 				};
@@ -644,14 +635,9 @@ Form_keybd(       /*                                                        */
 AES_PB *apb)      /* AES parameter block.                                   */
 /****************************************************************************/
 {
-	SRV_APPL_INFO appl_info;
-	
-	Srv_get_appl_info(apb->global->apid,&appl_info);
-	
-	apb->int_out[0] = Form_do_keybd(appl_info.vid,
-										(OBJECT *)apb->addr_in[0],apb->int_in[0],
-										apb->int_in[1],&apb->int_out[1],
-										&apb->int_out[2]);
+  apb->int_out[0] = Form_do_keybd((OBJECT *)apb->addr_in[0],apb->int_in[0],
+				  apb->int_in[1],&apb->int_out[1],
+				  &apb->int_out[2]);
 }
 
 
@@ -664,7 +650,6 @@ AES_PB *apb)      /* AES parameter block.                                   */
 WORD            /* 0 if exit object was found or 1.                         */
 Form_do_button( /*                                                          */
 WORD apid,      /* Application id.                                          */
-WORD vid,       /* VDI workstation id.                                      */
 WORD eventpipe, /* Event message pipe.                                      */
 OBJECT *tree,   /* Resource tree.                                           */
 WORD obj,       /* Object to try the clicks on.                             */
@@ -697,13 +682,13 @@ WORD *newobj)   /* Next object to gain edit focus, or 0.                    */
 					
 					if(tree[i].ob_state & SELECTED) {
 						Objc_calc_clip(tree,i,&clip);
-						Objc_do_change(vid,tree,i,&clip,
+						Objc_do_change(tree,i,&clip,
 							tree[i].ob_state &= ~SELECTED,REDRAW);
 					};					
 				};				
 
 				Objc_calc_clip(tree,obj,&clip);
-				Objc_do_change(vid,tree,obj,&clip,
+				Objc_do_change(tree,obj,&clip,
 					tree[i].ob_state |= SELECTED,REDRAW);
 			};
 			
@@ -730,7 +715,7 @@ WORD *newobj)   /* Next object to gain edit focus, or 0.                    */
 				instate ^= SELECTED;
 			};
 	
-			if((Graf_do_watchbox(apid,vid,eventpipe,tree,obj,instate,outstate) == 1) &&
+			if((Graf_do_watchbox(apid,eventpipe,tree,obj,instate,outstate) == 1) &&
 					(tree[obj].ob_flags & (EXIT | TOUCHEXIT))) {
 	
 				*newobj = obj;
@@ -765,13 +750,13 @@ WORD *newobj)   /* Next object to gain edit focus, or 0.                    */
 }
 
 void	Form_button(AES_PB *apb) {
-	SRV_APPL_INFO appl_info;
-	
-	Srv_get_appl_info(apb->global->apid,&appl_info);
-	
-	apb->int_out[0] = Form_do_button(apb->global->apid,
-												appl_info.vid,
-												appl_info.eventpipe,
-												(OBJECT *)apb->addr_in[0],
-												apb->int_in[0],apb->int_in[1],&apb->int_out[1]);
+  SRV_APPL_INFO appl_info;
+  
+  Srv_get_appl_info(apb->global->apid,&appl_info);
+  
+  apb->int_out[0] = Form_do_button(apb->global->apid,
+				   appl_info.eventpipe,
+				   (OBJECT *)apb->addr_in[0],
+				   apb->int_in[0],apb->int_in[1],
+				   &apb->int_out[1]);
 }

@@ -10,7 +10,6 @@
 WORD            /* 0 if exit object was found or 1.                         */
 Form_do_button( /*                                                          */
 WORD apid,      /* Application id.                                          */
-WORD vid,       /* VDI workstation id.                                      */
 WORD eventpipe, /* Event message pipe.                                      */
 OBJECT *tree,   /* Resource tree.                                           */
 WORD obj,       /* Object to try the clicks on.                             */
@@ -19,7 +18,7 @@ WORD *newobj);  /* Next object to gain edit focus, or 0.                    */
 /****************************************************************************/
 
 void	Form_do_center(OBJECT *tree,RECT *clip);
-WORD	Form_do_dial(WORD apid,WORD vid,WORD mode,RECT *r1,RECT *r2);
+WORD	Form_do_dial(WORD apid,WORD mode,RECT *r1,RECT *r2);
 
 /****************************************************************************
  * Form_do_do                                                               *
@@ -28,7 +27,6 @@ WORD	Form_do_dial(WORD apid,WORD vid,WORD mode,RECT *r1,RECT *r2);
 WORD           /* Object that was selected.                                 */
 Form_do_do(    /*                                                           */
 WORD apid,     /* Application id.                                           */
-WORD vid,      /* VDI workstation id.                                       */
 WORD eventpipe,/* Event message pipe.                                       */
 OBJECT *tree,  /* Resource tree.                                            */
 WORD editobj); /* Position of edit cursor.                                  */
@@ -41,7 +39,6 @@ WORD editobj); /* Position of edit cursor.                                  */
 WORD              /* Exit button.                                           */
 Form_do_error(    /*                                                        */
 WORD   apid,      /* Application id number.                                 */
-WORD   vid,       /* VDI workstation id.                                    */
 WORD   eventpipe, /* Event message pipe.                                    */
 WORD   error);    /* Error code.                                            */
 /****************************************************************************/
@@ -52,7 +49,6 @@ WORD   error);    /* Error code.                                            */
  ****************************************************************************/
 WORD              /* 0 if an exit object was selected, or 1.                */
 Form_do_keybd(    /*                                                        */
-WORD   vid,       /* VDI workstation handle.                                */
 OBJECT *tree,     /* Resource tree of form.                                 */
 WORD   obj,       /* Object with edit focus (0 => none).                    */
 WORD   kc,        /* Keypress to process.                                   */

@@ -34,7 +34,7 @@ void init_aes(WORD nocnf) {
   Supexec(link_in);
   
   fprintf(stderr,"Object calls\r\n");
-  init_objc();
+  Objc_init_module();
   
   fprintf(stderr,"Menu calls\r\n");
   Menu_init_module();
@@ -72,7 +72,7 @@ void exit_aes(void) {
   
   fprintf(stderr,"Object calls\r\n");
   
-  exit_objc();
+  Objc_exit_module();
   
   fprintf(stderr,"Global\r\n");
   

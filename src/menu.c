@@ -137,124 +137,125 @@ BYTE *envp[])          /* Environment string.                               */
 /****************************************************************************/
 {
   RECT    f;
-  MENUMSG	msg;
-	WORD    quit = FALSE;
-	WORD    i = 0;
+  MENUMSG msg;
+  WORD    quit = FALSE;
+  WORD    i = 0;
+  
+  mglob.menu_handl_apid = Srv_appl_init(&global_array);
+  
+  Srv_get_appl_info(mglob.menu_handl_apid,&appl_info);
+  
+  while(envp[i]) {
+    Srv_shel_write(global_array.apid,SWM_ENVIRON,ENVIRON_CHANGE,0,envp[i],
+		   NULL);
+    i++;
+  };
+  
+  Srv_menu_register(mglob.menu_handl_apid,"  oAESis");
 
-	mglob.menu_handl_apid = Srv_appl_init(&global_array);
-
-	Srv_get_appl_info(mglob.menu_handl_apid,&appl_info);
-
-	while(envp[i]) {
-		Srv_shel_write(global_array.apid,SWM_ENVIRON,ENVIRON_CHANGE,0,envp[i],NULL);
-		i++;
-	};
-
-	Srv_menu_register(mglob.menu_handl_apid,"  oAESis");
-
-	Srv_menu_bar(mglob.menu_handl_apid,globals.menutad,MENU_INSTALL);
-
-	Srv_wind_get(0,WF_CURRXYWH,
-							&globals.deskbgtad[0].ob_x,
-							&globals.deskbgtad[0].ob_y,
-							&globals.deskbgtad[0].ob_width,
-							&globals.deskbgtad[0].ob_height);
-
-	Srv_wind_set(mglob.menu_handl_apid,0,WF_NEWDESK,(WORD)(((LONG)globals.deskbgtad) >> 16),(WORD)((LONG)globals.deskbgtad),0,0);
-
-	Boot_start_programs(mglob.menu_handl_apid);
+  Srv_menu_bar(mglob.menu_handl_apid,globals.menutad,MENU_INSTALL);
+  
+  Srv_wind_get(0,WF_CURRXYWH,
+	       &globals.deskbgtad[0].ob_x,
+	       &globals.deskbgtad[0].ob_y,
+	       &globals.deskbgtad[0].ob_width,
+	       &globals.deskbgtad[0].ob_height);
+  
+  Srv_wind_set(mglob.menu_handl_apid,0,WF_NEWDESK,
+	       (WORD)(((LONG)globals.deskbgtad) >> 16),
+	       (WORD)((LONG)globals.deskbgtad),0,0);
+  
+  Boot_start_programs(mglob.menu_handl_apid);
 							
   /* Start waiting for messages and rect 1 */
   while(!quit) {
-  	EVENTIN  ei;
-  	EVENTOUT eo;
-
-		ei.events = MU_MESAG | MU_KEYBD;
-		  	
-		Evnt_do_multi(mglob.menu_handl_apid,
-									appl_info.eventpipe,
-									appl_info.msgpipe,
-									&ei,(COMMSG *)&msg,&eo,0);
-			   			
+    EVENTIN  ei;
+    EVENTOUT eo;
+    
+    ei.events = MU_MESAG | MU_KEYBD;
+    
+    Evnt_do_multi(mglob.menu_handl_apid,
+		  appl_info.eventpipe,
+		  appl_info.msgpipe,
+		  &ei,(COMMSG *)&msg,&eo,0);
+    
     if(MU_MESAG & eo.events) {
       switch(msg.type) {
       case MN_SELECTED:
-				switch(msg.title) {
-				case MENU_FILE:
-					switch(msg.item) {
-						case MENU_QUIT:
-							quit = TRUE;
-							break;
-
-						case MENU_LAUNCHAPP:
-							{
-								BYTE	execpath[128];
-								BYTE	oldpath[128];
-								BYTE *tmp;
-								WORD button;
-
-
-								Fsel_do_exinput(mglob.menu_handl_apid,
-															appl_info.vid,
-															appl_info.eventpipe,
-															&button,
-															"Select program to start",progpath,progfile);
-						
-								if(button == FSEL_OK) {
-									LONG err;
-									BYTE newpath[128];
-									
-									strcpy(newpath,progpath);
-									
-									tmp = strrchr(newpath,'\\');
-									
-									if(tmp) {
-										*tmp = '\0';
-										sprintf(execpath,"%s\\%s",newpath,progfile);
-									}
-									else {
-										strcpy(execpath,progfile);
-									};
-									
-									Dgetpath(oldpath,0);
-								
-									Misc_setpath(newpath);
-									
-									err = Pexec(100,execpath,0L,0L);
-									
-									Misc_setpath(oldpath);
-									
-									if(err < 0) {
-										Form_do_error(mglob.menu_handl_apid,
-																	appl_info.vid,
-																	appl_info.eventpipe,
-																	(WORD) -err - 31);
-									};
-								};
-							};
-							break;
-					};
-			    break;
-			  
-			  case MENU_OAESIS:
-					switch(msg.item) {
-					case MENU_INFO:
-						Form_do_center(globals.informtad,&f);
-						Form_do_dial(mglob.menu_handl_apid,
-												appl_info.vid,FMD_START,&f,&f);
-						Objc_do_draw(appl_info.vid,globals.informtad,0,9,&f);
-						Form_do_do(mglob.menu_handl_apid,
-												appl_info.vid,
-												appl_info.eventpipe,
-												globals.informtad,0);
-						globals.informtad[INFOOK].ob_state &= ~SELECTED;
-						Form_do_dial(mglob.menu_handl_apid,
-												appl_info.vid,FMD_FINISH,&f,&f);
-						break;
-					};
-					break;
-				};
-				break;
+	switch(msg.title) {
+	case MENU_FILE:
+	  switch(msg.item) {
+	  case MENU_QUIT:
+	    quit = TRUE;
+	    break;
+	    
+	  case MENU_LAUNCHAPP:
+	    {
+	      BYTE	execpath[128];
+	      BYTE	oldpath[128];
+	      BYTE *tmp;
+	      WORD button;
+	      
+	      
+	      Fsel_do_exinput(mglob.menu_handl_apid,
+			      appl_info.vid,
+			      appl_info.eventpipe,
+			      &button,
+			      "Select program to start",progpath,progfile);
+	      
+	      if(button == FSEL_OK) {
+		LONG err;
+		BYTE newpath[128];
+		
+		strcpy(newpath,progpath);
+		
+		tmp = strrchr(newpath,'\\');
+		
+		if(tmp) {
+		  *tmp = '\0';
+		  sprintf(execpath,"%s\\%s",newpath,progfile);
+		}
+		else {
+		  strcpy(execpath,progfile);
+		};
+		
+		Dgetpath(oldpath,0);
+		
+		Misc_setpath(newpath);
+		
+		err = Pexec(100,execpath,0L,0L);
+		
+		Misc_setpath(oldpath);
+		
+		if(err < 0) {
+		  Form_do_error(mglob.menu_handl_apid,
+				appl_info.eventpipe,
+				(WORD) -err - 31);
+		};
+	      };
+	    };
+	    break;
+	  };
+	  break;
+	  
+	case MENU_OAESIS:
+	  switch(msg.item) {
+	  case MENU_INFO:
+	    Form_do_center(globals.informtad,&f);
+	    Form_do_dial(mglob.menu_handl_apid,
+			 FMD_START,&f,&f);
+	    Objc_do_draw(globals.informtad,0,9,&f);
+	    Form_do_do(mglob.menu_handl_apid,
+		       appl_info.eventpipe,
+		       globals.informtad,0);
+	    globals.informtad[INFOOK].ob_state &= ~SELECTED;
+	    Form_do_dial(mglob.menu_handl_apid,
+			 FMD_FINISH,&f,&f);
+	    break;
+	  };
+	  break;
+	};
+	break;
 	
       default:
       	DB_printf("Unknown message %d in Menu_handler\r\n",msg.type);
@@ -263,8 +264,8 @@ BYTE *envp[])          /* Environment string.                               */
     
     if(MU_KEYBD & eo.events) {
       if((eo.kc & 0xff) == 'q') {
-				quit = TRUE;
-			};
+	quit = TRUE;
+      };
     };
   };
 }

@@ -1370,7 +1370,7 @@ static void redraw_menu_bar(void) {
 		srv_wind_get(mglob.winbar,WF_FIRSTXYWH,&r.x,&r.y,&r.width,&r.height);
 	
 		while((r.width > 0) && (r.height > 0)) {
-			Objc_do_draw(svid,menu,0,9,&r);
+			Objc_do_draw(menu,0,9,&r);
 	
 			srv_wind_get(mglob.winbar,WF_NEXTXYWH,&r.x,&r.y,&r.width,&r.height);
 		};
@@ -2319,7 +2319,7 @@ WORD start)          /* Start object.                                       */
 				RECT	r2;
 			
 				if(Misc_intersect(&rl->r,r,&r2)) {
-					Objc_do_draw(svid,deskbg,start,9,&r2);
+					Objc_do_draw(deskbg,start,9,&r2);
 				};
 					
 				rl = rl->next;
@@ -2331,7 +2331,7 @@ WORD start)          /* Start object.                                       */
 			RECT	r2;
 		
 			if(Misc_intersect(&rl->r,r,&r2)) {
-				Objc_do_draw(svid,win->tree,start,3,&r2);
+				Objc_do_draw(win->tree,start,3,&r2);
 			};
 			
 			rl = rl->next;
@@ -2357,11 +2357,11 @@ WORD start)          /* Start object.                                       */
 		deskbg = get_deskbg();
 		
 		if(deskbg) {
-			Objc_do_draw(svid,deskbg,start,9,r);
+			Objc_do_draw(deskbg,start,9,r);
 		};
 	}
 	else if(win->tree) {	
-		Objc_do_draw(svid,win->tree,start,3,r);
+		Objc_do_draw(win->tree,start,3,r);
 	};
 }
 

@@ -34,8 +34,6 @@ all: oaesis.prg
 oaesis.prg: $(OBJS)
 	$(LINK.c) -o $@ $(OBJS) $(LDLIBS)
 
-$(OBJS): depend
-
 gcc.o: lxgemdos.h
 
 #
@@ -57,11 +55,11 @@ unixify:
 
 EXTRAS= oaesis.prg $(ATRANS) $(ATRANSOBJ)
 
-depend:
-	rm -f $@
+dep:
+	rm -f depend
 	for file in $(CFILES) ; \
 	do\
-	  gcc -MM $$file >> $@ ;\
+	  gcc -MM $$file >> depend ;\
 	done	
 
 clean:

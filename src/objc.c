@@ -52,9 +52,9 @@
 #include "debug.h"
 #include "gemdefs.h"
 #include "global.h"
+#include "mintdefs.h"
 #include "misc.h"
 #include "objc.h"
-#include "srv.h"
 #include "types.h"
 #include "vdi.h"
 
@@ -67,6 +67,8 @@
 #define	SWRM_INVTRANS	4
 
 #define FLD3DANY 0x0600
+
+#define DRAWSEM 0x6f445257 /* 'oDRW' */
 
 /****************************************************************************
  * Typedefs of module global interest                                       *
@@ -83,6 +85,8 @@ typedef struct tiext {
 /****************************************************************************
  * Module global variables                                                  *
  ****************************************************************************/
+
+static WORD drawvid;
 
 static WORD num_planes;
 
@@ -1251,24 +1255,26 @@ static void get_char_bound(OBJECT *tree,WORD obj,WORD object,WORD last,
 	r->x = r->x + (firstreal * globals.clwidth);
 }
 
-static void draw_cursor(WORD vid,WORD pos,OBJECT *tree,WORD obj) {
-	RECT r;
-	WORD xy[4];
-	
-	get_char_bound(tree,obj,pos,pos,&r);
+static void draw_cursor(WORD pos,OBJECT *tree,WORD obj) {
+  RECT r;
+  WORD xy[4];
+  
+  get_char_bound(tree,obj,pos,pos,&r);
+  
+  xy[0] = r.x;
+  xy[1] = r.y;
+  xy[2] = xy[0];
+  xy[3] = xy[1] + r.height;
 
-	xy[0] = r.x;
-	xy[1] = r.y;
-	xy[2] = xy[0];
-	xy[3] = xy[1] + r.height;
-
-	Vdi_vswr_mode(vid,MD_XOR);
-	Vdi_v_pline(vid,2,xy);
+  Psemaphore(SEM_LOCK,DRAWSEM,-1);
+  Vdi_vswr_mode(drawvid,MD_XOR);
+  Vdi_v_pline(drawvid,2,xy);
+  Psemaphore(SEM_UNLOCK,DRAWSEM,-1);
 }
 
-static WORD handle_ed_char(WORD vid,WORD idx,OBJECT *tree,WORD obj,
+static WORD handle_ed_char(WORD idx,OBJECT *tree,WORD obj,
 						WORD kc) {
-	RECT      clip;
+  RECT      clip;
 	U_OB_SPEC ob_spec;
 	
 	if(tree[obj].ob_flags & INDIRECT) {
@@ -1281,18 +1287,18 @@ static WORD handle_ed_char(WORD vid,WORD idx,OBJECT *tree,WORD obj,
 	switch(kc) {
   case 0x011b: /* escape */
     if(idx > 0) {
-      draw_cursor(vid, idx, tree, obj);
-        get_char_bound(tree, obj, 0,
-                         (WORD)strlen(ob_spec.tedinfo->te_ptext), &clip);
-        ob_spec.tedinfo->te_ptext[0] = '\0';
-        Objc_do_draw(vid, tree, 0, 9, &clip);
-        draw_cursor(vid, 0, tree, obj);
+      draw_cursor(idx, tree, obj);
+      get_char_bound(tree, obj, 0,
+		     (WORD)strlen(ob_spec.tedinfo->te_ptext), &clip);
+      ob_spec.tedinfo->te_ptext[0] = '\0';
+        Objc_do_draw(tree, 0, 9, &clip);
+        draw_cursor(0, tree, obj);
     }
     return(0);
 
 	case 0x0e08: /* backspace */
 	  if(idx > 0) {
-	    draw_cursor(vid,idx,tree,obj);
+	    draw_cursor(idx,tree,obj);
 			
 	    strcpy(&ob_spec.tedinfo->te_ptext[idx - 1],
 		   &ob_spec.tedinfo->te_ptext[idx]);
@@ -1301,58 +1307,58 @@ static WORD handle_ed_char(WORD vid,WORD idx,OBJECT *tree,WORD obj,
 			   (WORD)strlen(ob_spec.tedinfo->te_ptext)
 			   + 2,&clip);
 
-	    Objc_do_draw(vid,tree,0,9,&clip);
+	    Objc_do_draw(tree,0,9,&clip);
 			
-	    draw_cursor(vid,idx - 1,tree,obj);
+	    draw_cursor(idx - 1,tree,obj);
 	    return idx - 1;
 	  };
 	  return idx;
 		
 	case 0x4b00: /* left */
 		if(idx > 0) {
-			draw_cursor(vid,idx,tree,obj);
-			draw_cursor(vid,idx - 1,tree,obj);
+			draw_cursor(idx,tree,obj);
+			draw_cursor(idx - 1,tree,obj);
 			return idx - 1;
 		};
 		return idx;
 	
   case 0x4b34: /* shift left */
     if(idx > 0) {
-      draw_cursor(vid, idx, tree, obj);
-      draw_cursor(vid, 0, tree, obj);
+      draw_cursor(idx, tree, obj);
+      draw_cursor(0, tree, obj);
       return(0);
     }
     return(idx);
 
 	case 0x4d00: /* right */
 		if(idx < (WORD)strlen(ob_spec.tedinfo->te_ptext)) {
-			draw_cursor(vid,idx,tree,obj);
-			draw_cursor(vid,idx + 1,tree,obj);
+			draw_cursor(idx,tree,obj);
+			draw_cursor(idx + 1,tree,obj);
 			return idx + 1;
 		};
 		return idx;
 
   case 0x4d36: /* shift right */
     if(idx < (WORD)strlen(ob_spec.tedinfo->te_ptext)) {
-      draw_cursor(vid, idx, tree, obj);
+      draw_cursor(idx, tree, obj);
       idx = (WORD)strlen(ob_spec.tedinfo->te_ptext);
-      draw_cursor(vid, idx, tree, obj);
+      draw_cursor(idx, tree, obj);
       return(idx);
     }
     return idx;
 
 	case 0x537f: /* delete */
 		if(idx < (WORD)strlen(ob_spec.tedinfo->te_ptext)) {
-			draw_cursor(vid,idx,tree,obj);
+			draw_cursor(idx,tree,obj);
 			
 			strcpy(&ob_spec.tedinfo->te_ptext[idx],
 							&ob_spec.tedinfo->te_ptext[idx + 1]);
 
 			get_char_bound(tree,obj,idx,
 				(WORD)strlen(ob_spec.tedinfo->te_ptext) + 1,&clip);
-			Objc_do_draw(vid,tree,0,9,&clip);
+			Objc_do_draw(tree,0,9,&clip);
 			
-			draw_cursor(vid,idx,tree,obj);
+			draw_cursor(idx,tree,obj);
 		};
 		return idx;
 		
@@ -1373,11 +1379,11 @@ static WORD handle_ed_char(WORD vid,WORD idx,OBJECT *tree,WORD obj,
 		
 		ob_spec.tedinfo->te_ptext[idx] = (BYTE)kc;
 
-		draw_cursor(vid,idx,tree,obj);
+		draw_cursor(idx,tree,obj);
 		get_char_bound(tree,obj,idx,
 										(WORD)strlen(ob_spec.tedinfo->te_ptext),&clip);
-		Objc_do_draw(vid,tree,0,9,&clip);
-		draw_cursor(vid,idx + 1,tree,obj);
+		Objc_do_draw(tree,0,9,&clip);
+		draw_cursor(idx + 1,tree,obj);
 		
 		return idx + 1;
 	};
@@ -1387,29 +1393,40 @@ static WORD handle_ed_char(WORD vid,WORD idx,OBJECT *tree,WORD obj,
  * Public functions                                                         *
  ****************************************************************************/
 
-void	init_objc(void) {	
-	WORD work_out[57];
-	
-	Vdi_vq_extnd(globals.vid,1,work_out);
-	
-	num_planes = work_out[4];
-	
-	Vdi_v_show_c(globals.vid,0);
+void Objc_init_module(void) {	
+  WORD work_in[] = {1,7,1,1,1,1,1,1,1,1,2};
+  WORD work_out[57];
+ 
+  drawvid = globals.vid;
+  Vdi_v_opnvwk(work_in,&drawvid,work_out);
+  
+  Psemaphore(SEM_CREATE,DRAWSEM,-1);
+  Psemaphore(SEM_UNLOCK,DRAWSEM,-1);
 
-	textyoffs = globals.clheight >> 1;
-
-	/* if we don't have enough colours; use monochrome mode! */
-	
-	if(globals.num_pens < 16) {
-		ocolours.br = BLACK;	       /* Colour used for bottom right 3d edge */
-		ocolours.tl = WHITE;         /* Colour used for top left 3d edge */
-		ocolours.colour_ind = WHITE; /* Default indicator colour */
-		ocolours.colour_act = WHITE; /* Default activator colour */
-		ocolours.colour_bkg = WHITE; /* Default background colour */
-	};
+  Vdi_vq_extnd(drawvid,1,work_out);
+  
+  num_planes = work_out[4];
+  
+  Vdi_v_show_c(drawvid,0);
+  
+  textyoffs = globals.clheight >> 1;
+  
+  /* if we don't have enough colours; use monochrome mode! */
+  
+  if(globals.num_pens < 16) {
+    ocolours.br = BLACK;         /* Colour used for bottom right 3d edge */
+    ocolours.tl = WHITE;         /* Colour used for top left 3d edge     */
+    ocolours.colour_ind = WHITE; /* Default indicator colour             */
+    ocolours.colour_act = WHITE; /* Default activator colour             */
+    ocolours.colour_bkg = WHITE; /* Default background colour            */
+  };
 }
 
-void	exit_objc(void) {
+void Objc_exit_module(void) {
+  Psemaphore(SEM_LOCK,DRAWSEM,-1);
+  Psemaphore(SEM_DESTROY,DRAWSEM,-1);
+
+  Vdi_v_clsvwk(drawvid);
 }
 
 void	do_objc_add(OBJECT *t,WORD p,WORD c) {
@@ -1501,111 +1518,111 @@ void	Objc_delete(AES_PB *apb) {
  ****************************************************************************/
 WORD              /* 0 if an error occured, or 1.                           */
 Objc_do_draw(     /*                                                        */
-WORD   vid,       /* VDI workstation id.                                    */
 OBJECT *tree,     /* Resource tree.                                         */
 WORD   object,    /* Start object.                                          */
 WORD   depth,     /* Maximum draw depth.                                    */
 RECT   *clip)     /* Clipping rectangle.                                    */
 /****************************************************************************/
 {
-	WORD current = object;
-	WORD next = -1;
+  WORD current = object;
+  WORD next = -1;
+  
+  WORD xy[2];
+  WORD xyxy[4];
+  WORD x,y;
+  
+  Psemaphore(SEM_LOCK,DRAWSEM,-1);
 
-	WORD xy[2];
-	WORD xyxy[4];
-	WORD x,y;
-
-	if((tree == NULL) || (object < 0) || (depth < 0) || (clip == NULL)) {
-		return 0;
+  if((tree == NULL) || (object < 0) || (depth < 0) || (clip == NULL)) {
+    return 0;
+  };
+  
+  if(Objc_do_offset(tree,object,xy) == 0) {
+    return 0;
+  };
+  
+  x = xy[0] - tree[object].ob_x;
+  y = xy[1] - tree[object].ob_y;
+  
+  xyxy[0] = clip->x;
+  xyxy[1] = clip->y;
+  xyxy[2] = xyxy[0] + clip->width - 1;
+  xyxy[3] = xyxy[1] + clip->height - 1;
+  
+  Vdi_vs_clip(drawvid,1,xyxy);
+  
+  Vdi_v_hide_c(drawvid);
+  
+  do {
+    if(!(tree[current].ob_flags & HIDETREE)) {
+      draw_object(drawvid,tree,current,clip,x,y,object == current);
+      
+      next = tree[current].ob_head;
+      
+      if(next != -1) {
+	x += tree[current].ob_x;
+	y += tree[current].ob_y;
+      };
+    };
+    
+    if(((next == -1) || (depth <= 0)) && (current == object)) {
+      break;
+    };
+    
+    if((depth < 0) || (next == -1) || (tree[current].ob_flags & HIDETREE)) {
+      next = tree[current].ob_next;
+      
+      if(next == -1) {
+	break;
+      };
+      
+      while((tree[next].ob_tail == current) && (current != object)) {
+	depth++;
+	
+	if(current == next) {
+	  break;
 	};
-
-	if(Objc_do_offset(tree,object,xy) == 0) {
-		return 0;
+	
+	current = next;
+	
+	x -= tree[current].ob_x;
+	y -= tree[current].ob_y;
+	
+	next = tree[current].ob_next;
+	
+	if(next == -1) {
+	  break;
 	};
+      };
+      
+      if(current == next) {
+	break;
+      };
+      
+      if(current != object) {
+	current = next;
+      };
+    }
+    else {
+      depth--;
+      
+      current = next;
+    };
+  }while(current != object);
+  
+  Vdi_v_show_c(drawvid,1);
+  
+  Vdi_vs_clip(drawvid,0,xyxy);
 
-	x = xy[0] - tree[object].ob_x;
-	y = xy[1] - tree[object].ob_y;
-
-	xyxy[0] = clip->x;
-	xyxy[1] = clip->y;
-	xyxy[2] = xyxy[0] + clip->width - 1;
-	xyxy[3] = xyxy[1] + clip->height - 1;
-	
-	Vdi_vs_clip(vid,1,xyxy);
-
-	Vdi_v_hide_c(vid);
-			
-	do {
-		if(!(tree[current].ob_flags & HIDETREE)) {
-			draw_object(vid,tree,current,clip,x,y,object == current);
-
-			next = tree[current].ob_head;
-			
-			if(next != -1) {
-				x += tree[current].ob_x;
-				y += tree[current].ob_y;
-			};
-		};
-		
-		if(((next == -1) || (depth <= 0)) && (current == object)) {
-			break;
-		};
-		
-		if((depth < 0) || (next == -1) || (tree[current].ob_flags & HIDETREE)) {
-			next = tree[current].ob_next;
-			
-			if(next == -1) {
-				break;
-			};
-						
-			while((tree[next].ob_tail == current) && (current != object)) {
-				depth++;
-
-				if(current == next) {
-					break;
-				};
-	
-				current = next;
-
-				x -= tree[current].ob_x;
-				y -= tree[current].ob_y;
-
-				next = tree[current].ob_next;
-
-				if(next == -1) {
-					break;
-				};
-			};
-			
-			if(current == next) {
-				break;
-			};
-			
-			if(current != object) {
-				current = next;
-			};
-		}
-		else {
-			depth--;
-			
-			current = next;
-		};
-	}while(current != object);
-
-	Vdi_v_show_c(vid,1);
-
-	Vdi_vs_clip(vid,0,xyxy);
-	
-	return 1;
+  Psemaphore(SEM_UNLOCK,DRAWSEM,-1);
+ 
+  return 1;
 }
 
 void	Objc_draw(AES_PB *apb) {
-	SRV_APPL_INFO appl_info;
-	
-	Srv_get_appl_info(apb->global->apid,&appl_info);
-	
-	apb->int_out[0] = Objc_do_draw(appl_info.vid,(OBJECT *)apb->addr_in[0],apb->int_in[0]
-		,apb->int_in[1],(RECT *)&apb->int_in[2]);
+  apb->int_out[0] = Objc_do_draw((OBJECT *)apb->addr_in[0],
+				 apb->int_in[0],apb->int_in[1],
+				 (RECT *)&apb->int_in[2]);
 }
 
 /*objc_find 0x002b*/
@@ -1724,7 +1741,6 @@ void	Objc_offset(AES_PB *apb) {
  ****************************************************************************/
 WORD              /* 0 if an error occured, or 1.                           */
 Objc_do_edit(     /*                                                        */
-WORD   vid,       /* VDI workstation handle.                                */
 OBJECT *tree,     /* Resource tree.                                         */
 WORD   obj,       /* Object index.                                          */
 WORD   kc,        /* Key code to process.                                   */
@@ -1754,15 +1770,15 @@ WORD   mode)      /* Edit mode.                                             */
 	switch(mode) {
 	case ED_INIT:
 		*idx = (WORD)strlen(ob_spec.tedinfo->te_ptext);
-		draw_cursor(vid,*idx,tree,obj);
+		draw_cursor(*idx,tree,obj);
 		break;
 	
 	case ED_CHAR:
-		*idx = handle_ed_char(vid,*idx,tree,obj,kc);
+		*idx = handle_ed_char(*idx,tree,obj,kc);
 		break;
 		
 	case ED_END:
-		draw_cursor(vid,*idx,tree,obj);
+		draw_cursor(*idx,tree,obj);
 		break;
 		
 	default:
@@ -1783,15 +1799,10 @@ Objc_edit(        /*                                                        */
 AES_PB *apb)      /* AES parameter block.                                   */
 /****************************************************************************/
 {
-	SRV_APPL_INFO appl_info;
-	
-	Srv_get_appl_info(apb->global->apid,&appl_info);
-	
-	apb->int_out[1] = apb->int_in[2];
-	apb->int_out[0] = Objc_do_edit(appl_info.vid,
-										(OBJECT *)apb->addr_in[0],apb->int_in[0],
-										apb->int_in[1],&apb->int_out[1],
-										apb->int_in[3]);
+  apb->int_out[1] = apb->int_in[2];
+  apb->int_out[0] = Objc_do_edit((OBJECT *)apb->addr_in[0],apb->int_in[0],
+				 apb->int_in[1],&apb->int_out[1],
+				 apb->int_in[3]);
 }
 
 /****************************************************************************
@@ -1800,7 +1811,6 @@ AES_PB *apb)      /* AES parameter block.                                   */
  ****************************************************************************/
 WORD              /* 0 if an error occured, or 1.                           */
 Objc_do_change(   /*                                                        */
-WORD   vid,       /* VDI workstation handle.                                */
 OBJECT *tree,     /* Resource tree.                                         */
 WORD   obj,       /* Object index.                                          */
 RECT   *clip,     /* Clipping rectangle.                                    */
@@ -1808,17 +1818,13 @@ WORD   newstate,  /* New object state.                                      */
 WORD   drawflag)  /* Drawing flag.                                          */
 /****************************************************************************/
 {
-	if(vid == -1) {
-		return 0;
-	};
+  tree[obj].ob_state = newstate;
 	
-	tree[obj].ob_state = newstate;
-	
-	if(drawflag == REDRAW) {
-		Objc_do_draw(vid,tree,obj,9,clip);
-	};
-	
-	return 1;
+  if(drawflag == REDRAW) {
+    Objc_do_draw(tree,obj,9,clip);
+  };
+  
+  return 1;
 }
 
 /****************************************************************************
@@ -1830,14 +1836,9 @@ Objc_change(      /*                                                        */
 AES_PB *apb)      /* AES parameter block.                                   */
 /****************************************************************************/
 {
-	SRV_APPL_INFO appl_info;
-	
-	Srv_get_appl_info(apb->global->apid,&appl_info);
-	
-	apb->int_out[0] = Objc_do_change(appl_info.vid,
-										(OBJECT *)apb->addr_in[0],apb->int_in[0],
-										(RECT *)&apb->int_in[2],
-										apb->int_in[6],apb->int_in[7]);
+  apb->int_out[0] = Objc_do_change((OBJECT *)apb->addr_in[0],apb->int_in[0],
+				   (RECT *)&apb->int_in[2],
+				   apb->int_in[6],apb->int_in[7]);
 }
 
 /****************************************************************************
@@ -1924,8 +1925,9 @@ Objc_sysvar(      /*                                                        */
 AES_PB *apb)      /* AES parameter block.                                   */
 /****************************************************************************/
 {
-	apb->int_out[0] = Objc_do_sysvar(apb->int_in[0],apb->int_in[1],apb->int_in[2],
-									apb->int_in[3],&apb->int_out[1],&apb->int_out[2]);
+  apb->int_out[0] = Objc_do_sysvar(apb->int_in[0],apb->int_in[1],
+				   apb->int_in[2],apb->int_in[3],
+				   &apb->int_out[1],&apb->int_out[2]);
 }
 
 

@@ -49,7 +49,6 @@
 #include "misc.h"
 #include "objc.h"
 #include "resource.h"
-#include "rlist.h"
 #include "srv.h"
 #include "types.h"
 #include "vdi.h"

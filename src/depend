@@ -13,12 +13,13 @@ evnthndl.o: evnthndl.c debug.h types.h evnt.h mesagdef.h global.h \
  resource.h srv.h vdi.h wmdefs.h
 form.o: form.c debug.h types.h evnt.h mesagdef.h global.h evnthndl.h \
  form.h gemdefs.h graf.h mintdefs.h objc.h resource.h srv.h
-fsel.o: fsel.c debug.h types.h form.h fsel.h gemdefs.h graf.h global.h \
- mintdefs.h misc.h objc.h resource.h rsrc.h srv.h
+fsel.o: fsel.c debug.h types.h evnt.h mesagdef.h global.h form.h \
+ fsel.h gemdefs.h graf.h mintdefs.h misc.h objc.h resource.h rsrc.h \
+ srv.h
 global.o: global.c boot.h types.h debug.h gemdefs.h global.h \
  lxgemdos.h resource.h rsrc.h vdi.h version.h
 graf.o: graf.c debug.h types.h evnt.h mesagdef.h global.h evnthndl.h \
- gemdefs.h graf.h misc.h objc.h resource.h srv.h vdi.h
+ gemdefs.h graf.h mintdefs.h misc.h objc.h resource.h srv.h vdi.h
 main.o: main.c debug.h types.h evnthndl.h graf.h global.h lxgemdos.h \
  menu.h misc.h mousedev.h objc.h resource.h srv.h version.h
 menu.o: menu.c boot.h types.h debug.h evnt.h mesagdef.h global.h \
@@ -27,8 +28,8 @@ menu.o: menu.c boot.h types.h debug.h evnt.h mesagdef.h global.h \
 misc.o: misc.c gemdefs.h global.h types.h lxgemdos.h misc.h vdi.h
 mousedev.o: mousedev.c gemdefs.h global.h types.h lxgemdos.h \
  mintdefs.h mousedev.h misc.h vdi.h
-objc.o: objc.c debug.h types.h gemdefs.h global.h misc.h objc.h srv.h \
- vdi.h
+objc.o: objc.c debug.h types.h gemdefs.h global.h mintdefs.h misc.h \
+ objc.h vdi.h
 resource.o: resource.c
 rlist.o: rlist.c mintdefs.h misc.h types.h rlist.h
 rsrc.o: rsrc.c debug.h types.h gemdefs.h global.h mintdefs.h rsrc.h \
@@ -39,4 +40,4 @@ srv.o: srv.c debug.h types.h gemdefs.h global.h lxgemdos.h mesagdef.h \
  mintdefs.h misc.h objc.h resource.h rlist.h srv.h vdi.h
 vdi.o: vdi.c debug.h types.h lxgemdos.h vdi.h
 wind.o: wind.c debug.h types.h gemdefs.h global.h mintdefs.h \
- mesagdef.h misc.h objc.h resource.h rlist.h srv.h vdi.h wind.h
+ mesagdef.h misc.h objc.h resource.h srv.h vdi.h wind.h rlist.h

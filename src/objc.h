@@ -15,14 +15,14 @@
 #define	MARKCOLOR	1
 #define	TEXTSTYLE	1
 #define	TEXTCOLOR	1
-#define	FILLTYPE		1
+#define	FILLTYPE	1
 #define	FILLNUMBER	1
 #define	FILLCOLOR	1
 
-void	init_objc(void);
-void	exit_objc(void);
+void Objc_init_module(void);
+void Objc_exit_module(void);
 
-void	do_objc_add(OBJECT *t,WORD p,WORD c);
+void do_objc_add(OBJECT *t,WORD p,WORD c);
 
 /****************************************************************************
  * Objc_do_draw                                                             *
@@ -30,7 +30,6 @@ void	do_objc_add(OBJECT *t,WORD p,WORD c);
  ****************************************************************************/
 WORD              /* 0 if an error occured, or 1.                           */
 Objc_do_draw(     /*                                                        */
-WORD   vid,       /* VDI workstation id.                                    */
 OBJECT *t,        /* Resource tree.                                         */
 WORD   start,     /* Start object.                                          */
 WORD   depth,     /* Maximum draw depth.                                    */
@@ -68,7 +67,6 @@ WORD level);      /* Current depth of search.                               */
  ****************************************************************************/
 WORD              /* 0 if an error occured, or 1.                           */
 Objc_do_edit(     /*                                                        */
-WORD   vid,       /* VDI workstation handle.                                */
 OBJECT *tree,     /* Resource tree.                                         */
 WORD   obj,       /* Object index.                                          */
 WORD   kc,        /* Key code to process.                                   */
@@ -82,7 +80,6 @@ WORD   mode);     /* Edit mode.                                             */
  ****************************************************************************/
 WORD              /* 0 if an error occured, or 1.                           */
 Objc_do_change(   /*                                                        */
-WORD   vid,       /* VDI workstation handle.                                */
 OBJECT *tree,     /* Resource tree.                                         */
 WORD   obj,       /* Object index.                                          */
 RECT   *clip,     /* Clipping rectangle.                                    */

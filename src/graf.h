@@ -8,7 +8,6 @@ void	Graf_init_module(void);
  ****************************************************************************/
 WORD              /* 1 if ok or 0.                                          */
 Graf_do_dragbox(  /*                                                        */
-WORD   vid,       /* VDI workstation id.                                    */
 WORD   eventpipe, /* Event message pipe handle.                             */
 WORD   w,         /* Width of box.                                          */
 WORD   h,         /* Height of box.                                         */
@@ -25,7 +24,6 @@ WORD   *endy);    /* Ending y.                                              */
  ****************************************************************************/
 WORD                /* 1 if ok or 0.                                        */
 Graf_do_rubberbox(  /*                                                      */
-WORD   vid,         /* VDI workstation id.                                  */
 WORD   eventpipe,   /* Event message pipe handle.                           */
 WORD   bx,          /* Top left corner x.                                   */
 WORD   by,          /* Top left corner y.                                   */
@@ -43,12 +41,11 @@ void Graf_do_handle(WORD *cwidth,WORD *cheight,WORD *width,WORD *height);
  ****************************************************************************/
 WORD              /*                                                        */
 Graf_do_grmobox(  /*                                                        */
-WORD vid,         /* VDI workstation id.                                    */
 RECT *r1,         /* Start rectangle.                                       */
 RECT *r2);        /* End rectangle.                                         */
 /****************************************************************************/
 
-WORD Graf_do_mouse(WORD vid,WORD mode,MFORM *formptr);
+WORD Graf_do_mouse(WORD mode,MFORM *formptr);
 
 /****************************************************************************
  * Graf_do_watchbox                                                         *
@@ -57,7 +54,6 @@ WORD Graf_do_mouse(WORD vid,WORD mode,MFORM *formptr);
 WORD              /* 1 if inside object when button was released or 0.      */
 Graf_do_watchbox( /*                                                        */
 WORD   apid,      /* Application id.                                        */
-WORD   vid,       /* VDI workstation id.                                    */
 WORD   eventpipe, /* Event message pipe.                                    */
 OBJECT *tree,     /* Resource tree.                                         */
 WORD   obj,       /* Object to watch.                                       */
@@ -72,7 +68,6 @@ WORD   outstate); /* State when outside object.                             */
 WORD              /* Relative offset.                                       */
 Graf_do_slidebox( /*                                                        */
 WORD   apid,      /* Application id.                                        */
-WORD   vid,       /* VDI workstation id.                                    */
 WORD   eventpipe, /* Event message pipe.                                    */
 OBJECT *tree,     /* Resource tree.                                         */
 WORD   parent,    /* Parent object.                                         */
