@@ -128,6 +128,8 @@ Appl_do_read (WORD   apid,
 
 #ifdef TUNNEL_VDI_CALLS
 
+#define WORDS_TO_POINTER(m,l) ((void *)(((unsigned long)(m)<<16) | ((unsigned long)(l&0xffff))))
+
 /* Description
 ** Copy MFDB with network order conversion
 **
@@ -188,10 +190,10 @@ vdi_tunnel (VDIPB * vpb) {
       (vpb->contrl[0] == 110) ||  /* vr_trnfm  */
       (vpb->contrl[0] == 121)) {  /* vrt_cpyfm */
     copy_mfdb ((MFDB *)&par.inpar[j],
-               (MFDB *)(((long)vpb->contrl[7] << 16) + vpb->contrl[8]));
+               (MFDB *)WORDS_TO_POINTER(vpb->contrl[7],vpb->contrl[8]));
     j += sizeof (MFDB) / 2;
     copy_mfdb ((MFDB *)&par.inpar[j],
-               (MFDB *)(((long)vpb->contrl[9] << 16) + vpb->contrl[10]));
+               (MFDB *)WORDS_TO_POINTER(vpb->contrl[9],vpb->contrl[10]));
     j += sizeof (MFDB) / 2;
   }
 
