@@ -602,15 +602,13 @@ typedef struct cicon_blk {
 } PACKED CICONBLK;
 
 
-typedef struct {
-  unsigned int character   :  8;
-  signed   int framesize   :  8;
-  unsigned int framecol    :  4;
-  unsigned int textcol     :  4;
-  unsigned int textmode    :  1;
-  unsigned int fillpattern :  3;
-  unsigned int interiorcol :  4;
-} PACKED bfobspec;
+#define GET_OBSPEC_CHARACTER(obspec)   ((obspec >> 24) & 0xff)
+#define GET_OBSPEC_FRAMESIZE(obspec)   ((obspec >> 16) & 0xff)
+#define GET_OBSPEC_FRAMECOL(obspec)    ((obspec >> 12) & 0x0f)
+#define GET_OBSPEC_TEXTCOL(obspec)     ((obspec >> 8) & 0x0f)
+#define GET_OBSPEC_TEXTMODE(obspec)    ((obspec >> 7) & 0x01)
+#define GET_OBSPEC_FILLPATTERN(obspec) ((obspec >> 4) & 0x07)
+#define GET_OBSPEC_INTERIORCOL(obspec) (obspec & 0x0f)
 
 struct user_block;      /* forward declaration */
 
@@ -619,7 +617,6 @@ typedef union __u_ob_spec {
   long                index;
   char *              free_string;
   union __u_ob_spec * indirect;
-  bfobspec            obspec;
   BITBLK *            bitblk;
   ICONBLK *           iconblk;
   CICONBLK *          ciconblk;  
