@@ -1,7 +1,7 @@
 /*
 ** menu.c
 **
-** Copyright 1996 - 2000 Christer Gustavsson <cg@nocrew.org>
+** Copyright 1996 - 2001 Christer Gustavsson <cg@nocrew.org>
 ** Copyright 1996 Martin Budsjö <marbud@nocrew.org>
 ** Copyright 1996 Klaus Pedersen <kkp@gamma.dou.dk>
 **
@@ -14,7 +14,7 @@
 **
 */
 
-#define DEBUGLEVEL 0
+#define DEBUGLEVEL 3
 
 
 #ifdef HAVE_CONFIG_H
@@ -71,14 +71,12 @@
 /*
 ** Description
 ** Creates and updates the menu list entries for the specified menu. 
-**
-** 1999-01-09 CG
-** 1999-08-15 CG
 */
 static
 WORD
-Menu_bar_install (WORD     apid,
-                  OBJECT * tree) {
+Menu_bar_install(WORD     apid,
+                 OBJECT * tree)
+{
   WORD          i;
   WORD          cheight;
   WORD          cwidth;
@@ -93,51 +91,53 @@ Menu_bar_install (WORD     apid,
   DEBUG2 ("menu.c: Menu_bar_install: cheight = %d", cheight);
 
   /* Modify width of menu*/
-  tree[0].ob_width = globals->common->screen.width;
-  tree[tree[0].ob_head].ob_width = globals->common->screen.width;
+  OB_WIDTH_PUT(&tree[0], globals->common->screen.width);
+  OB_WIDTH_PUT(&tree[OB_HEAD(&tree[0])], globals->common->screen.width);
 
   /* Modify height of bar ... */
-  tree[tree[0].ob_head].ob_height = cheight + 3;
+  OB_HEIGHT_PUT(&tree[OB_HEAD(&tree[0])], cheight + 3);
   /* ... and titles */
-  tree[tree[tree[0].ob_head].ob_head].ob_height = cheight + 3;
+  OB_HEIGHT_PUT(&tree[OB_HEAD(&tree[OB_HEAD(&tree[0])])], cheight + 3);
 
 #if 0
-  i = tree[tree[tree[0].ob_head].ob_head].ob_head;
+  i = OB_HEAD(&tree[OB_HEAD(&tree[OB_HEAD(&tree[0])])]);
   
-  while(i != -1) {		
-    tree[i].ob_height = cheight + 3;
+  while(i != -1)
+  {		
+    OB_HEIGHT_SET(&tree[i], cheight + 3);
     
-    if(i == tree[tree[i].ob_next].ob_tail) {
+    if(i == OB_TAIL(&tree[OB_NEXT(&tree[i])]))
+    {
       break;
     }
     
-    i = tree[i].ob_next;
+    i = OB_NEXT(&tree[i]);
   }
 #endif
   
   /* Mark all drop down menus with HIDETREE and set y position */
-  tree[tree[tree[0].ob_head].ob_next].ob_y = cheight + 3;
+  OB_Y_PUT(&tree[OB_NEXT(&tree[OB_HEAD(&tree[0])])], cheight + 3);
   
-  i = tree[tree[tree[0].ob_head].ob_next].ob_head;
-  
+  i = OB_HEAD(&tree[OB_NEXT(&tree[OB_HEAD(&tree[0])])]);
   while(i != -1)
   {		
     OB_FLAGS_SET(&tree[i], HIDETREE);
     
-    if(i == tree[tree[i].ob_next].ob_tail) {
+    if(i == OB_TAIL(&tree[OB_NEXT(&tree[i])]))
+    {
       break;
     }
     
-    i = tree[i].ob_next;
+    i = OB_NEXT(&tree[i]);
   }
 
   /* Calculate menu bar area */
-  i = tree[tree[0].ob_head].ob_head;
+  i = OB_HEAD(&tree[OB_HEAD(&tree[0])]);
   
   globals->menu_bar_rect.x =
-    tree[0].ob_x + tree[tree[0].ob_head].ob_x + tree[i].ob_x;
+    OB_X(&tree[0]) + OB_X(&tree[OB_HEAD(&tree[0])]) + OB_X(&tree[i]);
   globals->menu_bar_rect.width =
-    tree[tree[i].ob_tail].ob_x + tree[tree[i].ob_tail].ob_width;
+    OB_X(&tree[OB_TAIL(&tree[i])]) + OB_WIDTH(&tree[OB_TAIL(&tree[i])]);
   globals->menu_bar_rect.y = 0;
   globals->menu_bar_rect.height = cheight + 3;
 
@@ -162,7 +162,7 @@ Menu_do_bar (WORD     apid,
   C_MENU_BAR    par;
   R_MENU_BAR    ret;
   GLOBAL_APPL * globals = get_globals (apid);
-  
+
   PUT_C_ALL(MENU_BAR, &par);
 
   par.mode = mode;
@@ -286,7 +286,7 @@ Menu_do_text(OBJECT * tree,
 {
   TEDINFO * ti;
 
-  switch(tree[obj].ob_type)
+  switch(OB_TYPE(&tree[obj]))
   {
   case G_TEXT:
   case G_BOXTEXT:
@@ -294,11 +294,11 @@ Menu_do_text(OBJECT * tree,
   case G_FBOXTEXT:
     if(OB_FLAGS(&tree[obj]) & INDIRECT)
     {
-      ti = tree[obj].ob_spec.indirect->tedinfo;
+      ti = *((TEDINFO **)OB_SPEC(&tree[obj]));
     }
     else
     {
-      ti = tree[obj].ob_spec.tedinfo;
+      ti = OB_SPEC(&tree[obj]);
     }
     
     strcpy(ti->te_ptext,
@@ -307,7 +307,7 @@ Menu_do_text(OBJECT * tree,
 
   case G_STRING:
   case G_TITLE:
-    strcpy(tree[obj].ob_spec.free_string, text);
+    strcpy((char *)OB_SPEC(&tree[obj]), text);
     break;
 
   default:
@@ -410,8 +410,8 @@ wait_for_selection(int      apid,
 
     ei.m1r.x = xy[0];
     ei.m1r.y = xy[1];
-    ei.m1r.width = mn_tree[*sel_obj].ob_width;
-    ei.m1r.height = mn_tree[*sel_obj].ob_height;
+    ei.m1r.width = OB_WIDTH(&mn_tree[*sel_obj]);
+    ei.m1r.height = OB_HEIGHT(&mn_tree[*sel_obj]);
 
     Evnt_do_multi(apid, &ei, &buffer, &eo, 0, DONT_HANDLE_MENU_BAR);
 
@@ -489,8 +489,8 @@ Menu_do_popup(int    apid,
   Objc_do_offset(menu->mn_tree, menu->mn_item, xy);
 
   /* ... then we adjust the position of the root object, ... */
-  menu->mn_tree[0].ob_x += xpos - xy[0];
-  menu->mn_tree[0].ob_y += ypos - xy[1];
+  OB_X_PUT(&menu->mn_tree[0], OB_X(&menu->mn_tree[0]) + xpos - xy[0]);
+  OB_Y_PUT(&menu->mn_tree[0], OB_Y(&menu->mn_tree[0]) + ypos - xy[1]);
 
   /* ... calculate the area we need ... */
   Objc_area_needed(menu->mn_tree, 0, &clip);
