@@ -140,23 +140,18 @@ void Graf_init_module(void) {
 
 /*
 ** Exported
-**
-** 1998-12-20 CG
-** 1998-12-25 CG
-** 1998-12-26 CG
-** 1999-01-03 CG
-** 1999-01-09 CG
-** 1999-04-10 CG
 */
 WORD
-Graf_do_rubberbox (WORD   apid,
-                   WORD   bx,
-                   WORD   by,
-                   WORD   minw,
-                   WORD   minh,
-                   WORD * endw,
-                   WORD * endh) {
-  EVENTIN ei = {
+Graf_do_rubberbox(WORD   apid,
+                  WORD   bx,
+                  WORD   by,
+                  WORD   minw,
+                  WORD   minh,
+                  WORD * endw,
+                  WORD * endh)
+{
+  EVENTIN ei =
+  {
     MU_BUTTON | MU_M1,
     0,
     LEFT_BUTTON,
@@ -189,15 +184,18 @@ Graf_do_rubberbox (WORD   apid,
   lasth = my - by;
 
   /* If the mouse button has been released return directly */
-  if(!(mb & LEFT_BUTTON)) {     
+  if(!(mb & LEFT_BUTTON))
+  {
     *endw = lastw;
     *endh = lasth;
 
-    if(*endw < minw) {
+    if(*endw < minw)
+    {
       *endw = minw;
     }
 
-    if(*endh < minh) {
+    if(*endh < minh)
+    {
       *endh = minh;
     }
         
@@ -226,22 +224,27 @@ Graf_do_rubberbox (WORD   apid,
   ei.m1r.x = mx;
   ei.m1r.y = my;
 
-  while (TRUE) {
+  while(TRUE)
+  {
     Evnt_do_multi (apid, &ei, &buffer, &eo, 0, DONT_HANDLE_MENU_BAR);
 
-    if (eo.events & MU_M1) {
+    if(eo.events & MU_M1)
+    {
       neww = eo.mx - bx;
       newh = eo.my - by;
 
-      if(neww < minw) {
+      if(neww < minw)
+      {
         neww = minw;
       }
 
-      if(newh < minh) {
+      if(newh < minh)
+      {
         newh = minh;
       }
 
-      if ((lastw != neww) || (lasth != newh)) {
+      if((lastw != neww) || (lasth != newh))
+      {
         Graf_do_mouse (apid, M_OFF, NULL);
         v_pline (globals->vid, 5, xyarray);
 
@@ -262,10 +265,16 @@ Graf_do_rubberbox (WORD   apid,
         v_pline (globals->vid, 5, xyarray);
         Graf_do_mouse (apid, M_ON, NULL);
       }
+
+      /* Update coordinates for mouse leave rectangle */
+      ei.m1r.x = eo.mx;
+      ei.m1r.y = eo.my;
     }
                 
-    if(eo.events & MU_BUTTON) {
-      if (!(eo.mb & LEFT_BUTTON)) {
+    if(eo.events & MU_BUTTON)
+    {
+      if (!(eo.mb & LEFT_BUTTON))
+      {
         break;
       }
     }
