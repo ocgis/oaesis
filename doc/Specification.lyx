@@ -85,6 +85,9 @@ es and programs.
 Startup sequence
 \layout Enumerate
 
+Parse configuration file
+\layout Enumerate
+
 Start server
 \layout Enumerate
 
@@ -1760,6 +1763,12 @@ growbox enabled | disabled
 \layout Standard
 
 Enable or disable graphical output for graf_growbox().
+\layout Paragraph
+
+movebox enabled | disabled
+\layout Standard
+
+Enable or disable graphical output for graf_movebox().
 \layout Paragraph
 
 shrinkbox enabled | disabled
