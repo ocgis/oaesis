@@ -312,6 +312,7 @@ WORD
 Appl_do_init (GLOBAL_ARRAY * global) {
   C_APPL_INIT   par;
   R_APPL_INIT   ret;
+  WORD          apid = -1;
 
   DEBUG3 ("appl.c: Appl_do_init");
   /* Open connection to server */
@@ -324,8 +325,7 @@ Appl_do_init (GLOBAL_ARRAY * global) {
   vdi_handler = vdi_tunnel;
 #endif /* TUNNEL_VDI_CALLS */
 
-  par.common.call = SRV_APPL_INIT;
-  par.common.pid = getpid ();
+  PUT_C_ALL(APPL_INIT, &par);
 
 #ifdef MINT_TARGET
   get_process_name (par.common.pid,
@@ -339,6 +339,8 @@ Appl_do_init (GLOBAL_ARRAY * global) {
            sizeof (par.appl_name) - 1);
 #endif
   par.appl_name[sizeof (par.appl_name) - 1] = 0;
+
+  HTON_C(&par);
 
   Client_send_recv (&par,
                     sizeof (C_APPL_INIT),

@@ -805,17 +805,13 @@ srv_appl_find (C_APPL_FIND * msg,
 /*
 ** Description
 ** appl_init help call
-**
-** 1998-09-26 CG
-** 1998-11-15 CG
-** 1999-01-09 CG
-** 1999-04-10 CG
 */
 static void
 srv_appl_init(C_APPL_INIT * par,
               R_APPL_INIT * ret) {
-  AP_INFO	*ai;
-  AP_LIST	*al;
+  AP_INFO * ai;
+  AP_LIST * al;
+  WORD      retval = 0;
   
   DEBUG2 ("oaesis: srv.c: srv_appl_init: Beginning\n");
 
@@ -870,6 +866,8 @@ srv_appl_init(C_APPL_INIT * par,
     
     srv_menu_register (&c_menu_register, &r_menu_register);
   }
+
+  PUT_R_ALL(APPL_INIT,ret);
 }
 
 
@@ -2864,25 +2862,6 @@ srv_vdi_call (COMM_HANDLE  handle,
 /*
 ** Description
 ** This is the server itself
-**
-** 1998-09-26 CG
-** 1998-12-06 CG
-** 1998-12-13 CG
-** 1998-12-20 CG
-** 1998-12-22 CG
-** 1998-12-23 CG
-** 1998-12-25 CG
-** 1999-01-03 CG
-** 1999-01-09 CG
-** 1999-03-28 CG
-** 1999-04-11 CG
-** 1999-04-12 CG
-** 1999-04-18 CG
-** 1999-05-20 CG
-** 1999-05-23 CG
-** 1999-06-10 CG
-** 1999-06-13 CG
-** 1999-08-05 CG
 */
 static
 WORD
@@ -2981,7 +2960,9 @@ server (LONG arg) {
     DEBUG3 ("srv.c: Got message from client (%p)", handle);
 
     if (handle != NULL) {
-      DEBUG3 ("srv.c: Call no %d\n", par.common.call);
+      NTOH_C(&par);
+
+      DEBUG3 ("srv.c: Call no %d", par.common.call);
       switch (par.common.call) {
       case SRV_APPL_CONTROL:
         srv_appl_control (&par.appl_control, &ret.appl_control);
@@ -3122,8 +3103,8 @@ server (LONG arg) {
 
       default:
         DB_printf("%s: Line %d:\r\n"
-                  "Unknown call %d to server!",
-                  __FILE__, __LINE__, par.common.call);
+                  "Unknown call %d (0x%x) to server!",
+                  __FILE__, __LINE__, par.common.call, par.common.call);
         Srv_reply (handle, &par, -1);
       }
     }

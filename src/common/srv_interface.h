@@ -36,14 +36,20 @@ enum {
 
 /* Common structures */
 typedef struct {
+  WORD words;
   WORD apid;
   WORD pid;
   WORD call;
 }C_ALL;
 
+#define C_ALL_WORDS 3
+
 typedef struct {
+  WORD words;
   WORD retval;
 }R_ALL;
+
+#define R_ALL_WORDS 2
 
 /* appl_* related */
 
@@ -88,11 +94,15 @@ typedef struct {
   BYTE           appl_name[20];
 }C_APPL_INIT;
 
+#define C_APPL_INIT_WORDS 0
+
 typedef struct {
   R_ALL common;
   WORD  apid;
   WORD  physical_vdi_id;
 }R_APPL_INIT;
+
+#define R_APPL_INIT_WORDS 2
 
 typedef struct {
   C_ALL  common;
@@ -370,6 +380,60 @@ typedef union {
   R_MALLOC        malloc;
   R_FREE          free;
 } R_SRV;
+
+#define PUT_C_ALL(callname,parameters) \
+{ \
+  (parameters)->common.words = C_##callname##_WORDS; \
+  (parameters)->common.apid = apid; \
+  (parameters)->common.pid  = getpid(); \
+  (parameters)->common.call = SRV_##callname; \
+}
+
+#define HTON_C(parameters) \
+{ \
+  int    i; \
+  void * walk = parameters; \
+  int    words = (C_ALL_WORDS + ((C_ALL *)parameters)->words); \
+\
+  for(i = 0; i < words; i++) \
+  { \
+    *(UWORD *)walk = htons(*(UWORD *)walk); \
+    ((UWORD *)walk)++; \
+  } \
+}
+
+#define NTOH_C(parameters) \
+{ \
+  int    i; \
+  void * walk = parameters; \
+  int    words = (C_ALL_WORDS + ntohs(((C_ALL *)parameters)->words)); \
+\
+  for(i = 0; i < words; i++) \
+  { \
+    *(UWORD *)walk = ntohs(*(UWORD *)walk); \
+    ((UWORD *)walk)++; \
+  } \
+}
+
+
+#define PUT_R_ALL(callname,parameters) \
+{ \
+  (parameters)->common.words = R_##callname##_WORDS; \
+  (parameters)->common.retval = retval; \
+}
+
+#define HTON_R(parameters) \
+{ \
+  int    i; \
+  void * walk = parameters; \
+  int    words = (R_ALL_WORDS + ((R_ALL *)parameters)->words); \
+\
+  for(i = 0; i < words; i++) \
+  { \
+    *(UWORD *)walk = htons(*(UWORD *)walk); \
+    ((UWORD *)walk)++; \
+  } \
+}
 
 /*
 ** Predefined window ids
