@@ -6,15 +6,22 @@
 #include "srv_get.h"
 #include "srv_sockets.h"
 
-#define BACKLOG 10
+#define BACKLOG 256
+
+/*
+** Module type definitions
+*/
+typedef struct appl_handle{
+  int    fd;
+  struct appl_handle * next;
+}APPL_HANDLE;
 
 /*
 ** Module global variables
 */
 static int sockfd;  /* Server socket descriptor */
 
-static int new_fd;  /* Client socket descriptor */
-
+static APPL_HANDLE * handles = NULL;
 
 /*
 ** Description
@@ -40,7 +47,7 @@ Srv_open (void) {
            (struct sockaddr *)&my_addr,
            sizeof(struct sockaddr)) == -1) {
     perror("oaesis: Srv_open: bind");
-    return;
+    exit (-1);
   }
 
   if (listen(sockfd, BACKLOG) == -1) {
@@ -59,20 +66,77 @@ Srv_open (void) {
 void *
 Srv_get (void * in,
          int    max_bytes_in) {
-  int sin_size = sizeof (struct sockaddr_in);
+  int                sin_size = sizeof (struct sockaddr_in);
   struct sockaddr_in their_addr; /* Client address information */
+  fd_set             handle_set;
+  APPL_HANDLE *      handle_walk;
+  int                new_fd;
+  int                highest_fd;
 
-  if ((new_fd = accept (sockfd, (struct sockaddr *)&their_addr, &sin_size)) == -1) {
-    perror ("oaesis: Srv_get: accept");
-    return NULL;
+  FD_ZERO (&handle_set);
+  
+  /* Specify which handles to wait for */
+  highest_fd = sockfd;
+  FD_SET (sockfd, &handle_set);
+  
+  handle_walk = handles;
+  while (handle_walk) {
+    /*
+    DB_printf ("srv_get_sockets.c: Waiting for handle %d", handle_walk->fd); 
+    */
+
+    FD_SET (handle_walk->fd, &handle_set);
+    if (handle_walk->fd > highest_fd) {
+      highest_fd = handle_walk->fd;
+    }
+    handle_walk = handle_walk->next;
   }
 
-  if (recv (new_fd, in, max_bytes_in, 0) == -1) {
+  /*
+  DB_printf ("highest_fd = %d", highest_fd);
+  */
+
+  /* Wait for input */
+  select (highest_fd + 1, &handle_set, NULL, NULL, NULL);
+
+  if (FD_ISSET (sockfd, &handle_set)) {
+    /* A new application has called the server*/
+
+    if ((new_fd = accept (sockfd, (struct sockaddr *)&their_addr, &sin_size)) == -1) {
+      perror ("oaesis: Srv_get: accept");
+      return NULL;
+    }
+
+    /* Allocate a new handle and put it in the list */
+    handle_walk = (APPL_HANDLE *)malloc (sizeof (APPL_HANDLE));
+    handle_walk->fd = new_fd;
+    handle_walk->next = handles;
+    handles = handle_walk;
+  } else {
+    /* An existing application has sent a command. Now find its handle */
+    handle_walk = handles;
+
+    while (handle_walk != NULL) {
+      if (FD_ISSET (handle_walk->fd, &handle_set)) {
+        /* The correct handle has been found */
+        break;
+      }
+
+      handle_walk = handle_walk->next;
+    }
+
+    /* Something strange has happened */
+    if (handle_walk == NULL) {
+      return NULL;
+    }
+  }
+
+  if (recv (handle_walk->fd, in, max_bytes_in, 0) == -1) {
     perror ("oaesis: Srv_get: recv");
     return NULL;
   }
 
-  return NULL;
+  return handle_walk;
 }
 
 
@@ -92,11 +156,13 @@ Srv_reply (void * handle,
    bytes_out);
    */
 
-  if (send (new_fd, out, bytes_out, 0) == -1) {
+  /*
+  DB_printf ("srv_get_sockets.c: Sending reply through fd %d", ((APPL_HANDLE *)handle)->fd);
+  */
+
+  if (send (((APPL_HANDLE *)handle)->fd, out, bytes_out, 0) == -1) {
     perror ("oaesis: Srv_reply: send");
     return;
   }
-
-  close (new_fd);
 }
 

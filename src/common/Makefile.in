@@ -69,14 +69,13 @@ LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
 MAKEINFO = @MAKEINFO@
 NM = @NM@
+OSISINCLUDE = @OSISINCLUDE@
 OVDISIS_CFLAGS = @OVDISIS_CFLAGS@
 OVDISIS_CONFIG = @OVDISIS_CONFIG@
 OVDISIS_LIBS = @OVDISIS_LIBS@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
 VERSION = @VERSION@
-ovdisis_cflags = @ovdisis_cflags@
-ovdisis_libs = @ovdisis_libs@
 target_cpu = @target_cpu@
 target_os = @target_os@
 

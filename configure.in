@@ -2,7 +2,7 @@ AC_INIT(src/Makefile.am)
 
 dnl For automake
 PACKAGE=oaesis
-VERSION=0.9
+VERSION=0.90
 
 dnl Check system type
 AC_CANONICAL_SYSTEM
@@ -34,9 +34,9 @@ fi
 if test x$with_ovdisis = x ; then 
   # Look for separately installed ovdisis
 
-  AM_PATH_OVDISIS(0.0.0,,
+  AM_PATH_OVDISIS(0.0.1,,
     AC_MSG_ERROR([
-*** ovdisis 0.0.0 or better is required. The latest version of ovdisis
+*** ovdisis 0.0.1 or better is required. The latest version of ovdisis
 *** is always available from ftp://ftp.nocrew.org.]),
     libfb)
 
@@ -51,7 +51,7 @@ else
     AC_MSG_ERROR([ovdisis directory ($with_ovdisis) not present or not configured])
   fi
 
-  # For use in ovdisis-config
+  # For use in oaesis-config
   ovdisis_cflags=`$with_ovdisis/ovdisis-config --cflags`
   ovdisis_libs=`$with_ovdisis/ovdisis-config --libs`
 
@@ -74,8 +74,7 @@ else
   AC_SUBST(OVDISIS_LIBS)
 fi
 
-AC_SUBST(ovdisis_cflags)
-AC_SUBST(ovdisis_libs)
+OSISINCLUDE=${includedir}/osis
 
 dnl Set target specific things
 case "${target}" in
@@ -107,6 +106,7 @@ AC_CHECK_HEADERS(sysvars.h)
 dnl Specify which variables that should be exchanged
 AC_SUBST(PACKAGE)
 AC_SUBST(VERSION)
+AC_SUBST(OSISINCLUDE)
 AC_SUBST(target_cpu)
 AC_SUBST(target_os)
 
@@ -123,4 +123,4 @@ AC_LINK_FILES(src/common/vdi.c, src/server/vdi.c)
 AC_LINK_FILES(src/lib/resource.h, src/server/resource.h)
 
 dnl Specify which files that should be created
-AC_OUTPUT(Makefile src/Makefile src/comm/Makefile src/common/Makefile src/lib/Makefile src/server/Makefile test/Makefile)
+AC_OUTPUT(Makefile src/Makefile src/comm/Makefile src/common/Makefile src/lib/Makefile src/server/Makefile test/Makefile oaesis-config)

@@ -3884,7 +3884,7 @@ srv_wind_update (C_WIND_UPDATE * msg,
       if (update_lock == msg->common.apid) {
         update_cnt++ ;
       } else {
-        DB_printf ("srv.c: srv_wind_update: Real locking not implemented yet");
+        /*        DB_printf ("srv.c: srv_wind_update: Real locking not implemented yet");*/
       }
     } else {
       update_lock = msg->common.apid;
@@ -3896,7 +3896,7 @@ srv_wind_update (C_WIND_UPDATE * msg,
     if (update_lock == msg->common.apid) {
       update_cnt--;
     } else {
-      DB_printf ("srv.c: srv_wind_update: Called END_UPDATE by other application");
+      /*      DB_printf ("srv.c: srv_wind_update: Called END_UPDATE by other application");*/
     }
     break;
   
@@ -4138,7 +4138,9 @@ C_PUT_EVENT *msg)
 **
 ** 1998-09-26 CG
 */
-static WORD server(LONG arg) {
+static
+WORD
+server (LONG arg) {
   WORD          work_in[] = {1,7,1,1,1,1,1,1,1,1,2};
   WORD          work_out[57];
   RECT          r;
@@ -4158,6 +4160,9 @@ static WORD server(LONG arg) {
   void *        handle;
 
   WORD          code;
+
+  WINSTRUCT *   ws;
+  WINLIST *     wl;
   
   /* Stop warnings from compiler about unused parameters */
   NOT_USED(arg);
@@ -4169,7 +4174,36 @@ static WORD server(LONG arg) {
 
   svid = globals.vid;
   Vdi_v_opnvwk(work_in,&svid,work_out);
+
+  /* Initialize desktop background */
+  ws = winalloc();
+  ws->status = WIN_OPEN | WIN_DESKTOP | WIN_UNTOPPABLE;
+  ws->owner = 0;
   
+  
+  ws->tree = NULL;
+  
+  ws->worksize.x = globals.screen.x;
+  ws->worksize.y = globals.screen.y + globals.clheight + 3;
+  ws->worksize.width = globals.screen.width;
+  ws->worksize.height = globals.screen.height - globals.clheight - 3;
+  
+  ws->maxsize = ws->totsize = ws->worksize;
+  
+  wl = (WINLIST *)Mxalloc(sizeof(WINLIST),GLOBALMEM);
+  
+  wl->win = ws;
+  
+  wl->next = win_vis;
+  win_vis = wl;
+
+  wl->win->rlist = (RLIST *)Mxalloc(sizeof(RLIST),GLOBALMEM);
+  wl->win->rlist->r.x = 0 /*globals.screen.x*/;
+  wl->win->rlist->r.y = 0 /*globals.screen.y*/;
+  wl->win->rlist->r.width = 1024 /*globals.screen.width*/;
+  wl->win->rlist->r.height = 768 /*globals.screen.height*/;
+  wl->win->rlist->next = NULL;
+
   c_wind_get.handle = 0;
   c_wind_get.mode = WF_FULLXYWH;
   srv_wind_get (&c_wind_get, &r_wind_get);
@@ -4395,11 +4429,9 @@ static WORD server(LONG arg) {
       break;
       
     case SRV_WIND_UPDATE:
-      DB_printf ("srv.c: server: srv_wind_update will be called");
       srv_wind_update (&par.wind_update, &ret.wind_update);
       
       Srv_reply (handle, &ret, sizeof (R_WIND_UPDATE));
-      DB_printf ("srv.c: server: srv_wind_update reply sent");
       break;
       
     default:
@@ -4448,34 +4480,6 @@ Srv_init_module(void)  /*                                                   */
     }
   }
   
-  ws = winalloc();
-  ws->status = WIN_OPEN | WIN_DESKTOP | WIN_UNTOPPABLE;
-  ws->owner = 0;
-  
-  
-  ws->tree = NULL;
-  
-  ws->worksize.x = globals.screen.x;
-  ws->worksize.y = globals.screen.y + globals.clheight + 3;
-  ws->worksize.width = globals.screen.width;
-  ws->worksize.height = globals.screen.height - globals.clheight - 3;
-  
-  ws->maxsize = ws->totsize = ws->worksize;
-  
-  wl = (WINLIST *)Mxalloc(sizeof(WINLIST),GLOBALMEM);
-  
-  wl->win = ws;
-  
-  wl->next = win_vis;
-  win_vis = wl;
-
-  wl->win->rlist = (RLIST *)Mxalloc(sizeof(RLIST),GLOBALMEM);
-  wl->win->rlist->r.x = globals.screen.x;
-  wl->win->rlist->r.y = globals.screen.y;
-  wl->win->rlist->r.width = globals.screen.width;
-  wl->win->rlist->r.height = globals.screen.height;
-  wl->win->rlist->next = NULL;
-
   globals.srvpid = (WORD)Misc_fork(server,0,"oAESsrv");
   
   /*

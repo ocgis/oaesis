@@ -69,24 +69,26 @@ LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
 MAKEINFO = @MAKEINFO@
 NM = @NM@
+OSISINCLUDE = @OSISINCLUDE@
 OVDISIS_CFLAGS = @OVDISIS_CFLAGS@
 OVDISIS_CONFIG = @OVDISIS_CONFIG@
 OVDISIS_LIBS = @OVDISIS_LIBS@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
 VERSION = @VERSION@
-ovdisis_cflags = @ovdisis_cflags@
-ovdisis_libs = @ovdisis_libs@
 target_cpu = @target_cpu@
 target_os = @target_os@
 
 CFLAGS = -I../comm -I../common -Wall
 # Make a shared library using libtool
 
+oaesisdir = @OSISINCLUDE@
+oaesis_HEADERS = aesbind.h
+
 lib_LTLIBRARIES = liboaesis.la
 
 liboaesis_la_SOURCES = \
-	appl.c debug.c docalls.c evnt.c evnthndl.c form.c fsel.c graf.c lib_global.c lib_misc.c menu.c objc.c resource.c rsrc.c scrp.c shel.c srv_calls.c srv_put.c vdi.c wind.c
+	aesbind.c appl.c debug.c docalls.c evnt.c evnthndl.c form.c fsel.c graf.c lib_global.c lib_misc.c menu.c objc.c resource.c rsrc.c scrp.c shel.c srv_calls.c srv_put.c vdi.c wind.c
 
 EXTRA_liboaesis_la_SOURCES = \
         resource.hrd resource.rsc
@@ -104,14 +106,14 @@ LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 liboaesis_la_LDFLAGS = 
 liboaesis_la_LIBADD = 
-liboaesis_la_OBJECTS =  appl.lo debug.lo docalls.lo evnt.lo evnthndl.lo \
-form.lo fsel.lo graf.lo lib_global.lo lib_misc.lo menu.lo objc.lo \
-resource.lo rsrc.lo scrp.lo shel.lo srv_calls.lo srv_put.lo vdi.lo \
-wind.lo
+liboaesis_la_OBJECTS =  aesbind.lo appl.lo debug.lo docalls.lo evnt.lo \
+evnthndl.lo form.lo fsel.lo graf.lo lib_global.lo lib_misc.lo menu.lo \
+objc.lo resource.lo rsrc.lo scrp.lo shel.lo srv_calls.lo srv_put.lo \
+vdi.lo wind.lo
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
 LINK = $(LIBTOOL) --mode=link $(CC) $(CFLAGS) $(LDFLAGS) -o $@
-HEADERS =  $(noinst_HEADERS)
+HEADERS =  $(noinst_HEADERS) $(oaesis_HEADERS)
 
 DIST_COMMON =  Makefile.am Makefile.in
 
@@ -120,8 +122,8 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
 TAR = tar
 GZIP = --best
-DEP_FILES =  .deps/appl.P .deps/debug.P .deps/docalls.P .deps/evnt.P \
-.deps/evnthndl.P .deps/form.P .deps/fsel.P .deps/graf.P \
+DEP_FILES =  .deps/aesbind.P .deps/appl.P .deps/debug.P .deps/docalls.P \
+.deps/evnt.P .deps/evnthndl.P .deps/form.P .deps/fsel.P .deps/graf.P \
 .deps/lib_global.P .deps/lib_misc.P .deps/menu.P .deps/objc.P \
 .deps/resource.P .deps/rsrc.P .deps/scrp.P .deps/shel.P \
 .deps/srv_calls.P .deps/srv_put.P .deps/vdi.P .deps/wind.P
@@ -200,6 +202,21 @@ maintainer-clean-libtool:
 liboaesis.la: $(liboaesis_la_OBJECTS) $(liboaesis_la_DEPENDENCIES)
 	$(LINK) -rpath $(libdir) $(liboaesis_la_LDFLAGS) $(liboaesis_la_OBJECTS) $(liboaesis_la_LIBADD) $(LIBS)
 
+install-oaesisHEADERS: $(oaesis_HEADERS)
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(DESTDIR)$(oaesisdir)
+	@list='$(oaesis_HEADERS)'; for p in $$list; do \
+	  if test -f "$$p"; then d= ; else d="$(srcdir)/"; fi; \
+	  echo " $(INSTALL_DATA) $$d$$p $(DESTDIR)$(oaesisdir)/$$p"; \
+	  $(INSTALL_DATA) $$d$$p $(DESTDIR)$(oaesisdir)/$$p; \
+	done
+
+uninstall-oaesisHEADERS:
+	@$(NORMAL_UNINSTALL)
+	list='$(oaesis_HEADERS)'; for p in $$list; do \
+	  rm -f $(DESTDIR)$(oaesisdir)/$$p; \
+	done
+
 tags: TAGS
 
 ID: $(HEADERS) $(SOURCES) $(LISP)
@@ -273,18 +290,18 @@ installcheck:
 install-exec: install-libLTLIBRARIES
 	@$(NORMAL_INSTALL)
 
-install-data: 
+install-data: install-oaesisHEADERS
 	@$(NORMAL_INSTALL)
 
 install: install-exec install-data all
 	@:
 
-uninstall: uninstall-libLTLIBRARIES
+uninstall: uninstall-libLTLIBRARIES uninstall-oaesisHEADERS
 
 install-strip:
 	$(MAKE) INSTALL_PROGRAM='$(INSTALL_PROGRAM) -s' INSTALL_SCRIPT='$(INSTALL_PROGRAM)' install
 installdirs:
-	$(mkinstalldirs)  $(DATADIR)$(libdir)
+	$(mkinstalldirs)  $(DATADIR)$(libdir) $(DATADIR)$(oaesisdir)
 
 
 mostlyclean-generic:
@@ -325,12 +342,13 @@ clean-libLTLIBRARIES maintainer-clean-libLTLIBRARIES \
 uninstall-libLTLIBRARIES install-libLTLIBRARIES mostlyclean-compile \
 distclean-compile clean-compile maintainer-clean-compile \
 mostlyclean-libtool distclean-libtool clean-libtool \
-maintainer-clean-libtool tags mostlyclean-tags distclean-tags \
-clean-tags maintainer-clean-tags distdir mostlyclean-depend \
-distclean-depend clean-depend maintainer-clean-depend info dvi \
-installcheck install-exec install-data install uninstall all \
-installdirs mostlyclean-generic distclean-generic clean-generic \
-maintainer-clean-generic clean mostlyclean distclean maintainer-clean
+maintainer-clean-libtool uninstall-oaesisHEADERS install-oaesisHEADERS \
+tags mostlyclean-tags distclean-tags clean-tags maintainer-clean-tags \
+distdir mostlyclean-depend distclean-depend clean-depend \
+maintainer-clean-depend info dvi installcheck install-exec install-data \
+install uninstall all installdirs mostlyclean-generic distclean-generic \
+clean-generic maintainer-clean-generic clean mostlyclean distclean \
+maintainer-clean
 
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

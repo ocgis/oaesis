@@ -160,6 +160,11 @@ GLOBAL_ARRAY * global) /* Global array.                                     */
   Vdi_v_opnvwk(work_in, &par.vid, work_out);
   */
 
+  /* Open connection */
+  if (Client_open () == -1) {
+    exit (-1);
+  }
+
   par.common.call = SRV_APPL_INIT;
   par.common.pid = getpid ();
   count = Client_send_recv (&par,
