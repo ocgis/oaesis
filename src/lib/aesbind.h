@@ -559,7 +559,7 @@ typedef struct text_edinfo
   short          te_thickness;  /* border thickness */
   short          te_txtlen;     /* length of text string */
   short          te_tmplen;     /* length of template string */
-} TEDINFO;
+} PACKED TEDINFO;
 
 typedef struct icon_block {
   short * ib_pmask;

@@ -503,7 +503,7 @@ Rsrc_do_rcfix(WORD     vid,
       owalk[i].ob_type = SWAP_WORD(owalk[i].ob_type);
       owalk[i].ob_flags = SWAP_WORD(owalk[i].ob_flags);
       owalk[i].ob_state = SWAP_WORD(owalk[i].ob_state);
-      owalk[i].ob_spec.index = SWAP_LONG(owalk[i].ob_spec.index);
+      /*owalk[i].ob_spec.index = SWAP_LONG(owalk[i].ob_spec.index);*/
       owalk[i].ob_x = SWAP_WORD(owalk[i].ob_x);
       owalk[i].ob_y = SWAP_WORD(owalk[i].ob_y);
       owalk[i].ob_width = SWAP_WORD(owalk[i].ob_width);
@@ -525,11 +525,11 @@ Rsrc_do_rcfix(WORD     vid,
     case        G_STRING:
     case        G_TITLE:
     case        G_ICON:
-      owalk[i].ob_spec.index += (LONG)rsc;
+      owalk[i].ob_spec.index = SWAP_LONG(owalk[i].ob_spec.index) + (LONG)rsc;
       break;
       
     case        G_CICON:
-      owalk[i].ob_spec.index = (LONG)cicons[owalk[i].ob_spec.index];
+      owalk[i].ob_spec.index = (LONG)cicons[SWAP_LONG(owalk[i].ob_spec.index)];
       break;
       
     default:
@@ -548,6 +548,18 @@ Rsrc_do_rcfix(WORD     vid,
       SWAP_LONG((LONG)tiwalk[i].te_ptmplt) + (LONG)rsc;
     (LONG)tiwalk[i].te_pvalid =
       SWAP_LONG((LONG)tiwalk[i].te_pvalid) + (LONG)rsc;
+
+    if(swap_endian)
+    {
+      tiwalk[i].te_font = SWAP_WORD(tiwalk[i].te_font);
+      tiwalk[i].te_fontid = SWAP_WORD(tiwalk[i].te_fontid);
+      tiwalk[i].te_just = SWAP_WORD(tiwalk[i].te_just);
+      /* FIXME: Check if te_color should be swapped */
+      tiwalk[i].te_fontsize = SWAP_WORD(tiwalk[i].te_fontsize);
+      tiwalk[i].te_thickness = SWAP_WORD(tiwalk[i].te_thickness);
+      tiwalk[i].te_txtlen = SWAP_WORD(tiwalk[i].te_txtlen);
+      tiwalk[i].te_tmplen = SWAP_WORD(tiwalk[i].te_tmplen);
+    }
   }
   DEBUG3 ("Rsrc_do_rcfix: 6");
   
@@ -664,10 +676,11 @@ void    Rsrc_saddr(AES_PB *apb) /*0x0071*/ {
   apb->int_out[0] = 0;
 };
 
-void    Rsrc_obfix(AES_PB *apb) /*0x0072*/ {
+void
+Rsrc_obfix(AES_PB * apb) /*0x0072*/ {
   apb->int_out[0] =
     fix_object_coordinates (&((OBJECT *)apb->addr_in[0])[apb->int_in[0]]);
-};
+}
 
 
 /*

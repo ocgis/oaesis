@@ -41,6 +41,8 @@
  
  ****************************************************************************/
 
+#define DEBUGLEVEL 0
+
 /****************************************************************************
  * Used interfaces                                                          *
  ****************************************************************************/
@@ -581,49 +583,56 @@ draw_text (WORD     vid,
 }
 
 
-static void	drawframe(WORD vid,RECT *r,WORD framesize) {
-	WORD incr;
-	int  size[10];
-	WORD thick;
-	
-	if(framesize) {
-		if(framesize > 0) {
-			thick = framesize;
-			incr = 1;
-			size[0] = size[6] = size[8] = r->x;
-			size[1] = size[3] = size[9] = r->y;
-			size[2] = size[4] = size[0] + r->width - 1;
-			size[5] = size[7] = size[1] + r->height - 1;
-		}
-		else {
-			thick =  -framesize;
-			incr = -1;
-			size[0] = size[6] = size[8] = r->x - 1;
-			size[1] = size[3] = size[9] = r->y - 1;
-			size[2] = size[4] = r->x + r->width;
-			size[5] = size[7] = r->y + r->height;
-		};
-			
-		while(thick > 0) {
-			v_pline(vid,5,size);
-			thick--;
-			if(!thick) {
-				break;
-			};
-				
-				
-			size[0] += incr;
-			size[1] += incr;
-			size[2] -= incr;
-			size[3] += incr;
-			size[4] -= incr;
-			size[5] -= incr;
-			size[6] += incr;
-			size[7] -= incr;
-			size[8] += incr;
-			size[9] += incr;		
-		};
-	};
+static
+void
+drawframe(WORD   vid,
+          RECT * r,
+          WORD   framesize)
+{
+  WORD incr;
+  int  size[10];
+  WORD thick;
+  
+  DEBUG3("objc.c: drawframe: framesize = %d", framesize);
+  if(framesize) {
+    if(framesize > 0) {
+      thick = framesize;
+      incr = 1;
+      size[0] = size[6] = size[8] = r->x;
+      size[1] = size[3] = size[9] = r->y;
+      size[2] = size[4] = size[0] + r->width - 1;
+      size[5] = size[7] = size[1] + r->height - 1;
+    }
+    else
+    {
+      thick =  -framesize;
+      incr = -1;
+      size[0] = size[6] = size[8] = r->x - 1;
+      size[1] = size[3] = size[9] = r->y - 1;
+      size[2] = size[4] = r->x + r->width;
+      size[5] = size[7] = r->y + r->height;
+    }
+    
+    while(thick > 0) {
+      v_pline(vid,5,size);
+      thick--;
+      if(!thick) {
+        break;
+      }
+      
+      
+      size[0] += incr;
+      size[1] += incr;
+      size[2] -= incr;
+      size[3] += incr;
+      size[4] -= incr;
+      size[5] -= incr;
+      size[6] += incr;
+      size[7] -= incr;
+      size[8] += incr;
+      size[9] += incr;		
+    }
+  }
 }
 
 static void	draw_filled_rect(WORD vid,RECT *r) {
@@ -839,8 +848,6 @@ static void draw_3dshadow(WORD vid,RECT *r,WORD selected) {
 /*
 ** Description
 ** Draw a frame around a resource object
-**
-** 1998-10-02 CG
 */
 static
 void
@@ -859,8 +866,9 @@ draw_frame (WORD     vid,
   }
   else {
     ob_spec = ob->ob_spec;
-  };
+  }
 
+  DEBUG3("objc.c: draw_frame: type = %d (0x%x)", type, type);
   switch(type) {
   case G_IBOX :
   case G_BOX  :	/*0x14*/
@@ -872,6 +880,8 @@ draw_frame (WORD     vid,
     r.height = ob->ob_height;
 			
     framesize = ob_spec.obspec.framesize;
+    DEBUG3("objc.c: draw_frame: framesize = %d obspec = 0x%x",
+           framesize, ob_spec.index);
 
     vsl_color(vid,ob_spec.obspec.framecol);
   }
@@ -917,12 +927,12 @@ draw_frame (WORD     vid,
     };
 
     vsl_color(vid,BLACK);
-  };
+  }
   break;
 			
   default:
     draw = 0;
-  };
+  }
 
   if(draw) {
     WORD mode3d = ob->ob_flags & FLD3DANY;
@@ -944,11 +954,12 @@ draw_frame (WORD     vid,
         r.y += framesize;
         r.width -= framesize << 1;
         r.height -= framesize << 1;			
-      };
+      }
 
       draw_3dshadow(vid,&r,ob->ob_state & SELECTED);
     }
-    else {
+    else
+    {
       drawframe(vid,&r,framesize);
 
       if(ob->ob_state & OUTLINED) {
@@ -970,9 +981,10 @@ draw_frame (WORD     vid,
             r.width -= 2;
             r.height -= 2;
             draw_3dshadow(vid,&r,0);
-          };
+          }
         }
-        else {
+        else
+        {
           drawframe(vid,&r,1);
 
           vsl_color(vid,WHITE);
@@ -983,10 +995,10 @@ draw_frame (WORD     vid,
           r.height -= 2;
 			
           drawframe(vid,&r,OUTLINESIZE - 1);
-        };
+        }
       }
-    };
-  };
+    }
+  }
 }
 
 
