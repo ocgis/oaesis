@@ -97,10 +97,6 @@ typedef struct {
 /*
 ** Description
 ** global_appl contains variables that are global within a special application
-**
-** 1999-01-09 CG
-** 1999-03-11 CG
-** 1999-04-18 CG
 */
 typedef struct global_appl {
   GLOBAL_COMMON * common;
@@ -114,6 +110,7 @@ typedef struct global_appl {
   WORD            use_mint_paths;
   APPL_LIST       appl_menu;
   APPL_LIST       acc_menu;
+  BYTE            application_name[20];
 }GLOBAL_APPL;
 
 /*
@@ -129,12 +126,11 @@ init_global (WORD physical_vdi_id);
 /*
 ** Description
 ** Initialize application specific variables
-**
-** 1999-08-08 CG
 */
 void
-init_global_appl (int apid,
-		  int physical_vdi_id);
+init_global_appl (int    apid,
+		  int    physical_vdi_id,
+                  char * appl_name);
 
 void	exit_global(void);
 

@@ -1106,19 +1106,16 @@ Wind_do_create (WORD   apid,
   par.elements = elements;
   par.maxsize = *maxsize;
   par.status = status;
-  DEBUG3("wind.c: Wind_do_create: 1");
+
   CLIENT_SEND_RECV(&par,
                    sizeof (C_WIND_CREATE),
                    &ret,
                    sizeof (R_WIND_CREATE));
   
-  DEBUG3("wind.c: Wind_do_create: 2");
   ws = winalloc (apid);
 
-  DEBUG3("wind.c: Wind_do_create: 3");
   ws->id = ret.common.retval;
 
-  DEBUG3("wind.c: Wind_do_create: 4");
   ws->status = status;
         
   ws->maxsize = *maxsize;
@@ -1128,57 +1125,51 @@ Wind_do_create (WORD   apid,
   ws->hslidepos = 1;
   ws->hslidesize = 1000;
 
-  DEBUG3("wind.c: Wind_do_create: 5");
   if((ws->status & WIN_DIALOG) || (ws->status & WIN_MENU)) {
     ws->tree = 0L;
     ws->totsize = ws->maxsize;
     ws->worksize = ws->totsize;
   } else {
     WORD    i;
-    /*
-    AP_INFO *ai;
-    */
 
-    DEBUG3("wind.c: Wind_do_create: 5.1");
     ws->tree = allocate_window_elements ();
 
-    DEBUG3("wind.c: Wind_do_create: 5.2: elements = 0x%x", elements);
     ws->elements = elements;
     set_win_elem (ws->tree, ws->elements);
 
-    /*
-    ai = internal_appl_info(msg->common.apid);
-    
-    if(ai) {
-      ws->tree[WAPP].ob_spec.tedinfo->te_ptext =
-        (char *)Mxalloc(strlen(&ai->name[2]) + 1,GLOBALMEM);
-      strcpy(ws->tree[WAPP].ob_spec.tedinfo->te_ptext,&ai->name[2]);
-      
-      if(globals.wind_appl == 0) {
-        ws->tree[WAPP].ob_spec.tedinfo->te_ptext[0] = 0;
-      };
-    };
+    ws->tree[WAPP].ob_spec.tedinfo->te_ptext = globals->application_name;
+
+    DEBUG3("application_name = %s", globals->application_name);
+    /* FIXME : What was this used for?
+    if(globals.wind_appl == 0) {
+      ws->tree[WAPP].ob_spec.tedinfo->te_ptext[0] = 0;
+    }
     */
-    
-    DEBUG3("wind.c: Wind_do_create: 6");
+
     ws->totsize.x = ws->tree[0].ob_x;
     ws->totsize.y = ws->tree[0].ob_y;
     ws->totsize.width = ws->tree[0].ob_width;
     ws->totsize.height = ws->tree[0].ob_height;
     
-    DEBUG3("wind.c: Wind_do_create: 7");
     calcworksize (apid, ws->elements, &ws->totsize, &ws->worksize, WC_WORK);
                 
-    for(i = 0; i <= W_SMALLER; i++) {
-      ws->top_colour[i] = global_common->top_colour[i];
-      ws->untop_colour[i] = global_common->untop_colour[i];
+    for(i = 0; i <= W_SMALLER; i++)
+    {
+      WORD elem = i;
+
+      Wind_do_get(apid,
+                  0,
+                  WF_DCOLOR,
+                  &elem,
+                  (WORD *)&ws->top_colour[i],
+                  (WORD *)&ws->untop_colour[i],
+                  &elem,
+                  0);
     }
-    DEBUG3("wind.c: Wind_do_create: 8");
 
     ws->own_colour = 0;
   }
 
-  DEBUG3("wind.c: Wind_do_create: 9");
   return ret.common.retval;
 }
 
@@ -1304,12 +1295,7 @@ void Wind_delete(AES_PB *apb) {
 
 /*
 ** Description
-** Lib part of wind_get
-**
-** 1998-10-04 CG
-** 1999-01-02 CG
-** 1999-01-09 CG
-** 1999-03-30 CG
+** Library part of wind_get
 */
 WORD
 Wind_do_get (WORD   apid,
@@ -1319,7 +1305,8 @@ Wind_do_get (WORD   apid,
              WORD * parm2,
              WORD * parm3,
              WORD * parm4,
-             WORD   in_workarea) {
+             WORD   in_workarea)
+{
   C_WIND_GET par;
   R_WIND_GET ret;
   RECT       workarea;
@@ -1382,6 +1369,7 @@ Wind_do_get (WORD   apid,
 
   par.handle = handle;
   par.mode = mode;
+  par.parm1 = *parm1;
         
   /* Loop until we get the data we need (needed for WF_{FIRST,NEXT}XYWH */
   while (TRUE) {

@@ -330,13 +330,12 @@ init_global (WORD physical_vdi_id) {
 /*
 ** Description
 ** Initialize application specific variables
-**
-** 1999-08-08 CG
-** 1999-08-14 CG
 */
 void
-init_global_appl (int apid,
-		  int physical_vdi_id) {
+init_global_appl (int    apid,
+		  int    physical_vdi_id,
+                  char * appl_name)
+{
   GLOBAL_APPL * globals;
   int           work_in[] = {1,1,1,1,1,1,1,1,1,1,2};
   int           work_out[57];
@@ -378,6 +377,7 @@ init_global_appl (int apid,
   globals->acc_menu.size = 10;
   globals->acc_menu.entries =
     (APPL_ENTRY *)malloc (sizeof (APPL_ENTRY) * 10);
+  strcpy(globals->application_name, appl_name);
 
   globals->common = &global_common;
 

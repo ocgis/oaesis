@@ -322,11 +322,14 @@ Menu_do_register (WORD   apid,
                   BYTE * title) {
   C_MENU_REGISTER par;
   R_MENU_REGISTER ret;
+  GLOBAL_APPL *   globals = get_globals(apid);
  
   PUT_C_ALL(MENU_REGISTER, &par);
 
   strncpy (par.title, title, sizeof (par.title) - 1);
   par.title[sizeof (par.title) - 1] = 0;
+
+  strcpy(globals->application_name, par.title);
 
   CLIENT_SEND_RECV(&par,
                    sizeof (C_MENU_REGISTER),

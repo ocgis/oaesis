@@ -1087,6 +1087,13 @@ srv_wind_get (C_WIND_GET * msg,
       ret->parm4 = 0;
       break;
       
+    case WF_DCOLOR: /*0x13*/
+      *(OBJC_COLORWORD *)&ret->parm2 = top_colour[msg->parm1];
+      *(OBJC_COLORWORD *)&ret->parm3 = untop_colour[msg->parm1];
+      
+      retval = 0;
+      break;
+
     case WF_OWNER: /*0x14*/
       if(win) {
 	retval = 1;
@@ -2030,7 +2037,7 @@ srv_wind_set(C_WIND_SET * msg,
       break;
 
     case WF_DCOLOR: /*0x13*/
-      top_colour[msg->parm1] = *(OBJC_COLORWORD *)&msg->parm2;
+      top_colour[msg->parm1]   = *(OBJC_COLORWORD *)&msg->parm2;
       untop_colour[msg->parm1] = *(OBJC_COLORWORD *)&msg->parm3;
       
       retval = 0;

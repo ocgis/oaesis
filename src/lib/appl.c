@@ -165,7 +165,6 @@ vdi_tunnel (VDIPB * vpb) {
   int        j;
   int        apid = 0;
 
-  DEBUG2("appl.c: vdi_tunnel entered");
   /* Copy contrl array */
   for (i = 0; i < 15; i++) {
     par.contrl[i] = vpb->contrl[i];
@@ -351,16 +350,13 @@ Appl_do_init (GLOBAL_ARRAY * global) {
   DEBUG2("apid = %d", ret.apid);
 
   if(global->apid >= 0) {
-#ifdef MINT_TARGET
-    init_global_appl (global->apid, ret.physical_vdi_id);
-#else
-    GLOBAL_APPL * globals_appl = get_globals (global->apid);
+    init_global_appl (global->apid, ret.physical_vdi_id, par.appl_name);
+#ifndef MINT_TARGET
+    {
+      GLOBAL_APPL * globals_appl = get_globals (global->apid);
 
-    DEBUG2("appl.c: Appl_do_init: Calling init_global_appl");
-    init_global_appl (global->apid, ret.physical_vdi_id);
-
-    DEBUG2("appl.c: Appl_do_init: Calling init_global");
-    init_global (globals_appl->vid);
+      init_global (globals_appl->vid);
+    }
 #endif
 
     return global->apid;

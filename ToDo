@@ -4,4 +4,3 @@
 - Fix srv_wind_set in srv.c and on client side (changeslider, top_window)
 - Clean up menu and desktop background code
 - Move appliction menu code to the client side (update_appl_menu in srv.c)
-- Fix so that window element colours can be set

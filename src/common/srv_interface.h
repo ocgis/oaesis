@@ -304,9 +304,10 @@ typedef struct {
   C_ALL common;
   WORD  handle;
   WORD  mode;
+  WORD  parm1;
 }C_WIND_GET;
 
-#define C_WIND_GET_WORDS 2
+#define C_WIND_GET_WORDS 3
 
 typedef struct {
   R_ALL common;
