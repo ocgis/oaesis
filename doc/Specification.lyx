@@ -1080,54 +1080,562 @@ SRV_WIND_CREATE
 \layout Standard
 
 Create a new window.
+\layout Paragraph
+
+Parameters
+\layout Standard
+\added_space_top 0.3cm \added_space_bottom 0.3cm \align left \LyXTable
+multicol5
+6 3 0 0 -1 -1 -1 -1
+1 1 0 0
+0 1 0 0
+0 1 0 0
+0 1 0 0
+0 1 0 0
+0 1 0 0
+2 1 0 "" ""
+2 1 0 "" ""
+2 1 1 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+
+Offset
+\newline 
+Name
+\newline 
+Description
+\newline 
+0
+\newline 
+elements
+\newline 
+Elements that the window should have
+\newline 
+1
+\newline 
+maxsizex
+\newline 
+X coordinate of maximum extents
+\newline 
+2
+\newline 
+maxsizey
+\newline 
+Y coordinate of maximum extents
+\newline 
+3
+\newline 
+maxsizew
+\newline 
+Width of maximum extents
+\newline 
+4
+\newline 
+maxsizeh
+\newline 
+Height of maximum extents
+\layout Paragraph
+
+Return values
+\layout Standard
+
+None
 \layout Subsubsection
 
 SRV_WIND_OPEN
 \layout Standard
 
 Open a window.
+\layout Paragraph
+
+Parameters
+\layout Standard
+\added_space_top 0.3cm \added_space_bottom 0.3cm \align left \LyXTable
+multicol5
+6 3 0 0 -1 -1 -1 -1
+1 1 0 0
+0 1 0 0
+0 1 0 0
+0 1 0 0
+0 1 0 0
+0 1 0 0
+2 1 0 "" ""
+2 1 0 "" ""
+2 1 1 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+
+Offset
+\newline 
+Name
+\newline 
+Description
+\newline 
+0
+\newline 
+id
+\newline 
+Id of window to open
+\newline 
+1
+\newline 
+sizex
+\newline 
+X coordinate
+\newline 
+2
+\newline 
+sizey
+\newline 
+Y coordinate
+\newline 
+3
+\newline 
+sizew
+\newline 
+Width
+\newline 
+4
+\newline 
+sizeh
+\newline 
+Height
+\layout Paragraph
+
+Return values
+\layout Standard
+
+None
 \layout Subsubsection
 
 SRV_WIND_CLOSE
 \layout Standard
 
 Close a window.
+\layout Paragraph
+
+Parameters
+\layout Standard
+\added_space_top 0.3cm \added_space_bottom 0.3cm \align left \LyXTable
+multicol5
+2 3 0 0 -1 -1 -1 -1
+1 1 0 0
+0 1 0 0
+2 1 0 "" ""
+2 1 0 "" ""
+2 1 1 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+
+Offset
+\newline 
+Name
+\newline 
+Description
+\newline 
+0
+\newline 
+id
+\newline 
+Id of window to close
+\layout Paragraph
+
+Return values
+\layout Standard
+
+None
 \layout Subsubsection
 
 SRV_WIND_DELETE
 \layout Standard
 
 Delete a window.
+\layout Paragraph
+
+Parameters
+\layout Standard
+\added_space_top 0.3cm \added_space_bottom 0.3cm \align left \LyXTable
+multicol5
+2 3 0 0 -1 -1 -1 -1
+1 1 0 0
+0 1 0 0
+2 1 0 "" ""
+2 1 0 "" ""
+2 1 1 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+
+Offset
+\newline 
+Name
+\newline 
+Description
+\newline 
+0
+\newline 
+id
+\newline 
+Id of window to delete
+\layout Paragraph
+
+Return values
+\layout Standard
+
+None
 \layout Subsubsection
 
 SRV_WIND_GET
 \layout Standard
 
 Get information about a window.
+\layout Paragraph
+
+Parameters
+\layout Standard
+\added_space_top 0.3cm \added_space_bottom 0.3cm \align left \LyXTable
+multicol5
+4 3 0 0 -1 -1 -1 -1
+1 1 0 0
+0 1 0 0
+0 1 0 0
+0 1 0 0
+2 1 0 "" ""
+2 1 0 "" ""
+2 1 1 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+
+Offset
+\newline 
+Name
+\newline 
+Description
+\newline 
+0
+\newline 
+handle
+\newline 
+Id of window to get information about
+\newline 
+1
+\newline 
+mode
+\newline 
+Kind of information requested
+\newline 
+2
+\newline 
+parm1
+\newline 
+Parameter 1
+\layout Paragraph
+
+Return values
+\layout Standard
+\added_space_top 0.3cm \added_space_bottom 0.3cm \align left \LyXTable
+multicol5
+5 3 0 0 -1 -1 -1 -1
+1 1 0 0
+0 1 0 0
+0 1 0 0
+0 1 0 0
+0 1 0 0
+2 1 0 "" ""
+2 1 0 "" ""
+2 1 1 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+
+Offset
+\newline 
+Name
+\newline 
+Description
+\newline 
+0
+\newline 
+parm1
+\newline 
+Return value 1
+\newline 
+1
+\newline 
+parm2
+\newline 
+Return value 2
+\newline 
+2
+\newline 
+parm3
+\newline 
+Return value 3
+\newline 
+3
+\newline 
+parm4
+\newline 
+Return value 4
+\layout Standard
+
+FIXME: SRV_WIND_GET should probably be split into several services.
 \layout Subsubsection
 
 SRV_WIND_SET
 \layout Standard
 
 Set information about a window.
+\layout Paragraph
+
+Parameters
+\layout Standard
+\added_space_top 0.3cm \added_space_bottom 0.3cm \align left \LyXTable
+multicol5
+7 3 0 0 -1 -1 -1 -1
+1 1 0 0
+0 1 0 0
+0 1 0 0
+0 1 0 0
+0 1 0 0
+0 1 0 0
+0 1 0 0
+2 1 0 "" ""
+2 1 0 "" ""
+2 1 1 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+
+Offset
+\newline 
+Name
+\newline 
+Description
+\newline 
+0
+\newline 
+handle
+\newline 
+Id of window to set information for
+\newline 
+1
+\newline 
+mode
+\newline 
+Kind of information requested
+\newline 
+2
+\newline 
+parm1
+\newline 
+Parameter 1
+\newline 
+3
+\newline 
+parm2
+\newline 
+Parameter 2
+\newline 
+4
+\newline 
+parm3
+\newline 
+Parameter 3
+\newline 
+5
+\newline 
+parm4
+\newline 
+Parameter 4
+\layout Paragraph
+
+Return values
+\layout Standard
+
+None
 \layout Subsubsection
 
 SRV_WIND_FIND
 \layout Standard
 
-Find a window by coordinates.
+Find a window by its coordinates.
+\layout Paragraph
+
+Parameters
+\layout Standard
+\added_space_top 0.3cm \added_space_bottom 0.3cm \align left \LyXTable
+multicol5
+3 3 0 0 -1 -1 -1 -1
+1 1 0 0
+0 1 0 0
+0 1 0 0
+2 1 0 "" ""
+2 1 0 "" ""
+2 1 1 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+
+Offset
+\newline 
+Name
+\newline 
+Description
+\newline 
+0
+\newline 
+x
+\newline 
+X coordinate
+\newline 
+1
+\newline 
+y
+\newline 
+Y coordinate
+\layout Paragraph
+
+Return values
+\layout Standard
+
+None
 \layout Subsubsection
 
 SRV_WIND_UPDATE
 \layout Standard
 
 Get or release window or mouse control semaphore.
+\layout Paragraph
+
+Parameters
+\layout Standard
+\added_space_top 0.3cm \added_space_bottom 0.3cm \align left \LyXTable
+multicol5
+2 3 0 0 -1 -1 -1 -1
+1 1 0 0
+0 1 0 0
+2 1 0 "" ""
+2 1 0 "" ""
+2 1 1 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+0 2 1 0 0 0 0 "" ""
+
+Offset
+\newline 
+Name
+\newline 
+Description
+\newline 
+0
+\newline 
+more
+\newline 
+Requested operation
+\layout Paragraph
+
+Return values
+\layout Standard
+
+None
 \layout Subsubsection
 
 SRV_WIND_NEW
 \layout Standard
 
 Close and delete all windows of an application.
+\layout Standard
+
+FIXME: Maybe implemented with wind_close and wind_delete instead.
 \layout Subsubsection
 
 SRV_VDI_CALL
