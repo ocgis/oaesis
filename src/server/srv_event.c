@@ -509,8 +509,6 @@ srv_wait_for_event(COMM_HANDLE    handle,
     if (appl_list[par->common.apid].timer_event < next_timer_event) {
       next_timer_event = appl_list[par->common.apid].timer_event;
     }
-    
-    ret.eventout.events |= check_timer (par, &ret);
   }
 
   /*
@@ -731,8 +729,6 @@ handle_timer(void)
       this_appl = appl_walk; 
       appl_walk = appl_walk->next;
 
-      /* Reset events before calling check_timer! */
-      ret.eventout.events = 0;
       ret.eventout.events = check_timer(&this_appl->par,
                                         &ret);
       if(ret.eventout.events != 0)
