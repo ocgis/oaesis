@@ -127,7 +127,7 @@ static AESCB aesdebug[] =
   { "evnt_timer", "%2Phd, %hd", "%3Phd" },
   
   /* 0x0019 */
-  { "evnt_multi", "%2Phd, %hd, %hd, %hd, %hd, %hd, %hd, %hd, %hd, %hd, %hd, %hd, %hd, %hd, %4P08lx, %2Phd, %hd", "%3Phd, %hd, %hd, %hd, %hd, %hd, %hd" },
+  { "evnt_multi", "%2P{MU_EVENT}, %hd, %hd, %hd, %hd, %hd, %hd, %hd, %hd, %hd, %hd, %hd, %hd, %hd, %4P08lx, %2Phd, %hd", "%3P{MU_EVENT}, %hd, %hd, %hd, %hd, %hd, %hd" },
   
   /* 0x001a */
   { "evnt_dclick", "%2Phd, %hd", "%3Phd" },
