@@ -132,6 +132,24 @@ Graf_slidebox(    /*                                                        */
 AES_PB *apb);     /* AES parameter block.                                   */
 /****************************************************************************/
 
-void	Graf_handle(AES_PB *apb);	/*0x004d*/
-void	Graf_mouse(AES_PB *apb);	/*0x004e*/
-void	Graf_mkstate(AES_PB *apb);	/*0x004f*/
+void
+Graf_handle(AES_PB *apb);	/*0x004d*/
+
+void
+Graf_mouse(AES_PB *apb);	/*0x004e*/
+
+/*
+** Description
+** Library part of graf_mkstate ()
+**
+** 1998-12-23 CG
+*/
+WORD
+Graf_do_mkstate (WORD   apid,
+                 WORD * mx,
+                 WORD * my,
+                 WORD * mb,
+                 WORD * ks);
+
+void
+Graf_mkstate (AES_PB *apb);	/*0x004f*/

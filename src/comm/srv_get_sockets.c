@@ -72,6 +72,7 @@ Srv_open (void) {
 **
 ** 1998-09-25 CG
 ** 1998-12-13 CG
+** 1998-12-23 CG
 */
 COMM_HANDLE
 Srv_get (void * in,
@@ -82,6 +83,8 @@ Srv_get (void * in,
   COMM_HANDLE        handle_walk;
   int                new_fd;
   int                highest_fd;
+  int                err;
+  /*  static int count = 0;*/
 
   FD_ZERO (&handle_set);
   
@@ -148,10 +151,11 @@ Srv_get (void * in,
     }
   }
 
-  if (recv (handle_walk->fd, in, max_bytes_in, 0) == -1) {
+  if ((err = recv (handle_walk->fd, in, max_bytes_in, 0)) == -1) {
     perror ("oaesis: Srv_get: recv");
     return NULL;
   }
+  /*  DB_printf ("srv_get_sockets.c: length = %d %d", err, count++);*/
 
   return handle_walk;
 }
@@ -182,10 +186,9 @@ void
 Srv_reply (COMM_HANDLE handle,
            void *      out,
            WORD        bytes_out) {
- /*
-   DB_printf ("srv_get_sockets.c: Srv_reply: bytes_out=%d\n",
-   bytes_out);
-   */
+  /*  static int count = 0;
+  DB_printf ("srv_get_sockets.c: Srv_reply: bytes_out=%d %d",
+  bytes_out, count++);*/
 
   /*
   DB_printf ("srv_get_sockets.c: Sending reply through fd %d", ((APPL_HANDLE *)handle)->fd);

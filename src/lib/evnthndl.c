@@ -834,26 +834,14 @@ Evhd_handle_button (WORD apid,
       DB_printf ("evnthndl.c: Evhd_handle_button: obj = %d", obj);
 
       switch(obj) {         
-      case  WCLOSER :
-        DB_printf ("Closer was pressed");
-        Wind_change (apid, win_id, W_CLOSER, SELECTED);
-        DB_printf ("Wind_change returned");
-
-        /*        
-        do {
-          get_evntpacket(&er,0);
-          update_local_mousevalues(&er);
-        }while(!((er.ap_event == APPEVNT_BUTTON) &&
-                 !(er.ap_value & LEFT_BUTTON)));
-        */
-        
-        Wind_change (apid, win_id, W_CLOSER, 0);
-        
-        mesag.type = WM_CLOSED;
-        mesag.sid = 0;
-        mesag.length = 0;
-        mesag.msg0 = win_id;
-        Appl_do_write (apid, owner, 16, &mesag);
+      case WCLOSER :
+        if (Graf_do_watchbox (apid, tree, WCLOSER, SELECTED, 0)) {
+          mesag.type = WM_CLOSED;
+          mesag.sid = 0;
+          mesag.length = 0;
+          mesag.msg0 = win_id;
+          Appl_do_write (apid, owner, 16, &mesag);
+        }
         break;
         
       case WSMALLER:
@@ -899,22 +887,13 @@ Evhd_handle_button (WORD apid,
       break;
       
       case WFULLER:
-        Wind_change (apid, win_id, W_FULLER, SELECTED);
-        
-        do {
-          get_evntpacket(&er,0);
-          update_local_mousevalues(&er);
-        }while(!((er.ap_event == APPEVNT_BUTTON) &&
-                 !(er.ap_value & LEFT_BUTTON)));
-        
-        Wind_change (apid, win_id, W_FULLER, 0);
-        
-        mesag.type = WM_FULLED;
-        mesag.sid = 0;
-        mesag.length = 0;
-        mesag.msg0 = win_id;
-        Appl_do_write (apid, owner,16,&mesag);
-            
+        if (Graf_do_watchbox (apid, tree, WFULLER, SELECTED, 0)) {
+          mesag.type = WM_FULLED;
+          mesag.sid = 0;
+          mesag.length = 0;
+          mesag.msg0 = win_id;
+          Appl_do_write (apid, owner, 16, &mesag);
+        }
         break;
         
       case  WSIZER  :

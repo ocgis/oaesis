@@ -45,8 +45,12 @@
 ** Initialize oAESis
 **
 ** 1998-09-20 CG
+** 1998-12-22 CG
 */
-void init_aes(WORD nocnf) {
+void
+init_aes (WORD nocnf) {
+  int i;
+
   fprintf(stderr,"oaesis: main.c: Entering init_aes:\n");
   
   init_global(nocnf);
@@ -210,7 +214,10 @@ int main(int argc,BYTE *argv[],BYTE *envp[]) {
   */
 
   fprintf (stderr,"oaesis: starting lines.prg\n");
-  system ("lines.prg");
+  for (i = 0; i < 1; i++) {
+    system ("lines.prg");
+  }
+
   fprintf (stderr,"oaesis: lines.prg finished\n");
   /*  Menu_handler(envp); */
   

@@ -52,15 +52,19 @@
 #include "evnt.h"
 #include "evnthndl.h"
 #include "gemdefs.h"
-#include "lib_global.h"
 #include "graf.h"
-#include "mintdefs.h"
+#include "lib_global.h"
 #include "lib_misc.h"
+#include "mintdefs.h"
 #include "objc.h"
 #include "resource.h"
 #include "srv_calls.h"
+#include "srv_interface.h"
+#include "srv_put.h"
 #include "types.h"
+#include <unistd.h>
 #include "vdi.h"
+#include "wind.h"
 
 /****************************************************************************
  * Macros                                                                   *
@@ -560,6 +564,7 @@ AES_PB *apb)      /* AES parameter block.                                   */
 ** Exported
 **
 ** 1998-12-19 CG
+** 1998-12-23 CG
 */
 WORD
 Graf_do_watchbox (WORD     apid,
@@ -568,8 +573,6 @@ Graf_do_watchbox (WORD     apid,
                   WORD     instate,
                   WORD     outstate)
 {
-  GLOBAL_APPL * globals = get_globals (apid);
-
   EVENTIN ei = {
     MU_BUTTON | MU_M1,
     0,
@@ -582,55 +585,54 @@ Graf_do_watchbox (WORD     apid,
     0,
     0
   };
-  
   EVENTOUT      eo;
-  COMMSG    buffer;
-  RECT      clip;
-  
-  Objc_calc_clip(tree,obj,&clip);
-  Objc_do_offset(tree,obj,(WORD *)&ei.m1r);
+  COMMSG        buffer;
+  RECT          clip;
+  WORD          mx;
+  WORD          my;
+  WORD          mb;
+  WORD          ks;
+  GLOBAL_APPL * globals = get_globals (apid);
+
+  Objc_calc_clip (tree, obj, &clip);
+  Objc_do_offset (tree, obj, (WORD *)&ei.m1r);
   ei.m1r.width = tree[obj].ob_width;
   ei.m1r.height = tree[obj].ob_height;
   
-  if(Misc_inside(&ei.m1r,globals->common->mouse_x,globals->common->mouse_y)) {
+  /* Get the current coordinates */
+  Graf_do_mkstate (apid, &mx, &my, &mb, &ks);
+
+  if(Misc_inside(&ei.m1r, mx, my)) {
     ei.m1flag = MO_LEAVE;
     
-    Objc_do_change (apid, tree,obj,&clip,instate,REDRAW);
-  }
-  else {
+    Objc_do_change (globals->vid, tree, obj, &clip, instate, REDRAW);
+  } else {
     ei.m1flag = MO_ENTER;
     
-    Objc_do_change (apid, tree,obj,&clip,outstate,REDRAW);
-  };
+    Objc_do_change (globals->vid, tree, obj, &clip, outstate, REDRAW);
+  }
   
-  Evhd_wind_update(apid,BEG_MCTRL);
+  Wind_do_update (apid, BEG_MCTRL);
   
-  while(1) {
+  while (TRUE) {
     Evnt_do_multi (apid, &ei, &buffer, &eo, 0);
     
     if(eo.events & MU_BUTTON) {
       break;
-    };
+    }
     
     if(ei.m1flag == MO_LEAVE) {
       ei.m1flag = MO_ENTER;
-      
-      Objc_do_change (apid, tree,obj,&clip,outstate,REDRAW);
-    }
-    else {
+      Objc_do_change (globals->vid, tree, obj, &clip, outstate, REDRAW);
+    } else {
       ei.m1flag = MO_LEAVE;
-      
-      Objc_do_change (apid, tree,obj,&clip,instate,REDRAW);
-    };
-  };
+      Objc_do_change (globals->vid, tree, obj, &clip, instate, REDRAW);
+    }
+  }
   
-  Evhd_wind_update(apid,END_MCTRL);
+  Wind_do_update (apid, END_MCTRL);
   
-  if(ei.m1flag == MO_LEAVE) {
-    return 1;
-  };
-  
-  return 0;
+  return (ei.m1flag == MO_LEAVE) ? 1 : 0;
 }
 
 
@@ -863,13 +865,49 @@ void Graf_mouse(AES_PB *apb) {
   apb->int_out[0] = Graf_do_mouse(apb->int_in[0],(MFORM *)apb->addr_in[0]);
 }
 
-/*graf_mkstate 0x004f*/
-void    Graf_mkstate(AES_PB *apb) {
-  GLOBAL_APPL * globals = get_globals (apb->global->apid);
 
-  apb->int_out[0] = 1;
-  apb->int_out[1] = globals->common->mouse_x;
-  apb->int_out[2] = globals->common->mouse_y;
-  apb->int_out[3] = globals->common->mouse_button;
-  apb->int_out[4] = (WORD)Kbshift(-1) & 0x1f;
+/*
+** Exported
+**
+** 1998-12-23 CG
+*/
+WORD
+Graf_do_mkstate (WORD   apid,
+                 WORD * mx,
+                 WORD * my,
+                 WORD * mb,
+                 WORD * ks) {
+  C_GRAF_MKSTATE par;
+  R_GRAF_MKSTATE ret;
+
+  par.common.call = SRV_GRAF_MKSTATE;
+  par.common.apid = apid;
+  par.common.pid = getpid ();
+	
+  Client_send_recv (&par,
+                    sizeof (C_GRAF_MKSTATE),
+                    &ret,
+                    sizeof (R_GRAF_MKSTATE));
+
+  *mx = ret.mx;
+  *my = ret.my;
+  *mb = ret.mb;
+  *ks = ret.ks;
+
+  return ret.common.retval;
+}
+
+
+/*
+** Exported
+**
+** 1998-12-23 CG
+*/
+void
+Graf_mkstate (AES_PB *apb) {
+  apb->int_out[0] = Graf_do_mkstate (apb->global->apid,
+                                     &apb->int_out [1],
+                                     &apb->int_out [2],
+                                     &apb->int_out [3],
+                                     &apb->int_out [4]);
 }

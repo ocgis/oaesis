@@ -1229,8 +1229,7 @@ Wind_find (AES_PB *apb) {
 /*wind_update 0x006b*/
 
 /*
-** Description
-** Library part of wind_update
+** Exported
 **
 ** 1998-10-04 CG
 */

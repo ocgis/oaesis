@@ -55,9 +55,14 @@ Client_send_recv (void * in,
                   void * out,
                   int    max_bytes_out) {
   int numbytes;
-
+  /*  static int count = 0;*/
   /*
   DB_printf ("srv_put_sockets.c: Sending through socket: %d", sockfd);
+  */
+
+  /*
+  DB_printf ("srv_put_sockets.c: bytes_in = %d %d",
+             bytes_in, count++);
   */
 
   if ((numbytes = send (sockfd, in, bytes_in, 0)) == -1) {
@@ -68,16 +73,19 @@ Client_send_recv (void * in,
   /*
   DB_printf ("sent ok");
   */
-  /*
-  DB_printf ("srv_put_sockets.c: max_bytes_out=%d",
-  max_bytes_out);
-  */
+  /*DB_printf ("srv_put_sockets.c: numbytes = %d",
+    numbytes);*/
   
   if ((numbytes = recv (sockfd, out, max_bytes_out, 0)) == -1) {
     perror("oaesis: srv_put_sockets.c: Client_send_recv: recv");
     return -1;
   }
-  
+
+  /*
+  DB_printf ("srv_put_sockets.c: received numbytes = %d",
+             numbytes);
+  */
+
   return numbytes;
 }
 

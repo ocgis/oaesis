@@ -17,6 +17,7 @@ enum {
   SRV_GET_TOP_MENU,
   SRV_GET_WM_INFO,
   SRV_GET_VDI_ID,
+  SRV_GRAF_MKSTATE,
   SRV_MENU_BAR,
   SRV_MENU_REGISTER,
   SRV_PUT_EVENT,
@@ -148,6 +149,18 @@ typedef struct {
   WORD id;
   void *retval;
 }C_GET_WM_INFO;
+
+typedef struct {
+  C_ALL common;
+} C_GRAF_MKSTATE;
+
+typedef struct {
+  R_ALL common;
+  WORD  mx;
+  WORD  my;
+  WORD  mb;
+  WORD  ks;
+} R_GRAF_MKSTATE;
 
 typedef struct {
   WORD   apid;
@@ -300,6 +313,7 @@ typedef union {
   C_GET_TOP_MENU  get_top_menu;
   C_GET_VDI_ID    get_vdi_id;
   C_GET_WM_INFO   get_wm_info;
+  C_GRAF_MKSTATE  graf_mkstate;
   C_MENU_BAR      menu_bar;
   C_MENU_REGISTER menu_register;
   C_PUT_EVENT     put_event;
@@ -320,19 +334,20 @@ typedef union {
 
 
 typedef union {
-  R_ALL         common;
-  R_APPL_EXIT   appl_exit;
-  R_APPL_INIT   appl_init;
-  R_APPL_WRITE  appl_write;
-  R_EVNT_MULTI  evnt_multi;
-  R_GET_VDI_ID  get_vdi_id;
-  R_WIND_CLOSE  wind_close;
-  R_WIND_CREATE wind_create;
-  R_WIND_DELETE wind_delete;
-  R_WIND_FIND   wind_find;
-  R_WIND_GET    wind_get;
-  R_WIND_OPEN   wind_open;
-  R_WIND_UPDATE wind_update;
+  R_ALL          common;
+  R_APPL_EXIT    appl_exit;
+  R_APPL_INIT    appl_init;
+  R_APPL_WRITE   appl_write;
+  R_EVNT_MULTI   evnt_multi;
+  R_GET_VDI_ID   get_vdi_id;
+  R_GRAF_MKSTATE graf_mkstate;
+  R_WIND_CLOSE   wind_close;
+  R_WIND_CREATE  wind_create;
+  R_WIND_DELETE  wind_delete;
+  R_WIND_FIND    wind_find;
+  R_WIND_GET     wind_get;
+  R_WIND_OPEN    wind_open;
+  R_WIND_UPDATE  wind_update;
 } R_SRV;
 
 #endif /* _SRV_INTERFACE_H_ */

@@ -151,6 +151,7 @@ queue_appl (COMM_HANDLE    handle,
 ** Dequeue an application that's done waiting for events
 **
 ** 1998-12-13 CG
+** 1998-12-23 CG
 */
 static
 void
@@ -159,6 +160,9 @@ dequeue_appl (APPL_LIST_REF this_entry) {
 
   if (this_entry->prev != APPL_LIST_REF_NIL) {
     this_entry->prev->next = this_entry->next;
+  } else if (this_entry == waiting_appl) {
+    /* This should always be true if this_entry->prev == NULL */
+    waiting_appl = this_entry->next;
   }
 
   if (this_entry->next != APPL_LIST_REF_NIL) {
@@ -185,7 +189,7 @@ check_for_messages (C_EVNT_MULTI * par,
 
     if (ai != NULL) {
       if (ai->message_size > 0) {
-        DB_printf ("srv_event.c: srv_wait_for_event; got ai = 0x%x: message size = %d  apid = %d", ai, ai->message_size, ai->id);
+        /*        DB_printf ("srv_event.c: srv_wait_for_event; got ai = 0x%x: message size = %d  apid = %d", ai, ai->message_size, ai->id);*/
         memcpy (&ret->msg,
                 &ai->message_buffer [ai->message_head],
                 MSG_LENGTH);
@@ -277,6 +281,7 @@ check_mouse_motion (WORD           x,
 **
 ** 1998-12-08 CG
 ** 1998-12-13 CG
+** 1998-12-23 CG
 */
 void
 srv_wait_for_event (COMM_HANDLE    handle,
@@ -286,8 +291,11 @@ srv_wait_for_event (COMM_HANDLE    handle,
   /* Are there any waiting messages? */
   ret.eventout.events = check_for_messages (par, &ret);
 
-  /* FIXME Cheat for now and always return MU_TIMER */
-  ret.eventout.events |= MU_TIMER;
+  /* FIXME
+  ** Cheat for now and always return MU_TIMER if the application
+  ** sends MU_TIMER in
+  */
+  ret.eventout.events |= (MU_TIMER & par->eventin.events);
 
   /* Look for waiting mouse events */
   ret.eventout.events |= check_mouse_buttons (par, &ret);
@@ -358,6 +366,7 @@ handle_mouse_buttons (void) {
 ** waiting application
 **
 ** 1998-12-13 CG
+** 1998-12-23 CG
 */
 static
 void
@@ -372,12 +381,11 @@ handle_mouse_motion (void) {
 
       appl_walk = appl_walk->next;
 
-      ret.common.retval = check_mouse_motion (x_new,
-                                              y_new,
-                                              &this_appl->par,
-                                              &ret);
-
-      if (ret.common.retval != 0) {
+      ret.eventout.events = check_mouse_motion (x_new,
+                                                y_new,
+                                                &this_appl->par,
+                                                &ret);
+      if (ret.eventout.events != 0) {
         Srv_reply (this_appl->handle, &ret, sizeof (R_EVNT_MULTI));
 
         /* The application is not waiting anymore */
@@ -405,3 +413,21 @@ srv_handle_events (void) {
 }
 
 
+/*
+** Exported
+**
+** 1998-12-23 CG
+*/
+void
+srv_graf_mkstate (C_GRAF_MKSTATE * par,
+                  R_GRAF_MKSTATE * ret) {
+  ret->mx = x_last;
+  ret->my = y_last;
+  ret->mb = buttons_last;
+  ret->ks = 0; /* FIXME
+               ** Return keystate once the keyboard handling is implemented
+               */
+
+  /* Return OK */
+  ret->common.retval = 1;
+}

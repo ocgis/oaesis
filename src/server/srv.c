@@ -4022,12 +4022,12 @@ C_PUT_EVENT *msg)
 ** 1998-12-06 CG
 ** 1998-12-13 CG
 ** 1998-12-20 CG
+** 1998-12-22 CG
+** 1998-12-23 CG
 */
 static
 WORD
 server (LONG arg) {
-  WORD          work_in[] = {1,7,1,1,1,1,1,1,1,1,2};
-  WORD          work_out[57];
   RECT          r;
   C_WIND_CREATE c_wind_create;
   R_WIND_CREATE r_wind_create;
@@ -4056,11 +4056,6 @@ server (LONG arg) {
   DB_printf ("srv.c: Initializing message handling");
   Srv_open ();
   DB_printf ("srv.c: Initialized message handling");
-
-  svid = globals.vid;
-  DB_printf ("srv.c: Opening vdi workstation");
-  Vdi_v_opnwk (work_in, &svid, work_out);
-  DB_printf ("srv.c: Opened vdi workstation: svdi = %d", svid);
 
   /* Initialize desktop background */
   ws = winalloc();
@@ -4216,6 +4211,12 @@ server (LONG arg) {
         Srv_reply (handle, &par, code);
         break;
         
+      case SRV_GRAF_MKSTATE :
+        srv_graf_mkstate (&par.graf_mkstate, &ret.graf_mkstate);
+        
+        Srv_reply (handle, &ret, sizeof (R_GRAF_MKSTATE));
+        break;
+
       case SRV_MENU_BAR:
         code = 
           srv_menu_bar (&par.menu_bar);
@@ -4325,14 +4326,16 @@ server (LONG arg) {
  * Public functions                                                         *
  ****************************************************************************/
 
-/****************************************************************************
- * Server_init_module                                                       *
- *  Initialize server module.                                               *
- ****************************************************************************/
-void                   /*                                                   */
-Srv_init_module(void)  /*                                                   */
-/****************************************************************************/
-{
+/*
+** Description
+** Initialize server module
+**
+** 1998-12-22 CG
+*/
+void
+Srv_init_module (void) {
+  WORD work_in[] = {1,7,1,1,1,1,1,1,1,1,2};
+  WORD work_out[57];
   WORD i;
   
   DB_printf ("In Srv_init_module\n");
@@ -4355,6 +4358,11 @@ Srv_init_module(void)  /*                                                   */
     }
   }
   
+
+  DB_printf ("srv.c: Opening vdi workstation");
+  Vdi_v_opnwk (work_in, &svid, work_out);
+  DB_printf ("srv.c: Opened vdi workstation: svdi = %d", svid);
+
   DB_printf ("Starting server process");
   globals.srvpid = (WORD)Misc_fork(server,0,"oAESsrv");
   DB_printf ("Started server process");
@@ -4364,14 +4372,15 @@ Srv_init_module(void)  /*                                                   */
     */
 }
 
-/****************************************************************************
- * Srv_exit_module                                                          *
- *  Shutdown server module.                                                 *
- ****************************************************************************/
-void                   /*                                                   */
-Srv_exit_module(void)  /*                                                   */
-/****************************************************************************/
-{
+
+/*
+** Description
+** Shutdown server module
+**
+** 1998-12-22 CG
+*/
+void
+Srv_exit_module (void) {
   DB_printf("Killing off alive processes");
   
   /* Kill all AES processes */
@@ -4388,5 +4397,6 @@ Srv_exit_module(void)  /*                                                   */
 
   DB_printf("Server we have to quit now! Bye!");
   
+  Vdi_v_clswk(svid);
   /*  Srv_put (0, SRV_SHUTDOWN, NULL);*/
 }

@@ -127,7 +127,19 @@ Wind_do_find (WORD apid,
 void
 Wind_find (AES_PB *apb);   /*0x006a*/
 
-void Wind_update(AES_PB *apb); /*0x006b*/
+/*
+** Description
+** Library part of wind_update
+**
+** 1998-12-23 CG
+*/
+WORD
+Wind_do_update (WORD apid,
+                WORD mode);
+
+void
+Wind_update (AES_PB *apb); /*0x006b*/
+
 void Wind_calc(AES_PB *apb);   /*0x006c*/
 
 /****************************************************************************

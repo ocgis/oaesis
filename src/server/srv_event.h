@@ -51,4 +51,13 @@ srv_wait_for_event (COMM_HANDLE    handle,
 void
 srv_handle_events (void);
 
+/*
+** Description
+** Get mouse coordinates, mouse button state and shift key state
+**
+** 1998-12-23 CG
+*/
+void
+srv_graf_mkstate (C_GRAF_MKSTATE * par,
+                  R_GRAF_MKSTATE * ret);
 #endif /* _SRV_EVENT_H_ */
