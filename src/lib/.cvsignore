@@ -1,0 +1,10 @@
+*.lo
+*.la
+Makefile
+.deps
+oaesis
+cursors.h
+cursors.c
+resource.h
+resource.c
+.libs

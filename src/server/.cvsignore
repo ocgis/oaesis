@@ -1,4 +1,3 @@
 Makefile
-r2c_raw
 .deps
-*.ttp
+oaesis
