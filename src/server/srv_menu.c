@@ -202,10 +202,10 @@ srv_menu_register (C_MENU_REGISTER * par,
 {
   AP_LIST **mwalk;
   AP_LIST *ap;
-  WORD    n_menu = par->common.apid;
+  WORD    n_menu = par->register_apid;
   WORD    retval;
   
-  ap = search_apid (par->common.apid);
+  ap = search_apid(par->register_apid);
   
   if (ap == AP_LIST_REF_NIL)
   {
