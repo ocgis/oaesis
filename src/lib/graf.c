@@ -47,7 +47,6 @@
 
 static MFORM m_arrow,m_text_crsr,m_busy_bee,m_point_hand,m_flat_hand,
              m_thin_cross,m_thick_cross,m_outln_cross;
-static MFORM current,last,last_saved;
 
 
 /*
@@ -97,10 +96,6 @@ Graf_init_mouseforms(void)
   icon2mform(&m_thin_cross, &globals->mouseformstad[MTHIN_CROSS]);
   icon2mform(&m_thick_cross, &globals->mouseformstad[MTHICK_CROSS]);
   icon2mform(&m_outln_cross, &globals->mouseformstad[MOUTLN_CROSS]);
-
-  current = m_arrow;
-  last = m_arrow;
-  last_saved = m_arrow;
 }
 
 
