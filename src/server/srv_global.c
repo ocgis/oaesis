@@ -155,74 +155,20 @@ WORD own_graf_handle(void) {
  * Public functions                                                         *
  ****************************************************************************/
 
-void init_global(WORD nocnf) {
+/*
+** Exported
+**
+** 1999-01-09 CG
+*/
+void
+srv_init_global (WORD nocnf) {
   WORD work_in[] = {1,1,1,1,1,1,1,1,1,1,2};
   WORD work_out[57];
   WORD dum;
   
-
-  fprintf(stderr,"Entering init_global\n");
-
-#ifdef MINT_TARGET
-  /* Only mess with videomodes if running under MiNT */
-  if(globals.video == 0x00030000L) {
-    fprintf(stderr,"VsetMode\r\n");
-    oldmode = globals.vmode = 3;
-    oldmodecode = globals.vmodecode = VsetMode(-1);
-    fprintf(stderr,"/VsetMode\r\n");
-  }
-  else {
-    oldmode = globals.vmode = Getrez();
-  };
-#endif /* MINT_TARGET */
-  
-  globals.mouse_owner = -1;
-  globals.realmove = 0;
-  globals.realsize = 0;
-  globals.realslide = 0;
-  globals.fnt_regul_id = -1;
-  globals.fnt_regul_sz = -1;
-  globals.icon_width = 48;
-  globals.icon_height = 56;
-  globals.wind_appl = 1;
-  globals.graf_mbox = 1;
-  globals.graf_growbox = 1;
-  globals.graf_shrinkbox = 1;
-  globals.fsel_sorted = 1;
-  globals.fsel_extern = 0;
-  
-  if(!nocnf) {
-    /*
-    Boot_parse_cnf();
-    */
-  };
-
-#ifdef MINT_TARGET
-  fprintf(stderr,"appl_init()\r\n");
-  own_appl_init();
-  fprintf(stderr,"/appl_init()\r\n");
-
-  if(open_physical_ws) {	
-    printf("No other AES found. Opening own Workstation.\r\n");
-    work_in[0] = 5;
-    Vdi_v_opnwk(work_in,&globals.vid,work_out);
-
-    if(globals.video == 0x00030000L) {
-      VsetScreen(NULL, NULL, globals.vmode, globals.vmodecode);
-    }
-    else {
-      VsetScreen((void*)-1, (void *)-1, globals.vmode, globals.vmodecode);
-    };
-  }
-  else {
-    printf("Other AES detected.\r\n");
-    globals.vid = own_graf_handle();
-    Vdi_v_clrwk(globals.vid);
-  }
-#else  /* ! MINT_TARGET */
-  work_in[0] = 5;
-  /*  Vdi_v_opnwk(work_in,&globals.vid,work_out);*/
-#endif /* MINT_TARGET */
+  DB_printf ("srv.c: Opening vdi workstation");
+  Vdi_v_opnwk (work_in, &globals.vid, work_out);
+  DB_printf ("srv.c: Opened vdi workstation: vid = %d", globals.vid);
 
   Vdi_vq_extnd(globals.vid,0,work_out);
   
@@ -236,23 +182,12 @@ void init_global(WORD nocnf) {
   /* setup systemfont information */
   
   if(globals.screen.height >= 400) {
-    if(globals.fnt_regul_id == -1) {
-      globals.fnt_regul_id = 1;
-    };
-    
-    if(globals.fnt_regul_sz == -1) {
-      globals.fnt_regul_sz = 13;
-    };
+    globals.fnt_regul_id = 1;
+    globals.fnt_regul_sz = 13;
+  } else {
+    globals.fnt_regul_id = 1;
+    globals.fnt_regul_sz = 9;
   }
-  else {
-    if(globals.fnt_regul_id == -1) {
-      globals.fnt_regul_id = 1;
-    };
-    
-    if(globals.fnt_regul_sz == -1) {
-      globals.fnt_regul_sz = 9;
-    };
-  };
   
   globals.fnt_small_id = globals.fnt_regul_id;
   globals.fnt_small_sz = globals.fnt_regul_sz / 2;
@@ -275,7 +210,7 @@ void init_global(WORD nocnf) {
   globals.blheight = work_out[9] + 3;
   globals.clwidth = work_out[8];
   globals.clheight = work_out[9];
-  
+
   globals.bswidth = work_out[8] / 2 + 3;
   globals.bsheight = work_out[9] / 2 + 3;
   globals.cswidth = work_out[8] / 2;
@@ -283,34 +218,20 @@ void init_global(WORD nocnf) {
   
   globals.time = 0L;
 
-#ifdef MINT_TARGET
-  sprintf(globals.mousename,"u:\\dev\\aesmouse.%03d",Pgetpid());
-#else
-  strcpy (globals.mousename, "/dev/mouse");
-#endif  
-
-  /*
-  Rsrc_do_rcfix(globals.vid,(RSHDR *)RESOURCE);
-  
-  Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,AICONS,&globals.aiconstad);
-  Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,ALERT,&globals.alerttad);
-  Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,DESKBG,&globals.deskbgtad);
-  Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,FISEL,&globals.fiseltad);
-  Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,INFORM,&globals.informtad);
-  Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,MENU,&globals.menutad);
-  Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,MOUSEFORMS,&globals.mouseformstad);
-  Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,PMENU,&globals.pmenutad);
-  Rsrc_do_gaddr((RSHDR *)RESOURCE,R_TREE,WINDOW,&globals.windowtad);
-  Rsrc_do_gaddr((RSHDR *)RESOURCE,R_FRSTR,0,(OBJECT **)&globals.fr_string);
-  */
-  
   sprintf(versionstring,"Version %s",VERSIONTEXT);
   /*  globals.informtad[INFOVERSION].ob_spec.tedinfo->te_ptext = versionstring; */
   
   globals.applpid = Pgetpid();
 }
 
-void	exit_global(void) {
+
+/*
+** Exported
+**
+** 1999-01-09 CG
+*/
+void
+srv_exit_global (void) {
 #ifdef MINT_TARGET
   if(open_physical_ws) {
     if(globals.video == 0x00030000L) {
@@ -323,5 +244,7 @@ void	exit_global(void) {
     Vdi_v_clswk(globals.vid);
     own_appl_exit();
   };
+#else
+  Vdi_v_clswk (globals.vid);
 #endif
 }

@@ -164,9 +164,6 @@ static OBJC_COLORWORD untop_colour[20] = {
   {BLACK,BLACK,1,7,LWHITE}
 };
 
-/* Physical VDI workstation id */
-static WORD svid;
-
 static BYTE **environ;
 extern AP_LIST_REF ap_pri;
 static WINLIST *win_vis = NULL;
@@ -174,15 +171,10 @@ static WINLIST *win_vis = NULL;
 /* This has to be fixed */
 void accstart (void) {}
 
-/****************************************************************************
- * srv_appl_exit                                                            *
- *  Implementation of appl_exit().                                          *
- ****************************************************************************/
+static
 void
-srv_appl_exit(      /*                                                      */
-C_APPL_EXIT * par,  /* Application id.                                      */
-R_APPL_EXIT * ret);
-/****************************************************************************/
+srv_appl_exit (C_APPL_EXIT * par,
+               R_APPL_EXIT * ret);
 
 void
 srv_appl_write (C_APPL_WRITE * msg,
@@ -967,12 +959,13 @@ SRV_APPL_INFO *appl_info)  /* Returned info.                                */
 ** Get physical vdi handle of oaesis
 **
 ** 1998-11-15 CG
+** 1999-01-09 CG
 */
 static
 void
 srv_get_vdi_id (C_GET_VDI_ID * par,
             R_GET_VDI_ID * ret) {
-  ret->vid = svid;
+  ret->vid = globals.vid;
 }
 
 
@@ -996,6 +989,7 @@ C_GET_WM_INFO * msg) /*                                                     */
   return 1;
 }
 
+
 /****************************************************************************
  * set_menu                                                                 *
  *  Set the resource tree of the menu of an application                     *
@@ -1006,13 +1000,14 @@ WORD apid,        /* Id of application.                                     */
 OBJECT *tree)     /* Resource tree.                                         */
 /****************************************************************************/
 {
-	if(apps[apid].id != -1) {
-		apps[apid].menu = tree;
-		return 0;
-	};
-	
-	return -1;
+  if(apps[apid].id != -1) {
+    apps[apid].menu = tree;
+    return 0;
+  }
+  
+  return -1;
 }
+
 
 /****************************************************************************
  * srv_get_top_menu                                                         *
@@ -1063,91 +1058,65 @@ WORD apid)        /* Application id.                                        */
   };
 }
 
-static void redraw_menu_bar(void) {
-  OBJECT *       menu;
-  C_GET_TOP_MENU c_get_top_menu;
-  
-  srv_get_top_menu(&c_get_top_menu);
-  menu = c_get_top_menu.retval;
-
-  if(menu) {
-    RECT r;
-    C_WIND_GET c_wind_get;
-    R_WIND_GET r_wind_get;
-    
-    c_wind_get.handle = mglob.winbar;
-    c_wind_get.mode = WF_FIRSTXYWH;
-    srv_wind_get (&c_wind_get, &r_wind_get);
-    r = *((RECT *)&r_wind_get.parm1);
-
-    while((r.width > 0) && (r.height > 0)) {
-      C_WIND_GET c_wind_get;
-      R_WIND_GET r_wind_get;
-
-      /*
-      Objc_do_draw(menu,0,9,&r);
-      */
-
-      c_wind_get.handle = mglob.winbar;
-      c_wind_get.mode = WF_NEXTXYWH;
-      srv_wind_get (&c_wind_get, &r_wind_get);
-      r = *((RECT *)&r_wind_get.parm1);
-    };
-  };
-}
 
 /*
- *	Menu install code.. 
- *
- *	Creates and updates the menu list entries for the specified menu. 
- *	Menu capid is unique. New capid => new menu. Old capid => update menu.
- *
- */
-static WORD       /* .w return code.*/
-menu_bar_install( /* menu_bar(MENU_INSTALL) */
-OBJECT *tree,     /* object tree. Pointer to the menu's OBJECT	*/
-WORD   capid)     /* Current application id. Menu owner	*/
-{
-	WORD         i;
+** Description
+** Redraw the menu bar
+**
+** 1999-01-09 CG
+*/
+static
+void
+redraw_menu_bar (void) {
+  WINSTRUCT * win = find_wind_description (MENU_BAR_WINDOW);
+  
+  if (win != NULL) {
+    C_APPL_WRITE c_appl_write;
+    R_APPL_WRITE r_appl_write;
+    REDRAWSTRUCT m;
 
-	set_menu(capid,tree);
-
-	/* Modify height of bar and titles*/
-	
-	tree[tree[0].ob_head].ob_height = globals.clheight + 3;
-	tree[tree[tree[0].ob_head].ob_head].ob_height = globals.clheight + 3;
-
-	i = tree[tree[tree[0].ob_head].ob_head].ob_head;
-
-	while(i != -1) {		
-		tree[i].ob_height = globals.clheight + 3;
-		
-		if(i == tree[tree[i].ob_next].ob_tail) {
-			break;
-		};
-		
-		i = tree[i].ob_next;
-	};
-
-	/* Mark all drop down menus with HIDETREE and set y position */
-	tree[tree[tree[0].ob_head].ob_next].ob_y = globals.clheight + 3;
-
-	i = tree[tree[tree[0].ob_head].ob_next].ob_head;
-
-	while(i != -1) {		
-		tree[i].ob_flags |= HIDETREE;
-		
-		if(i == tree[tree[i].ob_next].ob_tail) {
-			break;
-		};
-		
-		i = tree[i].ob_next;
-	};
-
-	redraw_menu_bar();
-
-	return 1;
+    m.type = WM_REDRAW;
+    m.sid = 0;
+    m.length = 0;
+    m.wid = MENU_BAR_WINDOW;
+    m.area = win->totsize;
+      
+    c_appl_write.addressee = win->owner;
+    c_appl_write.length = MSG_LENGTH;
+    c_appl_write.is_reference = TRUE;
+    c_appl_write.msg.ref = &m;
+    srv_appl_write (&c_appl_write, &r_appl_write);
+  }
 }
+
+
+/*
+** Description
+** Creates and updates the menu list entries for the specified menu. 
+**
+** 1999-01-09 CG
+*/
+static
+WORD
+menu_bar_install (OBJECT * tree,
+                  WORD     capid) {
+  AP_INFO * ai;
+
+  set_menu (capid, tree);
+  
+  ai = search_appl_info (TOP_MENU_OWNER);
+
+  if (ai != NULL) {
+    if (ai->id == capid) {
+      redraw_menu_bar();
+    }
+
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
 
 /*
  * 	This one is simple.. Return the apid of the currently topped menu owner.
@@ -1176,29 +1145,31 @@ WORD apid)        /* Application whose menu is to be removed.               */
 	return 1;
 }
 
-/****************************************************************************
- *  srv_menu_bar                                                            *
- *   0x001e menu_bar() library code.                                        *
- ****************************************************************************/
-static WORD       /*                                                        */
-srv_menu_bar(     /*                                                        */
-C_MENU_BAR * msg) /*                                                        */
-/****************************************************************************/
-{
-  switch(msg->mode) {
+/*
+** Description
+** Server part of 0x001e menu_bar ()
+**
+** 1999-01-09 CG
+*/
+static
+void
+srv_menu_bar (C_MENU_BAR * msg,
+              R_MENU_BAR * ret) {
+  switch (msg->mode) {
   case MENU_INSTALL: 
-    return menu_bar_install(msg->tree, msg->apid);
+    ret->common.retval = menu_bar_install (msg->tree, msg->common.apid);
     
   case MENU_REMOVE:
-    return menu_bar_remove(msg->apid);
+    ret->common.retval = menu_bar_remove (msg->common.apid);
     
   case MENU_INQUIRE:
-    return menu_bar_inquire();
+    ret->common.retval = menu_bar_inquire ();
     
   default:
-    return 0;
-  };
+    ret->common.retval = 0;
+  }
 }
+
 
 /****************************************************************************
  * srv_menu_register                                                        *
@@ -1334,26 +1305,28 @@ C_APPL_CONTROL * msg) /*                                                    */
   }
 }
 
-/****************************************************************************
- * srv_appl_exit                                                            *
- *  Implementation of appl_exit().                                          *
- ****************************************************************************/
+/*
+** Description
+** Implementation of appl_exit ()
+**
+** 1999-01-09 CG
+*/
+static
 void
-srv_appl_exit(     /*                                                       */
-C_APPL_EXIT * par,
-R_APPL_EXIT * ret)
-/****************************************************************************/
-{
+srv_appl_exit (C_APPL_EXIT * par,
+               R_APPL_EXIT * ret) {
   /*C_WIND_SET cws = {0,WF_NEWDESK,0,0,0,0};*/
   C_MENU_BAR c_menu_bar;
+  R_MENU_BAR r_menu_bar;
 
   /*clean up*/
 
-  c_menu_bar.apid = par->common.apid;
+  c_menu_bar.common.apid = par->common.apid;
   c_menu_bar.tree = NULL;
   c_menu_bar.mode = MENU_REMOVE;
   fprintf (stderr, "oaesis: srv.c: srv_appl_exit: Removing menu bar\n");
-  srv_menu_bar(&c_menu_bar);
+  srv_menu_bar (&c_menu_bar,
+                &r_menu_bar);
   fprintf (stderr, "oaesis: srv.c: srv_appl_exit: Unregistering menu bar\n");
   unregister_menu(par->common.apid);
   /*  srv_wind_set(par->common.apid,&cws);*/
@@ -1437,6 +1410,7 @@ BYTE *fname)      /* File name of application to seek.                      */
 **
 ** 1998-09-26 CG
 ** 1998-11-15 CG
+** 1999-01-09 CG
 */
 static void
 srv_appl_init(C_APPL_INIT * par,
@@ -1479,34 +1453,16 @@ srv_appl_init(C_APPL_INIT * par,
   };
   
   if(ai) {
-    /*    if(par->msghandle) {
-      ai->msgpipe = par->msghandle;
-    };
-    
-    if(par->eventhandle) {
-      ai->eventpipe = par->eventhandle;
-    };
-    
-    strcpy(ai->msgname,par->msgname);
-    strcpy(ai->eventname,par->eventname);
-    
-    ai->vid = par->vid;
-    */
-    
     ret->apid = ai->id;
 
     fprintf (stderr,
              "oaesis: srv.c: srv_appl_init: apid=%d\n",
              (int)ret->apid);
-  }
-  else {
-    /*
-    par->global->apid = -1;
-    */
+  } else {
     ret->apid = -1;
-  };
+  }
 
-  ret->physical_vdi_id = svid;
+  ret->physical_vdi_id = globals.vid;
   /*
   if(ret->apid >= 0) {
     BYTE fname[128],cmdlin[128],menuentry[21],*tmp;
@@ -1718,7 +1674,7 @@ get_deskbg (void) {
 static
 void
 update_desktop_owner (void) {
-  WINSTRUCT *win = find_wind_description (0);
+  WINSTRUCT *win = find_wind_description (DESKTOP_WINDOW);
   
   if (win != NULL) {
     win->owner = get_desktop_owner_id ();
@@ -2938,12 +2894,13 @@ static WORD	bottom_window(WORD winid) {
   *wl = ourwl;
   
   if(wastopped) {
-    WORD           i;
     C_APPL_CONTROL c_appl_control;
 
     /*
     ** FIXME
     ** Remove? Move?
+    WORD           i;
+
     for(i = 0; i <= W_SMALLER; i++) {
       set_widget_colour(ourwl->win,i,&ourwl->win->untop_colour[i],&ourwl->win->top_colour[i]);
       set_widget_colour(newtop,i,&newtop->top_colour[i],&newtop->top_colour[i]);
@@ -2977,13 +2934,13 @@ static WORD top_window(WORD winid) {
 	
   if(winid == 0) {
     if(win_vis && (win_vis->win->status & WIN_TOPPED)) {
-      WORD i;
-      
       win_vis->win->status &= ~WIN_TOPPED;
       
       /*
       ** FIXME
       ** Move? Remove?
+      WORD i;
+      
       for(i = 0; i <= W_SMALLER; i++) {
 	set_widget_colour(win_vis->win,i,&win_vis->win->untop_colour[i],
 			  &win_vis->win->top_colour[i]);
@@ -3101,12 +3058,12 @@ static WORD top_window(WORD winid) {
     ourwl->win->rpos = ourwl->win->rlist;
     
     if(wastopped) {
-      WORD i;
       C_APPL_CONTROL c_appl_control;
       
       /*
       ** FIXME
       ** Move? Remove?
+      WORD i;
       for(i = 0; i <= W_SMALLER; i++) {
 	set_widget_colour(oldtop,i,&oldtop->untop_colour[i],
 			  &oldtop->top_colour[i]);
@@ -3133,6 +3090,7 @@ static WORD top_window(WORD winid) {
 ** Implementation of wind_close ()
 **
 ** 1998-12-20 CG
+** 1999-01-10 CG
 */
 static
 void
@@ -3140,7 +3098,7 @@ srv_wind_close (C_WIND_CLOSE * par,
                 R_WIND_CLOSE * ret) {
   WINLIST   **wl = &win_vis;
   WINSTRUCT *newtop = NULL;
-	
+
   while (*wl) {
     if((*wl)->win->id == par->id) {
       break;
@@ -3176,7 +3134,7 @@ srv_wind_close (C_WIND_CLOSE * par,
 	  m.length = 0;
 	  m.wid = wp->win->id;
 	  
-	  if(globals.realmove) {
+	  if (FALSE /* FIXME globals.realmove*/) {
 	    m.sid = -1;
 	    m.area.x = (*wl)->win->totsize.x - wp->win->totsize.x;
 	    m.area.y = (*wl)->win->totsize.y - wp->win->totsize.y;
@@ -3197,15 +3155,18 @@ srv_wind_close (C_WIND_CLOSE * par,
 	  srv_appl_write (&c_appl_write, &r_appl_write);
 	}
 	
+        /*
+        ** FIXME
 	if(wp->win != newtop) {
 	  tl = rl;
 	  
-	  while (tl) {				
+	  while (tl) {
 	    draw_wind_elemfast(wp->win,&tl->r,0);
 	    
 	    tl = tl->next;
 	  }
 	}
+        */
 	
 	Rlist_insert (&wp->win->rlist, &rl);
 	wp->win->rpos = wp->win->rlist;
@@ -3222,11 +3183,11 @@ srv_wind_close (C_WIND_CLOSE * par,
     Mfree(wp);
     
     if(newtop) {
-      WORD i;
-      
       /*
       ** FIXME
       ** Move? Remove?
+      WORD i;
+      
       for(i = 0; i <= W_SMALLER; i++) {
 	set_widget_colour(newtop,i,&newtop->untop_colour[i],
 			  &newtop->top_colour[i]);
@@ -3656,16 +3617,16 @@ srv_wind_get (C_WIND_GET * msg,
   }
 }
 
-/****************************************************************************
- * srv_wind_open                                                            *
- *  Implementation of wind_open().                                          *
- ****************************************************************************/
+
+/*
+** Description
+** Implementation of wind_open ()
+**
+** 1999-01-09 CG
+*/
 void
-srv_wind_open(     /*                                                       */
-C_WIND_OPEN * msg,
-R_WIND_OPEN * ret)
-/****************************************************************************/
-{
+srv_wind_open (C_WIND_OPEN * msg,
+               R_WIND_OPEN * ret) {
   WINLIST      *wl,*wp;
   WINSTRUCT    *ws,*oldtop = NULL;
   RLIST	       *rl = 0L;
@@ -3681,11 +3642,9 @@ R_WIND_OPEN * ret)
       
       wl->win = ws;
       
-      DB_printf ("srv.c: srv_wind_open: call setwinsize");
       setwinsize (wl->win, &msg->size);
-      DB_printf ("srv.c: srv_wind_open: returned from setwinsize");
       
-      if(win_vis) {
+      if (win_vis) {
 	if(win_vis->win->status & WIN_DIALOG) {
 	  wl->next = win_vis->next;
 	  win_vis->next = wl;
@@ -3695,17 +3654,17 @@ R_WIND_OPEN * ret)
 	  wl->next = win_vis;
 	  win_vis = wl;
 	  
-	  if(!(wl->win->status & WIN_MENU)) {
+	  if (!(wl->win->status & WIN_MENU)) {
 	    wl->win->status |= WIN_TOPPED;
 	    oldtop->status &= ~WIN_TOPPED;
 	    wastopped = 1;
-	  };
-	};
+	  }
+	}
       } else {	
 	wl->next = 0L;
 	win_vis = wl;
 	wl->win->status |= WIN_TOPPED;
-      };
+      }
       
       wp = wl->next;
       
@@ -3731,7 +3690,7 @@ R_WIND_OPEN * ret)
       };
       */
       
-      if(!(wl->win->status & (WIN_DIALOG | WIN_MENU))){
+      if (!(wl->win->status & WIN_DIALOG)){
 	C_APPL_WRITE c_appl_write;
         R_APPL_WRITE r_appl_write;
 
@@ -3786,12 +3745,10 @@ R_WIND_OPEN * ret)
 	srv_appl_control(&c_appl_control);
       }
       */
-    }
-    else {
+    } else {
       ret->common.retval = 0;
     }
-  }
-  else {
+  } else {
     ret->common.retval = 0;
   }
   
@@ -3873,6 +3830,7 @@ srv_wind_update (C_WIND_UPDATE * msg,
 ** 1998-12-25 CG
 ** 1998-12-26 CG
 ** 1999-01-01 CG
+** 1999-01-09 CG
 */
 static
 void
@@ -3891,7 +3849,10 @@ srv_wind_set (C_WIND_SET * msg,
       break;
       
     case WF_CURRXYWH: /*0x0005*/
-      ret->common.retval = changewinsize (win, (RECT *)&msg->parm1, svid, 0);
+      ret->common.retval = changewinsize (win,
+                                          (RECT *)&msg->parm1,
+                                          globals.vid,
+                                          0);
       break;
 
     case WF_HSLIDE: /*0x08*/
@@ -3957,14 +3918,20 @@ srv_wind_set (C_WIND_SET * msg,
       set_win_elem(win->tree,IMOVER);
       win->status |= WIN_ICONIFIED;
       calcworksize(IMOVER,&win->totsize,&win->worksize,WC_WORK);
-      ret->common.retval = changewinsize(win,(RECT *)&msg->parm1,svid,1);
+      ret->common.retval = changewinsize(win,
+                                         (RECT *)&msg->parm1,
+                                         globals.vid,
+                                         1);
       break;
 
     case WF_UNICONIFY: /*0x1b*/
       set_win_elem(win->tree,win->elements);
       win->status &= ~WIN_ICONIFIED;
       calcworksize(win->elements,&win->totsize,&win->worksize,WC_WORK);
-      ret->common.retval = changewinsize(win,(RECT *)&msg->parm1,svid,1);
+      ret->common.retval = changewinsize (win,
+                                          (RECT *)&msg->parm1,
+                                          globals.vid,
+                                          1);
       break;
 
     default:
@@ -4080,6 +4047,7 @@ C_PUT_EVENT *msg)
 ** 1998-12-23 CG
 ** 1998-12-25 CG
 ** 1999-01-03 CG
+** 1999-01-09 CG
 */
 static
 WORD
@@ -4119,11 +4087,10 @@ server (LONG arg) {
   
   ws->tree = NULL;
   
-  /* FIXME */
-  ws->worksize.x = 0 /*globals.screen.x*/;
-  ws->worksize.y = 0 /*globals.screen.y + globals.clheight + 3*/;
-  ws->worksize.width = 1024 /*globals.screen.width*/;
-  ws->worksize.height = 768 /*globals.screen.height - globals.clheight - 3*/;
+  ws->worksize.x = globals.screen.x;
+  ws->worksize.y = globals.screen.y + globals.clheight + 3;
+  ws->worksize.width = globals.screen.width;
+  ws->worksize.height = globals.screen.height - globals.clheight - 3;
   
   ws->maxsize = ws->totsize = ws->worksize;
   
@@ -4134,12 +4101,11 @@ server (LONG arg) {
   wl->next = win_vis;
   win_vis = wl;
 
-  /* FIXME */
   wl->win->rlist = (RLIST *)Mxalloc(sizeof(RLIST),GLOBALMEM);
-  wl->win->rlist->r.x = 0 /*globals.screen.x*/;
-  wl->win->rlist->r.y = 0 /*globals.screen.y*/;
-  wl->win->rlist->r.width = 1024 /*globals.screen.width*/;
-  wl->win->rlist->r.height = 768 /*globals.screen.height*/;
+  wl->win->rlist->r.x = globals.screen.x;
+  wl->win->rlist->r.y = globals.screen.y;
+  wl->win->rlist->r.width = globals.screen.width;
+  wl->win->rlist->r.height = globals.screen.height;
   wl->win->rlist->next = NULL;
 
   c_wind_get.handle = 0;
@@ -4164,10 +4130,10 @@ server (LONG arg) {
                  &r_wind_open);
   
   /* Setup event vectors */
-  srv_init_event_handler (svid);
+  srv_init_event_handler (globals.vid);
 
   /* Show mouse cursor */
-  Vdi_v_show_c (svid, 1);
+  Vdi_v_show_c (globals.vid, 1);
 
   while (TRUE) {
     
@@ -4198,7 +4164,7 @@ server (LONG arg) {
         DB_printf("OK! Nice chatting with you! Bye!");
         
         Srv_reply (handle, &par, 0);
-        Vdi_v_clswk(svid);
+        Vdi_v_clswk (globals.vid);
         return 0;
         
       case SRV_APPL_CONTROL:
@@ -4275,16 +4241,15 @@ server (LONG arg) {
         break;
 
       case SRV_GRAF_MOUSE :
-        srv_graf_mouse (svid, &par.graf_mouse, &ret.graf_mouse);
+        srv_graf_mouse (globals.vid, &par.graf_mouse, &ret.graf_mouse);
         
         Srv_reply (handle, &ret, sizeof (R_GRAF_MOUSE));
         break;
 
       case SRV_MENU_BAR:
-        code = 
-          srv_menu_bar (&par.menu_bar);
+        srv_menu_bar (&par.menu_bar, &ret.menu_bar);
         
-        Srv_reply (handle, &par, code);
+        Srv_reply (handle, &par, sizeof (R_MENU_BAR));
         break;
         
       case SRV_MENU_REGISTER:
@@ -4355,19 +4320,15 @@ server (LONG arg) {
         break;
         
       case SRV_WIND_OPEN:
-        DB_printf ("srv.c: server: srv_wind_open will be called");
         srv_wind_open (&par.wind_open, &ret.wind_open);
         
         Srv_reply (handle, &ret, sizeof (R_WIND_OPEN));
-        DB_printf ("srv.c: server: srv_wind_open reply sent");
         break;
         
       case SRV_WIND_SET:
-        DB_printf ("srv.c: server: srv_wind_set will be called");
         srv_wind_set (&par.wind_set, &ret.wind_set);
         
         Srv_reply (handle, &ret, sizeof (R_WIND_SET));
-        DB_printf ("srv.c: server: srv_wind_set reply sent");
         break;
         
       case SRV_WIND_UPDATE:
@@ -4395,14 +4356,14 @@ server (LONG arg) {
 ** Initialize server module
 **
 ** 1998-12-22 CG
+** 1999-01-09 CG
 */
 void
 Srv_init_module (void) {
-  WORD work_in[] = {1,7,1,1,1,1,1,1,1,1,2};
-  WORD work_out[57];
   WORD i;
   
   DB_printf ("In Srv_init_module\n");
+
   for(i = 0; i < MAX_NUM_APPS; i++) {
     apps[i].id = -1;
     apps[i].eventpipe = -1;
@@ -4411,7 +4372,7 @@ Srv_init_module (void) {
     apps[i].deskbg = NULL;
     apps[i].menu = NULL;
     apps[i].deskmenu = -1;
-  };
+  }
   
   if(globals.num_pens < 16) {
     for(i = 0; i <= W_SMALLER; i++) {
@@ -4422,10 +4383,6 @@ Srv_init_module (void) {
     }
   }
   
-
-  DB_printf ("srv.c: Opening vdi workstation");
-  Vdi_v_opnwk (work_in, &svid, work_out);
-  DB_printf ("srv.c: Opened vdi workstation: svdi = %d", svid);
 
   DB_printf ("Starting server process");
   globals.srvpid = (WORD)Misc_fork(server,0,"oAESsrv");
@@ -4442,6 +4399,7 @@ Srv_init_module (void) {
 ** Shutdown server module
 **
 ** 1998-12-22 CG
+** 1999-01-09 CG
 */
 void
 Srv_exit_module (void) {
@@ -4460,7 +4418,5 @@ Srv_exit_module (void) {
   DB_printf("Killed all processes\r\n");
 
   DB_printf("Server we have to quit now! Bye!");
-  
-  Vdi_v_clswk(svid);
   /*  Srv_put (0, SRV_SHUTDOWN, NULL);*/
 }

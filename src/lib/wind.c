@@ -749,6 +749,7 @@ create_new_window_struct (WORD apid,
 ** application <apid>
 **
 ** 1998-10-11 CG
+** 1999-01-10 CG
 */
 WINDOW_STRUCT *
 find_window_struct (WORD apid,
@@ -761,6 +762,8 @@ find_window_struct (WORD apid,
     if (wl->ws.id == id) {
       return &wl->ws;
     }
+
+    wl = wl->next;
   }
 
   return NULL;
@@ -774,6 +777,7 @@ find_window_struct (WORD apid,
 **
 ** 1998-10-11 CG
 ** 1999-01-01 CG
+** 1999-01-09 CG
 */
 void
 Wind_redraw_elements (WORD   apid,
@@ -783,9 +787,12 @@ Wind_redraw_elements (WORD   apid,
   GLOBAL_APPL * globals = get_globals (apid);
   WINDOW_LIST * wl = globals->windows;
   
-  /* Handle desktop separately */
-  if (id == 0) {
-    if (globals->desktop_background != NULL) {
+  /* Handle desktop and menu separately */
+  if ((id == DESKTOP_WINDOW) || (id == MENU_BAR_WINDOW)) {
+    OBJECT * tree =
+      (id == DESKTOP_WINDOW) ? globals->desktop_background : globals->menu;
+
+    if (tree != NULL) {
       RECT r;
      
       Wind_do_get (apid,
@@ -803,7 +810,7 @@ Wind_redraw_elements (WORD   apid,
         
         if(Misc_intersect(&r, clip, &r2)) {
           Objc_do_draw (globals->vid,
-                        globals->desktop_background,
+                        tree,
                         start,
                         3,
                         &r2);
@@ -872,18 +879,16 @@ Wind_redraw_elements (WORD   apid,
 }
 
 
-/****************************************************************************
- * Wind_do_create                                                           *
- *  Implementation of wind_create().                                        *
- ****************************************************************************/
-WORD             /* 0 if error or 1 if ok.                                  */
-Wind_do_create(  /*                                                         */
-WORD   apid,     /* Owner of window.                                        */
-WORD   elements, /* Elements of window.                                     */
-RECT * maxsize,  /* Maximum size allowed.                                   */
-WORD   status)   /* Status of window.                                       */
-/****************************************************************************/
-{
+/*
+** Exported
+**
+** 1999-01-10 CG
+*/
+WORD
+Wind_do_create (WORD   apid,
+                WORD   elements,
+                RECT * maxsize,
+                WORD   status) {
   C_WIND_CREATE   par;
   R_WIND_CREATE   ret;
   int             count;
@@ -898,17 +903,12 @@ WORD   status)   /* Status of window.                                       */
   par.maxsize = *maxsize;
   par.status = status;
         
-  count = Client_send_recv (&par,
-                            sizeof (C_WIND_CREATE),
-                            &ret,
-                            sizeof (R_WIND_CREATE));
-
-  DB_printf ("wind.c: Wind_do_create: count=%d id=%d",
-             count,
-             ret.common.retval);
-
+  Client_send_recv (&par,
+                    sizeof (C_WIND_CREATE),
+                    &ret,
+                    sizeof (R_WIND_CREATE));
+  
   ws = winalloc (apid);
-  DB_printf ("wind.c: Wind_do_create: ws=0x%x", ws);
 
   ws->id = ret.common.retval;
 
@@ -931,9 +931,7 @@ WORD   status)   /* Status of window.                                       */
     AP_INFO *ai;
     */
 
-    DB_printf ("wind.c: Wind_do_create: will call allocate_window_elements");
     ws->tree = allocate_window_elements ();
-    DB_printf ("wind.c: Wind_do_create: ws->tree=0x%x", ws->tree);
 
     ws->elements = elements;
     set_win_elem (ws->tree, ws->elements);
@@ -989,6 +987,7 @@ Wind_create (AES_PB *apb)
 ** Exported
 **
 ** 1998-12-20 CG
+** 1999-01-10 CG
 */
 WORD
 Wind_do_open (WORD   apid,
@@ -997,8 +996,6 @@ Wind_do_open (WORD   apid,
   C_WIND_OPEN par;
   R_WIND_OPEN ret;
   
-  DB_printf ("Wind_do_open entered");
-
   par.common.call = SRV_WIND_OPEN;
   par.common.apid = apid;
   par.common.pid = getpid ();
@@ -1012,8 +1009,6 @@ Wind_do_open (WORD   apid,
 
   /* Set the size of the window elements */
   Wind_set_size (apid, id, size);
-
-  DB_printf ("Wind_do_open returned");
 
   return ret.common.retval;
 }
@@ -1037,8 +1032,6 @@ Wind_do_close (WORD apid,
   C_WIND_CLOSE par;
   R_WIND_CLOSE ret;
   
-  DB_printf ("Wind_do_close entered");
-
   par.common.call = SRV_WIND_CLOSE;
   par.common.apid = apid;
   par.common.pid = getpid ();
@@ -1048,8 +1041,6 @@ Wind_do_close (WORD apid,
                     sizeof (C_WIND_CLOSE),
                     &ret,
                     sizeof (R_WIND_CLOSE));
-
-  DB_printf ("Wind_do_close returned");
 
   return ret.common.retval;
 }
@@ -1110,6 +1101,7 @@ void Wind_delete(AES_PB *apb) {
 **
 ** 1998-10-04 CG
 ** 1999-01-02 CG
+** 1999-01-09 CG
 */
 WORD
 Wind_do_get (WORD   apid,
@@ -1128,8 +1120,9 @@ Wind_do_get (WORD   apid,
   ** We can handle some calls without calling the server.
   */
   if (mode == WF_WORKXYWH) {
-    WINDOW_STRUCT * ws = find_window_struct (apid, handle);
+    WINDOW_STRUCT * ws;
 
+    ws = find_window_struct (apid, handle);
     /*
     ** Return area if we have it. If not just do a server call the normal
     ** way.
@@ -1166,7 +1159,6 @@ Wind_do_get (WORD   apid,
   par.handle = handle;
   par.mode = mode;
         
-
   /* Loop until we get the data we need (needed for WF_{FIRST,NEXT}XYWH */
   while (TRUE) {
     Client_send_recv (&par,
@@ -1264,6 +1256,7 @@ Wind_set_name_or_info (WORD   apid,
 **
 ** 1999-01-01 CG
 ** 1999-01-06 CG
+** 1999-01-09 CG
 */
 static
 WORD
@@ -1271,21 +1264,18 @@ Wind_set_desktop_background (WORD     apid,
                              OBJECT * tree) {
   GLOBAL_APPL * globals = get_globals (apid);
 
-  DB_printf ("wind.c: Wind_set_desktop_background: tree = 0x%x %d %d %d %d",
-             tree,
-             globals->common->screen.x,
-             globals->common->screen.y,
-             globals->common->screen.width,
-             globals->common->screen.height);
-
   globals->desktop_background = tree;
 
   /* Adjust the size of the resource to the size of the desktop */
   if (tree != NULL) {
-    tree->ob_x = globals->common->screen.x;
-    tree->ob_y = globals->common->screen.y;
-    tree->ob_width = globals->common->screen.width;
-    tree->ob_height = globals->common->screen.height;
+    Wind_do_get (apid,
+                 0,
+                 WF_WORKXYWH,
+                 &tree->ob_x,
+                 &tree->ob_y,
+                 &tree->ob_width,
+                 &tree->ob_height,
+                 FALSE);
   }
 
   /* Return OK */

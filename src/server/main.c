@@ -26,14 +26,11 @@
 #include <unistd.h>
 
 #include "debug.h"
-/*#include "evnthndl.h"*/
 #include "lxgemdos.h"
-/*#include "menu.h"*/
-#include "srv_misc.h"
 #include "mousedev.h"
-/*#include "objc.h"*/
-/*#include "resource.h"*/
 #include "srv.h"
+#include "srv_global.h"
+#include "srv_misc.h"
 #include "version.h"
 
 #ifdef HAVE_SYSVARS_H
@@ -46,14 +43,13 @@
 **
 ** 1998-09-20 CG
 ** 1998-12-22 CG
+** 1999-01-09 CG
 */
 void
 init_aes (WORD nocnf) {
-  int i;
-
   fprintf(stderr,"oaesis: main.c: Entering init_aes:\n");
   
-  init_global(nocnf);
+  srv_init_global(nocnf);
 
   fprintf(stderr,"Initializing server:\n");
   Srv_init_module();
@@ -63,49 +59,22 @@ init_aes (WORD nocnf) {
   Supexec(link_in);
 #endif /* MINT_TARGET */
 
-  fprintf(stderr,"Object calls\r\n");
-  /*
-  Objc_init_module();
-  */
-  
-  fprintf(stderr,"Menu calls\r\n");
-  /*
-  Menu_init_module();
-  */
-
-  fprintf(stderr,"Initializing graf calls\n");
-  /*
-  Graf_init_module();
-  */
-
 #ifdef MINT_TARGET  
   fprintf(stderr,"Mouse device\r\n");
   Moudev_init_module();
 #endif /* MINT_TARGET */
-
-  fprintf(stderr,"Initializing Event handler\n");
-  /*
-  Evhd_init_module();
-  */
-
-  fprintf(stderr,"oaesis: main.c: Leaving init_aes\n");
 }
 
-void exit_aes(void) {
+
+/*
+** Exported
+**
+** 1999-01-09 CG
+*/
+void
+exit_aes (void) {
   fprintf(stderr,"Exiting:\r\n");
   
-  fprintf(stderr,"Event handler\r\n");
-
-  /*  
-  Evhd_exit_module();
-  */
-
-  fprintf(stderr,"Menu calls\r\n");
-
-  /*
-  Menu_exit_module();
-  */
-
 #ifdef MINT_TARGET
   fprintf(stderr,"Mouse device\r\n");
   
@@ -116,18 +85,12 @@ void exit_aes(void) {
   Supexec(link_remove);
 #endif /* MINT_TARGET */
   
-  fprintf(stderr,"Object calls\r\n");
-
-  /*
-  Objc_exit_module();
-  */
+  fprintf(stderr,"Server\r\n");
+  Srv_exit_module();  
 
   fprintf(stderr,"Global\r\n");
   
-  exit_global();
-  
-  fprintf(stderr,"Server\r\n");
-  Srv_exit_module();  
+  srv_exit_global();
 }
 
 
@@ -136,11 +99,12 @@ void exit_aes(void) {
 ** Main routine of the oaesis server
 **
 ** 1998-12-28 CG
+** 1999-01-09 CG
 */
 int
 main (int     argc,
-      BYTE ** argv,
-      BYTE ** envp) {
+      char ** argv,
+      char ** envp) {
   WORD nocnf = 0;
   WORD i;
 

@@ -216,27 +216,6 @@ WORD id)          /* Window handle.                                         */
 
 
 /****************************************************************************
- * Srv_menu_bar                                                             *
- *  0x001e menu_bar() library code.                                         *
- ****************************************************************************/
-WORD              /*                                                        */
-Srv_menu_bar(     /*                                                        */
-WORD   apid,      /* Application id.                                        */
-OBJECT *tree,     /* Menu object tree.                                      */
-WORD   mode)      /* Mode.                                                  */
-/****************************************************************************/
-{
-  C_MENU_BAR par;
-
-  par.apid = apid;
-  par.tree = tree;
-  par.mode = mode;
-	
-  return Srv_put (apid, SRV_MENU_BAR, &par);
-}
-
-
-/****************************************************************************
  * Srv_menu_register                                                        *
  *  Implementation of menu_register().                                      *
  ****************************************************************************/

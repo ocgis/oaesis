@@ -151,8 +151,6 @@ static struct {
 
 static struct {
   RECT   area;
-  OBJECT *tree;
-  WORD   dropwin;
 }menu = {
   {0, 0, 0, 0}
 };
@@ -325,6 +323,7 @@ handle_arrow_click (WORD apid,
 ** 1998-12-20 CG
 ** 1998-12-25 CG
 ** 1999-01-01 CG
+** 1999-01-09 CG
 */
 static
 void
@@ -338,6 +337,7 @@ handle_mover_click (WORD apid,
   WORD      last_y = mouse_y;
   EVNTREC   er;
   COMMSG    mesag;
+  GLOBAL_COMMON * globals = get_global_common ();
 
   Wind_do_get (apid,
                win_id,
@@ -457,7 +457,7 @@ handle_mover_click (WORD apid,
       RECT bound;
       RECT winsize;
       
-      bound.y = 0/*globals.clheight*/ + 3; /* FIXME */
+      bound.y = globals->clheight + 3;
       bound.height = 30000;
       bound.x = -15000;
       bound.width = 30000;
@@ -1250,73 +1250,79 @@ static WORD     get_matching_menu(OBJECT *t,WORD n) {
   return start;
 }
 
-static WORD handle_drop_down(WORD apid,
-                             HM_BUFFER *hm_buffer,
-                             WORD menubox,
-                             WORD title) {
-  WORD     entry;
-  WORD     deskbox = menu.tree[menu.tree[0].ob_tail].ob_head;
-  
-  OBJECT   *nmenu;
-  
-  if((deskbox == menubox) && (mouse_y >= 0 /*globals.pmenutad[0].ob_y*/)) {
-    /*nmenu = globals.pmenutad*/;
-    entry = Objc_do_find(nmenu,0,9,mouse_x,mouse_y,0);
-  }
-  else {
-    nmenu = menu.tree;
-    entry = Objc_do_find(nmenu, menubox, 9, mouse_x, mouse_y,0);
-  };
 
-  if(entry >= 0) {
-    RECT entryarea;
+/*
+** Description
+** Handle drop down menu
+**
+** 1999-01-09 CG
+*/
+static
+WORD
+handle_drop_down (WORD        apid,
+                  WORD        mx,
+                  WORD        my,
+                  HM_BUFFER * hm_buffer,
+                  WORD        menubox,
+                  WORD        title) {
+  WORD     entry;
+  WORD     deskbox;
+  GLOBAL_APPL * globals = get_globals (apid);
+  OBJECT * nmenu;
+  
+  deskbox = globals->menu[globals->menu[0].ob_tail].ob_head;
+
+  /*  if((deskbox == menubox) && (mouse_y >= globals.pmenutad[0].ob_y)) {
+    nmenu = globals.pmenutad;
+    entry = Objc_do_find(nmenu,0,9,mouse_x,mouse_y,0);
+    } else*/
+  {
+    nmenu = globals->menu;
+    entry = Objc_do_find (nmenu, menubox, 9, mx, my, 0);
+  }
+
+  if (entry >= 0) {
+    EVENTIN ei = {
+      MU_BUTTON | MU_M1,
+      0,
+      LEFT_BUTTON,
+      0,
+      MO_LEAVE,
+      {0,0,1,1},
+      0,
+      {0,0,0,0},
+      0,
+      0
+    };
+    COMMSG        buffer;
+    EVENTOUT      eo;
     
-    Objc_area_needed(nmenu,entry,&entryarea);
+    Objc_area_needed (nmenu, entry, &ei.m1r);
     
-    if(!(nmenu[entry].ob_state & DISABLED) && (entry != 0)) {
+    if (!(nmenu[entry].ob_state & DISABLED) && (entry != 0)) {
       /* select the entry and update it */
 
       nmenu[entry].ob_state |= SELECTED;
       
-      Objc_do_draw (apid, nmenu,0,9,&entryarea);
-    };
+      Objc_do_draw (globals->vid, nmenu, 0, 9, &ei.m1r);
+    }
 
     while(TRUE) {
-      EVNTREC er;
-                        
-      get_evntpacket(&er,0);
+      Evnt_do_multi (apid, &ei, &buffer, &eo, 0, DONT_HANDLE_MENU_BAR);
+      
+      if (eo.events & MU_M1) {
+        if(!(nmenu[entry].ob_state & DISABLED)) {
+          nmenu[entry].ob_state &= ~SELECTED;
+          
+          Objc_do_draw (globals->vid, nmenu, 0, 9, &ei.m1r);
+        }
         
-      switch((WORD)er.ap_event) {               
-      case APPEVNT_KEYBOARD :
-      case APPEVNT_TIMER :
-        break;  
-              
-      case APPEVNT_MOUSE        :
-        mouse_y = (WORD)(er.ap_value >> 16);
-        mouse_x = (WORD)er.ap_value;
-
-        if(!Misc_inside(&entryarea,mouse_x,mouse_y)) {
-          if(!(nmenu[entry].ob_state & DISABLED)) {
-            nmenu[entry].ob_state &= ~SELECTED;
-            
-            Objc_do_draw (apid, nmenu,0,9,&entryarea);
-          };
-                                        
-          return 0;
-        };
-        break;
-            
-      case APPEVNT_BUTTON       :
-        {
-          WORD changebut = (WORD)(mouse_button ^ er.ap_value);
-
-          mouse_button = (WORD)er.ap_value;
-
-          if(changebut & LEFT_BUTTON & (!mouse_button)) {
-            nmenu[entry].ob_state &= ~SELECTED;
+        return 0;
+      } else if (eo.events & MU_BUTTON) {
+        nmenu[entry].ob_state &= ~SELECTED;
                 
-            if(nmenu == 0 /*globals.pmenutad*/) {
-              /*
+            /*
+            if(nmenu == globals.pmenutad) {
               AP_LIST *mr;
               WORD    walk = entry - PMENU_FIRST;
                         
@@ -1325,7 +1331,7 @@ static WORD handle_drop_down(WORD apid,
               while(walk && mr) {
                 mr = mr->mn_next;
                 walk--;
-              };
+              }
                                                         
               if(walk) {
                 walk--;
@@ -1333,8 +1339,8 @@ static WORD handle_drop_down(WORD apid,
                 while(walk && mr) {
                   mr = mr->mn_next;
                   walk--;
-                };
-              };
+                }
+              }
                                                         
                                                 
               if(mr) {
@@ -1361,28 +1367,22 @@ static WORD handle_drop_down(WORD apid,
                 DB_printf("%s: Line %d: handle_drop_down:\r\n"
                           "Couldn't find application to top!\r\n",
                           __FILE__,__LINE__);
-              };
-              */
-              }
-            else {
-              hm_buffer->action = HM_MENU_MSG;
-              hm_buffer->title = title;
-              hm_buffer->item = entry;
-              hm_buffer->tree = nmenu;
-              hm_buffer->parent = menubox;
-            };
-            
-            return 1;
-          };
-        };
-        break;
+                          }
+          
+                          } else */
+        {
+          hm_buffer->action = HM_MENU_MSG;
+          hm_buffer->title = title;
+          hm_buffer->item = entry;
+          hm_buffer->tree = nmenu;
+          hm_buffer->parent = menubox;
+        }
         
-      default:
-        DB_printf("%s: Line %d: handle_drop_down:\r\n"
-                  "Unknown message.\r\n",__FILE__,__LINE__);
-      };
-    };  
-  };
+        return 1;
+      }
+    }
+  }
+
   return 0;
 }
 
@@ -1392,33 +1392,56 @@ static WORD handle_drop_down(WORD apid,
 ** Handle selected menu title
 **
 ** 1998-12-20 CG
+** 1999-01-09 CG
 */
 static
 WORD
-handle_selected_title (HM_BUFFER *hm_buffer) {
-  WORD    apid; /* FIXME Make this a parameter */
-  EVNTREC er;
-  WORD    box;
-  WORD    title;
-  WORD    deskbox;
+handle_selected_title (WORD        apid,
+                       HM_BUFFER * hm_buffer) {
+  EVNTREC       er;
+  WORD          box;
+  WORD          title;
+  WORD          deskbox;
+  GLOBAL_APPL * globals = get_globals (apid);
+  WORD          mx;
+  WORD          my;
+  WORD          mb;
+  WORD          ks;
+  EVENTIN       ei = {
+    MU_M1,
+    0,
+    0,
+    0,
+    MO_LEAVE,
+    {0,0,0,0},
+    0,
+    {0,0,0,0},
+    0,
+    0
+  };
+  COMMSG        buffer;
+  EVENTOUT      eo;
+  WORD          dropwin;
+
+  Graf_do_mkstate (apid, &mx, &my, &mb, &ks);
         
-  title = Objc_do_find(menu.tree, 0, 9, mouse_x, mouse_y, 0);
-  box = get_matching_menu(menu.tree, title);
+  title = Objc_do_find (globals->menu, 0, 9, mx, my, 0);
+  box = get_matching_menu (globals->menu, title);
   
-  deskbox = menu.tree[menu.tree[0].ob_tail].ob_head;
+  deskbox = globals->menu[globals->menu[0].ob_tail].ob_head;
           
-  if(box >= 0) {
+  if (box >= 0) {
     RECT area;
     RECT titlearea;
             
     /* select the title and update it */
             
-    menu.tree[title].ob_state |= SELECTED;
+    globals->menu[title].ob_state |= SELECTED;
 
-    Objc_area_needed(menu.tree,title,&titlearea);
-    Objc_do_draw (apid, menu.tree,0,9,&titlearea);
+    Objc_area_needed (globals->menu, title, &titlearea);
+    Objc_do_draw (globals->vid, globals->menu, 0, 9, &titlearea);
 
-    Objc_area_needed(menu.tree,box,&area);
+    Objc_area_needed (globals->menu, box, &area);
     
     if(box == deskbox) {
       WORD i;
@@ -1437,135 +1460,88 @@ handle_selected_title (HM_BUFFER *hm_buffer) {
       area.height = globals.pmenutad[0].ob_height + 
         (globals.pmenutad[1].ob_height << 1) + 2;
         */
-    };
+    }
 
-    menu.dropwin = Wind_do_create(0,0,&area,WIN_MENU);
+    dropwin = Wind_do_create (0, 0, &area, WIN_MENU);
     Wind_do_open (apid,
-                  menu.dropwin,
+                  dropwin,
                   &area);
 
-    menu.tree[box].ob_flags &= ~HIDETREE;
+    globals->menu[box].ob_flags &= ~HIDETREE;
 
-    if(box == deskbox) {
+    if(FALSE /*box == deskbox*/) {
       RECT clip = area;
 
       /*
       clip.height = globals.pmenutad[0].ob_y - area.y;
-      Objc_do_draw (apid, menu.tree,box,9,&clip);
+      Objc_do_draw (globals->vid, menu.tree,box,9,&clip);
       
       clip.y = globals.pmenutad[0].ob_y;
       clip.height = globals.pmenutad[0].ob_height + 1;
       Objc_do_draw (apid, globals.pmenutad,0,9,&clip);
       */
+    } else {
+      Objc_do_draw (globals->vid, globals->menu, box, 9, &area);
     }
-    else {
-      Objc_do_draw (apid, menu.tree,box,9,&area);
-    };
 
-    /* Start to wait for messages and rect 1 */
-    while(TRUE) {
-      get_evntpacket(&er,0);
-        
-      switch((WORD)er.ap_event) {               
-      case APPEVNT_BUTTON       :
-      case APPEVNT_KEYBOARD :
-      case APPEVNT_TIMER :
-        break;  
-        
-      case APPEVNT_MOUSE        :
-        mouse_x = (WORD)er.ap_value;
-        mouse_y = (WORD)(er.ap_value >> 16);
-        
-        if(!Misc_inside(&titlearea,mouse_x,mouse_y)) {
-          WORD closebox = 0;
+    ei.m1r = titlearea;
 
-          /*
-          if((deskbox == box) && (mouse_y >= globals.pmenutad[0].ob_y)) {
-            if(!Misc_inside((RECT *)&globals.pmenutad[0].ob_x,
-                            mouse_x,mouse_y) ||
-               (Objc_do_find(globals.pmenutad,0,9,mouse_x,mouse_y,0) < 0) ||
-               handle_drop_down(hm_buffer,box,title)) {
-              closebox = 1;
-            };
-          }
-          else if((Objc_do_find(menu.tree, box, 9, mouse_x, mouse_y,0)
-                   < 0) || handle_drop_down(hm_buffer,box,title)) {
+    /* Wait for mouse to leave title rectangle */
+    while (TRUE) {
+      WORD event;
+
+      Evnt_do_multi (apid, &ei, &buffer, &eo, 0, DONT_HANDLE_MENU_BAR);
+
+      if (eo.events & MU_M1) {
+        WORD closebox = 0;
+        
+        /* FIXME
+        if((deskbox == box) && (mouse_y >= globals.pmenutad[0].ob_y)) {
+          if(!Misc_inside((RECT *)&globals.pmenutad[0].ob_x, eo.mx, eo.my) ||
+             (Objc_do_find(globals.pmenutad, 0, 9, eo.mx, eo.my, 0) < 0) ||
+             handle_drop_down (apid, hm_buffer, box, title)) {
             closebox = 1;
-          };
-          */
-          if(closebox) {
-            menu.tree[title].ob_state &= ~SELECTED;
-            Objc_do_draw (apid, menu.tree,0,9,&titlearea);
-            
-            Wind_do_close (apid, menu.dropwin);
-            Wind_do_delete (apid, menu.dropwin);
-            
-            menu.tree[box].ob_flags |= HIDETREE;
-            
-            return 0;
-          };
-        };
-        break;
-            
-      default:
-        DB_printf("%s: Line %d: handle_selected_title:\r\n"
-                  "Unknown message.\r\n",__FILE__,__LINE__);
-      };
-    };  
-  };
+          }
+        } else
+        */
+        if ((Objc_do_find (globals->menu, box, 9, eo.mx, eo.my, 0) < 0) ||
+            handle_drop_down (apid, eo.mx, eo.my, hm_buffer, box, title)) {
+          closebox = 1;
+        }
+
+        if(closebox) {
+          globals->menu[title].ob_state &= ~SELECTED;
+          Objc_do_draw (globals->vid, globals->menu, 0, 9, &titlearea);
+          
+          Wind_do_close (apid, dropwin);
+          Wind_do_delete (apid, dropwin);
+          
+          globals->menu[box].ob_flags |= HIDETREE;
+          
+          return 0;
+        }
+      }
+    } 
+  }
   
   return 0;
 }
 
 
 /*
-** Description
-** Handle menu
+** Exported
 **
 ** 1998-12-20 CG
+** 1999-01-09 CG
 */
-static
 void
-handle_menu (WORD apid) {
+Evhd_handle_menu (WORD apid) {
   WORD      menu_handled = 0;
   EVNTREC   er;
   HM_BUFFER hm_buffer = {HM_NO,-1,NULL,-1,-1};
 
-  localize_mousevalues();
-  
-  menu.tree = Srv_get_top_menu();
-  
-  getmenuxpos(&menu.area.x,&menu.area.width);
-
-  while(!menu_handled) {
-    get_evntpacket(&er,0);
-
-    switch((WORD)er.ap_event) {         
-    case APPEVNT_BUTTON :
-    case APPEVNT_KEYBOARD :
-    case APPEVNT_TIMER :
-      break;    
-      
-    case APPEVNT_MOUSE  :
-      mouse_x = ((WORD *)&er.ap_value)[1];
-      mouse_y = ((WORD *)&er.ap_value)[0];
-
-      if(Misc_inside(&menu.area,mouse_x,mouse_y)) {
-        handle_selected_title(&hm_buffer);
-      };
-      
-      if(mouse_y > menu.area.height) {
-        globalize_mousevalues();
-        
-        menu_handled = 1;
-      };
-      break;
-      
-    default:
-      DB_printf("%s: Line %d: handle_menu:\r\n"
-                "Unknown message.\r\n",__FILE__,__LINE__);
-    };
-  };
+  handle_selected_title (apid,
+                         &hm_buffer);
 
   switch(hm_buffer.action) {
   case HM_NO:
@@ -1586,7 +1562,7 @@ handle_menu (WORD apid) {
       m.type = AC_OPEN;
     
       Appl_do_write (apid, m.msg0, 16, &m);
-    };
+    }
     break;
 
   case HM_TOP_APPL:
@@ -1606,12 +1582,12 @@ handle_menu (WORD apid) {
       m.parent = hm_buffer.parent;
       
       Appl_do_write (apid, TOP_MENU_OWNER, 16, &m);
-    };
+    }
     break;
 
   default:
     DB_printf("Unknown action %d\r\n",hm_buffer.action);
-  };
+  }
 }
 
 

@@ -197,6 +197,7 @@ void	Evnt_keybd(AES_PB *apb) {
 ** Exported
 **
 ** 1998-12-19 CG
+** 1999-01-09 CG
 */
 WORD
 Evnt_do_button (WORD   apid,
@@ -207,25 +208,25 @@ Evnt_do_button (WORD   apid,
                 WORD * my,
                 WORD * button,
                 WORD * kstate) {
-	EVENTIN	ei;
-
-	EVENTOUT	eo;
-
-	COMMSG	buf;
-
-	ei.events = MU_BUTTON;
-	ei.bclicks = clicks;
-	ei.bmask   = mask;
-	ei.bstate  = state;
-
-	Evnt_do_multi (apid, &ei, &buf, &eo, 0);
-	
-	*mx = eo.mx;
-	*my = eo.my;
-	*button = eo.mb;
-	*kstate = eo.ks;
-	
-	return eo.mc;
+  EVENTIN	ei;
+  
+  EVENTOUT	eo;
+  
+  COMMSG	buf;
+  
+  ei.events = MU_BUTTON;
+  ei.bclicks = clicks;
+  ei.bmask   = mask;
+  ei.bstate  = state;
+  
+  Evnt_do_multi (apid, &ei, &buf, &eo, 0, DONT_HANDLE_MENU_BAR);
+  
+  *mx = eo.mx;
+  *my = eo.my;
+  *button = eo.mb;
+  *kstate = eo.ks;
+  
+  return eo.mc;
 }
 
 
@@ -576,30 +577,30 @@ WORD     level)      /* Number of times the function has been called by     */
 ** 1998-12-13 CG
 ** 1998-12-19 CG
 ** 1999-01-01 CG
+** 1999-01-09 CG
 */
 void
 Evnt_do_multi (WORD       apid,
                EVENTIN  * eventin,
                COMMSG   * msg,
                EVENTOUT * eventout,
-               WORD       level)
+               WORD       level,
+               WORD       handle_menu_bar)
 {
-  C_EVNT_MULTI par;
-  R_EVNT_MULTI ret;
-  
+  C_EVNT_MULTI  par;
+  R_EVNT_MULTI  ret;
+  GLOBAL_APPL * globals = get_globals (apid);
+
   par.common.call = SRV_EVNT_MULTI;
   par.common.apid = apid;
   par.common.pid = getpid ();
   par.eventin = *eventin;
 
-  /*
-  par.eventin.events |= MU_M1;
-  par.eventin.m1flag = m1toggle;
-  par.eventin.m1r.x = 0;
-  par.eventin.m1r.y = 0;
-  par.eventin.m1r.width = 100;
-  par.eventin.m1r.height = 100;
-  */
+  /* Handle internal menu events */
+  if (handle_menu_bar && (globals->menu != NULL)) {
+    par.eventin.events |= MU_MENU_BAR;
+    par.eventin.menu_bar = globals->menu_bar_rect;
+  }
 
   Client_send_recv (&par,
                     sizeof (C_EVNT_MULTI),
@@ -607,6 +608,12 @@ Evnt_do_multi (WORD       apid,
                     sizeof (R_EVNT_MULTI));
 
   /* Handle messages */
+  if (ret.eventout.events & MU_MENU_BAR) {
+    Evhd_handle_menu (apid);
+
+    ret.eventout.events &= ~MU_MENU_BAR;
+  }
+
   if (ret.eventout.events & MU_MESAG) {
     if (ret.msg.type == WM_REDRAW) {
       /* Redraw window borders */
@@ -620,18 +627,6 @@ Evnt_do_multi (WORD       apid,
                         ret.eventout.my);
   }
 
-  /*
-  if (ret.eventout.events & MU_M1) {
-    if (m1toggle == MO_ENTER) {
-      DB_printf ("Got MO_ENTER");
-      m1toggle = MO_LEAVE;
-    } else {
-      DB_printf ("Got MO_LEAVE");
-      m1toggle = MO_ENTER;
-    }
-  }
-  */
-
   *msg = ret.msg;
   *eventout = ret.eventout;
 }
@@ -641,13 +636,16 @@ Evnt_do_multi (WORD       apid,
 ** Exported
 **
 ** 1998-12-19 CG
+** 1999-01-09 CG
 */
 void
 Evnt_multi (AES_PB *apb) {
   Evnt_do_multi(apb->global->apid,
                 (EVENTIN *)apb->int_in,
                 (COMMSG *)apb->addr_in[0],
-                (EVENTOUT *)apb->int_out,0);	
+                (EVENTOUT *)apb->int_out,
+                0,
+                HANDLE_MENU_BAR);
 }
 
 

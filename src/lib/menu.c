@@ -53,6 +53,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "appl.h"
 /*#include "boot.h"*/
@@ -61,15 +62,18 @@
 #include "form.h"
 #include "fsel.h"
 #include "gemdefs.h"
+#include "graf.h"
 #include "lib_global.h"
+#include "lib_misc.h"
 #include "mintdefs.h"
 #include "menu.h"
 #include "mesagdef.h"
-#include "lib_misc.h"
 #include "objc.h"
 #include "resource.h"
 #include "rsrc.h"
 #include "srv_calls.h"
+#include "srv_put.h"
+#include "srv_interface.h"
 #include "types.h"
 #include "wind.h"
 
@@ -149,6 +153,7 @@ Menu_exit_module(void) /*                                                   */
 **
 ** 1998-12-19 CG
 ** 1998-12-25 CG
+** 1999-01-09 CG
 */
 void
 Menu_handler (WORD   apid,
@@ -171,7 +176,7 @@ Menu_handler (WORD   apid,
   
   Srv_menu_register(mglob.menu_handl_apid,"  oAESis");
 
-  Srv_menu_bar(mglob.menu_handl_apid,globals->common->menutad,MENU_INSTALL);
+  Menu_do_bar(mglob.menu_handl_apid,globals->common->menutad,MENU_INSTALL);
   
   Wind_do_get (mglob.menu_handl_apid,
                0,
@@ -293,18 +298,135 @@ Menu_handler (WORD   apid,
   fprintf (stderr, "oaesis: menu.c: Leaving Menu_handler\n");
 }
 
-/****************************************************************************
- *  Menu_bar                                                                *
- *   0x001e menu_bar() library code.                                        *
- ****************************************************************************/
-void              /*                                                        */
-Menu_bar(         /*                                                        */
-AES_PB *apb)      /* Pointer to AES parameter block.                        */
-/****************************************************************************/
-{
-	apb->int_out[0] =
-		Srv_menu_bar(apb->global->apid,(OBJECT *)apb->addr_in[0],apb->int_in[0]);
+
+/*
+** Description
+** Creates and updates the menu list entries for the specified menu. 
+**
+** 1999-01-09 CG
+*/
+static
+WORD
+Menu_bar_install (WORD     apid,
+                  OBJECT * tree) {
+  WORD          i;
+  WORD          cheight;
+  WORD          cwidth;
+  WORD          height;
+  WORD          width;
+  GLOBAL_APPL * globals = get_globals (apid);
+
+  globals->menu = tree;
+  
+  Graf_do_handle (&cheight, &cwidth, &width, &height);
+
+  /* Modify width of menu*/
+  tree[0].ob_width = globals->common->screen.width;
+  tree[tree[0].ob_head].ob_width = globals->common->screen.width;
+
+  /* Modify height of bar ... */
+  tree[tree[0].ob_head].ob_height = cheight + 3;
+  /* ... and titles */
+  tree[tree[tree[0].ob_head].ob_head].ob_height = cheight + 3;
+
+#if 0
+  i = tree[tree[tree[0].ob_head].ob_head].ob_head;
+  
+  while(i != -1) {		
+    tree[i].ob_height = cheight + 3;
+    
+    if(i == tree[tree[i].ob_next].ob_tail) {
+      break;
+    }
+    
+    i = tree[i].ob_next;
+  }
+#endif
+  
+  /* Mark all drop down menus with HIDETREE and set y position */
+  tree[tree[tree[0].ob_head].ob_next].ob_y = cheight + 3;
+  
+  i = tree[tree[tree[0].ob_head].ob_next].ob_head;
+  
+  while(i != -1) {		
+    tree[i].ob_flags |= HIDETREE;
+    
+    if(i == tree[tree[i].ob_next].ob_tail) {
+      break;
+    }
+    
+    i = tree[i].ob_next;
+  }
+
+  /* Calculate menu bar area */
+  i = tree[tree[0].ob_head].ob_head;
+  
+  globals->menu_bar_rect.x =
+    tree[0].ob_x + tree[tree[0].ob_head].ob_x + tree[i].ob_x;
+  globals->menu_bar_rect.width =
+    tree[tree[i].ob_tail].ob_x + tree[tree[i].ob_tail].ob_width;
+  globals->menu_bar_rect.y = 0;
+  globals->menu_bar_rect.height = cheight + 3;
+
+  /* Return OK */
+  return 1;
 }
+
+
+/*
+** Exported
+**
+** 1999-01-09 CG
+*/
+WORD
+Menu_do_bar (WORD     apid,
+             OBJECT * tree,
+             WORD     mode) {
+  C_MENU_BAR    par;
+  R_MENU_BAR    ret;
+  GLOBAL_APPL * globals = get_globals (apid);
+  
+  par.common.call = SRV_MENU_BAR;
+  par.common.apid = apid;
+  par.common.pid = getpid ();
+
+  par.tree = tree;
+  par.mode = mode;
+
+  Client_send_recv (&par,
+                    sizeof (C_MENU_BAR),
+                    &ret,
+                    sizeof (R_MENU_BAR));
+
+  /*
+  ** FIXME
+  ** Check retval that the operation went fine
+  */
+  switch (mode) {
+  case MENU_REMOVE :
+    globals->menu = NULL;
+    break;
+  case MENU_INSTALL :
+    Menu_bar_install (apid, tree);
+    break;
+  }
+
+  return ret.common.retval;
+}
+
+
+/*
+** Exported
+**
+** 1999-01-09 CG
+*/
+void
+Menu_bar (AES_PB *apb) {
+  apb->int_out[0] = Menu_do_bar (apb->global->apid,
+                                 (OBJECT *)apb->addr_in[0],
+                                 apb->int_in[0]);
+}
+
 
 /****************************************************************************
  *  Menu_icheck                                                             *

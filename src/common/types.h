@@ -609,6 +609,7 @@ typedef struct
   RECT m2r;
   WORD locount;
   WORD hicount;
+  RECT menu_bar;
 }EVENTIN;
 
 typedef struct

@@ -81,8 +81,24 @@ typedef struct globalvars {
 
 extern GLOBALVARS	globals;
 
-void	init_global(WORD physical);
-void	exit_global(void);
+/*
+** Description
+** Initialize global variables
+**
+** 1999-01-09 CG
+*/
+void
+srv_init_global (WORD physical);
+
+
+/*
+** Description
+** Close down
+**
+** 1999-01-09 CG
+*/
+void
+srv_exit_global (void);
 
 #endif
 

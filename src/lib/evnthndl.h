@@ -73,4 +73,14 @@ WORD apid,             /* Application id.                                   */
 WORD mode);            /* Mode.                                             */
 /****************************************************************************/
 
+
+/*
+** Description
+** Handle menu
+**
+** 1999-01-09 CG
+*/
+void
+Evhd_handle_menu (WORD apid);
+
 #endif

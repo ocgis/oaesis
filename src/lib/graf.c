@@ -162,6 +162,7 @@ void Graf_exit_module(void) {
 ** 1998-12-25 CG
 ** 1998-12-26 CG
 ** 1999-01-03 CG
+** 1999-01-09 CG
 */
 WORD
 Graf_do_rubberbox (WORD   apid,
@@ -242,7 +243,7 @@ Graf_do_rubberbox (WORD   apid,
   ei.m1r.y = my;
 
   while (TRUE) {
-    Evnt_do_multi (apid, &ei, &buffer, &eo, 0);
+    Evnt_do_multi (apid, &ei, &buffer, &eo, 0, DONT_HANDLE_MENU_BAR);
 
     if (eo.events & MU_M1) {
       neww = eo.mx - bx;
@@ -328,6 +329,7 @@ Graf_rubberbox (AES_PB *apb) {
 ** 1998-12-25 CG
 ** 1998-12-26 CG
 ** 1999-01-03 CG
+** 1999-01-09 CG
 */
 WORD
 Graf_do_dragbox (WORD   apid,
@@ -404,7 +406,7 @@ Graf_do_dragbox (WORD   apid,
   ei.m1r.y = my;
   
   while (TRUE) {
-    Evnt_do_multi (apid, &ei, &buffer, &eo, 0);
+    Evnt_do_multi (apid, &ei, &buffer, &eo, 0, DONT_HANDLE_MENU_BAR);
 
     if (eo.events & MU_M1) {
       newx = eo.mx + relx;
@@ -635,6 +637,7 @@ AES_PB *apb)      /* AES parameter block.                                   */
 **
 ** 1998-12-19 CG
 ** 1998-12-23 CG
+** 1999-01-09 CG
 */
 WORD
 Graf_do_watchbox (WORD     apid,
@@ -685,7 +688,7 @@ Graf_do_watchbox (WORD     apid,
   Wind_do_update (apid, BEG_MCTRL);
   
   while (TRUE) {
-    Evnt_do_multi (apid, &ei, &buffer, &eo, 0);
+    Evnt_do_multi (apid, &ei, &buffer, &eo, 0, DONT_HANDLE_MENU_BAR);
     
     if(eo.events & MU_BUTTON) {
       break;
@@ -786,17 +789,27 @@ Graf_slidebox (AES_PB *apb) {
                                      apb->int_in[2]);
 }
 
+
 /*graf_handle 0x004d*/
 
-void Graf_do_handle(WORD *cwidth,WORD *cheight,WORD *width
-                    ,WORD *height) {
-  /*
-  *cwidth = globals->common->clwidth;
-  *cheight = globals->common->clheight;
-  *width = globals->common->blwidth;
-  *height = globals->common->blheight;
-  */
+/*
+** Exported
+**
+** 1999-01-09 CG
+*/
+void
+Graf_do_handle (WORD * cwidth,
+                WORD * cheight,
+                WORD * width,
+                WORD * height) {
+  GLOBAL_COMMON * globals = get_global_common ();
+
+  *cwidth = globals->clwidth;
+  *cheight = globals->clheight;
+  *width = globals->blwidth;
+  *height = globals->blheight;
 }
+
 
 void    Graf_handle(AES_PB *apb) {
   GLOBAL_APPL * globals = get_globals (apb->global->apid);

@@ -164,6 +164,7 @@ WORD own_graf_handle(void) {
 ** 1998-11-15 CG
 ** 1999-01-01 CG
 ** 1999-01-06 CG
+** 1999-01-09 CG
 */
 void
 init_global (WORD nocnf,
@@ -254,30 +255,17 @@ init_global (WORD nocnf,
   /* setup systemfont information */
   
   if(global_common.screen.height >= 400) {
-    if(global_common.fnt_regul_id == -1) {
-      global_common.fnt_regul_id = 1;
-    };
-    
-    if(global_common.fnt_regul_sz == -1) {
-      global_common.fnt_regul_sz = 13;
-    };
+    global_common.fnt_regul_id = 1;
+    global_common.fnt_regul_sz = 13;
+  } else {
+    global_common.fnt_regul_id = 1;
+    global_common.fnt_regul_sz = 9;
   }
-  else {
-    if(global_common.fnt_regul_id == -1) {
-      global_common.fnt_regul_id = 1;
-    };
-    
-    if(global_common.fnt_regul_sz == -1) {
-      global_common.fnt_regul_sz = 9;
-    };
-  };
   
   global_common.fnt_small_id = global_common.fnt_regul_id;
   global_common.fnt_small_sz = global_common.fnt_regul_sz / 2;
   
-  DB_printf ("lib_global.c: init_global: calling vst_font");
   Vdi_vst_font(global_common.vid, global_common.fnt_regul_id);
-  DB_printf ("lib_global.c: init_global: calling vst_point");
   Vdi_vst_point(global_common.vid,global_common.fnt_regul_sz,&dum,&dum,&dum,&dum);
   
   /*
@@ -351,6 +339,9 @@ init_global (WORD nocnf,
 
   /* There is no default desktop background */
   global_appl.desktop_background = NULL;
+
+  /* There is no default menu */
+  global_appl.menu = NULL;
 
   /* Setup resource header and resource file */
   global_appl.rscfile = NULL;

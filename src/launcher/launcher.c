@@ -218,10 +218,6 @@ updatewait (int wid) {
     } else if(happ & MU_TIMER) {
       VRECT     delete;
 
-      /*
-      fprintf (stderr, "lines.prg: evnt_multi returned MU_TIMER\n");
-      */
-
       delete = lines[(lastline + 1) % NUM_LINES];
       lines[(lastline + 1) % NUM_LINES] = lines[lastline];
       lastline = (lastline + 1) % NUM_LINES;
@@ -261,11 +257,6 @@ updatewait (int wid) {
       wind_update(BEG_UPDATE);
       
       wind_get(wid,WF_FIRSTXYWH,&x,&y,&w,&h);
-
-      /*
-      fprintf (stderr, "wind_get (WF_FIRSTXYWH...): x=%d y=%d w=%d h=%d\n",
-               x, y, w, h);
-               */
 
       while((w > 0) && (h > 0)) {
         int     xyxy[4];
@@ -309,19 +300,13 @@ void testwin(void)
   
   WORD  wid;
   
-  wid = wind_create(NAME|MOVER|FULLER|SIZER|CLOSER,0,0,640,480);
+  wind_get(0,WF_WORKXYWH,&xoff,&yoff,&woff,&hoff);
+
+  wid = wind_create(NAME|MOVER|FULLER|SIZER|CLOSER, xoff, yoff, woff, hoff);
 
   wind_set (wid, WF_NAME, (long)title >> 16, (long)title & 0xffff, 0, 0);
   
-  /*
-  wind_get(0,WF_WORKXYWH,&xoff,&yoff,&woff,&hoff);
-  */
-
-  xoff = 0;
-  yoff = 0;
-  woff = 640;
-  hoff = 480;
-  wind_open(wid,xoff,yoff,woff,hoff);
+  wind_open (wid, xoff, yoff, woff / 2, hoff / 2);
 
   updatewait(wid);
 
@@ -339,6 +324,7 @@ void testwin(void)
 ** 1999-01-01 CG
 ** 1999-01-03 CG
 ** 1999-01-06 CG
+** 1999-01-09 CG
 */
 int
 main ()
@@ -347,6 +333,7 @@ main ()
   
   int      work_out[57];
   OBJECT * desktop_bg;
+  OBJECT * menu;
   char     path[] = "/usr/dum";
   char     file[] = "djuro";
   short    exit_button;
@@ -369,6 +356,12 @@ main ()
             LO_WORD(desktop_bg),
             0,
             0);
+
+  /* Get address of the menu */
+  rsrc_gaddr (R_TREE, MENU, &menu);
+
+  /* Install menu */
+  menu_bar (menu, MENU_INSTALL);
 
   vid = graf_handle (&wc, &hc, &wb, &hb);
   v_opnvwk(work_in,&vid,work_out);

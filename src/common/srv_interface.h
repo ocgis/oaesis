@@ -175,11 +175,14 @@ typedef struct {
 } R_GRAF_MOUSE;
 
 typedef struct {
-  WORD   apid;
-  OBJECT *tree;
-  WORD   mode;
-  WORD   retval;
-}C_MENU_BAR;
+  C_ALL    common;
+  OBJECT * tree;
+  WORD     mode;
+} C_MENU_BAR;
+
+typedef struct {
+  R_ALL common;
+} R_MENU_BAR;
 
 typedef struct {
   BYTE *title;
@@ -355,6 +358,7 @@ typedef union {
   R_GET_VDI_ID   get_vdi_id;
   R_GRAF_MKSTATE graf_mkstate;
   R_GRAF_MOUSE   graf_mouse;
+  R_MENU_BAR     menu_bar;
   R_WIND_CLOSE   wind_close;
   R_WIND_CREATE  wind_create;
   R_WIND_DELETE  wind_delete;
@@ -364,5 +368,20 @@ typedef union {
   R_WIND_SET     wind_set;
   R_WIND_UPDATE  wind_update;
 } R_SRV;
+
+/*
+** Predefined window ids
+**
+** 1999-01-09 CG
+*/
+#define DESKTOP_WINDOW  0
+#define MENU_BAR_WINDOW 1
+
+/*
+** Internal events used with evnt_multi ()
+**
+** 1999-01-09 CG
+*/
+#define MU_MENU_BAR 0x8000
 
 #endif /* _SRV_INTERFACE_H_ */

@@ -13,6 +13,7 @@
 */
 
 #include <stdarg.h>
+#include <stdio.h>
 
 #include "aesbind.h"
 
@@ -20,7 +21,7 @@ static short contrl[5];
 static short global[15];
 static short intin[16];
 static short intout[7];
-static long  addrin[2];
+static long  addrin[3];
 static long  addrout[1];
 static AESPB aespb = {contrl, global, intin, intout, addrin, addrout};
 
@@ -170,7 +171,25 @@ graf_mouse (int    Form,
 
   aespb.intin[0] = Form;
   
-  aespb.addrin[0] = FormAddress;
+  aespb.addrin[0] = (long)FormAddress;
+
+  aes_call (&aespb);
+
+  return aespb.intout[0];
+}
+
+
+short
+menu_bar (void * tree,
+          short  mode) {
+  aespb.contrl[0] = 30;
+  aespb.contrl[1] = 1;
+  aespb.contrl[2] = 1;
+  aespb.contrl[3] = 1;
+  aespb.contrl[4] = 0;
+
+  aespb.addrin[0] = (long)tree;
+  aespb.intin[0] = mode;
 
   aes_call (&aespb);
 

@@ -2613,7 +2613,6 @@ CPPFLAGS="$CPPFLAGS -Wall"
 
 
 
-
 trap '' 1 2 15
 cat > confcache <<\EOF
 # This file is a shell script that caches the results of configure
@@ -2996,8 +2995,8 @@ fi; done
 EOF
 
 cat >> $CONFIG_STATUS <<EOF
-ac_sources="src/common/debug.c src/common/debug.c src/comm/srv_get_sockets.c src/comm/srv_put_sockets.c src/common/vdi.c src/common/vdi.c src/lib/resource.h"
-ac_dests="src/lib/debug.c src/server/debug.c src/server/srv_get.c src/lib/srv_put.c src/lib/vdi.c src/server/vdi.c src/server/resource.h"
+ac_sources="src/common/debug.c src/common/debug.c src/comm/srv_get_sockets.c src/comm/srv_put_sockets.c src/common/vdi.c src/common/vdi.c"
+ac_dests="src/lib/debug.c src/server/debug.c src/server/srv_get.c src/lib/srv_put.c src/lib/vdi.c src/server/vdi.c"
 EOF
 
 cat >> $CONFIG_STATUS <<\EOF

@@ -67,6 +67,7 @@
 ** Exported
 **
 ** 1998-12-19 CG
+** 1999-01-09 CG
 */
 WORD
 Form_do_do(WORD     apid,
@@ -97,8 +98,8 @@ Form_do_do(WORD     apid,
 
   Evhd_wind_update(apid,BEG_MCTRL);
 	
-  while(1) {
-    Evnt_do_multi (apid, &ei, (COMMSG *)buffer, &eo, 0);
+  while (TRUE) {
+    Evnt_do_multi (apid, &ei, (COMMSG *)buffer, &eo, 0, DONT_HANDLE_MENU_BAR);
 
     if(eo.events & MU_BUTTON) {
       object = Objc_do_find(tree,0,9,eo.mx,eo.my,0);

@@ -325,6 +325,7 @@ static DIRENTRY *find_entry(DIRDESC *dd,WORD pos) {
 **
 ** 1998-12-19 CG
 ** 1999-01-01 CG
+** 1999-01-09 CG
 */
 static
 void
@@ -365,8 +366,13 @@ slider_handle (WORD      apid,
     Graf_do_mouse (apid, FLAT_HAND, NULL);
     Objc_do_change (apid, tree, FISEL_SLIDER, clip, SELECTED, REDRAW);
 
-    while(1) {
-      Evnt_do_multi (apid, &ei, (COMMSG *)buffer, &eo, 0);
+    while (TRUE) {
+      Evnt_do_multi (apid,
+                     &ei,
+                     (COMMSG *)buffer,
+                     &eo,
+                     0,
+                     DONT_HANDLE_MENU_BAR);
 
       if(eo.events & MU_BUTTON) {
 

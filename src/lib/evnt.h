@@ -36,14 +36,19 @@ Evnt_do_button(WORD   apid,
 ** Implementation of evnt_multi.                                           *
 **
 ** 1998-12-19 CG
+** 1999-01-09 CG
 */
 void
 Evnt_do_multi(WORD       apid,
               EVENTIN  * ei,
               COMMSG   * buf,
               EVENTOUT * eo,
-              WORD       level);
+              WORD       level,
+              WORD       handle_menu_bar);
 
+/* Values used with handle_menu_bar */
+#define HANDLE_MENU_BAR      TRUE
+#define DONT_HANDLE_MENU_BAR FALSE
 
 void	Evnt_keybd(AES_PB *apb);	/*0x0014*/
 void	Evnt_button(AES_PB *apb);	/*0x0015*/

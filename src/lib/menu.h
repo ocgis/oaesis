@@ -30,6 +30,17 @@ WORD   apid,
 BYTE * envp[]);        /* Environment string.                               */
 /****************************************************************************/
 
+/*
+** Description
+** 0x001e menu_bar () library code
+**
+** 1999-01-09 CG
+*/
+WORD
+Menu_do_bar (WORD     apid,
+             OBJECT * tree,
+             WORD     mode);
+
 /****************************************************************************
  *  Menu_bar                                                                *
  *   0x001e menu_bar() library code.                                        *

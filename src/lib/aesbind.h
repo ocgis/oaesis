@@ -817,7 +817,9 @@ int graf_watchbox (void *Tree, int Object, int InState,
 
 int menu_attach (int me_flag, OBJECT *me_tree, int me_item,
                                   MENU_T *me_mdata);
-int menu_bar (void *Tree, int ShowFlag);
+short
+menu_bar (void * tree,
+          short  mode);
 int menu_icheck (void *Tree, int Item, int CheckFlag);
 int menu_ienable (void *Tree, int Item, int EnableFlag);
 int menu_istart (int me_flag, OBJECT *me_tree,
