@@ -1472,13 +1472,13 @@ get_char_bound(OBJECT * tree,
   WORD            lastreal = 0;
   U_OB_SPEC       obspec;
 	
-  if(OB_FLAGS(&tree[object]) & INDIRECT)
+  if(OB_FLAGS(&tree[obj]) & INDIRECT)
   {
-    obspec = *((U_OB_SPEC *)OB_SPEC(&tree[object]));
+    obspec = *((U_OB_SPEC *)OB_SPEC(&tree[obj]));
   }
   else
   {
-    obspec.index = OB_SPEC(&tree[object]);
+    obspec.index = OB_SPEC(&tree[obj]);
   }
 
   ptmplt = TE_PTMPLT(obspec.tedinfo);
