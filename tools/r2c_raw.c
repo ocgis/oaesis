@@ -1,3 +1,4 @@
+#include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -197,7 +198,7 @@ main (int    argc,
     switch(type) {
     case	0:
     case	1:		
-      fprintf(fput,"%d\n",tree);
+      fprintf(fput,"%d\n",ntohs(tree));
       lower(dumstring);
       strcat(dumstring,"tad");
       insert(tree,dumstring,&treeindx);
@@ -205,15 +206,15 @@ main (int    argc,
       
     case	2:	
     case	3:
-      fprintf(fput,"%d\n",tree);
+      fprintf(fput,"%d\n",ntohs(tree));
       break;
       
     default:
-      fprintf(fput,"%d\n",number);
-    };
+      fprintf(fput,"%d\n",ntohs(number));
+    }
     
     read(fpin, &type, 1);
-  };	
+  }
   
   fprintf(fput,"\n");
   

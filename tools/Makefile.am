@@ -1,16 +1,9 @@
-LINUX_PRGS = switchvt
-MISC_PRGS = r2c_raw
+# FIXME : There are problems with conditional build of switchvt
 
-if MINT_TARGET
-  noinst_PROGRAMS = $(MISC_PRGS)
-else
-  noinst_PROGRAMS = $(LINUX_PRGS) $(MISC_PRGS)
-endif
-
-EXTRA_PROGRAMS = $(LINUX_PRGS) $(MISC_PRGS)
+noinst_PROGRAMS = r2c_raw
 
 r2c_raw_SOURCES = r2c_raw.c
 
 switchvt_SOURCES = switchvt.c
 
-EXTRA_DIST = Makefile.purec
+EXTRA_DIST = Makefile.purec $(r2c_raw_SOURCES) $(switchvt_SOURCES)
