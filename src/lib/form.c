@@ -1,32 +1,17 @@
-/****************************************************************************
+/*
+** form.c
+**
+** Copyright 1996 - 2000 Christer Gustavsson <cg@nocrew.org>
+**
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+**  
+** Read the file COPYING for more information.
+**
+*/
 
- Module
-  form.c
-  
- Description
-  Form handling routines in oAESis.
-  
- Author(s)
- 	cg (Christer Gustavsson <d2cg@dtek.chalmers.se>)
-
- Revision history
- 
-  960101 cg
-   Added standard header.
-   Basic form_keybd() implemented with Form_keybd() and Form_do_keybd().
- 
-  960419 cg
-   Fixed error in form_keybd(). The Compendium was wrong (again!).
-   
- Copyright notice
-  The copyright to the program code herein belongs to the authors. It may
-  be freely duplicated and distributed without fee, but not charged for.
- 
- ****************************************************************************/
-
-/****************************************************************************
- * Used interfaces                                                          *
- ****************************************************************************/
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -37,6 +22,7 @@
 #endif
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "aesbind.h"
@@ -52,13 +38,6 @@
 #include "types.h"
 #include "wind.h"
 
-/****************************************************************************
- * Local functions (use static!)                                            *
- ****************************************************************************/
-
-/****************************************************************************
- * Public functions                                                         *
- ****************************************************************************/
 
 /*form_do 0x0032*/
 
@@ -292,54 +271,67 @@ void Form_dial(AES_PB *apb)
 				 (RECT *)&apb->int_in[5]);
 }
 
+
 /*
 ** Description
 ** Implementation of form_alert ()
-**
-** 1998-12-19 CG
-** 1999-01-11 CG
 */
 static
 WORD
-Form_do_alert (WORD   apid,
-               WORD   def,
-               BYTE * alertstring) {
-  BYTE	*s = (BYTE *)Mxalloc(strlen(alertstring) + 1,PRIVATEMEM);
+Form_do_alert(WORD   apid,
+              WORD   def,
+              BYTE * alertstring)
+{
+  BYTE *        s;
+  WORD          i;
+  WORD          no_rows;
+  WORD          no_butts;
+  WORD          cwidth,cheight,width,height;
+  WORD          but_chosen;
 	
-  WORD	i = 0;
-	
-  WORD	no_rows = 1,no_butts = 1;
-	
-  WORD	cwidth,cheight,width,height;
-	
-  WORD	but_chosen;
-	
-  OBJECT	*tree;
-  TEDINFO	*ti;
-	
-  RECT	 clip;
-	
-  BYTE	 *icon,*text,*buttons;
+  OBJECT *      tree;
+  TEDINFO *     ti;
 
-  WORD	 textwidth = 0,buttonwidth = 0;
-  GLOBAL_APPL * globals = get_globals (apid);
+  RECT          clip;
 	
+  BYTE *        icon;
+  BYTE *        text;
+  BYTE *        buttons;
+
+  WORD          textwidth;
+  WORD          buttonwidth;
+  GLOBAL_APPL * globals;
+	
+  s = (BYTE *)malloc(strlen(alertstring) + 1);
+  i = 0;
+  no_rows = 1;
+  no_butts = 1;
+  textwidth = 0;
+  buttonwidth = 0;
+  globals = get_globals (apid);
+
   Graf_do_handle(&cwidth,&cheight,&width,&height);
 	
   strcpy(s,alertstring);
 	
   while(s[i] != '[')
+  {
     i++;
-	
+  }
+
   icon = &s[i + 1];
 	
   while(s[i] != ']')
+  {
     i++;
+  }
 	
   s[i] = 0;
 		
   while(s[i] != '[')
+  {
     i++;
+  }
 		
   text = &s[i + 1];
 	
@@ -349,16 +341,18 @@ Form_do_alert (WORD   apid,
     {
       s[i] = 0;
       no_rows++;
-    };
+    }
 		
     i++;
-  };
+  }
 	
   s[i] = 0;
 	
   while(s[i] != '[')
+  {
     i++;
-		
+  }
+	
   buttons = &s[i + 1];
 	
   while(s[i] != ']')
@@ -367,27 +361,30 @@ Form_do_alert (WORD   apid,
     {
       s[i] = 0;
       no_butts++;
-    };
+    }
 		
     i++;
-  };
-		
+  }
+	
   s[i] = 0;
 	
-  tree = (OBJECT *)Mxalloc((2 + no_butts + no_rows) * sizeof(OBJECT)
-                           ,PRIVATEMEM);
+  tree = (OBJECT *)malloc((2 + no_butts + no_rows) * sizeof(OBJECT));
 	
-  ti = (TEDINFO *)Mxalloc(no_rows * sizeof(TEDINFO),PRIVATEMEM);
+  ti = (TEDINFO *)malloc(no_rows * sizeof(TEDINFO));
 	
   memcpy(&tree[0],&globals->common->alerttad[0],sizeof(OBJECT));
 	
   tree[0].ob_head = -1;
   tree[0].ob_tail = -1;
 	
-  for(i = 0; i < no_rows; i ++) {
-    memcpy(&tree[1 + i],&globals->common->alerttad[AL_TEXT],sizeof(OBJECT));
-    memcpy(&ti[i],globals->common->alerttad[AL_TEXT].ob_spec.tedinfo
-           ,sizeof(TEDINFO));
+  for(i = 0; i < no_rows; i ++)
+  {
+    memcpy(&tree[1 + i],
+           &globals->common->alerttad[AL_TEXT],
+           sizeof(OBJECT));
+    memcpy(&ti[i],
+           globals->common->alerttad[AL_TEXT].ob_spec.tedinfo,
+           sizeof(TEDINFO));
     tree[i + 1].ob_width = (WORD)(strlen(text) * cwidth);
     tree[i + 1].ob_height = globals->common->clheight;
     tree[i + 1].ob_spec.tedinfo = &ti[i];
@@ -397,18 +394,25 @@ Form_do_alert (WORD   apid,
     OB_FLAGS_CLEAR(&tree[i + 1], LASTOB);
 
     if(tree[i + 1].ob_width > textwidth)
+    {
       textwidth = tree[i + 1].ob_width;
+    }
 
     while(*text)
+    {
       text++;
+    }
 			
     text++;
 	
     do_objc_add(tree,0,i + 1);
-  };
+  }
 
-  for(i = 0; i < no_butts; i ++) {
-    memcpy(&tree[1 + i + no_rows],&globals->common->alerttad[AL_BUTTON],sizeof(OBJECT));
+  for(i = 0; i < no_butts; i ++)
+  {
+    memcpy(&tree[1 + i + no_rows],
+           &globals->common->alerttad[AL_BUTTON],
+           sizeof(OBJECT));
 	
     tree[i + 1 + no_rows].ob_y = no_rows * globals->common->clheight + 20;
 
@@ -429,31 +433,39 @@ Form_do_alert (WORD   apid,
     buttons++;
 	
     do_objc_add(tree,0,i + 1 + no_rows);
-  };
+  }
 	
-  memcpy(&tree[1 + no_butts + no_rows],&globals->common->alerttad[AL_ICON],sizeof(OBJECT));
+  memcpy(&tree[1 + no_butts + no_rows],
+         &globals->common->alerttad[AL_ICON],
+         sizeof(OBJECT));
 
   do_objc_add(tree,0,1 + no_butts + no_rows);
 
-  switch(*icon) {
+  switch(*icon)
+  {
   case '1':
-    tree[1 + no_butts + no_rows].ob_spec.index = globals->common->aiconstad[AIC_EXCLAMATION].ob_spec.index;
+    tree[1 + no_butts + no_rows].ob_spec.index =
+      globals->common->aiconstad[AIC_EXCLAMATION].ob_spec.index;
     break;
 
   case '2':
-    tree[1 + no_butts + no_rows].ob_spec.index = globals->common->aiconstad[AIC_QUESTION].ob_spec.index;
+    tree[1 + no_butts + no_rows].ob_spec.index =
+      globals->common->aiconstad[AIC_QUESTION].ob_spec.index;
     break;
 
   case '3':
-    tree[1 + no_butts + no_rows].ob_spec.index = globals->common->aiconstad[AIC_STOP].ob_spec.index;
+    tree[1 + no_butts + no_rows].ob_spec.index =
+      globals->common->aiconstad[AIC_STOP].ob_spec.index;
     break;
 
   case '4':
-    tree[1 + no_butts + no_rows].ob_spec.index = globals->common->aiconstad[AIC_INFO].ob_spec.index;
+    tree[1 + no_butts + no_rows].ob_spec.index =
+      globals->common->aiconstad[AIC_INFO].ob_spec.index;
     break;
 
   case '5':
-    tree[1 + no_butts + no_rows].ob_spec.index = globals->common->aiconstad[AIC_DISK].ob_spec.index;
+    tree[1 + no_butts + no_rows].ob_spec.index =
+      globals->common->aiconstad[AIC_DISK].ob_spec.index;
     break;
 
   default:
@@ -471,41 +483,43 @@ Form_do_alert (WORD   apid,
 
   tree[0].ob_width = (buttonwidth + 10) * no_butts + 10;
 	
-  if(textwidth + 28 + tree[1 + no_butts + no_rows].ob_width
-     > tree[0].ob_width) {
+  if((textwidth + 28 + tree[1 + no_butts + no_rows].ob_width) >
+     tree[0].ob_width)
+  {
     tree[0].ob_width = textwidth + 28 +
       tree[1 + no_butts + no_rows].ob_width;
-  };
+  }
 	
   tree[0].ob_height = globals->common->clheight * no_rows + 45;
 	
-  for(i = 0; i < no_rows; i++) {
-    tree[i + 1].ob_x = (tree[0].ob_width - textwidth - 
-			tree[1 + no_butts + no_rows].ob_width) / 2 +
-      tree[1 + no_butts + no_rows].ob_width + 8;
+  for(i = 0; i < no_rows; i++)
+  {
+    tree[i + 1].ob_x = 
+      (tree[0].ob_width - textwidth - tree[1 + no_butts + no_rows].ob_width) /
+      2 + tree[1 + no_butts + no_rows].ob_width + 8;
     tree[i + 1].ob_y = i * globals->common->clheight + 10;
-  };
+  }
 	
-  for(i = 0; i < no_butts; i++) {
-    tree[i + no_rows + 1].ob_x = (buttonwidth + 10) * i
-      + ((tree[0].ob_width - (buttonwidth + 10) * no_butts
-          +10) >> 1);
+  for(i = 0; i < no_butts; i++)
+  {
+    tree[i + no_rows + 1].ob_x = (buttonwidth + 10) * i +
+      ((tree[0].ob_width - (buttonwidth + 10) * no_butts + 10) >> 1);
     tree[i + 1 + no_rows].ob_width = buttonwidth;
-  };
+  }
 	
   Form_do_center (apid,tree,&clip);
-
+  
   Form_do_dial(apid,FMD_START,&clip,&clip);
-
+  
   Objc_do_draw (globals->vid, tree,0,9,&clip);
-
+  
   but_chosen = Form_do_do (apid, tree, 0) & 0x7fff;
-	
+  
   Form_do_dial(apid,FMD_FINISH,&clip,&clip);
-
-  Mfree(ti);
-  Mfree(tree);
-  Mfree(s);
+  
+  free(ti);
+  free(tree);
+  free(s);
 	
   return but_chosen - no_rows;
 }

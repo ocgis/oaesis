@@ -1,36 +1,16 @@
-/****************************************************************************
-
- Module
-  fsel.c
-  
- Description
-  File selection routines in oAESis.
-  
- Author(s)
- 	cg (Christer Gustavsson <d2cg@dtek.chalmers.se>)
-   jps (Jan Paul Schmidt <Jan.P.Schmidt@mni.fh-giessen.de>)
- 	
- Revision history
- 
-  951225 cg
-   Added standard header.
-	
-  960103 cg
-   Added Fsel_exinput().
- 
-  960816 jps
-   Added directory_sort().
-
-
- Copyright notice
-  The copyright to the program code herein belongs to the authors. It may
-  be freely duplicated and distributed without fee, but not charged for.
- 
- ****************************************************************************/
-
-/****************************************************************************
- * Used interfaces                                                          *
- ****************************************************************************/
+/*
+** fsel.c
+**
+** Copyright 1996 - 2000 Christer Gustavsson <cg@nocrew.org>
+**
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+**  
+** Read the file COPYING for more information.
+**
+*/
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -67,9 +47,6 @@
 #include "types.h"
 #include "wind.h"
 
-/****************************************************************************
- * Typedefs of module global interest                                       *
- ****************************************************************************/
 
 typedef struct direntry {
 	UWORD type;
@@ -85,15 +62,9 @@ typedef struct dirdesc {
 	WORD	pos;
 }DIRDESC;
 
-/****************************************************************************
- * Module global variables                                                  *
- ****************************************************************************/
 
 static BYTE	nullstr[] = "";
 
-/****************************************************************************
- * Local functions (use static!)                                            *
- ****************************************************************************/
 
 static void directory_sort(DIRDESC *dd, WORD fsel_sorted) {
   if(fsel_sorted) {
@@ -222,7 +193,7 @@ mint_set_path (BYTE *    pattern,
         
         fa = Fattrib(filepath,0,0);
         if((fa & 0x10) || (!globcmp(pat,&name[4]))) {
-          DIRENTRY *detmp = (DIRENTRY *)Mxalloc(sizeof(DIRENTRY),PRIVATEMEM);
+          DIRENTRY *detmp = (DIRENTRY *)malloc(sizeof(DIRENTRY));
           DIRENTRY **dwalk = &dd->dent;
           
           if(fa & 0x10) {
@@ -231,7 +202,7 @@ mint_set_path (BYTE *    pattern,
             detmp->type = S_IFREG;
           }
           
-          detmp->name = (BYTE *)Mxalloc(strlen(&name[4]) + 4,PRIVATEMEM);
+          detmp->name = (BYTE *)malloc(strlen(&name[4]) + 4);
           sprintf(detmp->name,"   %s",&name[4]);
           
           if(detmp->type == S_IFDIR) {
@@ -309,7 +280,7 @@ unix_set_path (BYTE *    pattern,
         }
 
         if((S_ISDIR (st_buf.st_mode)) || (!globcmp (pat, dir_entry->d_name))) {
-          DIRENTRY *detmp = (DIRENTRY *)Mxalloc(sizeof(DIRENTRY),PRIVATEMEM);
+          DIRENTRY *detmp = (DIRENTRY *)malloc(sizeof(DIRENTRY));
           DIRENTRY **dwalk = &dd->dent;
           
           if (S_ISDIR (st_buf.st_mode)) {
@@ -319,7 +290,7 @@ unix_set_path (BYTE *    pattern,
           }
           
           detmp->name =
-            (BYTE *)Mxalloc (strlen (dir_entry->d_name) + 4, PRIVATEMEM);
+            (BYTE *)malloc (strlen (dir_entry->d_name) + 4);
           sprintf (detmp->name, "   %s", dir_entry->d_name);
           
           if(detmp->type == S_IFDIR) {
@@ -354,21 +325,21 @@ unix_set_path (BYTE *    pattern,
 /*
 ** Description
 ** FIXME
-**
-** 1999-01-25 CG
 */
 static
 void
-reset_dirdesc (DIRDESC *dd) {
+reset_dirdesc (DIRDESC *dd)
+{
   DIRENTRY *dwalk = dd->dent;
   
-  while (dwalk) {
+  while(dwalk)
+  {
     DIRENTRY *tmp = dwalk;
     
     dwalk = dwalk->next;
     
-    Mfree(tmp->name);
-    Mfree(tmp);
+    free(tmp->name);
+    free(tmp);
   }
   
   dd->dent = NULL;

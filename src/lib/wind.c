@@ -1,38 +1,20 @@
-/****************************************************************************
+/*
+** wind.c
+**
+** Copyright 1996 - 2000 Christer Gustavsson <cg@nocrew.org>
+**
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+**  
+** Read the file COPYING for more information.
+**
+*/
 
- Module
-  wind.c
-  
- Description
-  Window routines used in oAESis.
-  
- Author(s)
-  cg     (Christer Gustavsson <d2cg@dtek.chalmers.se>)
-
- Revision history
- 
-  951226 cg
-   Added standard header.
-  960101 cg
-   Added BEG_MCTRL and END_MCTRL modes to wind_update.
-  960102 cg
-   WF_TOP mode of wind_get() implemented.
-  960103 cg
-   WF_NEWDESK mode of wind_set() implemented.
-   WF_HSLIDE, WF_VSLIDE, WF_VSLSIZE and WF_HSLSIZE modes of wind_set()
-   and wind_get() implemented.
- 
- Copyright notice
-  The copyright to the program code herein belongs to the authors. It may
-  be freely duplicated and distributed without fee, but not charged for.
- 
- ****************************************************************************/
 
 #define DEBUGLEVEL 0
 
-/****************************************************************************
- * Used interfaces                                                          *
- ****************************************************************************/
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -81,9 +63,7 @@
 #include "types.h"
 #include "wind.h"
 
-/****************************************************************************
- * Macros                                                                   *
- ****************************************************************************/
+
 #define INTS2LONG(a,b) (((((LONG)a)<<16)&0xffff0000L)|(((LONG)b)&0xffff))
 
 #define IMOVER 0x8000  /* Used with set_win_elem() to make icon window */
@@ -506,7 +486,7 @@ winalloc (WORD apid) {
         }
         else {
         */
-  wl = (WINDOW_LIST *)Mxalloc(sizeof(WINDOW_LIST),GLOBALMEM);
+  wl = (WINDOW_LIST *)malloc(sizeof(WINDOW_LIST));
 
   /*
     };
@@ -949,7 +929,7 @@ create_new_window_struct (WORD apid,
                 
     if(ai) {
       ws->tree[WAPP].ob_spec.tedinfo->te_ptext =
-        (char *)Mxalloc(strlen(&ai->name[2]) + 1,GLOBALMEM);
+        (char *)malloc(strlen(&ai->name[2]) + 1);
       strcpy(ws->tree[WAPP].ob_spec.tedinfo->te_ptext,&ai->name[2]);
       
       if(globals->common->wind_appl == 0) {
