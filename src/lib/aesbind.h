@@ -826,7 +826,7 @@ int
 form_button(OBJECT * tree,
             int      obj,
             int      clicks,
-            short *  nxtobj);
+            int *    nxtobj);
 int
 form_center (OBJECT * tree,
              int *    cx,

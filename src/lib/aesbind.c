@@ -265,7 +265,7 @@ int
 form_button(OBJECT * tree,
             int      obj,
             int      clicks,
-            short *  nxtobj)
+            int *    nxtobj)
 {
   OPCODE = 56;
   NO_INTIN = 2;
