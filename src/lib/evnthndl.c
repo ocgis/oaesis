@@ -859,7 +859,6 @@ Evhd_handle_button (WORD apid,
       } else {
         COMMSG      m;
         
-        DB_printf ("evnthndl.c: Evhd_handle_button: in workarea");
         return;
 
         if((status & WIN_ICONIFIED) &&

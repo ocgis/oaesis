@@ -1074,10 +1074,8 @@ WORD wid)        /* Identification number of window to close.               */
 
 /*wind_delete 0x0067*/
 void Wind_delete(AES_PB *apb) {
-  DB_printf ("wind.c: Wind_delete entered");
   apb->int_out[0] = Wind_do_delete(apb->global->apid,
                                    apb->int_in[0]);
-  DB_printf ("wind.c: Wind_delete exited");
 }
 
 /*wind_get 0x0068*/
@@ -1412,7 +1410,7 @@ Wind_do_update (WORD apid,
   par.common.apid = apid;
   par.common.pid = getpid ();
   par.mode = mode;
-        
+
   Client_send_recv (&par,
                     sizeof (C_WIND_UPDATE),
                     &ret,

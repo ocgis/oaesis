@@ -212,7 +212,6 @@ static WORD set_path(BYTE *pattern,DIRDESC *dd) {
 				sprintf(filepath,"%s%s",path,&name[4]);
 
 				fa = Fattrib(filepath,0,0);
-				
 				if((fa & 0x10) || (!globcmp(pat,&name[4]))) {
 					DIRENTRY *detmp = (DIRENTRY *)Mxalloc(sizeof(DIRENTRY),PRIVATEMEM);
 					DIRENTRY **dwalk = &dd->dent;
@@ -338,6 +337,7 @@ static DIRENTRY *find_entry(DIRDESC *dd,WORD pos) {
 ** 1999-01-01 CG
 ** 1999-01-09 CG
 ** 1999-01-11 CG
+** 1999-01-30 CG
 */
 static
 void
@@ -359,9 +359,9 @@ slider_handle (WORD      apid,
       - tree[FISEL_SLIDER].ob_height, buffer[16];
 
     EVENTIN ei = { MU_BUTTON | MU_M1,
-                   0x102,
-                   0,
-                   0,
+                   2,           /* bclicks */
+                   LEFT_BUTTON, /* bmask   */
+                   0,           /* bstate  */
                    1,
                    { 0, 0, 1, 1},
                    0,
@@ -500,7 +500,6 @@ Fsel_do_exinput (WORD   apid,
   Graf_do_mouse (apid, ARROW, NULL);
 
   while (TRUE) {
-
     but_chosen = Form_do_do (apid, tree, FISEL_DIRECTORY);
 	
     switch(but_chosen & 0x7fff) {

@@ -49,8 +49,10 @@
 #include "resource.h"
 #include "rlist.h"
 #include "srv.h"
+#include "srv_event.h"
 #include "srv_get.h"
 #include "srv_interface.h"
+#include "srv_wind.h"
 #include "types.h"
 #include "vdi.h"
 
@@ -61,22 +63,6 @@
 
 
 #define SRV_QUE_SIZE 32
-
-/* appl_* related */
-
-#define TOP_APPL       (-1)
-#define DESK_OWNER     (-2)
-#define TOP_MENU_OWNER (-3)
-
-/*window status codes*/
-
-#define	WIN_OPEN       0x0001
-#define	WIN_UNTOPPABLE 0x0002
-#define	WIN_DESKTOP    0x0004
-#define	WIN_TOPPED     0x0008
-#define	WIN_DIALOG     0x0010
-#define	WIN_MENU       0x0020
-#define WIN_ICONIFIED  0x0040
 
 #define IMOVER 0x8000  /* Used with set_win_elem() to make icon window */
 
@@ -166,7 +152,7 @@ static OBJC_COLORWORD untop_colour[20] = {
 
 static BYTE **environ;
 extern AP_LIST_REF ap_pri;
-static WINLIST *win_vis = NULL;
+extern WINLIST * win_vis;
 
 /* This has to be fixed */
 void accstart (void) {}
@@ -179,16 +165,6 @@ srv_appl_exit (C_APPL_EXIT * par,
 void
 srv_appl_write (C_APPL_WRITE * msg,
                 R_APPL_WRITE * ret);
-
-static
-void
-srv_wind_find(C_WIND_FIND * par,
-              R_WIND_FIND * ret);
-
-static
-void
-srv_wind_get(C_WIND_GET * msg,
-             R_WIND_GET * ret);
 
 /****************************************************************************
  * srv_wind_new                                                             *
@@ -220,7 +196,7 @@ WORD start);         /* Start object.                                       */
  * find_wind_description                                                    *
  *  Find the window structure of the window with identification number id.  *
  ****************************************************************************/
-static WINSTRUCT	*     /* Found description or NULL.                       */
+WINSTRUCT	*     /* Found description or NULL.                       */
 find_wind_description(  /*                                                  */
 WORD id);               /* Identification number of window.                 */
 /****************************************************************************/
@@ -877,52 +853,6 @@ static void	calcworksize(WORD elem,RECT *orig,RECT *new,WORD dir) {
 
 
 /****************************************************************************
- * srv_click_owner                                                          *
- *  Find out which application that "owns" mouse clicks.                    *
- ****************************************************************************/
-WORD                    /* Application to receive clicks.                   */
-srv_click_owner(void)   /*                                                  */
-/****************************************************************************/
-{
-  if(globals.mouse_owner != -1) {
-    return globals.mouse_owner;
-  }
-  else {
-    WORD        status;
-    WORD        owner;
-    C_WIND_FIND c_wind_find;
-    R_WIND_FIND r_wind_find;
-    C_WIND_GET  c_wind_get;
-    R_WIND_GET  r_wind_get;
-
-    c_wind_find.x = globals.mouse_x;
-    c_wind_find.y = globals.mouse_y;
-    srv_wind_find (&c_wind_find, &r_wind_find);
-    
-    c_wind_get.handle = r_wind_find.common.retval;
-    c_wind_get.mode = WF_OWNER;
-    srv_wind_get (&c_wind_get, &r_wind_get);
-    owner = r_wind_get.parm1;
-    status = r_wind_get.parm2;
-    
-    if(status & WIN_DESKTOP) {
-      AP_INFO *ai;
-      
-      ai = search_appl_info(DESK_OWNER);
-      
-      if(ai) {
-	return ai->id;
-      };
-    }
-    else {
-      return owner;
-    };
-  };
-  
-  return 0;
-}
-
-/****************************************************************************
  * srv_get_appl_info                                                        *
  ****************************************************************************/
 WORD                       /* 0 if ok or -1.                                */
@@ -1324,15 +1254,11 @@ srv_appl_exit (C_APPL_EXIT * par,
   c_menu_bar.common.apid = par->common.apid;
   c_menu_bar.tree = NULL;
   c_menu_bar.mode = MENU_REMOVE;
-  fprintf (stderr, "oaesis: srv.c: srv_appl_exit: Removing menu bar\n");
   srv_menu_bar (&c_menu_bar,
                 &r_menu_bar);
-  fprintf (stderr, "oaesis: srv.c: srv_appl_exit: Unregistering menu bar\n");
   unregister_menu(par->common.apid);
   /*  srv_wind_set(par->common.apid,&cws);*/
-  fprintf (stderr, "oaesis: srv.c: srv_appl_exit: Removing windows\n");
   srv_wind_new(par->common.apid);
-  fprintf (stderr, "oaesis: srv.c: srv_appl_exit: Removing apinf\n");
   apinfofree(par->common.apid);
   
   /*
@@ -1340,7 +1266,6 @@ srv_appl_exit (C_APPL_EXIT * par,
   update_appl_menu();
   */
 
-  fprintf (stderr, "oaesis: srv.c: srv_appl_exit: Returning\n");
   ret->common.retval = 1;
 }
 
@@ -2353,7 +2278,7 @@ static WINSTRUCT	*winalloc(void) {
  * find_wind_description                                                    *
  *  Find the window structure of the window with identification number id.  *
  ****************************************************************************/
-static WINSTRUCT	*     /* Found description or NULL.                       */
+WINSTRUCT	*     /* Found description or NULL.                       */
 find_wind_description(  /*                                                  */
 WORD id)                /* Identification number of window.                 */
 /****************************************************************************/
@@ -3371,250 +3296,6 @@ srv_wind_delete (C_WIND_DELETE * msg,
 
 /*
 ** Description
-** Find window on known coordinates
-**
-** 1998-12-20 CG
-*/
-static
-void
-srv_wind_find (C_WIND_FIND * par,
-               R_WIND_FIND * ret) {
-  WINLIST *l = win_vis;
-
-  ret->common.retval = 0;
-
-  while(l) {
-    if (Misc_inside (&l->win->totsize, par->x, par->y)) {
-      ret->common.retval = l->win->id;
-      break;
-    }
-    
-    l = l->next;
-  }
-}
-
-
-/*
-** Description
-** Implementation of wind_get()
-**
-** 1998-12-07 CG
-*/
-static
-void
-srv_wind_get (C_WIND_GET * msg,
-              R_WIND_GET * ret) {
-  WINSTRUCT	*win;
-  
-  win = find_wind_description(msg->handle);
-  
-  if(win) {
-    switch(msg->mode) {	
-    case WF_KIND: /* 0x0001 */
-      ret->common.retval = 1;
-      ret->parm1 = win->elements;
-      break;
-      
-    case WF_WORKXYWH	:	/*0x0004*/
-      ret->common.retval = 1;
-      ret->parm1 = win->worksize.x;
-      ret->parm2 = win->worksize.y;
-      ret->parm3 = win->worksize.width;
-      ret->parm4 = win->worksize.height;
-      break;
-      
-    case	WF_CURRXYWH	:	/*0x0005*/
-      ret->common.retval = 1;
-      ret->parm1 = win->totsize.x;
-      ret->parm2 = win->totsize.y;
-      ret->parm3 = win->totsize.width;
-      ret->parm4 = win->totsize.height;
-				break;
-      
-    case	WF_PREVXYWH	:	/*0x0006*/
-      ret->common.retval = 1;
-      ret->parm1 = win->lastsize.x;
-      ret->parm2 = win->lastsize.y;
-      ret->parm3 = win->lastsize.width;
-      ret->parm4 = win->lastsize.height;
-      break;
-      
-    case	WF_FULLXYWH	:	/*0x0007*/
-      ret->common.retval = 1;
-      ret->parm1 = win->maxsize.x;
-      ret->parm2 = win->maxsize.y;
-      ret->parm3 = win->maxsize.width;
-      ret->parm4 = win->maxsize.height;
-      break;
-      
-    case WF_HSLIDE: /*0x08*/
-      ret->common.retval = 1;
-      ret->parm1 = win->hslidepos;
-      break;
-      
-    case WF_VSLIDE: /*0x09*/
-      ret->common.retval = 1;
-      ret->parm1 = win->vslidepos;
-      break;
-      
-    case WF_TOP: /*0x000a*/
-      if(win_vis) {
-	ret->parm1 = win_vis->win->id;
-	ret->parm2 = win_vis->win->owner;
-	
-	if(win_vis && win_vis->next) {
-	  ret->parm3 = win_vis->next->win->id;
-	}
-	else {
-	  ret->parm3 = -1;
-	};
-	
-	ret->common.retval = 1;
-      }
-      else {
-	ret->common.retval = 0;
-      }
-      break;
-      
-    case	WF_FIRSTXYWH:	/*0x000b*/
-      win->rpos = win->rlist;
-    case	WF_NEXTXYWH:	/*0x000c*/
-      {
-	RECT r;
-	
-	ret->common.retval = 1;
-	
-	while(win->rpos) {
-	  if(Misc_intersect(&win->rpos->r,&win->worksize,&r)) {
-	    break;
-	  }
-	  
-	  win->rpos = win->rpos->next;
-	}					
-	
-	if(!win->rpos) {
-	  ret->parm1 = 0;
-	  ret->parm2 = 0;
-	  ret->parm3 = 0;
-	  ret->parm4 = 0;
-	} else {
-	  win->rpos = win->rpos->next;
-	  
-	  ret->parm1 = r.x;
-	  ret->parm2 = r.y;
-	  ret->parm3 = r.width;
-	  ret->parm4 = r.height;
-	}
-      }
-      break;
-      
-    case WF_HSLSIZE: /*0x0f*/
-      ret->common.retval = 1;
-      ret->parm1 = win->hslidesize;
-      break;				
-      
-    case WF_VSLSIZE: /*0x10*/
-      ret->common.retval = 1;
-      ret->parm1 = win->vslidesize;
-      break;				
-      
-    case WF_SCREEN: /*0x11*/
-      ret->common.retval = 1;
-      ret->parm1 = 0;
-      ret->parm2 = 0;
-      ret->parm3 = 0;
-      ret->parm4 = 0;
-      break;
-      
-    case WF_OWNER: /*0x14*/
-      if(win) {
-	ret->common.retval = 1;
-	ret->parm1 = win->owner;
-	ret->parm2 = win->status;
-	
-	if(win->status & WIN_OPEN) {
-	  WINLIST *wl = win_vis;
-	  
-	  
-	  if(wl->win == win) {
-	    ret->parm3 = -1;
-	  } else if(wl) {
-	    while(wl->next) {
-	      if(wl->next->win == win) {
-		ret->parm3 = wl->win->id;
-		break;
-	      }
-	      
-	      wl = wl->next;
-	    }
-	    
-	    wl = wl->next;
-	  }
-	  
-	  if(wl) {
-	    wl = wl->next;
-	    
-	    if(wl) {
-	      ret->parm4 = wl->win->id;
-	    } else {
-	      ret->parm4 = -1;
-	    }
-						}
-	  else {
-	    ret->parm4 = -1;
-	  }							
-	} else {
-	  ret->parm3 = -1;
-	  ret->parm4 = -1;
-	}
-      }
-      else {
-	ret->common.retval = 0;
-      }
-      break;
-      
-    case WF_ICONIFY: /* 0x1a */
-      if(win->status & WIN_ICONIFIED) {
-	ret->parm1 = 1;
-      }
-      else {
-	ret->parm1 = 0;
-      }
-      
-      ret->parm2 = globals.icon_width;
-      ret->parm3 = globals.icon_height;
-      
-      ret->common.retval = 1;
-      break;
-      
-    case WF_UNICONIFY: /* 0x1b */
-      ret->common.retval = 1;
-      ret->parm1 = win->origsize.x;
-      ret->parm2 = win->origsize.y;
-      ret->parm3 = win->origsize.width;
-      ret->parm4 = win->origsize.height;
-      break;
-      
-    case WF_WINX:
-    case WF_WINXCFG:
-      ret->common.retval = 0;
-      break;
-      
-    default:
-      DB_printf("%s: Line %d: srv_wind_get:\r\n"
-		"Unknown mode %d  (0x%x) wind_get(%d,%d,...)",
-		__FILE__,__LINE__,msg->mode,msg->mode,
-		msg->handle,msg->mode);
-      ret->common.retval = 0;
-    }
-  } else {
-    ret->common.retval = 0;
-  }
-}
-
-
-/*
-** Description
 ** Implementation of wind_open ()
 **
 ** 1999-01-09 CG
@@ -3747,71 +3428,6 @@ srv_wind_open (C_WIND_OPEN * msg,
     ret->common.retval = 0;
   }
   
-  ret->common.retval = 1;
-}
-
-
-/*
-** Description
-** Server part of wind_update
-**
-** 1998-10-04 CG
-*/
-void
-srv_wind_update (C_WIND_UPDATE * msg,
-                 R_WIND_UPDATE * ret)
-{
-  static WORD update_lock = 0,update_cnt = 0;
-  static WORD mouse_lock,mouse_cnt = 0;
-
-  /*  WORD clnt_pid = Pgetpid();*/
-  /*  long timeout = (mode & 0x100) ? 0L : -1L;*/ /* test for check-and-set mode */
-  
-  switch(msg->mode) {
-  case BEG_UPDATE:	/* Grab the update lock */
-  case BEG_UPDATE | 0x100:
-    if (update_cnt > 0) {
-      if (update_lock == msg->common.apid) {
-        update_cnt++ ;
-      } else {
-        /*        DB_printf ("srv.c: srv_wind_update: Real locking not implemented yet");*/
-      }
-    } else {
-      update_lock = msg->common.apid;
-      update_cnt = 1;
-    }
-    break;
-  
-  case END_UPDATE:
-    if (update_lock == msg->common.apid) {
-      update_cnt--;
-    } else {
-      /*      DB_printf ("srv.c: srv_wind_update: Called END_UPDATE by other application");*/
-    }
-    break;
-  
-  case BEG_MCTRL:		/* Grab the mouse lock */
-  case BEG_MCTRL | 0x100:
-    if (mouse_lock == msg->common.apid) {
-      mouse_cnt++ ;
-      break ;
-    }
-     
-    /*    if (Psemaphore(2,MOUSE_LOCK,timeout) == -EACCESS) {
-      return 0;	 mouse locked by different process 
-    }*/
-    
-    mouse_lock=msg->common.apid;
-    mouse_cnt=1 ;
-    break;
-    
-  case END_MCTRL:
-    if ((mouse_lock == msg->common.apid) && (--mouse_cnt==0)) {
-      mouse_lock=FALSE;
-      /*      Psemaphore(3,MOUSE_LOCK,0);*/
-    }
-  }
-
   ret->common.retval = 1;
 }
 
@@ -4139,7 +3755,7 @@ server (LONG arg) {
     /* Wait for another call from a client */
     /*DB_printf ("srv.c: Waiting for message from client");*/
     handle = Srv_get (&par, sizeof (C_SRV));
-    /*DB_printf ("srv.c: Got message from client");*/
+    /*DB_printf ("srv.c: Got message from client (%p)", handle);*/
 
     if (handle == NULL) {
       srv_handle_events ();
@@ -4200,7 +3816,7 @@ server (LONG arg) {
         
       case SRV_CLICK_OWNER:
         code = 
-          srv_click_owner();
+          srv_click_owner(0, 0); /* FIXME: Remove call? */
         
         Srv_reply (handle, &par, code);
         break;
@@ -4327,9 +3943,8 @@ server (LONG arg) {
         break;
         
       case SRV_WIND_UPDATE:
-        srv_wind_update (&par.wind_update, &ret.wind_update);
-        
-        Srv_reply (handle, &ret, sizeof (R_WIND_UPDATE));
+        srv_wind_update (handle,
+                         &par.wind_update);
         break;
         
       default:

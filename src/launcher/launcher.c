@@ -13,6 +13,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <aesbind.h>
 #include <vdibind.h>
@@ -56,7 +57,7 @@ min (WORD a,
 
 #define NUM_LINES       10
 
-static char progpath[500] = "c:\\";
+static char progpath[500] = "c:\\*";
 static char progfile[70] = "";
 
 /*
@@ -91,7 +92,7 @@ launch_application (void) {
     } else {
       strcpy (execpath, progfile);
     }
-    
+
     /*
     Dgetpath (oldpath, 0);
     
@@ -101,6 +102,14 @@ launch_application (void) {
     /*
     err = Pexec (100, execpath, 0L, 0L);
     */
+
+    if (fork () == 0) {
+      fprintf (stderr, "launcher.c: starting lines.prg");
+      fprintf (stderr, "launcher.c: lines.prg returned %d", 
+               execlp ("lines.prg", NULL));
+
+      exit (0);
+    }
 
     /*
     Misc_setpath (oldpath);
@@ -493,6 +502,8 @@ main ()
   
   WORD     wc, hc, wb, hb;
 
+  fprintf (stderr, "launcher.c: before Pdomain\n");
+  Pdomain (1); /* FIXME decide where to put this */
   /* Get application id */
   appl_init();
 

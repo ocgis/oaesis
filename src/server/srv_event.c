@@ -1,7 +1,7 @@
 /*
 ** srv_event.c
 **
-** Copyright 1998 Christer Gustavsson <cg@nocrew.org>
+** Copyright 1998-1999 Christer Gustavsson <cg@nocrew.org>
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 #include "srv_event.h"
 #include "srv_get.h"
 #include "srv_misc.h"
+#include "srv_wind.h"
 #include "vdi.h"
 
 
@@ -40,6 +41,7 @@ typedef struct appl_list {
   WORD          is_waiting;
   COMM_HANDLE   handle;
   C_EVNT_MULTI  par;
+  MOUSE_EVENT   mouse_last;
   MOUSE_EVENT   mouse_buffer [MOUSE_BUFFER_SIZE];
   WORD          mouse_head;
   WORD          mouse_size;
@@ -250,28 +252,45 @@ check_for_messages (C_EVNT_MULTI * par,
 ** Check for waiting mouse events
 **
 ** 1998-12-13 CG
+** 1999-01-30 CG
 */
 static
 WORD
 check_mouse_buttons (C_EVNT_MULTI * par,
                      R_EVNT_MULTI * ret) {
+#define MOUSE_BUFFER_HEAD \
+        apps[par->common.apid].mouse_buffer[apps [par->common.apid].mouse_head]
+
+  WORD retval = 0;
+
   if (par->eventin.events & MU_BUTTON) {
     if (apps [par->common.apid].mouse_size > 0) {
-      ret->eventout.mx =
-        apps [par->common.apid].mouse_buffer [apps [par->common.apid].mouse_head].x;
-      ret->eventout.my =
-        apps [par->common.apid].mouse_buffer [apps [par->common.apid].mouse_head].y;
-      ret->eventout.mb =
-        apps [par->common.apid].mouse_buffer [apps [par->common.apid].mouse_head].buttons;
-      ret->eventout.mc = 1; /* FIXME */
+      if ((MOUSE_BUFFER_HEAD.buttons & par->eventin.bmask) ==
+          par->eventin.bstate) {
+        /*        if (ret->eventout.mc == 0) {*/
+          ret->eventout.mx = MOUSE_BUFFER_HEAD.x;
+          ret->eventout.my = MOUSE_BUFFER_HEAD.y;
+          /*        }*/
+        
+        ret->eventout.mb = MOUSE_BUFFER_HEAD.buttons;
+        ret->eventout.mc = 1; /* FIXME */
+      
+        retval = MU_BUTTON;
+      }
+
+      /* Save the latest values */
+      apps [par->common.apid].mouse_last = MOUSE_BUFFER_HEAD;
+
+      /* Update mouse buffer head */
       apps [par->common.apid].mouse_head =
         (apps [par->common.apid].mouse_head + 1) % MOUSE_BUFFER_SIZE;
       apps [par->common.apid].mouse_size--;
-      return MU_BUTTON;
     }
   }
 
-  return 0;
+  return retval;
+
+#undef MOUSE_BUFFER_HEAD
 }
 
 
@@ -368,6 +387,7 @@ check_timer (C_EVNT_MULTI * par,
 ** 1998-12-13 CG
 ** 1998-12-23 CG
 ** 1999-01-29 CG
+** 1999-01-30 CG
 */
 void
 srv_wait_for_event (COMM_HANDLE    handle,
@@ -378,6 +398,7 @@ srv_wait_for_event (COMM_HANDLE    handle,
   ret.eventout.events = check_for_messages (par, &ret);
 
   /* Look for waiting mouse events */
+  ret.eventout.mc = 0;
   ret.eventout.events |= check_mouse_buttons (par, &ret);
 
   /* Check if inside or outside area */
@@ -387,14 +408,16 @@ srv_wait_for_event (COMM_HANDLE    handle,
                                              &ret);
 
   /* Check for timer event */
-  apps[par->common.apid].timer_event =
-    timer_counter + (par->eventin.hicount << 16) + par->eventin.locount;
-
-  if (apps[par->common.apid].timer_event < next_timer_event) {
-    next_timer_event = apps[par->common.apid].timer_event;
+  if (par->eventin.events & MU_TIMER) {
+    apps[par->common.apid].timer_event =
+      timer_counter + (par->eventin.hicount << 16) + par->eventin.locount;
+    
+    if (apps[par->common.apid].timer_event < next_timer_event) {
+      next_timer_event = apps[par->common.apid].timer_event;
+    }
+    
+    ret.eventout.events |= check_timer (par, &ret);
   }
-
-  ret.eventout.events |= check_timer (par, &ret);
 
   /*
   ** If there were waiting events we return immediately and if not we
@@ -414,16 +437,18 @@ srv_wait_for_event (COMM_HANDLE    handle,
 ** the right application
 **
 ** 1998-12-13 CG
+** 1999-02-05 CG
 */
 static
 void
 handle_mouse_buttons (void) {
   /* Did the mouse buttons change? */
   if (buttons_last != buttons_new) {
-    WORD click_owner = 0; /* FIXME lookup the real owner here */
+    WORD click_owner = srv_click_owner (x_last, y_last);
     WORD index = (apps [click_owner].mouse_head +
                   apps [click_owner].mouse_size) % MOUSE_BUFFER_SIZE;
     
+    DB_printf ("srv_event.c: handle_mouse_buttons: click_owner = %d", click_owner);
     apps [click_owner].mouse_buffer [index].x = x_last;
     apps [click_owner].mouse_buffer [index].y = y_last;
     apps [click_owner].mouse_buffer [index].buttons = buttons_new;

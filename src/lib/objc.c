@@ -1726,58 +1726,63 @@ Objc_draw (AES_PB *apb) {
 
 /*objc_find 0x002b*/
 
-/****************************************************************************
- * Objc_do_find                                                             *
- *  Implementation of objc_find().                                          *
- ****************************************************************************/
-WORD              /* Object index, or -1.                                   */
-Objc_do_find(     /*                                                        */
-OBJECT *t,        /* Resource tree to search.                               */
-WORD startobject, /* Start object.                                          */
-WORD depth,       /* Maximum depth.                                         */
-WORD x,           /* X offset.                                              */
-WORD y,           /* Y offset.                                              */
-WORD level)       /* Current depth of search.                               */
-/****************************************************************************/
-{
-	if(t[startobject].ob_flags & HIDETREE) {
-		return -1;
-	};
+/*
+** Exported
+**
+** 1999-02-05 CG
+*/
+WORD
+Objc_do_find (OBJECT * t,
+              WORD     startobject,
+              WORD     depth,
+              WORD     x,
+              WORD     y,
+              WORD     level) {
+  /* Avoid crash if someone passes a NULL pointer */
+  if (t == NULL) {
+    return -1;
+  }
 
-	if(level == 0) {
-		WORD	lxy[2];
-		Objc_do_offset(t,startobject,lxy);
+  if (t[startobject].ob_flags & HIDETREE) {
+    return -1;
+  }
+  
+  if (level == 0) {
+    WORD lxy[2];
 
-		x -= lxy[0];
-		y -= lxy[1];
-	};
+    Objc_do_offset(t,startobject,lxy);
+    
+    x -= lxy[0];
+    y -= lxy[1];
+  }
 	
-	if((x >= 0) && (x < t[startobject].ob_width) 
-		&& (y >= 0) && (y < t[startobject].ob_height)) {
-		WORD deeper;
-		WORD bestobj = startobject;
-			
-		if((depth > 0) && (t[startobject].ob_head >= 0)) {
-			WORD i = t[startobject].ob_head;
-			
-			while(i != startobject) {
-				deeper = Objc_do_find(t,i,depth - 1,
-					x - t[i].ob_x,
-					y - t[i].ob_y,level + 1);
-
-				if(deeper >= 0) {
-					bestobj = deeper;
-				};
-
-				i = t[i].ob_next;
-			};
-		};
-		
-		return bestobj;
-	};
-		
-	return -1;
+  if ((x >= 0) && (x < t[startobject].ob_width) &&
+      (y >= 0) && (y < t[startobject].ob_height)) {
+    WORD deeper;
+    WORD bestobj = startobject;
+    
+    if((depth > 0) && (t[startobject].ob_head >= 0)) {
+      WORD i = t[startobject].ob_head;
+      
+      while(i != startobject) {
+        deeper = Objc_do_find(t,i,depth - 1,
+                              x - t[i].ob_x,
+                              y - t[i].ob_y,level + 1);
+        
+        if(deeper >= 0) {
+          bestobj = deeper;
+        }
+        
+        i = t[i].ob_next;
+      }
+    }
+    
+    return bestobj;
+  }
+  
+  return -1;
 }
+
 
 void	Objc_find(AES_PB *apb) {
 	apb->int_out[0] = Objc_do_find((OBJECT *)apb->addr_in[0],apb->int_in[0],

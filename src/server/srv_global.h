@@ -71,7 +71,6 @@ typedef struct globalvars {
 
   BYTE    mousename[30];
 	
-  WORD    mouse_owner;
   WORD    mouse_mode;
 
   WORD    srvpid;
