@@ -219,72 +219,68 @@ Menu_bar (AES_PB *apb) {
 }
 
 
-/****************************************************************************
- *  Menu_icheck                                                             *
- *   0x001f menu_icheck().                                                  *
- ****************************************************************************/
-void              /*                                                        */
-Menu_icheck(      /*                                                        */
-AES_PB *apb)      /* Pointer to AES parameter block.                        */
-/****************************************************************************/
+/*
+** Description
+** Modify a menu entry
+*/
+#define MENU_MODIFY(object,ison,isoff,onstate,state) \
+  if(state == isoff) \
+  { \
+    OB_STATE_CLEAR(object, state); \
+  } \
+  else if (state == ison) \
+  { \
+    OB_STATE_SET(object, state); \
+  }
+
+
+/*
+** Description
+** 0x001f menu_icheck()
+*/
+void
+Menu_icheck(AES_PB * apb)
 {
-	switch(apb->int_in[1]) {
-	case UNCHECK:
-		((OBJECT *)apb->addr_in[0])[apb->int_in[0]].ob_state &= ~CHECKED;
-		apb->int_out[0] = 1;
-		break;
-	
-	default:
-		((OBJECT *)apb->addr_in[0])[apb->int_in[0]].ob_state |= CHECKED;
-		apb->int_out[0] = 1;
-	}
+  MENU_MODIFY(&((OBJECT *)apb->addr_in[0])[apb->int_in[0]],
+              CHECK,
+              UNCHECK,
+              CHECKED,
+              apb->int_in[1]);
+
+  apb->int_out[0] = 1;
 }
 
-/****************************************************************************
- *  Menu_ienable                                                            *
- *   0x0020 menu_ienable().                                                 *
- ****************************************************************************/
-void              /*                                                        */
-Menu_ienable(     /*                                                        */
-AES_PB *apb)      /* Pointer to AES parameter block.                        */
-/****************************************************************************/
-{
-	switch(apb->int_in[1]) {
-	case DISABLE:
-		((OBJECT *)apb->addr_in[0])[apb->int_in[0]].ob_state |= DISABLED;
-		apb->int_out[0] = 1;
-		break;
 
-	default:
-		((OBJECT *)apb->addr_in[0])[apb->int_in[0]].ob_state &= ~DISABLED;
-		apb->int_out[0] = 1;
-	};
+/*
+** Description
+** 0x0020 menu_ienable()
+*/
+void
+Menu_ienable(AES_PB * apb)
+{
+  MENU_MODIFY(&((OBJECT *)apb->addr_in[0])[apb->int_in[0]],
+              DISABLE,
+              ENABLE,
+              DISABLED,
+              apb->int_in[1]);
+
+  apb->int_out[0] = 1;
 }
 
-/****************************************************************************
- *  Menu_tnormal                                                            *
- *   0x0021 menu_tnormal().                                                 *
- ****************************************************************************/
-void              /*                                                        */
-Menu_tnormal(     /*                                                        */
-AES_PB *apb)      /* Pointer to AES parameter block.                        */
-/****************************************************************************/
+/*
+** Description
+** 0x0021 menu_tnormal()
+*/
+void
+Menu_tnormal(AES_PB * apb)
 {
-	switch(apb->int_in[1]) {
-	case UNHIGHLIGHT:
-		((OBJECT *)apb->addr_in[0])[apb->int_in[0]].ob_state &= ~SELECTED;
-		apb->int_out[0] = 1;
-		break;
+  MENU_MODIFY(&((OBJECT *)apb->addr_in[0])[apb->int_in[0]],
+              HIGHLIGHT,
+              UNHIGHLIGHT,
+              SELECTED,
+              apb->int_in[1]);
 
-	case HIGHLIGHT:
-		((OBJECT *)apb->addr_in[0])[apb->int_in[0]].ob_state |= SELECTED;
-		apb->int_out[0] = 1;
-		break;
-	default:
-		DB_printf("%s: Line %d: Menu_tnormal:\r\n"
-						"Unknown mode %d!\r\n",__FILE__,__LINE__,apb->int_in[1]);
-		apb->int_out[0] = 0;
-	};
+  apb->int_out[0] = 1;
 }
 
 

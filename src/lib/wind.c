@@ -1791,8 +1791,6 @@ Wind_get_rsrc (WORD apid,
 
 /*
 ** Exported
-**
-** 1998-12-20 CG
 */
 WORD
 Wind_change (WORD apid,
@@ -1800,13 +1798,17 @@ Wind_change (WORD apid,
              WORD object,
              WORD newstate)
 {
-  WINDOW_STRUCT * win = find_window_struct (apid, id);
+  WINDOW_STRUCT * win;
+
+  win = find_window_struct(apid, id);
         
-  if(win) {
-    if (newstate != win->tree[widgetmap [object]].ob_state) {
-      GLOBAL_COMMON * globals = get_global_common ();
-      win->tree [widgetmap [object]].ob_state = newstate;
-      Wind_redraw_elements (apid, id, &globals->screen, widgetmap [object]);
+  if(win)
+  {
+    if (newstate != OB_STATE(&win->tree[widgetmap[object]]))
+    {
+      GLOBAL_COMMON * globals = get_global_common();
+      OB_STATE_PUT(&win->tree[widgetmap[object]], newstate);
+      Wind_redraw_elements(apid, id, &globals->screen, widgetmap[object]);
     }
     
     return 1;

@@ -503,14 +503,16 @@ draw_text (WORD     vid,
     }
 		
 			
-    if(ob->ob_state & DISABLED) {
+    if(OB_STATE(ob) & DISABLED)
+    {
       txteff |= LIGHT;
     }
 		
     vst_effects(vid,txteff);
 
     if(draw3d) {
-      if(ob->ob_state & SELECTED) {
+      if(OB_STATE(ob) & SELECTED)
+      {
         if(((draw3d == FL3DIND) && ocolours.move_ind) ||
            ((draw3d == FL3DACT) && ocolours.move_act)) {
           tx += D3DOFFS;
@@ -541,7 +543,8 @@ draw_text (WORD     vid,
         bfill = 7;
       }
     } else {
-      if(ob->ob_state & SELECTED) {
+      if(OB_STATE(ob) & SELECTED)
+      {
         invertcolour = TRUE;
       }
 			
@@ -698,7 +701,8 @@ draw_bg (WORD vid,
 
   case G_STRING:
   case G_TITLE:
-    if(ob->ob_state & SELECTED) {
+    if(OB_STATE(ob) & SELECTED)
+    {
       r.x = ob->ob_x + par_x;
       r.y = ob->ob_y + par_y;
       r.width = ob->ob_width;
@@ -767,16 +771,18 @@ draw_bg (WORD vid,
         filltype = 7;
       };
 
-      if(ob->ob_state & SELECTED) {
+      if(OB_STATE(ob) & SELECTED)
+      {
         if(((mode3d == FL3DIND) && ocolours.alter_ind) ||
            ((mode3d == FL3DACT) && ocolours.alter_act)) {
           invertcolour = TRUE;
         };
       };
     }
-    else if(ob->ob_state & SELECTED) {
+    else if(OB_STATE(ob) & SELECTED)
+    {
       invertcolour = TRUE;
-    };
+    }
 
     set_write_mode(vid,SWRM_REPLACE);
 		
@@ -956,13 +962,14 @@ draw_frame (WORD     vid,
         r.height -= framesize << 1;			
       }
 
-      draw_3dshadow(vid,&r,ob->ob_state & SELECTED);
+      draw_3dshadow(vid, &r, OB_STATE(ob) & SELECTED);
     }
     else
     {
       drawframe(vid,&r,framesize);
 
-      if(ob->ob_state & OUTLINED) {
+      if(OB_STATE(ob) & OUTLINED)
+      {
         r.x -= OUTLINESIZE;	
         r.y -= OUTLINESIZE;	
         r.width += OUTLINESIZE << 1;	
@@ -1254,8 +1261,10 @@ draw_object (WORD     vid,
 
   switch(type) {			
   case G_IMAGE: /*0x17*/
-    drawimage (vid,tree[object].ob_x + par_x,tree[object].ob_y + par_y
-              ,(BITBLK *)ob_spec.index,tree[object].ob_state);
+    drawimage (vid,tree[object].ob_x + par_x,
+               tree[object].ob_y + par_y,
+               (BITBLK *)ob_spec.index,
+               OB_STATE(&tree[object]));
     break;
 	
   case G_PROGDEF: /*0x18*/
@@ -1266,8 +1275,8 @@ draw_object (WORD     vid,
 
     pb.pb_tree = tree;
     pb.pb_obj = object;
-    pb.pb_prevstate = tree[object].ob_state;
-    pb.pb_currstate = tree[object].ob_state;
+    pb.pb_prevstate = OB_STATE(&tree[object]); /* FIXME: endian */
+    pb.pb_currstate = OB_STATE(&tree[object]); /* FIXME: endian */
 				
     Objc_do_offset(tree,object,(WORD *)&pb.pb_x);
     pb.pb_w = tree[object].ob_width;
@@ -1303,13 +1312,17 @@ draw_object (WORD     vid,
   break;
 
   case	G_ICON:
-    drawicon (vid,tree[object].ob_x + par_x,tree[object].ob_y + par_y
-             ,ob_spec.iconblk,tree[object].ob_state);
+    drawicon (vid,tree[object].ob_x + par_x,
+              tree[object].ob_y + par_y,
+              ob_spec.iconblk,
+              OB_STATE(&tree[object]));
     break;
 		
   case	G_CICON:
-    drawcicon (vid,tree[object].ob_x + par_x,tree[object].ob_y + par_y
-              ,(CICONBLK *)ob_spec.index,tree[object].ob_state);
+    drawcicon (vid,tree[object].ob_x + par_x,
+               tree[object].ob_y + par_y,
+               (CICONBLK *)ob_spec.index,
+               OB_STATE(&tree[object]));
 			
     break;
 			
@@ -1319,7 +1332,8 @@ draw_object (WORD     vid,
     draw_frame(vid,&tree[object],par_x,par_y);
   }
 
-  if(tree[object].ob_state & CHECKED) {
+  if(OB_STATE(&tree[object]) & CHECKED)
+  {
     int dum;
 		
     vst_alignment(vid,0,5,&dum,&dum);
@@ -1987,7 +2001,7 @@ WORD     newstate,  /* New object state.                                    */
 WORD     drawflag)  /* Drawing flag.                                        */
 /****************************************************************************/
 {
-  tree[obj].ob_state = newstate;
+  OB_STATE_PUT(&tree[obj], newstate);
 	
   if(drawflag == REDRAW) {
     Objc_do_draw (vid, tree,obj,9,clip);
@@ -2166,7 +2180,7 @@ Objc_area_needed(OBJECT * tree,
     break;
   }
   
-  if(tree[object].ob_state & OUTLINED)
+  if(OB_STATE(&tree[object]) & OUTLINED)
   {
     rect->x -= OUTLINESIZE;
     rect->y -= OUTLINESIZE;

@@ -608,7 +608,7 @@ Fsel_do_exinput (WORD   apid,
       if (strcmp (oldpath, path)) {
         Graf_do_mouse (apid, BUSY_BEE, NULL);
 
-        tree[FISEL_OK].ob_state &= ~SELECTED;
+        OB_STATE_CLEAR(&tree[FISEL_OK], SELECTED);
         Objc_do_draw (globals->vid, tree,FISEL_OK,9,&clip);
 				
         reset_dirdesc(&dd);
@@ -653,63 +653,87 @@ Fsel_do_exinput (WORD   apid,
       return 1;
 				
     case FISEL_UP:
-      if(dd.pos > 0) {
-        tree[FISEL_UP].ob_state |= SELECTED;
-        Objc_do_draw (globals->vid, tree,FISEL_UP,9,&clip);					
+      if(dd.pos > 0)
+      {
+        OB_STATE_SET(&tree[FISEL_UP],  SELECTED);
+        Objc_do_draw (globals->vid, tree,FISEL_UP,9,&clip);
 
         if(((selected - dd.pos) >= 0) &&
-           ((selected - dd.pos) <= (FISEL_LAST - FISEL_FIRST))) {
+           ((selected - dd.pos) <= (FISEL_LAST - FISEL_FIRST)))
+        {
           WORD oldobj = selected - dd.pos + FISEL_FIRST;
-												
-          Objc_do_change (globals->vid, tree,oldobj,&clip,
-                          tree[oldobj].ob_state &= ~SELECTED,NO_DRAW);								
-        };
+
+          OB_STATE_CLEAR(&tree[oldobj], SELECTED);
+          Objc_do_change (globals->vid,
+                          tree,oldobj,
+                          &clip,
+                          OB_STATE(&tree[oldobj]),
+                          NO_DRAW);
+        }
 						
         dd.pos--;
 
         if(((selected - dd.pos) >= 0) &&
            ((selected - dd.pos) <= (FISEL_LAST - FISEL_FIRST))) {
           WORD oldobj = selected - dd.pos + FISEL_FIRST;
-											
-          Objc_do_change (globals->vid, tree,oldobj,&clip,
-                          tree[oldobj].ob_state |= SELECTED,NO_DRAW);								
-        };
+
+          OB_STATE_SET(&tree[oldobj], SELECTED);
+          Objc_do_change(globals->vid,
+                         tree,oldobj,
+                         &clip,
+                         OB_STATE(&tree[oldobj]),
+                         NO_DRAW);
+        }
 					
         get_files(tree,&dd);
         Misc_copy_area (globals->vid, &src, &dst);
 
         Objc_do_draw (globals->vid, tree,FISEL_FIRST,9,&clip);
-        tree[FISEL_UP].ob_state &= ~SELECTED;
-        Objc_do_draw (globals->vid, tree,FISEL_UP,9,&clip);					
-        Objc_do_draw (globals->vid, tree,FISEL_SB,9,&clip);					
+        OB_STATE_CLEAR(&tree[FISEL_UP], SELECTED);
+        Objc_do_draw (globals->vid, tree,FISEL_UP,9,&clip);
+        Objc_do_draw (globals->vid, tree,FISEL_SB,9,&clip);
       }
       break;
 			
     case FISEL_DOWN:
       if(dd.pos < (dd.num_files - FISEL_LAST + FISEL_FIRST - 1)) {
-        tree[FISEL_DOWN].ob_state |= SELECTED;
+        OB_STATE_SET(&tree[FISEL_DOWN], SELECTED);
         Objc_do_draw (globals->vid, tree,FISEL_DOWN,9,&clip);					
 
         if(((selected - dd.pos) >= 0) &&
-           ((selected - dd.pos) <= (FISEL_LAST - FISEL_FIRST))) {
+           ((selected - dd.pos) <= (FISEL_LAST - FISEL_FIRST)))
+        {
           WORD oldobj = selected - dd.pos + FISEL_FIRST;
-          Objc_do_change (globals->vid, tree,oldobj,&clip,
-                          tree[oldobj].ob_state &= ~SELECTED,NO_DRAW);
+
+          OB_STATE_CLEAR(&tree[oldobj], SELECTED);
+          Objc_do_change (globals->vid,
+                          tree,
+                          oldobj,
+                          &clip,
+                          OB_STATE(&tree[oldobj]),
+                          NO_DRAW);
         }
 					
         dd.pos++;
 
         if(((selected - dd.pos) >= 0) &&
-           ((selected - dd.pos) <= (FISEL_LAST - FISEL_FIRST))) {
+           ((selected - dd.pos) <= (FISEL_LAST - FISEL_FIRST)))
+        {
           WORD oldobj = selected - dd.pos + FISEL_FIRST;
-          Objc_do_change (globals->vid, tree,oldobj,&clip,
-                          tree[oldobj].ob_state |= SELECTED,NO_DRAW);
+
+          OB_STATE_SET(&tree[oldobj], SELECTED);
+          Objc_do_change (globals->vid,
+                          tree,
+                          oldobj,
+                          &clip,
+                          OB_STATE(&tree[oldobj]),
+                          NO_DRAW);
         }
 					
         get_files(tree,&dd);
         Misc_copy_area (globals->vid, &dst, &src);
         Objc_do_draw (globals->vid, tree,FISEL_LAST,9,&clip);
-        tree[FISEL_DOWN].ob_state &= ~SELECTED;
+        OB_STATE_CLEAR(&tree[FISEL_DOWN], SELECTED);
         Objc_do_draw (globals->vid, tree,FISEL_DOWN,9,&clip);
         Objc_do_draw (globals->vid, tree,FISEL_SB,9,&clip);
       }
@@ -723,11 +747,17 @@ Fsel_do_exinput (WORD   apid,
       Objc_do_offset(tree,FISEL_SLIDER,xy);
 				
       if(((selected - dd.pos) >= 0) &&
-         ((selected - dd.pos) <= (FISEL_LAST - FISEL_FIRST))) {
+         ((selected - dd.pos) <= (FISEL_LAST - FISEL_FIRST)))
+      {
         WORD oldobj = selected - dd.pos + FISEL_FIRST;
 
-        Objc_do_change (globals->vid, tree,oldobj,&clip,
-                        tree[oldobj].ob_state &= ~SELECTED,NO_DRAW);
+        OB_STATE_CLEAR(&tree[oldobj], SELECTED);
+        Objc_do_change(globals->vid,
+                       tree,
+                       oldobj,
+                       &clip,
+                       OB_STATE(&tree[oldobj]),
+                       NO_DRAW);
       }
 
       Graf_do_mkstate (apid, &mx, &my, &mb, &ks);
@@ -749,8 +779,13 @@ Fsel_do_exinput (WORD   apid,
          ((selected - dd.pos) <= (FISEL_LAST - FISEL_FIRST))) {
         WORD oldobj = selected - dd.pos + FISEL_FIRST;
 
-        Objc_do_change (globals->vid, tree,oldobj,&clip,
-                        tree[oldobj].ob_state |= SELECTED,NO_DRAW);
+        OB_STATE_SET(&tree[oldobj], SELECTED);
+        Objc_do_change(globals->vid,
+                       tree,
+                       oldobj,
+                       &clip,
+                       OB_STATE(&tree[oldobj]),
+                       NO_DRAW);
       }
 
       get_files(tree,&dd);
@@ -770,7 +805,7 @@ Fsel_do_exinput (WORD   apid,
     {
       BYTE newpath[128],*tmp;
 				
-      tree[FISEL_BACK].ob_state &= ~SELECTED;
+      OB_STATE_CLEAR(&tree[FISEL_BACK], SELECTED);
       Objc_do_draw (globals->vid, tree,FISEL_BACK,9,&clip);	
 
       strcpy(newpath,path);
@@ -848,12 +883,22 @@ Fsel_do_exinput (WORD   apid,
             tmp++;
             strcat(newpath,tmp);
             strcpy(path,newpath);
-						
-            Objc_do_change (globals->vid, tree,obj,&clip,
-                            tree[obj].ob_state |= SELECTED,REDRAW);
 
-            Objc_do_change (globals->vid, tree,obj,&clip,
-                            tree[obj].ob_state &= ~SELECTED,REDRAW);		
+            OB_STATE_SET(&tree[obj], SELECTED);
+            Objc_do_change (globals->vid,
+                            tree,
+                            obj,
+                            &clip,
+                            OB_STATE(&tree[obj]),
+                            REDRAW);
+
+            OB_STATE_CLEAR(&tree[obj], SELECTED);
+            Objc_do_change (globals->vid,
+                            tree,
+                            obj,
+                            &clip,
+                            OB_STATE(&tree[obj]),
+                            REDRAW);		
             reset_dirdesc(&dd);
 
             if(globals->path_mode == OAESIS_PATH_MODE_MINT)
@@ -882,15 +927,26 @@ Fsel_do_exinput (WORD   apid,
             strcpy(file,&dent->name[3]);
 						
             if(((selected - dd.pos) >= 0) &&
-               ((selected - dd.pos) <= (FISEL_LAST - FISEL_FIRST))) {
+               ((selected - dd.pos) <= (FISEL_LAST - FISEL_FIRST)))
+            {
               WORD oldobj = selected - dd.pos + FISEL_FIRST;
 
-              Objc_do_change (globals->vid, tree,oldobj,&clip,
-                              tree[oldobj].ob_state &= ~SELECTED,REDRAW);
+              OB_STATE_CLEAR(&tree[oldobj], SELECTED);
+              Objc_do_change(globals->vid,
+                             tree,
+                             oldobj,
+                             &clip,
+                             OB_STATE(&tree[oldobj]),
+                             REDRAW);
             }
             
-            Objc_do_change (globals->vid, tree,obj,&clip,
-                            tree[obj].ob_state | SELECTED,REDRAW);
+            OB_STATE_SET(&tree[obj], SELECTED);
+            Objc_do_change(globals->vid,
+                           tree,
+                           obj,
+                           &clip,
+                           OB_STATE(&tree[obj]),
+                           REDRAW);
 					
             selected = obj - FISEL_FIRST + dd.pos;
 					

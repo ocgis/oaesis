@@ -1254,10 +1254,13 @@ update_appl_menu(WORD apid)
     strcpy (globals->common->pmenutad[rwalk].ob_spec.free_string,
             globals->appl_menu.entries[i].name);
 
-    if (globals->appl_menu.entries[i].ap_id == topappl) {
-      globals->common->pmenutad[rwalk].ob_state |= CHECKED;
-    } else {
-      globals->common->pmenutad[rwalk].ob_state &= ~CHECKED;
+    if (globals->appl_menu.entries[i].ap_id == topappl)
+    {
+      OB_STATE_SET(&globals->common->pmenutad[rwalk], CHECKED);
+    }
+    else
+    {
+      OB_STATE_CLEAR(&globals->common->pmenutad[rwalk], CHECKED);
     }
 	
     OB_FLAGS_CLEAR(&globals->common->pmenutad[rwalk], HIDETREE);
@@ -1268,22 +1271,25 @@ update_appl_menu(WORD apid)
     strcpy(globals->common->pmenutad[rwalk].ob_spec.free_string,
            "----------------------");
     OB_FLAGS_CLEAR(&globals->common->pmenutad[rwalk], HIDETREE);
-    globals->common->pmenutad[rwalk].ob_state &= ~CHECKED;
-    globals->common->pmenutad[rwalk].ob_state |= DISABLED;
+    OB_STATE_CLEAR(&globals->common->pmenutad[rwalk], CHECKED);
+    OB_STATE_SET(&globals->common->pmenutad[rwalk], DISABLED);
     rwalk++;
     
     for (i = 0; i < globals->acc_menu.count; i++, rwalk++) {
       strcpy (globals->common->pmenutad[rwalk].ob_spec.free_string,
               globals->acc_menu.entries[i].name);
 
-      if (globals->acc_menu.entries[i].ap_id == topappl) {
-        globals->common->pmenutad[rwalk].ob_state |= CHECKED;
-      } else {
-        globals->common->pmenutad[rwalk].ob_state &= ~CHECKED;
+      if (globals->acc_menu.entries[i].ap_id == topappl)
+      {
+        OB_STATE_SET(&globals->common->pmenutad[rwalk], CHECKED);
+      }
+      else
+      {
+        OB_STATE_CLEAR(&globals->common->pmenutad[rwalk], CHECKED);
       }
       
       OB_FLAGS_CLEAR(&globals->common->pmenutad[rwalk], HIDETREE);
-      globals->common->pmenutad[rwalk].ob_state &= ~DISABLED;
+      OB_STATE_CLEAR(&globals->common->pmenutad[rwalk], DISABLED);
     }
   }
 
@@ -1385,10 +1391,11 @@ handle_drop_down (WORD        apid,
 
     Objc_area_needed (nmenu, entry, &ei.m1r);
     
-    if (!(nmenu[entry].ob_state & DISABLED) && (entry != 0)) {
+    if (!(OB_STATE(&nmenu[entry]) & DISABLED) && (entry != 0))
+    {
       /* select the entry and update it */
 
-      nmenu[entry].ob_state |= SELECTED;
+      OB_STATE_SET(&nmenu[entry], SELECTED);
       
       Graf_do_mouse (apid, M_OFF, NULL);
       Objc_do_draw (globals->vid, nmenu, 0, 9, &ei.m1r);
@@ -1399,8 +1406,9 @@ handle_drop_down (WORD        apid,
       Evnt_do_multi (apid, &ei, &buffer, &eo, 0, DONT_HANDLE_MENU_BAR);
 
       if (eo.events & MU_M1) {
-        if(!(nmenu[entry].ob_state & DISABLED)) {
-          nmenu[entry].ob_state &= ~SELECTED;
+        if(!(OB_STATE(&nmenu[entry]) & DISABLED))
+        {
+          OB_STATE_CLEAR(&nmenu[entry], SELECTED);
           
           Graf_do_mouse (apid, M_OFF, NULL);
           Objc_do_draw (globals->vid, nmenu, 0, 9, &ei.m1r);
@@ -1421,7 +1429,7 @@ handle_drop_down (WORD        apid,
 			&dummy,
 			&dummy);
 
-        nmenu[entry].ob_state &= ~SELECTED;
+        OB_STATE_CLEAR(&nmenu[entry], SELECTED);
                 
         if (nmenu == globals->common->pmenutad)
 	{
@@ -1551,7 +1559,7 @@ handle_selected_title (WORD        apid,
             
     /* select the title and update it */
             
-    globals->menu[title].ob_state |= SELECTED;
+    OB_STATE_SET(&globals->menu[title], SELECTED);
 
     Objc_area_needed (globals->menu, title, &titlearea);
 
@@ -1680,8 +1688,9 @@ handle_selected_title (WORD        apid,
           closebox = 1;
         }
 
-        if(closebox) {
-          globals->menu[title].ob_state &= ~SELECTED;
+        if(closebox)
+        {
+          OB_STATE_CLEAR(&globals->menu[title], SELECTED);
           Graf_do_mouse (apid, M_OFF, NULL);
           Objc_do_draw (globals->vid, globals->menu, 0, 9, &titlearea);
           Graf_do_mouse (apid, M_ON, NULL);

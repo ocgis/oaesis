@@ -765,7 +765,8 @@ Form_do_button (WORD     apid,
 		
     if(OB_FLAGS(&tree[obj]) & RBUTTON)
     {
-      if(!(tree[obj].ob_state & SELECTED)) {
+      if(!(OB_STATE(&tree[obj]) & SELECTED))
+      {
         WORD i = obj;
 				
         while(1) {
@@ -780,17 +781,28 @@ Form_do_button (WORD     apid,
             break;
           };
 					
-          if(tree[i].ob_state & SELECTED) {
+          if(OB_STATE(&tree[i]) & SELECTED)
+          {
             Objc_calc_clip(tree,i,&clip);
-            Objc_do_change (apid, tree,i,&clip,
-                           tree[i].ob_state &= ~SELECTED,REDRAW);
-          };					
-        };				
+            OB_STATE_CLEAR(&tree[i], SELECTED);
+            Objc_do_change(apid,
+                           tree,
+                           i,
+                           &clip,
+                           OB_STATE(&tree[i]),
+                           REDRAW);
+          }
+        }
 
         Objc_calc_clip(tree,obj,&clip);
-        Objc_do_change (apid, tree,obj,&clip,
-                       tree[i].ob_state |= SELECTED,REDRAW);
-      };
+        OB_STATE_SET(&tree[i], SELECTED);
+        Objc_do_change(apid,
+                       tree,
+                       obj,
+                       &clip,
+                       OB_STATE(&tree[i]),
+                       REDRAW);
+      }
 			
       Evnt_do_button (apid,
                       0,
@@ -816,8 +828,9 @@ Form_do_button (WORD     apid,
         return 1;
       };
     }
-    else {
-      WORD instate = tree[obj].ob_state;
+    else
+    {
+      WORD instate = OB_STATE(&tree[obj]);
       WORD outstate = instate;
 
       if(OB_FLAGS(&tree[obj]) & SELECTABLE)
