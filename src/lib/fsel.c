@@ -536,19 +536,14 @@ slider_handle (WORD      apid,
 
 /*
 ** Exported
-**
-** 1998-12-19 CG
-** 1999-01-01 CG
-** 1999-01-11 CG
-** 1999-03-11 CG
-** 1999-05-24 CG
 */
 WORD
 Fsel_do_exinput (WORD   apid,
                  WORD * button,
                  BYTE * description,
                  BYTE * path,
-                 BYTE * file) {
+                 BYTE * file)
+{
   WORD cwidth,cheight,width,height;
   WORD selected = -1;
   BYTE oldpath[128];
@@ -561,7 +556,8 @@ Fsel_do_exinput (WORD   apid,
   DIRDESC dd = { NULL,0,0 };
   RECT src,dst;
   GLOBAL_APPL * globals = get_globals (apid);
-  BYTE          path_separator = globals->use_mint_paths ? '\\' : '/';
+  BYTE          path_separator =
+    (globals->path_mode == OAESIS_PATH_MODE_MINT) ? '\\' : '/';
 
   Graf_do_mouse (apid, BUSY_BEE, NULL);
 
@@ -569,9 +565,12 @@ Fsel_do_exinput (WORD   apid,
 	
   Graf_do_handle(&cwidth,&cheight,&width,&height);
 
-  if (globals->use_mint_paths) {
+  if(globals->path_mode == OAESIS_PATH_MODE_MINT)
+  {
     mint_set_path (path, &dd);
-  } else {
+  }
+  else
+  {
     unix_set_path (path, &dd);
   }
 
@@ -614,9 +613,12 @@ Fsel_do_exinput (WORD   apid,
 				
         reset_dirdesc(&dd);
 
-        if (globals->use_mint_paths) {
+        if(globals->path_mode == OAESIS_PATH_MODE_MINT)
+        {
           mint_set_path (path, &dd);
-        } else {
+        }
+        else
+        {
           unix_set_path (path, &dd);
         }
 
@@ -795,9 +797,12 @@ Fsel_do_exinput (WORD   apid,
 
       reset_dirdesc(&dd);
 
-      if (globals->use_mint_paths) {
+      if(globals->path_mode == OAESIS_PATH_MODE_MINT)
+      {
         mint_set_path (path, &dd);
-      } else {
+      }
+      else
+      {
         unix_set_path (path, &dd);
       }
       
@@ -851,9 +856,12 @@ Fsel_do_exinput (WORD   apid,
                             tree[obj].ob_state &= ~SELECTED,REDRAW);		
             reset_dirdesc(&dd);
 
-            if (globals->use_mint_paths) {
+            if(globals->path_mode == OAESIS_PATH_MODE_MINT)
+            {
               mint_set_path (path, &dd);
-            } else {
+            }
+            else
+            {
               unix_set_path (path, &dd);
             }
             

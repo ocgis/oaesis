@@ -2,6 +2,7 @@
 #define	__LIB_GLOBAL__
 
 #include "config.h"
+#include "oaesis.h"
 #include "types.h"
 
 #define	STKSIZE	4096
@@ -100,24 +101,24 @@ typedef struct {
   APPL_ENTRY * entries;
 } APPL_LIST;
 
-
 /*
 ** Description
 ** global_appl contains variables that are global within a special application
 */
-typedef struct global_appl {
-  GLOBAL_COMMON * common;
-  WORD            vid;
-  void          * windows;
-  OBJECT        * desktop_background;
-  OBJECT        * menu;
-  RECT            menu_bar_rect;
-  RSHDR         * rshdr;
-  OBJECT       ** rscfile;
-  WORD            use_mint_paths;
-  APPL_LIST       appl_menu;
-  APPL_LIST       acc_menu;
-  BYTE            application_name[20];
+typedef struct global_appl
+{
+  GLOBAL_COMMON *  common;
+  WORD             vid;
+  void *           windows;
+  OBJECT *         desktop_background;
+  OBJECT *         menu;
+  RECT             menu_bar_rect;
+  RSHDR *          rshdr;
+  OBJECT **        rscfile;
+  OAESIS_PATH_MODE path_mode;
+  APPL_LIST        appl_menu;
+  APPL_LIST        acc_menu;
+  BYTE             application_name[20];
 } GLOBAL_APPL;
 
 /*

@@ -27,7 +27,7 @@
  
  ****************************************************************************/
 
-#define DEBUGLEVEL 0
+#define DEBUGLEVEL 2
 
 /****************************************************************************
  * Used interfaces                                                          *
@@ -85,10 +85,14 @@ static WORD global[15];
 static WORD open_physical_ws; /* set in own_appl_init. jps */
 
 static WORD oldmode,oldmodecode;
+
+static OAESIS_PATH_MODE default_path_mode = OAESIS_PATH_MODE_MINT;
 #else
 static
 short
 (*oaesis_callback)(void *, void *) = NULL;
+
+static OAESIS_PATH_MODE default_path_mode = OAESIS_PATH_MODE_UNIX;
 #endif /* MINT_TARGET */
 
 static BYTE versionstring[50];
@@ -381,7 +385,7 @@ init_global_appl (int    apid,
   temp_vid = physical_vdi_id;
   v_opnvwk (work_in, &temp_vid, work_out);
   globals->vid = temp_vid;
-
+  DEBUG2("lib_global.c: apid = %d globals->vid = %d", apid, globals->vid);
   /* There is no default desktop background */
   globals->desktop_background = NULL;
 
@@ -392,12 +396,8 @@ init_global_appl (int    apid,
   globals->rscfile = NULL;
   globals->rshdr = NULL;
 
-#ifdef MINT_TARGET
-  globals->use_mint_paths = TRUE;
-#else
-  /* Default is not to use MiNT pathnames, at least under unix */
-  globals->use_mint_paths = FALSE;
-#endif
+  /* Setup path mode: MiNT or Unix */
+  globals->path_mode = default_path_mode;
 
   /* Initialize application and accessory list as empty */
   globals->appl_menu.count = 0;
@@ -448,6 +448,17 @@ GLOBAL_APPL *
 get_globals (WORD apid)
 {
   return &globals_appl[apid];
+}
+
+
+/*
+** Description
+** Set emulation path mode
+*/
+void
+Oaesis_set_path_mode(OAESIS_PATH_MODE path_mode)
+{
+  default_path_mode = path_mode;
 }
 
 

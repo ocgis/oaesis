@@ -525,18 +525,20 @@ Shel_do_find_unix (BYTE * buf) {
 
 /*
 ** Exported
-**
-** 1999-03-14 CG
 */
 WORD
 Shel_do_find (WORD   apid,
-              BYTE * buf) {
+              BYTE * buf)
+{
   GLOBAL_APPL * globals = get_globals (apid);
 
-  if (globals->use_mint_paths) {
-    return Shel_do_find_mint (buf);
-  } else {
-    return Shel_do_find_unix (buf);
+  if(globals->path_mode == OAESIS_PATH_MODE_MINT)
+  {
+    return Shel_do_find_mint(buf);
+  }
+  else
+  {
+    return Shel_do_find_unix(buf);
   }
 }
 

@@ -223,22 +223,24 @@ Rsrc_do_load_unix (WORD   apid,
 /*
 ** Description
 ** Load a resource file that is found in the path
-**
-** 1999-03-14 CG
 */
 static
 RSHDR *
-Rsrc_do_load (WORD   apid,
-              WORD   vid,
-              BYTE * filename) {
+Rsrc_do_load(WORD   apid,
+             WORD   vid,
+             BYTE * filename)
+{
   GLOBAL_APPL * globals = get_globals (apid);
 
-  if (globals->use_mint_paths) {
+  if(globals->path_mode == OAESIS_PATH_MODE_MINT)
+  {
     DEBUG2 ("rsrc.c: Rsrc_do_load: Calling Rsrc_do_load_mint");
-    return Rsrc_do_load_mint (apid, vid, filename);
-  } else {
+    return Rsrc_do_load_mint(apid, vid, filename);
+  }
+  else
+  {
     DEBUG2 ("rsrc.c: Rsrc_do_load: Calling Rsrc_do_load_unix");
-    return Rsrc_do_load_unix (apid, vid, filename);
+    return Rsrc_do_load_unix(apid, vid, filename);
   }
 }
 

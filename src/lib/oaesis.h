@@ -15,6 +15,19 @@
 #ifndef _OAESIS_H_
 #define _OAESIS_H_
 
+typedef enum
+{
+  OAESIS_PATH_MODE_UNIX,
+  OAESIS_PATH_MODE_MINT
+} OAESIS_PATH_MODE;
+
+/*
+** Description
+** Set emulation path mode
+*/
+void
+Oaesis_set_path_mode(OAESIS_PATH_MODE path_mode);
+
 /*
 ** Description
 ** Install a callback handler
