@@ -334,7 +334,7 @@ draw_text (WORD     vid,
     BYTE *ptmplt = ob_spec.tedinfo->te_ptmplt;
     BYTE *ptext = ob_spec.tedinfo->te_ptext;
     BYTE *pctext = ctext;
-					
+
     if(*ptext == '@') {
       *ptext = '\0';
     }
@@ -360,17 +360,17 @@ draw_text (WORD     vid,
     *pctext = '\0';
     text = ctext;
 			
-    bfill = ob_spec.tedinfo->te_color.pattern;
-    bcolour = ob_spec.tedinfo->te_color.fillc;
-  };
+    bfill = GET_TE_COLOR_PATTERN(ob_spec.tedinfo->te_color);
+    bcolour = GET_TE_COLOR_FILLC(ob_spec.tedinfo->te_color);
+  }
   break;
 		
   case G_TEXT:
   case G_BOXTEXT:
     text = ob_spec.tedinfo->te_ptext;
 
-    bfill = ob_spec.tedinfo->te_color.pattern;
-    bcolour = ob_spec.tedinfo->te_color.fillc;
+    bfill = GET_TE_COLOR_PATTERN(ob_spec.tedinfo->te_color);
+    bcolour = GET_TE_COLOR_FILLC(ob_spec.tedinfo->te_color);
     break;
 		
   case G_TITLE:
@@ -439,14 +439,15 @@ draw_text (WORD     vid,
         vst_alignment(vid,1,5,&temp,&temp);
       }
 				
-      tcolour = ob_spec.tedinfo->te_color.textc;
+      tcolour = GET_TE_COLOR_TEXTC(ob_spec.tedinfo->te_color);
 
       if(draw3d) {
         writemode = SWRM_TRANS;
       }
-      else {
-        writemode = ob_spec.tedinfo->te_color.opaque;
-      };
+      else
+      {
+        writemode = GET_TE_COLOR_OPAQUE(ob_spec.tedinfo->te_color);
+      }
       break;
 				
     case G_STRING:
@@ -579,7 +580,7 @@ draw_text (WORD     vid,
     } else {
       set_write_mode(vid,writemode);
     }
-		
+
     vst_color(vid,tcolour);
     v_gtext(vid,tx,ty,text);
   }
@@ -692,10 +693,10 @@ draw_bg (WORD vid,
     r.y = ob->ob_y + par_y;
     r.width = ob->ob_width;
     r.height = ob->ob_height;
-			
-    fillcolour = ob_spec.tedinfo->te_color.fillc;
-    filltype = ob_spec.tedinfo->te_color.pattern;
-  };
+
+    fillcolour = GET_TE_COLOR_FILLC(ob_spec.tedinfo->te_color);
+    filltype = GET_TE_COLOR_PATTERN(ob_spec.tedinfo->te_color);
+  }
   break;
 
   case G_STRING:
@@ -901,7 +902,7 @@ draw_frame (WORD     vid,
 			
     framesize = ob_spec.tedinfo->te_thickness;
 
-    vsl_color(vid,ob_spec.tedinfo->te_color.borderc);
+    vsl_color(vid, GET_TE_COLOR_BORDERC(ob_spec.tedinfo->te_color));
   }
   break;
 
