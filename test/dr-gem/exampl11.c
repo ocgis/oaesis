@@ -11,23 +11,30 @@
 /*	Standard includes	*/
 /*------------------------------*/
 
-#include "portab.h"				/* portable coding macros */
-#include "machine.h"				/* machine dependencies   */
-#include "obdefs.h"				/* object definitions	  */
-#include "treeaddr.h"				/* tree address macros    */
-#include "vdibind.h"				/* vdi binding structures */
-#include "gembind.h"				/* gem binding structures */
-#include "exampl11.h"				/* Object tree resources  */
+#include <aesbind.h>				/* aes binding structures  */
+#include <mintbind.h>				/* mint binding structures */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <vdibind.h>				/* vdi binding structures */
 
+#include "exampl11.h"
+ 
 /*------------------------------*/
-/*	Global GEM arrays	*/
+/*	Some Defines    	*/
 /*------------------------------*/
 
-GLOBAL WORD	contrl[11];		/* control inputs		*/
-GLOBAL WORD	intin[80];		/* max string length		*/
-GLOBAL WORD	ptsin[256];		/* polygon fill points		*/
-GLOBAL WORD	intout[45];		/* open workstation output	*/
-GLOBAL WORD	ptsout[12];		/* points out array		*/
+#define TRUE  1
+#define FALSE 0
+#define LONG int
+#define BYTE char
+#define VOID void
+#define LLOWD(x) ((UWORD)((LONG)x))
+						/* return high word of	*/
+						/*   a long value	*/
+#define LHIWD(x) ((UWORD)((LONG)x >> 16))
+						/* return low byte of	*/
+						/*   a word value	*/
 
 /*------------------------------*/
 /*	Local defines		*/
@@ -35,7 +42,6 @@ GLOBAL WORD	ptsout[12];		/* points out array		*/
 
 #define	ARROW	0			/* Arrow cursor form for mouse	*/
 #define	HOUR	2			/* Hourglass cursor form	*/
-#define	DESK	0			/* DESK area identifier		*/
 #define	WBOX	21			/* Initial width for GROWBOX	*/
 #define	HBOX	21			/* Initial height for GROWBOX	*/
 
@@ -43,22 +49,22 @@ GLOBAL WORD	ptsout[12];		/* points out array		*/
 /*	Local variables		*/
 /*------------------------------*/
 
-WORD	gl_apid;			/* ID returned by appl_init 	*/
-WORD	gl_rmsg[8];			/* Message buffer		*/
-LONG	ad_rmsg;			/* Pointer to message buffer	*/
-LONG	main_menu;			/* Pointer to MAINMENU tree	*/
-LONG	about_alert;			/* Pointer to ABOALERT tree	*/
-LONG	quit_alert;			/* Pointer to QUIALERT tree	*/
-WORD	xfull;				/* Desk area X coordinate	*/
-WORD	yfull;				/* Desk area Y coordinate	*/
-WORD	wfull;				/* Desk area width		*/
-WORD	hfull;				/* Desk area height		*/
-WORD	xstart;				/* Screen centre X position	*/
-WORD	ystart;				/* Screen centre Y position	*/
-WORD	w1handle;			/* Handle for window 1		*/
-WORD	active     = FALSE;		/* Flag shows active window	*/
-BYTE	*wdw_title = "EXAMPL11";
-BYTE	*wdw_info  = "Windows under the control of menus";	
+WORD	 gl_apid;			/* ID returned by appl_init 	*/
+WORD	 gl_rmsg[8];			/* Message buffer		*/
+WORD *   ad_rmsg;			/* Pointer to message buffer	*/
+OBJECT * main_menu;			/* Pointer to MAINMENU tree	*/
+BYTE *	 about_alert;			/* Pointer to ABOALERT tree	*/
+BYTE *	 quit_alert;			/* Pointer to QUIALERT tree	*/
+int	 xfull;				/* Desk area X coordinate	*/
+int	 yfull;				/* Desk area Y coordinate	*/
+int	 wfull;				/* Desk area width		*/
+int	 hfull;				/* Desk area height		*/
+WORD	 xstart;			/* Screen centre X position	*/
+WORD	 ystart;			/* Screen centre Y position	*/
+WORD	 w1handle;			/* Handle for window 1		*/
+WORD	 active     = FALSE;		/* Flag shows active window	*/
+BYTE *   wdw_title = "EXAMPL11";
+BYTE *   wdw_info  = "Windows under the control of menus";	
 
 /*------------------------------*/
 /*	Application code	*/
@@ -67,13 +73,11 @@ BYTE	*wdw_info  = "Windows under the control of menus";
 /*------------------------------*/
 /*	close_window		*/
 /*------------------------------*/
-
-WORD	close_window(handle)
-
-WORD	handle;				/* Window handle		*/
-
+static
+void
+close_window(WORD handle)
 {
-	WORD	cx, cy, cw, ch;		/* Holds current XYWH position	*/
+	int	cx, cy, cw, ch;		/* Holds current XYWH position	*/
 	
 	graf_mouse(HOUR, 0L);		/* Show hourglass		*/
 
@@ -91,7 +95,7 @@ WORD	handle;				/* Window handle		*/
 /*------------------------------*/
 /*	size_window		*/
 /*------------------------------*/
-
+static
 VOID	size_window(handle, x, y, w, h)	/* Set current window size	*/
 
 WORD	handle;				/* Window handle to size	*/
@@ -108,13 +112,12 @@ WORD	h;				/* New height			*/
 /*------------------------------*/
 /*	hndl_window		*/
 /*------------------------------*/
-
-WORD	hndl_window()
-
+static
+WORD
+hndl_window(void)
 {
 
 	WORD	evnt_type;		/* Event type			*/
-	WORD	evnt_action;		/* Requested action for scroll	*/
 	WORD	wdw_hndl;		/* Handle of window in event	*/
 	WORD	wx;			/* Event x coordinate		*/
 	WORD	wy;			/* Event y coordinate		*/
@@ -146,13 +149,11 @@ WORD	hndl_window()
 /*------------------------------*/
 /*	open_full		*/
 /*------------------------------*/
-
-WORD	open_full(attributes, title, info)
-
-WORD	attributes;			/* Window attributes		*/
-BYTE	*title;				/* Window title			*/
-BYTE	*info;				/* Window information line	*/
-
+static
+WORD
+open_full(WORD   attributes,
+          BYTE * title,
+          BYTE * info)
 {
 
 	WORD	handle;			/* Window handle		*/
@@ -172,7 +173,7 @@ BYTE	*info;				/* Window information line	*/
 	if (handle <= 0)
 	{
 	
-		form_alert(1, ADDR("[3][No windows left][ QUIT ]"));
+		form_alert(1, "[3][No windows left][ QUIT ]");
 		appl_exit();
 
 		return(handle);
@@ -181,18 +182,18 @@ BYTE	*info;				/* Window information line	*/
 
 	if (attributes & NAME)		/* Title present ?		*/
 	{
-	  	low_word  = (WORD) LLOWD(ADDR(title));
-		high_word = (WORD) LHIWD(ADDR(title));
+	  	low_word  =  LLOWD(title);
+		high_word =  LHIWD(title);
 	
-		wind_set(handle, WF_NAME, low_word, high_word);
+		wind_set(handle, WF_NAME, high_word, low_word, 0 ,0);
 	}
 	
 	if (attributes & INFO)		/* Information line present ?	*/
 	{
-		low_word  = (WORD) LLOWD(ADDR(info));
-		high_word = (WORD) LHIWD(ADDR(info));
+		low_word  = LLOWD(info);
+		high_word = LHIWD(info);
 	
-		wind_set(handle, WF_INFO, low_word, high_word);
+		wind_set(handle, WF_INFO, high_word, low_word,0 ,0 );
 	}
 	
 	graf_growbox(xstart, ystart, HBOX, WBOX, xfull, yfull, wfull, hfull);
@@ -207,9 +208,9 @@ BYTE	*info;				/* Window information line	*/
 /*------------------------------*/
 /*	do_menu			*/
 /*------------------------------*/
-
-WORD	do_menu()
-
+static
+WORD
+do_menu(void)
 {
 
 	WORD	menu_title;		/* Holds menu title number	*/
@@ -288,6 +289,8 @@ WORD	do_menu()
 			return(TRUE);
 		}
 	}
+
+        return TRUE;
 }
 
 /*------------------------------*/
@@ -313,12 +316,12 @@ WORD	hndl_events()			/* Process MENU or WINDOW evnts	*/
 /*------------------------------*/
 /*	initialise		*/
 /*------------------------------*/
-
-WORD	initialise()
-
+static
+WORD
+initialise(void)
 {
 
-	ad_rmsg = ADDR((BYTE *) &gl_rmsg[0]);
+	ad_rmsg = &gl_rmsg[0];
 	
 	gl_apid = appl_init();		/* return application ID	*/
 	
@@ -326,10 +329,10 @@ WORD	initialise()
 
 		return(FALSE);		/* unable to use AES		*/
 
-	if (!rsrc_load(ADDR("EXAMPL11.RSC")))
+	if (!rsrc_load("exampl11.rsc"))
 	{
 	
-		form_alert(1, ADDR("[3][Unable to load resource][ Abort ]"));
+		form_alert(1, "[3][Unable to load resource][ Abort ]");
 
 		return(FALSE);		/* unable to load resource	*/
 		
@@ -342,13 +345,14 @@ WORD	initialise()
 /*------------------------------*/
 /*	GEMAIN			*/
 /*------------------------------*/
-
-GEMAIN()
+int
+main(void)
 {
 
 	if (!initialise())
-
-		return(FALSE);
+        {
+          return -1;
+	}
 	
 	rsrc_gaddr(R_TREE,   MAINMENU, &main_menu);
 	rsrc_gaddr(R_STRING, ABOALERT, &about_alert);
@@ -369,4 +373,5 @@ GEMAIN()
 		
 	appl_exit();			/* Exit AES tidily		*/
 	
+        return 0;
 }

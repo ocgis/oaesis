@@ -12,36 +12,28 @@
 /*	Standard includes	*/
 /*------------------------------*/
 
-#include "portab.h"				/* portable coding macros */
-#include "machine.h"				/* machine dependencies   */
-#include "obdefs.h"				/* object definitions	  */
+#include <aesbind.h>
+#include <vdibind.h>				/* vdi binding structures */
+
 #include "treeaddr.h"				/* tree address macros    */
-#include "vdibind.h"				/* vdi binding structures */
-#include "gembind.h"				/* gem binding structures */
 #include "example6.h"				/* resource file offsets  */
-
-/*------------------------------*/
-/*	Global GEM arrays	*/
-/*------------------------------*/
-
-GLOBAL WORD	contrl[11];		/* control inputs		*/
-GLOBAL WORD	intin[80];		/* max string length		*/
-GLOBAL WORD	ptsin[256];		/* polygon fill points		*/
-GLOBAL WORD	intout[45];		/* open workstation output	*/
-GLOBAL WORD	ptsout[12];		/* points out array		*/
 
 /*------------------------------*/
 /*	Local defines		*/
 /*------------------------------*/
 
 #define	ARROW	0			/* Arrow cursor form for MOUSE	*/
+#define BYTE    char
+#define LONG    long
+#define TRUE    1
+#define FALSE   0
 
 /*------------------------------*/
 /*	Local variables		*/
 /*------------------------------*/
 
-WORD	gl_apid;			/* ID returned by appl_init 	*/
-LONG	time_date;			/* Address of TIMEDATE dialog	*/
+WORD     gl_apid;			/* ID returned by appl_init 	*/
+OBJECT * time_date;			/* Address of TIMEDATE dialog	*/
 
 /*------------------------------*/
 /*	application code	*/
@@ -50,15 +42,13 @@ LONG	time_date;			/* Address of TIMEDATE dialog	*/
 /*------------------------------*/
 /*	do_dialog		*/
 /*------------------------------*/
-
-WORD	do_dialog(tree, start_obj)	/* Handles dialog in centre	*/
-
-LONG	tree;				/* Dialog tree address		*/
-WORD	start_obj;			/* Start object number		*/
-
+static
+WORD
+do_dialog(OBJECT * tree,
+          WORD     start_obj)	/* Handles dialog in centre	*/
 {
 
-	WORD	x, y, w, h;		/* Holds X,Y,W,H of dialog	*/
+	int	x, y, w, h;		/* Holds X,Y,W,H of dialog	*/
 	WORD	wobject;		/* Object that caused exit	*/
 	
 	form_center(tree, &x, &y, &w, &h);
@@ -82,9 +72,9 @@ WORD	start_obj;			/* Start object number		*/
 /*------------------------------*/
 /*	initialise		*/
 /*------------------------------*/
-
-WORD	initialise()
-
+static
+WORD
+initialise(void)
 {
 
 	gl_apid = appl_init();		/* return application ID	*/
@@ -94,10 +84,10 @@ WORD	initialise()
 
 		return(FALSE);		/* unable to use AES		*/
 
-	if (!rsrc_load(ADDR("EXAMPLE6.RSC")))
+	if (!rsrc_load("example6.rsc"))
 	{
 	
-		form_alert(1, ADDR("[3][Unable to load resource][ Abort ]"));
+		form_alert(1, "[3][Unable to load resource][ Abort ]");
 
 		return(FALSE);		/* unable to load resource	*/
 		
@@ -110,14 +100,14 @@ WORD	initialise()
 /*------------------------------*/
 /*	GEMAIN			*/
 /*------------------------------*/
-
-GEMAIN()
-
+int
+main(void)
 {
 
 	if (!initialise())
-	
-		return(FALSE);
+	{
+          return -1;
+        }
 		
 	rsrc_gaddr(R_TREE, TIMEDATE, &time_date);
 
@@ -127,4 +117,5 @@ GEMAIN()
 	
 	appl_exit();			/* exit AES tidily		*/
 
+        return 0;
 }

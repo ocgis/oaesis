@@ -19,16 +19,6 @@
 #include "example5.h"				/* resource file offsets  */
 
 /*------------------------------*/
-/*	Global GEM arrays	*/
-/*------------------------------*/
-
-WORD	contrl[11];		/* control inputs		*/
-WORD	intin[80];		/* max string length		*/
-WORD	ptsin[256];		/* polygon fill points		*/
-WORD	intout[45];		/* open workstation output	*/
-WORD	ptsout[12];		/* points out array		*/
-
-/*------------------------------*/
 /*	Local defines		*/
 /*------------------------------*/
 
@@ -173,7 +163,6 @@ do_menu(void)
 			return(TRUE);
 		}
 	}
-
         return TRUE;
 }
 

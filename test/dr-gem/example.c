@@ -33,8 +33,9 @@ int apid;                                       /* ID returned by appl_init */
 /*------------------------------*/
 /*	Test Procedure		*/
 /*------------------------------*/
-
-void testproc(void)
+static
+void
+testproc(void)
 {
                                                 /* First button default, No ICON */
         form_alert(1,"[0][Welcome to GEM|From NoCrew - OSIS][ OK ]");

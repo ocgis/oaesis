@@ -26,10 +26,10 @@
 #define FALSE 0
 #define LONG int
 #define BYTE char
-#define LLOWD(x) ((UWORD)(x))
+#define LLOWD(x) ((UWORD)((LONG)x))
 						/* return high word of	*/
 						/*   a long value	*/
-#define LHIWD(x) ((UWORD)(x >> 16))
+#define LHIWD(x) ((UWORD)((LONG)x >> 16))
 						/* return low byte of	*/
 						/*   a word value	*/
 
@@ -39,7 +39,6 @@
 
 #define	ARROW	0			/* Arrow cursor form for mouse	*/
 #define	HOUR	2			/* Hourglass cursor form	*/
-/*#define	DESK	0*/			/* DESK area identifier		*/
 #define	WBOX	21			/* Initial width for GROWBOX	*/
 #define	HBOX	21			/* Initial height for GROWBOX	*/
 
@@ -49,11 +48,11 @@
 
 WORD	gl_apid;			/* ID returned by appl_init 	*/
 WORD	gl_rmsg[8];			/* Message buffer		*/
-WORD    ad_rmsg;			/* Pointer to message buffer	*/
-WORD	xfull;				/* Desk area X coordinate	*/
-WORD	yfull;				/* Desk area Y coordinate	*/
-WORD	wfull;				/* Desk area width		*/
-WORD	hfull;				/* Desk area height		*/
+WORD *  ad_rmsg;			/* Pointer to message buffer	*/
+int	xfull;				/* Desk area X coordinate	*/
+int	yfull;				/* Desk area Y coordinate	*/
+int	wfull;				/* Desk area width		*/
+int	hfull;				/* Desk area height		*/
 WORD	xstart;				/* Screen centre X position	*/
 WORD	ystart;				/* Screen centre Y position	*/
 WORD	w1handle;			/* Handle for window 1		*/
@@ -67,13 +66,11 @@ BYTE	*wdw_info  = "Example of using window library";
 /*------------------------------*/
 /*	close_window		*/
 /*------------------------------*/
-
-WORD	close_window(handle)
-
-WORD	handle;				/* Window handle		*/
-
+static
+void
+close_window(WORD handle)
 {
-	WORD	cx, cy, cw, ch;		/* Holds current XYWH position	*/
+	int	cx, cy, cw, ch;		/* Holds current XYWH position	*/
 	
 	graf_mouse(HOUR, 0L);		/* Show hourglass		*/
 
@@ -91,18 +88,13 @@ WORD	handle;				/* Window handle		*/
 /*------------------------------*/
 /*	hndl_window		*/
 /*------------------------------*/
-
-WORD	hndl_window()
-
+static
+WORD
+hndl_window(void)
 {
 
 	WORD	evnt_type;		/* Event type			*/
-	WORD	evnt_action;		/* Requested action for scroll	*/
 	WORD	wdw_hndl;		/* Handle of window in event	*/
-	WORD	wx;			/* Event x coordinate		*/
-	WORD	wy;			/* Event y coordinate		*/
-	WORD	ww;			/* Event window width		*/
-	WORD	wh;			/* Event window height		*/
 	
 	evnt_mesag(ad_rmsg);	/* get events			*/
 	
@@ -125,13 +117,11 @@ WORD	hndl_window()
 /*------------------------------*/
 /*	open_full		*/
 /*------------------------------*/
-
-WORD	open_full(attributes, title, info)
-
-WORD	attributes;			/* Window attributes		*/
-BYTE	*title;				/* Window title			*/
-BYTE	*info;				/* Window information line	*/
-
+static
+WORD
+open_full(WORD   attributes,
+          BYTE * title,
+          BYTE * info)
 {
 
 	WORD	handle;			/* Window handle		*/
@@ -163,7 +153,7 @@ BYTE	*info;				/* Window information line	*/
 	  	low_word  =  LLOWD(title);
 		high_word =  LHIWD(title);
 	
-		wind_set(handle, WF_NAME, low_word, high_word, 0 ,0);
+		wind_set(handle, WF_NAME, high_word, low_word, 0 ,0);
 	}
 	
 	if (attributes & INFO)		/* Information line present ?	*/
@@ -171,7 +161,7 @@ BYTE	*info;				/* Window information line	*/
 		low_word  = LLOWD(info);
 		high_word = LHIWD(info);
 	
-		wind_set(handle, WF_INFO, low_word, high_word,0 ,0 );
+		wind_set(handle, WF_INFO, high_word, low_word,0 ,0 );
 	}
 	
 	graf_growbox(xstart, ystart, HBOX, WBOX, xfull, yfull, wfull, hfull);
@@ -186,12 +176,12 @@ BYTE	*info;				/* Window information line	*/
 /*------------------------------*/
 /*	initialise		*/
 /*------------------------------*/
-
-WORD	initialise()
-
+static
+WORD
+initialise(void)
 {
 
-	ad_rmsg = (BYTE *) &gl_rmsg[0];
+	ad_rmsg = &gl_rmsg[0];
 	
 	gl_apid = appl_init();		/* return application ID	*/
 	
@@ -206,15 +196,16 @@ WORD	initialise()
 /*------------------------------*/
 /*	GEMAIN			*/
 /*------------------------------*/
-
-GEMAIN()
+int
+main(void)
 {
 
 	WORD	win_attr;		/* Window attributes		*/
 
 	if (!initialise())
-		return(FALSE);
-	
+        {
+          return -1;
+	}
 	
 	win_attr  = NAME|CLOSER|FULLER|MOVER|INFO|SIZER|UPARROW|DNARROW;
 	win_attr |= VSLIDE|LFARROW|RTARROW|HSLIDE;
@@ -226,5 +217,6 @@ GEMAIN()
 		while(hndl_window());
 			
 	appl_exit();			/* Exit AES tidily		*/
-	
+
+	return 0;
 }
