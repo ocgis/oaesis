@@ -773,7 +773,9 @@ evnt_button (int clicks,
              int * my,
              int * button,
              int * kstate); 
-int     evnt_dclick (int ToSet, int SetGet);
+int
+evnt_dclick (int new,
+             int flag);
 int     evnt_keybd (void);
 short
 evnt_mesag (short MesagBuf[]);
@@ -879,8 +881,13 @@ graf_mkstate (int * mx,
 short
 graf_mouse (int    Form,
             void * FormAddress);
-int graf_movebox (int Sw, int Sh, int Sx, int Sy, int Dx,
-                                   int Dy);
+int
+graf_movebox (int   bw,
+              int   bh,
+              int   sx,
+              int   sy,
+              int * ex,
+              int * ey);
 int
 graf_rubberbox (int   bx,
                 int   by,
@@ -926,13 +933,19 @@ short
 menu_register (short  ap_id,
                char * title);
 int menu_settings (int me_flag, MN_SET *me_values);
-int menu_text (void *Tree, int Item, char *Text);
+int
+menu_text (OBJECT * tree,
+           int      obj,
+           char *   text);
 short
 menu_tnormal (OBJECT * tree,
               short    obj,
               short    flag);
 
-int     objc_add (void *Tree, int Parent, int Child);
+int
+objc_add (OBJECT * tree,
+          int      parent,
+          int      child);
 short
 objc_change (OBJECT * Tree,
              short    Object,
@@ -965,7 +978,10 @@ objc_offset (OBJECT * Tree,
              int      Object,
              int *    X,
              int *    Y);
-int     objc_order (void *Tree, int Object, int NewPos);
+int
+objc_order (OBJECT * tree,
+            int      obj,
+            int      pos);
 int     objc_sysvar (int mode, int which, int in1, int in2, int *out1, int *out2);
 
 int     rsrc_free (void);
@@ -987,14 +1003,24 @@ scrp_read (char * cpath);
 short
 scrp_write (char * cpath);
 
-int     shel_envrn (char *result, char *param);
+int
+shel_envrn (char ** value,
+            char *  name);
 short
 shel_find (char * buf);
-int     shel_get (char *Buf, int Len);
-int     shel_put (char *Buf, int Len);
+int
+shel_get (char * buf,
+          int    length);
+int
+shel_put (char * buf,
+          int    length);
 int     shel_read (char *Command, char *Tail);
-int     shel_write (int Exit, int Graphic, int Aes,
-                                    char *Command, char *Tail);
+int
+shel_write (int    mode,
+            int    wisgr,
+            int    wiscr,
+            char * cmd,
+            char * tail);
 
 int
 wind_calc (int   request,
@@ -1015,7 +1041,9 @@ extern short wind_create (short Parts,
                           short Wh); 
 short
 wind_delete (short handle);
-int     wind_find (int X, int Y);
+int
+wind_find (int x,
+           int y);
 int
 wind_get (int   WindowHandle,
           int   What,
@@ -1037,6 +1065,24 @@ extern short wind_set (short WindowHandle,
                        short parm4);
 extern short wind_update (short Code);
 
+void
+r_get (GRECT * r,
+       int   * x,
+       int   * y,
+       int   * width,
+       int   * height);
+void
+r_set (GRECT * r,
+       int     x,
+       int     y,
+       int     width,
+       int     height);
+void
+rc_copy (GRECT * src,
+         GRECT * dest);
+int
+rc_equal (GRECT * src,
+          GRECT * dest);
 short
 rc_intersect (GRECT * r1,
               GRECT * r2);

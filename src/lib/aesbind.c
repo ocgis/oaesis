@@ -112,8 +112,8 @@ evnt_button (int   clicks,
   NO_ADDROUT = 0;
 
   aespb.intin[0] = clicks;
-  aespb.intin[0] = mask;
-  aespb.intin[0] = state;
+  aespb.intin[1] = mask;
+  aespb.intin[2] = state;
 
   aes_call (&aespb);
 
@@ -121,6 +121,24 @@ evnt_button (int   clicks,
   *my = aespb.intout[2];
   *button = aespb.intout[3];
   *kstate = aespb.intout[4];
+
+  return aespb.intout[0];
+}
+
+
+int
+evnt_dclick (int new,
+             int flag) {
+  OPCODE = 26;
+  NO_INTIN = 2;
+  NO_ADDRIN = 0;
+  NO_INTOUT = 1;
+  NO_ADDROUT = 0;
+
+  aespb.intin[0] = new;
+  aespb.intin[0] = flag;
+
+  aes_call (&aespb);
 
   return aespb.intout[0];
 }
@@ -505,6 +523,33 @@ graf_mouse (int    Form,
 
 
 int
+graf_movebox (int   bw,
+              int   bh,
+              int   sx,
+              int   sy,
+              int * ex,
+              int * ey) {
+  OPCODE = 72;
+  NO_INTIN = 4;
+  NO_ADDRIN = 0;
+  NO_INTOUT = 3;
+  NO_ADDROUT = 0;
+
+  aespb.intin[0] = bw;
+  aespb.intin[1] = bh;
+  aespb.intin[2] = sx;
+  aespb.intin[3] = sy;
+
+  aes_call (&aespb);
+
+  *ex = aespb.intout[1];
+  *ey = aespb.intout[2];
+
+  return aespb.intout[0];
+}
+
+
+int
 graf_rubberbox (int   bx,
                 int   by,
                 int   minw,
@@ -662,6 +707,27 @@ menu_register (short  ap_id,
 }
 
 
+int
+menu_text (OBJECT * tree,
+           int      obj,
+           char *   text) {
+  OPCODE = 4;
+  NO_INTIN = 1;
+  NO_ADDRIN = 2;
+  NO_INTOUT = 1;
+  NO_ADDROUT = 0;
+
+  aespb.intin[0] = obj;
+
+  aespb.addrin[0] = (long)tree;
+  aespb.addrin[0] = (long)text;
+
+  aes_call (&aespb);
+
+  return aespb.intout[0];
+}
+
+
 short
 menu_tnormal (OBJECT * tree,
               short    obj,
@@ -676,6 +742,27 @@ menu_tnormal (OBJECT * tree,
 
   aespb.intin[0] = obj;
   aespb.intin[1] = flag;
+
+  aes_call (&aespb);
+
+  return aespb.intout[0];
+}
+
+
+int
+objc_add (OBJECT * tree,
+          int      parent,
+          int      child) {
+  OPCODE = 40;
+  NO_INTIN = 2;
+  NO_ADDRIN = 1;
+  NO_INTOUT = 1;
+  NO_ADDROUT = 0;
+
+  aespb.intin[0] = parent;
+  aespb.intin[1] = child;
+
+  aespb.addrin[0] = (long)tree;
 
   aes_call (&aespb);
 
@@ -794,6 +881,27 @@ objc_offset (OBJECT * tree,
 }
 
 
+int
+objc_order (OBJECT * tree,
+            int      obj,
+            int      pos) {
+  OPCODE = 45;
+  NO_INTIN = 2;
+  NO_ADDRIN = 1;
+  NO_INTOUT = 1;
+  NO_ADDROUT = 0;
+
+  aespb.intin[0] = obj;
+  aespb.intin[1] = pos;
+
+  aespb.addrin[0] = (long)tree;
+
+  aes_call (&aespb);
+
+  return aespb.intout[0];
+}
+
+
 short
 rsrc_gaddr (short  Type,
             short  Index,
@@ -897,6 +1005,24 @@ scrp_write (char * cpath) {
 }
 
 
+int
+shel_envrn (char ** value,
+            char *  name) {
+  OPCODE = 125;
+  NO_INTIN = 0;
+  NO_ADDRIN = 2;
+  NO_INTOUT = 1;
+  NO_ADDROUT = 0;
+
+  aespb.addrin[0] = (long)value;
+  aespb.addrin[1] = (long)name;
+
+  aes_call (&aespb);
+
+  return aespb.intout[0];
+}
+
+
 short
 shel_find (char * buf) {
   OPCODE = 124;
@@ -906,6 +1032,67 @@ shel_find (char * buf) {
   NO_ADDROUT = 0;
 
   aespb.addrin[0] = (long)buf;
+
+  aes_call (&aespb);
+
+  return aespb.intout[0];
+}
+
+
+int
+shel_get (char * buf,
+          int    length) {
+  OPCODE = 122;
+  NO_INTIN = 1;
+  NO_ADDRIN = 1;
+  NO_INTOUT = 1;
+  NO_ADDROUT = 0;
+
+  aespb.addrin[0] = (long)buf;
+  aespb.intin[0] = length;
+
+  aes_call (&aespb);
+
+  return aespb.intout[0];
+}
+
+
+int
+shel_put (char * buf,
+          int    length) {
+  OPCODE = 123;
+  NO_INTIN = 1;
+  NO_ADDRIN = 1;
+  NO_INTOUT = 1;
+  NO_ADDROUT = 0;
+
+  aespb.addrin[0] = (long)buf;
+  aespb.intin[0] = length;
+
+  aes_call (&aespb);
+
+  return aespb.intout[0];
+}
+
+
+int
+shel_write (int    mode,
+            int    wisgr,
+            int    wiscr,
+            char * cmd,
+            char * tail) {
+  OPCODE = 121;
+  NO_INTIN = 3;
+  NO_ADDRIN = 2;
+  NO_INTOUT = 1;
+  NO_ADDROUT = 0;
+
+  aespb.intin[0] = mode;
+  aespb.intin[1] = wisgr;
+  aespb.intin[2] = wiscr;
+
+  aespb.addrin[0] = (long)cmd;
+  aespb.addrin[1] = (long)tail;
 
   aes_call (&aespb);
 
@@ -1006,6 +1193,25 @@ wind_delete (short handle)
 
 
 int
+wind_find (int x,
+           int y)
+{
+  OPCODE = 106;
+  NO_INTIN = 2;
+  NO_ADDRIN = 0;
+  NO_INTOUT = 1;
+  NO_ADDROUT = 0;
+
+  aespb.intin[0] = x;
+  aespb.intin[1] = y;
+
+  aes_call (&aespb);
+
+  return aespb.intout[0];
+}
+
+
+int
 wind_get (int   WindowHandle,
           int   What,
           int * W1,
@@ -1096,6 +1302,49 @@ wind_update (short Code)
   aes_call (&aespb);
 
   return aespb.intout[0];
+}
+
+
+void
+r_get (GRECT * r,
+       int   * x,
+       int   * y,
+       int   * width,
+       int   * height) {
+  *x = r->g_x;
+  *y = r->g_y;
+  *width = r->g_w;
+  *height = r->g_h;
+}
+
+
+void
+r_set (GRECT * r,
+       int     x,
+       int     y,
+       int     width,
+       int     height) {
+  r->g_x = x;
+  r->g_y = y;
+  r->g_w = width;
+  r->g_h = height;
+}
+
+
+void
+rc_copy (GRECT * src,
+         GRECT * dest) {
+  *dest = *src;
+}
+
+
+int
+rc_equal (GRECT * src,
+          GRECT * dest) {
+  return ((src->g_x == dest->g_x) &&
+          (src->g_y == dest->g_y) &&
+          (src->g_w == dest->g_w) &&
+          (src->g_h == dest->g_h));
 }
 
 
