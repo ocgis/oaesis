@@ -210,9 +210,12 @@ Rsrc_do_load_unix (WORD   apid,
   
   close(fnr);
 
+
+  DEBUG3 ("Calling Rsrc_do_rcfix");
   Rsrc_do_rcfix (vid,
                  rsc,
                  (st.st_size != rsc->rsh_rssize) && (rsc->rsh_vrsn == 0));
+  DEBUG3 ("Returned from Rsrc_do_rcfix");
         
   return rsc;
 }
@@ -239,6 +242,10 @@ Rsrc_do_load (WORD   apid,
 }
 
 
+typedef struct {
+  OBJECT *o[1];
+} __attribute__ ((packed)) OARRAY;
+
 /*
 ** Description
 ** Calculate the address of an resource object
@@ -253,7 +260,7 @@ calculate_element_address (RSHDR * rsc,
                            WORD    nr) {
   switch (type) {
   case R_TREE:    /* 0x00 */
-    return ((OBJECT **)(rsc->rsh_trindex + (LONG)rsc))[nr];
+    return ((OARRAY *)(rsc->rsh_trindex + (LONG)rsc))->o[nr];
 
   case R_BITBLK:  /* 0x04 */
     return &((BITBLK *)(rsc->rsh_bitblk + (LONG)rsc))[nr];
@@ -281,6 +288,10 @@ calculate_element_address (RSHDR * rsc,
  * Public functions                                                         *
  ****************************************************************************/
 
+typedef struct {
+  LONG l[1];
+} __attribute__ ((packed)) LARRAY;
+
 /*
 ** Exported
 **
@@ -302,10 +313,11 @@ Rsrc_do_rcfix(WORD     vid,
   TEDINFO *   tiwalk;
   ICONBLK *   ibwalk;
   BITBLK *    bbwalk;
-  LONG *      treewalk;
-  LONG *      frstrwalk;
+  LARRAY *    treewalk;
+  LARRAY *    frstrwalk;
   CICONBLK ** cicons = NULL;
-  
+
+  DEBUG3 ("Rsrc_do_rcfix: 1");
   /* Swap words if necessary */
   if (swap_endian) {
     DEBUG3 ("Rsrc_do_rcfix: Swapping words in header");
@@ -314,13 +326,15 @@ Rsrc_do_rcfix(WORD     vid,
     }
   }
 
+  DEBUG3 ("Rsrc_do_rcfix: 2");
   /* Initialize pointers */
   owalk = (OBJECT *)((LONG)rsc->rsh_object + (LONG)rsc); 
   tiwalk = (TEDINFO *)((LONG)rsc->rsh_tedinfo + (LONG)rsc);
   ibwalk = (ICONBLK *)((LONG)rsc->rsh_iconblk + (LONG)rsc);
   bbwalk = (BITBLK *)((LONG)rsc->rsh_bitblk + (LONG)rsc);
-  treewalk = (LONG *)((LONG)rsc->rsh_trindex + (LONG)rsc);
-  frstrwalk = (LONG *)((LONG)rsc->rsh_frstr + (LONG)rsc);
+  treewalk = (LARRAY *)((LONG)rsc->rsh_trindex + (LONG)rsc);
+  frstrwalk = (LARRAY *)((LONG)rsc->rsh_frstr + (LONG)rsc);
+  DEBUG3 ("Rsrc_do_rcfix: 3");
 
   if (rsc->rsh_vrsn & 0x4) {
     RSHD_EXT *extension = (RSHD_EXT *)((LONG)rsc + (LONG)rsc->rsh_rssize);
@@ -457,6 +471,7 @@ Rsrc_do_rcfix(WORD     vid,
     
     fix_object_coordinates (&owalk[i]);
   }
+  DEBUG3 ("Rsrc_do_rcfix: 5");
   
   for (i = 0; i < rsc->rsh_nted; i++) {
     (LONG)tiwalk[i].te_ptext =
@@ -466,25 +481,29 @@ Rsrc_do_rcfix(WORD     vid,
     (LONG)tiwalk[i].te_pvalid =
       SWAP_LONG((LONG)tiwalk[i].te_pvalid) + (LONG)rsc;
   }
+  DEBUG3 ("Rsrc_do_rcfix: 6");
   
   for (i = 0; i < rsc->rsh_nib; i++) {
     (LONG)ibwalk[i].ib_pmask = SWAP_LONG((LONG)ibwalk[i].ib_pmask) + (LONG)rsc;
     (LONG)ibwalk[i].ib_pdata = SWAP_LONG((LONG)ibwalk[i].ib_pdata) + (LONG)rsc;
     (LONG)ibwalk[i].ib_ptext = SWAP_LONG((LONG)ibwalk[i].ib_ptext) + (LONG)rsc;
   }
+  DEBUG3 ("Rsrc_do_rcfix: 7");
   
   for (i = 0; i < rsc->rsh_nbb; i++) {
     (LONG)bbwalk[i].bi_pdata = SWAP_LONG((LONG)bbwalk[i].bi_pdata) + (LONG)rsc;
   }
+  DEBUG3 ("Rsrc_do_rcfix: 8");
   
   for (i = 0; i < rsc->rsh_ntree; i++) {
-    (LONG)treewalk[i] = SWAP_LONG((LONG)treewalk[i]) + (LONG)rsc;
+    treewalk->l[i] = SWAP_LONG(treewalk->l[i]) + (LONG)rsc;
   }    
   
+  DEBUG3 ("Rsrc_do_rcfix: 9");
   for (i = 0; i < rsc->rsh_nstring; i++) {
-    DEBUG3 ("frstr %d %p %p", i, frstrwalk[i], SWAP_LONG(frstrwalk[i]));
-    (LONG)frstrwalk[i] = SWAP_LONG((LONG)frstrwalk[i]) + (LONG)rsc;
+    frstrwalk->l[i] = SWAP_LONG(frstrwalk->l[i]) + (LONG)rsc;
   }    
+  DEBUG3 ("Rsrc_do_rcfix: 10");
   
   return 0;
 
