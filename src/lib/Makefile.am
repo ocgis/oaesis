@@ -3,7 +3,7 @@ CFLAGS = -Wall @CFLAGS@
 # Make a shared library using libtool
 
 oaesisdir = @OSISINCLUDE@
-oaesis_HEADERS = aesbind.h
+oaesis_HEADERS = aesbind.h oaesis.h
 
 BINDINGS_SRCS = \
 	aesbind.c
