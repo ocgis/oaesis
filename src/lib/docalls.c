@@ -526,15 +526,15 @@ aes_call_be32(AESPB * apb)
   tmp_long = (long *)ntohl((LONG)apb->addrout);
   FIX(tmp_long, native_apb.addrout, 1 /* FIXME native_apb.contrl[4] */, htonl);
 
-  if(native_apb.contrl[0] == 25) /* evnt_multi */
+  if((native_apb.contrl[0] == 23) || /* evnt_mesag */
+     (native_apb.contrl[0] == 25))   /* evnt_multi */
   {
     DEBUG3("Fix evnt_multi");
     if(native_apb.addrin[0] != 0)
     {          
       FIX((WORD *)native_apb.addrin[0],
           (WORD *)native_apb.addrin[0],
-          (MSG_LENGTH / sizeof(WORD)) +
-          htons(((WORD *)native_apb.addrin[0])[2]),
+          (MSG_LENGTH / sizeof(WORD)),
           htons);
     }
     DEBUG3("Fix evnt_multi finished");
