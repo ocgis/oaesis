@@ -353,10 +353,6 @@ srv_call(COMM_HANDLE handle,
     SRV_REPLY(handle, &ret, sizeof(R_MEMORY_GET));
     break;
 
-  case SRV_POLL_EVENTS:
-    srv_handle_events();
-    break;
-
   default:
     DEBUG1("%s: Line %d:\r\n"
            "Unknown call %d (0x%x) to server!",
