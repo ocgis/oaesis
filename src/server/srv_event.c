@@ -474,12 +474,6 @@ srv_wait_for_event (COMM_HANDLE    handle,
                     C_EVNT_MULTI * par) {
   R_EVNT_MULTI   ret;
 
-  /*
-  ** Check for new events (more or less a workaround: fix clicks vs
-  ** graf_dragbox instead)
-  */
-  srv_handle_events();
-
   /* Reset events before calling any check routines */
   ret.eventout.events = 0;
 
