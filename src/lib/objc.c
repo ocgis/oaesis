@@ -1,51 +1,19 @@
-/****************************************************************************
-
- Module
-  objc.c
-  
- Description
-  Resource object routines in oAESis.
-  
- Author(s)
- 	cg (Christer Gustavsson <d2cg@dtek.chalmers.se>)
- 	
- Revision history
- 
-  951229 cg
-   Added standard header.
-   get_cliprect() renamed to Objc_area_needed().
-
-  960324 cg
-   Changed behaviour of objc_find() so that the object that is last drawn
-   is found instead of the first suitable. Why doesn't programs like
-   Thing just hide the text lines it doesn't use? Bloody annoying!
- 
-  960405 cg
-   Changed Objc_do_draw into a non recursive function. This way less stack
-   is needed => (hopefully) fewer crashes.
-
-  960414 cg
-   Fixes for INDIRECT ob_spec mode made.
-   
-  960421 cg
-   If the first character of pe_text is '@' draw_text will change it into
-   '\0' before drawing modes G_FTEXT and G_FBOXTEXT.
-   
-  960515 cg
-   Added objc_delete(). Papyrus didn't like oAESis' objc_draw() and hung.
-   Now papyrus works better :-).
-   
- Copyright notice
-  The copyright to the program code herein belongs to the authors. It may
-  be freely duplicated and distributed without fee, but not charged for.
- 
- ****************************************************************************/
+/*
+** objc.c
+**
+** Copyright 1995 - 2001 Christer Gustavsson <cg@nocrew.org>
+**
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+**  
+** Read the file COPYING for more information.
+**
+*/
 
 #define DEBUGLEVEL 0
 
-/****************************************************************************
- * Used interfaces                                                          *
- ****************************************************************************/
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -67,178 +35,192 @@
 #include "objc.h"
 #include "types.h"
 
-/****************************************************************************
- * Macros                                                                   *
- ****************************************************************************/
 
-#define	SWRM_TRANS		0
-#define	SWRM_REPLACE	1
-#define	SWRM_INVTRANS	4
+#define	SWRM_TRANS    0
+#define	SWRM_REPLACE  1
+#define	SWRM_INVTRANS 4
 
-#define FLD3DANY 0x0600
+#define FLD3DANY      0x0600
 
-/****************************************************************************
- * Typedefs of module global interest                                       *
- ****************************************************************************/
 
-typedef struct tiext {
-	unsigned	framecol    : 4;
-	unsigned	textcol     : 4;
-	unsigned	textmode    : 1;
-	unsigned	fillpattern : 3;
-	unsigned	interiorcol : 4;
-}TIEXT;
+typedef struct tiext
+{
+  unsigned framecol    : 4;
+  unsigned textcol     : 4;
+  unsigned textmode    : 1;
+  unsigned fillpattern : 3;
+  unsigned interiorcol : 4;
+} TIEXT;
 
-/****************************************************************************
- * Module global variables                                                  *
- ****************************************************************************/
 
 static WORD num_planes;
 
-static WORD	textyoffs = 8;
+static WORD textyoffs = 8;
 
-static struct {
-	WORD br;        /* Colour used for bottom right 3d edge */
-	WORD tl;        /* Colour used for top left 3d edge */
-	WORD border;    /* Colour used for edging */
-	WORD highlight; /* Colour used for highlighting */
-	
-	WORD colour_ind; /* Default indicator colour */
-	WORD move_ind;   /* Indicates whether indicator text should be moved */
-	WORD alter_ind;  /* Indicates whether indicator colour should be changed */
-	
-	WORD colour_act; /* Default activator colour */
-	WORD move_act;   /* Indicates whether activator text should be moved */
-	WORD alter_act;  /* Indicates whether activator colour should be changed */
-	
-	WORD colour_bkg; /* Default background colour */
-}ocolours = {
-	LBLACK,
-	WHITE,
-	BLACK,
-	BLUE,
-	
-	LWHITE, 1, 1,
-	
-	LWHITE, 1, 0,
-	
-	LWHITE
+static struct
+{
+  WORD br;        /* Colour used for bottom right 3d edge */
+  WORD tl;        /* Colour used for top left 3d edge */
+  WORD border;    /* Colour used for edging */
+  WORD highlight; /* Colour used for highlighting */
+  
+  WORD colour_ind; /* Default indicator colour */
+  WORD move_ind;   /* Indicates whether indicator text should be moved */
+  WORD alter_ind;  /* Indicates whether indicator colour should be changed */
+  
+  WORD colour_act; /* Default activator colour */
+  WORD move_act;   /* Indicates whether activator text should be moved */
+  WORD alter_act;  /* Indicates whether activator colour should be changed */
+  
+  WORD colour_bkg; /* Default background colour */
+} ocolours =
+{
+  LBLACK,
+  WHITE,
+  BLACK,
+  BLUE,
+  LWHITE, 1, 1,
+  LWHITE, 1, 0,
+  LWHITE
 };
 
-/****************************************************************************
- * Local functions (use static!)                                            *
- ****************************************************************************/
 
-static WORD	invertcolor(WORD color) {
-	switch(color) {
-		case	BLACK:
-			return	WHITE;
-		case	WHITE:
-			return	BLACK;
-		case	BLUE:
-			return	LYELLOW;
-		case	LYELLOW:
-			return	BLUE;
-		case	RED:
-			return	LCYAN;
-		case	LCYAN:
-			return	RED;
-		case	GREEN:
-			return	LMAGENTA;
-		case	LMAGENTA:
-			return	GREEN;
-		case	CYAN:
-			return	LRED;
-		case	LRED:
-			return	CYAN;
-		case	YELLOW:
-			return	LBLUE;
-		case	LBLUE:
-			return	YELLOW;
-		case	MAGENTA:
-			return	LGREEN;
-		case	LGREEN:
-			return	MAGENTA;
-		case	LWHITE:
-			return	LBLACK;
-		case	LBLACK:
-			return	LWHITE;
-		default:
-			return	BLACK;
-	};
+/* FIXME: Use table instead */
+static
+WORD
+invertcolor(WORD color)
+{
+  switch(color)
+  {
+  case BLACK:
+    return WHITE;
+  case WHITE:
+    return BLACK;
+  case BLUE:
+    return LYELLOW;
+  case LYELLOW:
+    return BLUE;
+  case RED:
+    return LCYAN;
+  case LCYAN:
+    return RED;
+  case GREEN:
+    return LMAGENTA;
+  case LMAGENTA:
+    return GREEN;
+  case CYAN:
+    return LRED;
+  case LRED:
+    return CYAN;
+  case YELLOW:
+    return LBLUE;
+  case LBLUE:
+    return YELLOW;
+  case MAGENTA:
+    return LGREEN;
+  case LGREEN:
+    return MAGENTA;
+  case LWHITE:
+    return LBLACK;
+  case LBLACK:
+    return LWHITE;
+  default:
+    return BLACK;
+  }
 }
 
-static void	setfilltype(WORD vid,WORD fill) {
-	switch(fill) {
-		case 0	:
-			vsf_interior(vid,0);
-			break;
-		case 7	:
-			vsf_interior(vid,1);
-			break;
-		default	:
-			vsf_interior(vid,2);
-			vsf_style(vid,fill);
-			break;
-	}
-}
 
 static
 void
-settxtalign (WORD vid,
-             WORD alignment) {
-  int dum;
+setfilltype(WORD vid,
+            WORD fill)
+{
+  switch(fill)
+  {
+  case 0:
+    vsf_interior(vid,0);
+    break;
+  case 7:
+    vsf_interior(vid,1);
+    break;
+  default:
+    vsf_interior(vid,2);
+    vsf_style(vid,fill);
+    break;
+  }
+}
 
+
+static
+void
+settxtalign(WORD vid,
+            WORD alignment)
+{
+  int dum;
+  
   vst_alignment (vid, alignment, 3, &dum, &dum);
 }
 
-static void	set_write_mode(WORD vid,WORD mode) {
-	switch(mode) {
-		case	SWRM_TRANS		:	/*transparent*/
-			vswr_mode(vid,MD_TRANS);
-			break;
-			
-		case	SWRM_REPLACE	:	/*replace*/
-			vswr_mode(vid,MD_REPLACE);
-			break;
-			
-		case	SWRM_INVTRANS	:	/*0x0004*/
-			vswr_mode(vid,MD_ERASE);
-			break;
-	};
-}
-
-static void settextsize (WORD vid,
-                         WORD size) {
-  GLOBAL_COMMON * globals = get_global_common ();
-  int             dum;
-
-  switch(size) {
-  case	3:	/*large*/
-    vst_font( vid, globals->fnt_regul_id);
-    vst_point(vid,globals->fnt_regul_sz,&dum,&dum,&dum,&dum);
-					
-    textyoffs = globals->clheight >> 1;
-    break;
-	
-  case	5:	/*small*/
-    vst_font( vid, globals->fnt_small_id);
-    vst_point(vid,globals->fnt_small_sz,&dum,&dum,&dum,&dum);
-		
-    textyoffs = globals->csheight >> 1;	
-  };
-}
 
 static
 void
-drawtext (WORD   vid,
-          BYTE * text,
-          RECT * size,
-          WORD   alignment,
-          WORD   color,
-          WORD   textsize,
-          WORD   writemode,
-          WORD   state) {
+set_write_mode(WORD vid,
+               WORD mode)
+{
+  switch(mode)
+  {
+  case SWRM_TRANS: /*transparent*/
+    vswr_mode(vid,MD_TRANS);
+    break;
+    
+  case SWRM_REPLACE: /*replace*/
+    vswr_mode(vid,MD_REPLACE);
+    break;
+    
+  case SWRM_INVTRANS: /*0x0004*/
+    vswr_mode(vid,MD_ERASE);
+    break;
+  }
+}
+
+
+static
+void
+settextsize (WORD vid,
+             WORD size)
+{
+  GLOBAL_COMMON * globals = get_global_common ();
+  int             dum;
+  
+  switch(size)
+  {
+  case	3:	/*large*/
+    vst_font( vid, globals->fnt_regul_id);
+    vst_point(vid,globals->fnt_regul_sz,&dum,&dum,&dum,&dum);
+    
+    textyoffs = globals->clheight >> 1;
+    break;
+    
+  case	5:	/*small*/
+    vst_font( vid, globals->fnt_small_id);
+    vst_point(vid,globals->fnt_small_sz,&dum,&dum,&dum,&dum);
+    
+    textyoffs = globals->csheight >> 1;	
+  }
+}
+
+
+static
+void
+drawtext(WORD   vid,
+         BYTE * text,
+         RECT * size,
+         WORD   alignment,
+         WORD   color,
+         WORD   textsize,
+         WORD   writemode,
+         WORD   state)
+{
   WORD x;
   WORD y;
   WORD txteff = 0;
@@ -247,64 +229,67 @@ drawtext (WORD   vid,
   
   y = size->y + (size->height >> 1) + textyoffs - 1;
   
-  switch(alignment) {
-  case	0	:	/*left*/
+  switch(alignment)
+  {
+  case 0: /* left */
     x = size->x;
     settxtalign(vid,0);
     break;
-  case	1	:	/*right*/
+  case 1: /*right*/
     x = size->x + size->width - 1;
     settxtalign(vid,2);
     break;
-  case	2	:	/*center*/
+  case 2: /*center*/
     x = size->x + (size->width >> 1);
     settxtalign(vid,1);
     break;
     
   default:
     x = size->x;   /* Just in case */
-  };
+  }
 	
-  if(state & DISABLED) {
+  if(state & DISABLED)
+  {
     txteff |= LIGHT;
-  };
+  }
   
   vst_effects(vid,txteff);
   
-  if(state & SELECTED) {
+  if(state & SELECTED)
+  {
     set_write_mode(vid,writemode);
     
     vst_color(vid,invertcolor(color));
     v_gtext(vid,x,y,text);
     
-    if(writemode == SWRM_REPLACE) {
+    if(writemode == SWRM_REPLACE)
+    {
       set_write_mode(vid,SWRM_INVTRANS);
       vst_color(vid,BLACK);
       v_gtext(vid,x,y,text);
-    };
+    }
   }
-  else {
+  else
+  {
     set_write_mode(vid,writemode);
     vst_color(vid,color);
     v_gtext(vid,x,y,text);
-  };
+  }
 }
 
 
 /*
 ** Description
 ** Draw text portion of an object
-**
-** 1998-01-02 CG
-** 1999-07-25 CG
 */
 static
 void
-draw_text (WORD     vid,
-           OBJECT * ob,
-           WORD     par_x,
-           WORD     par_y,
-           WORD     is_top) {
+draw_text(WORD     vid,
+          OBJECT * ob,
+          WORD     par_x,
+          WORD     par_y,
+          WORD     is_top)
+{
   WORD txteff = 0;
   WORD type = ob->ob_type & 0xff;
   BYTE ctext[100];
@@ -319,15 +304,19 @@ draw_text (WORD     vid,
   U_OB_SPEC ob_spec;
   GLOBAL_COMMON * globals = get_global_common ();
 
-  if(OB_FLAGS(ob) & INDIRECT) {
+  if(OB_FLAGS(ob) & INDIRECT)
+  {
     ob_spec = *ob->ob_spec.indirect;
-  } else {
+  }
+  else
+  {
     ob_spec = ob->ob_spec;
   }
 
   /* find the text string to draw */
 	
-  switch(type) {
+  switch(type)
+  {
   case G_FTEXT:
   case G_FBOXTEXT:
   {
@@ -335,27 +324,32 @@ draw_text (WORD     vid,
     BYTE *ptext = ob_spec.tedinfo->te_ptext;
     BYTE *pctext = ctext;
 
-    if(*ptext == '@') {
+    if(*ptext == '@')
+    {
       *ptext = '\0';
     }
 							
-    while(*ptmplt) {
-      switch(*ptmplt) {
+    while(*ptmplt)
+    {
+      switch(*ptmplt)
+      {
       case '_':
-        if(*ptext) {
+        if(*ptext)
+        {
           *(pctext++) = *(ptext++);
         }
-        else {
+        else
+        {
           *(pctext++) = '_';
-        };
+        }
 	
         ptmplt++;
         break;
 					
       default:
         *(pctext++) = *(ptmplt++);
-      };
-    };
+      }
+    }
 			
     *pctext = '\0';
     text = ctext;
@@ -390,8 +384,10 @@ draw_text (WORD     vid,
 
   /* set font, alignment, color and writemode */
 
-  if (text) {		
-    switch(type) {
+  if(text)
+  {		
+    switch(type)
+    {
     case G_TEXT:
     case G_BOXTEXT:
     case G_FTEXT:
@@ -401,28 +397,29 @@ draw_text (WORD     vid,
 
       switch(textblk->te_font)	/* Set the correct text size & font */
       {
-      case GDOS_PROP:		/* Use a proportional SPEEDOGDOS font (AES4.1 style) */
-      case GDOS_MONO:		/* Use a monospaced SPEEDOGDOS font (AES4.1 style) */
-      case GDOS_BITM:		/* Use a GDOS bitmap font (AES4.1 style) */
+      case GDOS_PROP: /* Use a proportional SPEEDOGDOS font (AES4.1 style) */
+      case GDOS_MONO: /* Use a monospaced SPEEDOGDOS font (AES4.1 style) */
+      case GDOS_BITM: /* Use a GDOS bitmap font (AES4.1 style) */
         vst_font(vid,textblk->te_fontid);
         vst_point(vid,textblk->te_fontsize,&temp,&temp,&temp,&temp);
         ty = par_y + ob->ob_y + ((ob->ob_height - globals->clheight) / 2);
         break;
-
-      case IBM:		/* Use the standard system font (probably 10 point) */
+        
+      case IBM: /* Use the standard system font (probably 10 point) */
         vst_font(vid,globals->fnt_regul_id);
         vst_point(vid,globals->fnt_regul_sz,&temp,&temp,&temp,&temp);
         ty = par_y + ob->ob_y + ((ob->ob_height - globals->clheight) / 2);
         break;
 
-      case SMALL:			/* Use the small system font (probably 8 point) */
+      case SMALL: /* Use the small system font (probably 8 point) */
         vst_font(vid,globals->fnt_small_id);
         vst_point(vid,globals->fnt_small_sz,&temp,&temp,&temp,&temp);
 						
         ty = par_y + ob->ob_y + ((ob->ob_height - globals->csheight) / 2);
       }
 				
-      switch(textblk->te_just) {
+      switch(textblk->te_just)
+      {
         /*Set text alignment - why on earth did */
         /* atari use a different horizontal alignment */
         /* code for GEM to the one the VDI uses? */
@@ -441,7 +438,8 @@ draw_text (WORD     vid,
 				
       tcolour = GET_TE_COLOR_TEXTC(ob_spec.tedinfo->te_color);
 
-      if(draw3d) {
+      if(draw3d)
+      {
         writemode = SWRM_TRANS;
       }
       else
@@ -462,28 +460,32 @@ draw_text (WORD     vid,
 
       tcolour = BLACK;
 		
-      if(is_top) {
+      if(is_top)
+      {
         writemode = SWRM_REPLACE;
       }
-      else {		
+      else
+      {
         writemode = SWRM_TRANS;
-      };
+      }
       break;
 
     case G_BOXCHAR:
       vst_font(vid,globals->fnt_regul_id);
       vst_point(vid,globals->fnt_regul_sz,&temp,&temp,&temp,&temp);
-      ty =
-        par_y + ob->ob_y + ((ob->ob_height - globals->clheight) / 2);
+      ty = par_y + ob->ob_y + ((ob->ob_height - globals->clheight) / 2);
 
       tx = par_x + ob->ob_x + (ob->ob_width >> 1);
       vst_alignment(vid,1,5,&temp,&temp);
 
       tcolour = GET_OBSPEC_TEXTCOL(ob_spec.index);
 				
-      if (draw3d) {
+      if(draw3d)
+      {
         writemode = SWRM_TRANS;
-      } else {
+      }
+      else
+      {
         writemode = GET_OBSPEC_TEXTMODE(ob_spec.index);
       }
       break;			
@@ -491,8 +493,7 @@ draw_text (WORD     vid,
     case G_BUTTON:
       vst_font(vid,globals->fnt_regul_id);
       vst_point(vid,globals->fnt_regul_sz,&temp,&temp,&temp,&temp);
-      ty =
-        par_y + ob->ob_y + ((ob->ob_height - globals->clheight) / 2);
+      ty = par_y + ob->ob_y + ((ob->ob_height - globals->clheight) / 2);
       
       tx = par_x + ob->ob_x + (ob->ob_width >> 1);
       vst_alignment(vid,1,5,&temp,&temp);
@@ -502,7 +503,7 @@ draw_text (WORD     vid,
       writemode = SWRM_TRANS;
     }
     }
-		
+    
 			
     if(OB_STATE(ob) & DISABLED)
     {
@@ -511,23 +512,28 @@ draw_text (WORD     vid,
 		
     vst_effects(vid,txteff);
 
-    if(draw3d) {
+    if(draw3d)
+    {
       if(OB_STATE(ob) & SELECTED)
       {
         if(((draw3d == FL3DIND) && ocolours.move_ind) ||
-           ((draw3d == FL3DACT) && ocolours.move_act)) {
+           ((draw3d == FL3DACT) && ocolours.move_act))
+        {
           tx += D3DOFFS;
           ty += D3DOFFS;
         }
 				
         if(((draw3d == FL3DIND) && ocolours.alter_ind) ||
-           ((draw3d == FL3DACT) && ocolours.alter_act)) {
+           ((draw3d == FL3DACT) && ocolours.alter_act))
+        {
           invertcolour = TRUE;
         }
       }
 			
-      if((bcolour == WHITE) && (bfill == 0)) {
-        switch(draw3d) {
+      if((bcolour == WHITE) && (bfill == 0))
+      {
+        switch(draw3d)
+        {
         case FL3DACT:
           bcolour = ocolours.colour_act;
           break;
@@ -543,7 +549,9 @@ draw_text (WORD     vid,
 				
         bfill = 7;
       }
-    } else {
+    }
+    else
+    {
       if(OB_STATE(ob) & SELECTED)
       {
         invertcolour = TRUE;
@@ -554,30 +562,37 @@ draw_text (WORD     vid,
       }
     }
 		
-    if(!(bcolour < globals->num_pens)) {
+    if(!(bcolour < globals->num_pens))
+    {
       bcolour = BLACK;
     }
 		
-    if(!(tcolour < globals->num_pens)) {
+    if(!(tcolour < globals->num_pens))
+    {
       tcolour = BLACK;
     }
 		
-    if((tcolour == bcolour) && (bfill == 7)) {
+    if((tcolour == bcolour) && (bfill == 7))
+    {
       tcolour = invertcolor(tcolour);
     }
 		
-    if(invertcolour) {
+    if(invertcolour)
+    {
       tcolour = invertcolor(tcolour);
       bcolour = invertcolor(bcolour);
     }
 
-    if((writemode == SWRM_REPLACE) && (bcolour != WHITE)) {
+    if((writemode == SWRM_REPLACE) && (bcolour != WHITE))
+    {
       set_write_mode(vid,SWRM_INVTRANS);
       vst_color(vid,bcolour);
       v_gtext(vid,tx,ty,text);
 			
       set_write_mode(vid,SWRM_TRANS);
-    } else {
+    }
+    else
+    {
       set_write_mode(vid,writemode);
     }
 
@@ -598,8 +613,10 @@ drawframe(WORD   vid,
   WORD thick;
   
   DEBUG3("objc.c: drawframe: framesize = %d", framesize);
-  if(framesize) {
-    if(framesize > 0) {
+  if(framesize)
+  {
+    if(framesize > 0)
+    {
       thick = framesize;
       incr = 1;
       size[0] = size[6] = size[8] = r->x;
@@ -617,10 +634,12 @@ drawframe(WORD   vid,
       size[5] = size[7] = r->y + r->height;
     }
     
-    while(thick > 0) {
+    while(thick > 0)
+    {
       v_pline(vid,5,size);
       thick--;
-      if(!thick) {
+      if(!thick)
+      {
         break;
       }
       
@@ -639,23 +658,29 @@ drawframe(WORD   vid,
   }
 }
 
-static void	draw_filled_rect(WORD vid,RECT *r) {
-	int size[4];
-	
-	size[0] = r->x;
-	size[1] = r->y;
-	size[2] = r->width + size[0] - 1;
-	size[3] = r->height + size[1] - 1;
-	vr_recfl(vid,size);
+
+static
+void
+draw_filled_rect(WORD   vid,
+                 RECT * r)
+{
+  int size[4];
+  
+  size[0] = r->x;
+  size[1] = r->y;
+  size[2] = r->width + size[0] - 1;
+  size[3] = r->height + size[1] - 1;
+  vr_recfl(vid,size);
 }
 
 
 static
 void
-draw_bg (WORD vid,
-         OBJECT *ob,
-         WORD par_x,
-         WORD par_y) {
+draw_bg(WORD     vid,
+        OBJECT * ob,
+        WORD     par_x,
+        WORD     par_y)
+{
   WORD      type = ob->ob_type & 0xff;
   RECT      r;
   WORD      draw = 1;
@@ -670,13 +695,15 @@ draw_bg (WORD vid,
   if(OB_FLAGS(ob) & INDIRECT) {
     ob_spec = *ob->ob_spec.indirect;
   }
-  else {
+  else
+  {
     ob_spec = ob->ob_spec;
-  };
+  }
 
-  switch(type) {
+  switch(type)
+  {
   case G_BOXCHAR:
-  case G_BOX		:
+  case G_BOX:
     r.x = ob->ob_x + par_x;
     r.y = ob->ob_y + par_y;
     r.width = ob->ob_width;
@@ -710,16 +737,19 @@ draw_bg (WORD vid,
 			
       fillcolour = WHITE;
 
-      if(OB_FLAGS(ob) & FLD3DANY) {
+      if(OB_FLAGS(ob) & FLD3DANY)
+      {
         filltype = 0;
       }
-      else {
+      else
+      {
         filltype = 7;
-      };
+      }
     }
-    else {
+    else
+    {
       draw = 0;
-    };
+    }
     break;
 
   case G_BUTTON:
@@ -730,31 +760,38 @@ draw_bg (WORD vid,
 		
     fillcolour = WHITE;
 
-    if(OB_FLAGS(ob) & FLD3DANY) {
+    if(OB_FLAGS(ob) & FLD3DANY)
+    {
       filltype = 0;
     }
-    else {
+    else
+    {
       filltype = 7;
-    };
+    }
     break;	
 		
   default:
     draw = 0;
-  };
+  }
 
-  if(draw) {
+  if(draw)
+  {
     mode3d = OB_FLAGS(ob) & FLD3DANY;
 		
-    if(mode3d) {
-      if((mode3d == FL3DACT) || (mode3d == FL3DIND)) {
+    if(mode3d)
+    {
+      if((mode3d == FL3DACT) || (mode3d == FL3DIND))
+      {
         r.x--;
         r.y--;
         r.width += 2;
         r.height += 2;
-      };
+      }
 			
-      if((fillcolour == WHITE) && (filltype == 0)) {
-        switch(mode3d) {
+      if((fillcolour == WHITE) && (filltype == 0))
+      {
+        switch(mode3d)
+        {
         case FL3DACT:
           fillcolour = ocolours.colour_act;
           break;
@@ -766,18 +803,19 @@ draw_bg (WORD vid,
         case FL3DBAK:
           fillcolour = ocolours.colour_bkg;
           break;
-        };
+        }
 
         filltype = 7;
-      };
+      }
 
       if(OB_STATE(ob) & SELECTED)
       {
         if(((mode3d == FL3DIND) && ocolours.alter_ind) ||
-           ((mode3d == FL3DACT) && ocolours.alter_act)) {
+           ((mode3d == FL3DACT) && ocolours.alter_act))
+        {
           invertcolour = TRUE;
-        };
-      };
+        }
+      }
     }
     else if(OB_STATE(ob) & SELECTED)
     {
@@ -786,67 +824,82 @@ draw_bg (WORD vid,
 
     set_write_mode(vid,SWRM_REPLACE);
 		
-    if(!(fillcolour < globals->num_pens)) {
+    if(!(fillcolour < globals->num_pens))
+    {
       fillcolour = BLACK;
-    };
+    }
 		
-    if(!(bcolour < globals->num_pens)) {
+    if(!(bcolour < globals->num_pens))
+    {
       bcolour = BLACK;
-    };
+    }
 		
-    if(invertcolour) {
+    if(invertcolour)
+    {
       fillcolour = invertcolor(fillcolour);
       bcolour = invertcolor(bcolour);
-    };
+    }
 		
-    if(filltype != 7) {
+    if(filltype != 7)
+    {
       vsf_color(vid,bcolour);
       setfilltype(vid,7);
 	
       draw_filled_rect(vid,&r);
-    };
+    }
 		
-    if(filltype != 0) {		
+    if(filltype != 0)
+    {
       set_write_mode(vid,SWRM_TRANS);
       vsf_color(vid,fillcolour);
       setfilltype(vid,filltype);
       draw_filled_rect(vid,&r);
-    };
-  };
+    }
+  }
 }
 
-static void draw_3dshadow(WORD vid,RECT *r,WORD selected) {
-	int pnt[6];
 
-	if (selected) {
-		vsl_color(vid,ocolours.br);
-	}
-	else {
-		vsl_color(vid,ocolours.tl);
-	};
+static
+void
+draw_3dshadow(WORD   vid,
+              RECT * r,
+              WORD selected)
+{
+  int pnt[6];
+  
+  if (selected)
+  {
+    vsl_color(vid,ocolours.br);
+  }
+  else
+  {
+    vsl_color(vid,ocolours.tl);
+  }
 
-	pnt[0] = r->x;
-	pnt[1] = r->y + r->height - 1;
-	pnt[2] = r->x;
-	pnt[3] = r->y;
-	pnt[4] = r->x + r->width - 1;
-	pnt[5] = r->y;
-	v_pline(vid,3,pnt);
+  pnt[0] = r->x;
+  pnt[1] = r->y + r->height - 1;
+  pnt[2] = r->x;
+  pnt[3] = r->y;
+  pnt[4] = r->x + r->width - 1;
+  pnt[5] = r->y;
+  v_pline(vid,3,pnt);
+  
+  if (selected)
+  {
+    vsl_color(vid,ocolours.tl);
+  }
+  else
+  {
+    vsl_color(vid,ocolours.br);
+  }
 
-	if (selected) {
-		vsl_color(vid,ocolours.tl);
-	}
-	else {
-		vsl_color(vid,ocolours.br);
-	};
-
-	pnt[0] = r->x + 1;
-	pnt[1] = r->y + r->height - 1;
-	pnt[2] = r->x + r->width - 1;
-	pnt[3] = r->y + r->height - 1;
-	pnt[4] = r->x + r->width - 1;
-	pnt[5] = r->y + 1;
-	v_pline(vid,3,pnt);
+  pnt[0] = r->x + 1;
+  pnt[1] = r->y + r->height - 1;
+  pnt[2] = r->x + r->width - 1;
+  pnt[3] = r->y + r->height - 1;
+  pnt[4] = r->x + r->width - 1;
+  pnt[5] = r->y + 1;
+  v_pline(vid,3,pnt);
 }
 
 
@@ -856,25 +909,28 @@ static void draw_3dshadow(WORD vid,RECT *r,WORD selected) {
 */
 static
 void
-draw_frame (WORD     vid,
-            OBJECT * ob,
-            WORD     par_x,
-            WORD     par_y) {
+draw_frame(WORD     vid,
+           OBJECT * ob,
+           WORD     par_x,
+           WORD     par_y) {
   WORD      type = ob->ob_type & 0xff;
   RECT      r;
   WORD      draw = 1;
   BYTE      framesize = 0;
   U_OB_SPEC ob_spec;
 
-  if(OB_FLAGS(ob) & INDIRECT) {
+  if(OB_FLAGS(ob) & INDIRECT)
+  {
     ob_spec = *ob->ob_spec.indirect;
   }
-  else {
+  else
+  {
     ob_spec = ob->ob_spec;
   }
 
   DEBUG3("objc.c: draw_frame: type = %d (0x%x)", type, type);
-  switch(type) {
+  switch(type)
+  {
   case G_IBOX :
   case G_BOX  :	/*0x14*/
   case G_BOXCHAR:
@@ -914,7 +970,7 @@ draw_frame (WORD     vid,
     r.height = ob->ob_height;
 			
     framesize = 0;
-  };
+  }
   break;
 
   case G_BUTTON:
@@ -924,12 +980,14 @@ draw_frame (WORD     vid,
     r.width = ob->ob_width;
     r.height = ob->ob_height;
 			
-    if(OB_FLAGS(ob) & DEFAULT) {
+    if(OB_FLAGS(ob) & DEFAULT)
+    {
       framesize = -DEFBUTFRAME;
     }
-    else {
+    else
+    {
       framesize = -BUTTONFRAME;
-    };
+    }
 
     vsl_color(vid,BLACK);
   }
@@ -939,14 +997,16 @@ draw_frame (WORD     vid,
     draw = 0;
   }
 
-  if(draw) {
+  if(draw)
+  {
     WORD mode3d = OB_FLAGS(ob) & FLD3DANY;
 
     vsl_type(vid,1);
 		
     set_write_mode(vid,SWRM_REPLACE);
 
-    if((mode3d == FL3DIND) || (mode3d == FL3DACT)) {
+    if((mode3d == FL3DIND) || (mode3d == FL3DACT))
+    {
       r.x -= D3DSIZE;
       r.y -= D3DSIZE;
       r.width += D3DSIZE << 1;
@@ -954,7 +1014,8 @@ draw_frame (WORD     vid,
 			
       drawframe(vid,&r,framesize);
 
-      if(framesize > 0) {
+      if(framesize > 0)
+      {
         r.x += framesize;
         r.y += framesize;
         r.width -= framesize << 1;
@@ -975,13 +1036,15 @@ draw_frame (WORD     vid,
         r.height += OUTLINESIZE << 1;
 				
 				
-        if(mode3d == FL3DBAK) {
+        if(mode3d == FL3DBAK)
+        {
           WORD i = OUTLINESIZE - 1;
 					
           vsl_color(vid,ocolours.br);
           drawframe(vid,&r,1);
 					
-          while(i--) {
+          while(i--)
+          {
             r.x++;
             r.y++;
             r.width -= 2;
@@ -999,7 +1062,7 @@ draw_frame (WORD     vid,
           r.y += 1;
           r.width -= 2;
           r.height -= 2;
-			
+          
           drawframe(vid,&r,OUTLINESIZE - 1);
         }
       }
@@ -1011,21 +1074,20 @@ draw_frame (WORD     vid,
 /*
 ** Description
 ** Draw bitblock image
-**
-** 1999-04-24 CG
 */
 static
 void
-drawimage (WORD vid,
-           WORD x,
-           WORD y,
-           BITBLK *bb,
-           WORD state) {
+drawimage(WORD     vid,
+          WORD     x,
+          WORD     y,
+          BITBLK * bb,
+           WORD    state)
+{
   MFDB	d,s;
-
+  
   WORD	xyarray[8];
   WORD	colour[2];
-	
+  
   GLOBAL_COMMON * globals = get_global_common ();
 
   xyarray[0] = 0;
@@ -1048,13 +1110,15 @@ drawimage (WORD vid,
 
   colour[0] = bb->bi_color;
 	
-  if(!(colour[0] < globals->num_pens)) {
+  if(!(colour[0] < globals->num_pens))
+  {
     colour[0] = BLACK;
-  };
+  }
 	
-  if(state & SELECTED) {
+  if(state & SELECTED)
+  {
     colour[0] = invertcolor(colour[0]);
-  };
+  }
 
   /*
   ** FIXME
@@ -1062,13 +1126,15 @@ drawimage (WORD vid,
   */
 }
 
+
 static
 void
-drawicon (WORD vid,
-          WORD x,
-          WORD y,
-          ICONBLK *ib,
-          WORD state) {
+drawicon(WORD      vid,
+         WORD      x,
+         WORD      y,
+         ICONBLK * ib,
+         WORD      state)
+{
   BYTE	ch[2];
 	
   MFDB	d,s;
@@ -1081,13 +1147,15 @@ drawicon (WORD vid,
   RECT	r;
   GLOBAL_COMMON * globals = get_global_common ();
 	
-  if(!(mask_colour < globals->num_pens)) {
+  if(!(mask_colour < globals->num_pens))
+  {
     mask_colour = BLACK;
-  };
+  }
 	
-  if(!(icon_colour < globals->num_pens)) {
+  if(!(icon_colour < globals->num_pens))
+  {
     icon_colour = BLACK;
-  };
+  }
 	
   xyarray[0] = 0;
   xyarray[1] = 0;
@@ -1106,21 +1174,25 @@ drawicon (WORD vid,
 
   (LONG)d.fd_addr = 0L;
 
-  if(state & SELECTED) {
+  if(state & SELECTED)
+  {
     color[0] = icon_colour;
   }
-  else {
+  else
+  {
     color[0] = mask_colour;
-  };
+  }
 
   vrt_cpyfm(vid,MD_TRANS,xyarray,&s,&d,color);
 
-  if(state & SELECTED) {
+  if(state & SELECTED)
+  {
     color[0] = mask_colour;
   }
-  else {
+  else
+  {
     color[0] = icon_colour;
-  };
+  }
 	
   (LONG)s.fd_addr = (LONG)ib->ib_pdata;
 
@@ -1131,7 +1203,7 @@ drawicon (WORD vid,
   r.width = ib->ib_wtext;
   r.height = ib->ib_htext;
 
-  drawtext (vid,ib->ib_ptext,&r,2,ib->ib_char >> 12,5,MD_REPLACE,state);
+  drawtext(vid,ib->ib_ptext,&r,2,ib->ib_char >> 12,5,MD_REPLACE,state);
 
   r.x = x + ib->ib_xchar;
   r.y = y + ib->ib_ychar;
@@ -1141,45 +1213,50 @@ drawicon (WORD vid,
   ch[0] = ib->ib_char & 0x00ff;
   ch[1] = 0;
 
-  drawtext (vid,ch,&r,0,ib->ib_char >> 12,5,MD_REPLACE,state);
+  drawtext(vid,ch,&r,0,ib->ib_char >> 12,5,MD_REPLACE,state);
 }
+
 
 static
 void
-drawcicon (WORD vid,
-           WORD x,
-           WORD y,
-           CICONBLK *cib,
-           WORD state) {
-  BYTE	ch[2];
-	
-  MFDB	d,s;
+drawcicon(WORD       vid,
+          WORD       x,
+          WORD       y,
+          CICONBLK * cib,
+          WORD       state)
+{
+  BYTE	  ch[2];
+  MFDB	  d,s;
+  int	  xyarray[8];
+  int	  color[] = { WHITE,BLACK };
+  RECT	  r;
+  CICON * best = NULL;
+  CICON * ciwalk = cib->mainlist;
+  WORD    bestplanes = 0;
 
-  int	xyarray[8];
-  int	color[] = {WHITE,BLACK};
-	
-  RECT	r;
-  CICON *best = NULL,*ciwalk = cib->mainlist;
-  WORD  bestplanes = 0;
-
-  while(ciwalk) {
+  while(ciwalk)
+  {
     if((ciwalk->num_planes <= num_planes) &&
-       (ciwalk->num_planes > bestplanes)) {
+       (ciwalk->num_planes > bestplanes))
+    {
       best = ciwalk;
       bestplanes = best->num_planes;
 			
-      if(bestplanes == num_planes) {
+      if(bestplanes == num_planes)
+      {
         break;
-      };
-    };
+      }
+    }
 		
     ciwalk = ciwalk->next_res;
-  };
+  }
 
-  if(!best) {
+  if(!best)
+  {
     drawicon (vid,x,y,&cib->monoblk,state);
   }
-  else {
+  else
+  {
     xyarray[0] = 0;
     xyarray[1] = 0;
     xyarray[2] = cib->monoblk.ib_wicon - 1;
@@ -1221,25 +1298,24 @@ drawcicon (WORD vid,
     ch[1] = 0;
 	
     drawtext (vid,ch,&r,0,cib->monoblk.ib_char >> 12,5,MD_REPLACE,state);
-  };
+  }
 }
 
 
 /*
 ** Description
 ** Draw one resource object to the display
-**
-** 1998-10-02 CG
 */
 static
 void
-draw_object (WORD     vid,
-             OBJECT * tree,
-             WORD     object,
-             RECT *   clip,
-             WORD     par_x,
-             WORD     par_y,
-             WORD     is_top) {
+draw_object(WORD     vid,
+            OBJECT * tree,
+            WORD     object,
+            RECT *   clip,
+            WORD     par_x,
+            WORD     par_y,
+            WORD     is_top)
+{
   WORD      type = tree[object].ob_type & 0xff;
   U_OB_SPEC ob_spec;
   RECT      ci = *clip, cu;
@@ -1247,24 +1323,29 @@ draw_object (WORD     vid,
   ci.x -= par_x;
   ci.y -= par_y;
 	
-  if(!Misc_intersect((RECT *)&tree[object].ob_x,&ci,&cu)) {
+  if(!Misc_intersect((RECT *)&tree[object].ob_x,&ci,&cu))
+  {
     return;
   }
 
-  if(OB_FLAGS(&tree[object]) & INDIRECT) {
+  if(OB_FLAGS(&tree[object]) & INDIRECT)
+  {
     ob_spec = *tree[object].ob_spec.indirect;
-  } else {
+  }
+  else
+  {
     ob_spec = tree[object].ob_spec;
   }
 
-  switch(type) {			
+  switch(type)
+  {
   case G_IMAGE: /*0x17*/
     drawimage (vid,tree[object].ob_x + par_x,
                tree[object].ob_y + par_y,
                (BITBLK *)ob_spec.index,
                OB_STATE(&tree[object]));
     break;
-	
+    
   case G_PROGDEF: /*0x18*/
   {
     PARMBLK pb;
@@ -1340,42 +1421,50 @@ draw_object (WORD     vid,
   }
 }
 
-static void
-get_char_bound (OBJECT *tree,
-                WORD obj,
-                WORD object,
-                WORD last,
-                RECT *r) {
+static
+void
+get_char_bound(OBJECT * tree,
+               WORD     obj,
+               WORD     object,
+               WORD     last,
+               RECT *   r)
+{
   GLOBAL_COMMON * globals = get_global_common ();
-  BYTE      *ptmplt;
-  WORD      firstreal = 0,lastreal = 0;
-  U_OB_SPEC ob_spec;
+  BYTE *          ptmplt;
+  WORD            firstreal = 0;
+  WORD            lastreal = 0;
+  U_OB_SPEC       ob_spec;
 	
-  if(OB_FLAGS(&tree[obj]) & INDIRECT) {
+  if(OB_FLAGS(&tree[obj]) & INDIRECT)
+  {
     ob_spec = *tree[obj].ob_spec.indirect;
   }
-  else {
+  else
+  {
     ob_spec = tree[obj].ob_spec;
-  };
+  }
 
   ptmplt = ob_spec.tedinfo->te_ptmplt;
 	
-  while(*ptmplt) {
+  while(*ptmplt)
+  {
     if(*ptmplt == '_') {
       object--;
       last--;
-    };
+    }
 
-    if(object >= 0) {
+    if(object >= 0)
+    {
       firstreal++;
-    };
+    }
 		
-    if(last >= 0) {
+    if(last >= 0)
+    {
       lastreal++;
-    };
+    }
 		
     ptmplt++;
-  };
+  }
 
   Objc_do_offset(tree,obj,(WORD *)r);
 
@@ -1383,18 +1472,20 @@ get_char_bound (OBJECT *tree,
   r->height = globals->clheight;
   r->width = globals->clwidth * (lastreal - firstreal);
 	
-  switch(ob_spec.tedinfo->te_just) {
-  case	0	:
+  switch(ob_spec.tedinfo->te_just)
+  {
+  case 0:
     break;
-  case	1	:
+  case 1:
     r->x += (tree[obj].ob_width - 
              (globals->clwidth * (WORD)strlen(ob_spec.tedinfo->te_ptmplt)));
     break;
-  case	2	:
-    r->x += ((tree[obj].ob_width -
-              (globals->clwidth * (WORD)strlen(ob_spec.tedinfo->te_ptmplt))) >> 1);
+  case 2:
+    r->x +=
+      ((tree[obj].ob_width - (globals->clwidth *
+                              (WORD)strlen(ob_spec.tedinfo->te_ptmplt))) >> 1);
     break;
-  };
+  }
 
   r->x = r->x + (firstreal * globals->clwidth);
 }
@@ -1402,10 +1493,11 @@ get_char_bound (OBJECT *tree,
 
 static
 void
-draw_cursor (WORD vid,
-             WORD pos,
-             OBJECT *tree,
-             WORD obj) {
+draw_cursor(WORD    vid,
+            WORD     pos,
+            OBJECT * tree,
+            WORD     obj)
+{
   RECT r;
   int  xy[4];
   
@@ -1423,11 +1515,11 @@ draw_cursor (WORD vid,
 
 static
 WORD
-handle_ed_char (WORD     vid,
-                WORD     idx,
-                OBJECT * tree,
-                WORD     obj,
-                WORD     kc)
+handle_ed_char(WORD     vid,
+               WORD     idx,
+               OBJECT * tree,
+               WORD     obj,
+               WORD     kc)
 {
   RECT      clip;
   U_OB_SPEC ob_spec;
@@ -1567,31 +1659,35 @@ handle_ed_char (WORD     vid,
   }
 }
 
-/****************************************************************************
- * Public functions                                                         *
- ****************************************************************************/
 
-void	do_objc_add(OBJECT *t,WORD p,WORD c) {
-	if(t[p].ob_tail < 0) {
-		t[p].ob_head = c;
-		t[p].ob_tail = c;
-		t[c].ob_next = p;
-	}
-	else
-	{
-		t[c].ob_next = p;
-		t[t[p].ob_tail].ob_next = c;
-		t[p].ob_tail = c;
-	};
+void
+do_objc_add(OBJECT * t,
+            WORD     p,
+            WORD     c)
+{
+  if(t[p].ob_tail < 0)
+  {
+    t[p].ob_head = c;
+    t[p].ob_tail = c;
+    t[c].ob_next = p;
+  }
+  else
+  {
+    t[c].ob_next = p;
+    t[t[p].ob_tail].ob_next = c;
+    t[p].ob_tail = c;
+  }
 }
 
-/*objc_add	0x0028*/
 
-void	Objc_add(AES_PB *apb) {
-	do_objc_add((OBJECT *)apb->addr_in[0],apb->int_in[0]
-		,apb->int_in[1]);
-	
-	apb->int_out[0] = 1;
+/* objc_add 0x0028 */
+
+void
+Objc_add(AES_PB *apb)
+{
+  do_objc_add((OBJECT *)apb->addr_in[0], apb->int_in[0], apb->int_in[1]);
+  
+  apb->int_out[0] = 1;
 }
 
 
@@ -1640,15 +1736,18 @@ Objc_do_delete(OBJECT * tree,
   
   while(TRUE)
   {	
-    if(tree[i].ob_head == object) {
+    if(tree[i].ob_head == object)
+    {
       tree[i].ob_head = next;
     }
     
-    if(tree[i].ob_tail == object) {
+    if(tree[i].ob_tail == object)
+    {
       tree[i].ob_tail = prev;
     }
     
-    if(OB_FLAGS(&tree[i]) & LASTOB) {
+    if(OB_FLAGS(&tree[i]) & LASTOB)
+    {
       break;
     }
     
@@ -1665,6 +1764,7 @@ Objc_delete(AES_PB *apb)
   apb->int_out[0] = 1;
 }
 
+
 /*objc_draw	0x002a*/
 
 /*
@@ -1673,11 +1773,12 @@ Objc_delete(AES_PB *apb)
 ** 1999-01-02 CG
 */
 WORD
-Objc_do_draw (WORD     vid,
-              OBJECT * tree,
-              WORD     object,
-              WORD     depth,
-              RECT   * clip) {
+Objc_do_draw(WORD     vid,
+             OBJECT * tree,
+             WORD     object,
+             WORD     depth,
+             RECT   * clip)
+{
   WORD current = object;
   WORD next = -1;
   
@@ -1685,11 +1786,13 @@ Objc_do_draw (WORD     vid,
   int  xyxy[4];
   WORD x,y;
   
-  if((tree == NULL) || (object < 0) || (depth < 0) || (clip == NULL)) {
+  if((tree == NULL) || (object < 0) || (depth < 0) || (clip == NULL))
+  {
     return 0;
   }
   
-  if (Objc_do_offset(tree,object,xy) == 0) {
+  if (Objc_do_offset(tree,object,xy) == 0)
+  {
     return 0;
   }
 
@@ -1705,8 +1808,10 @@ Objc_do_draw (WORD     vid,
 
   v_hide_c (vid);
 
-  do {
-    if(!(OB_FLAGS(&tree[current]) & HIDETREE)) {
+  do
+  {
+    if(!(OB_FLAGS(&tree[current]) & HIDETREE))
+    {
       draw_object (vid,
                    tree,
                    current,
@@ -1717,13 +1822,15 @@ Objc_do_draw (WORD     vid,
 
       next = tree[current].ob_head;
       
-      if(next != -1) {
+      if(next != -1)
+      {
 	x += tree[current].ob_x;
 	y += tree[current].ob_y;
       }
     }
     
-    if(((next == -1) || (depth <= 0)) && (current == object)) {
+    if(((next == -1) || (depth <= 0)) && (current == object))
+    {
       break;
     }
     
@@ -1731,14 +1838,17 @@ Objc_do_draw (WORD     vid,
     {
       next = tree[current].ob_next;
       
-      if(next == -1) {
+      if(next == -1)
+      {
 	break;
       }
       
-      while((tree[next].ob_tail == current) && (current != object)) {
+      while((tree[next].ob_tail == current) && (current != object))
+      {
 	depth++;
 	
-	if(current == next) {
+	if(current == next)
+        {
 	  break;
 	}
 	
@@ -1749,19 +1859,24 @@ Objc_do_draw (WORD     vid,
 	
 	next = tree[current].ob_next;
 	
-	if(next == -1) {
+	if(next == -1)
+        {
 	  break;
 	}
       }
       
-      if(current == next) {
+      if(current == next)
+      {
 	break;
       }
       
-      if(current != object) {
+      if(current != object)
+      {
 	current = next;
       }
-    } else {
+    }
+    else
+    {
       depth--;
       
       current = next;
@@ -1781,7 +1896,8 @@ Objc_do_draw (WORD     vid,
 ** objc_draw ()
 */
 void
-Objc_draw (AES_PB *apb) {
+Objc_draw(AES_PB *apb)
+{
   GLOBAL_APPL * globals;
 
   CHECK_APID(apb->global->apid);
@@ -1800,26 +1916,28 @@ Objc_draw (AES_PB *apb) {
 
 /*
 ** Exported
-**
-** 1999-02-05 CG
 */
 WORD
-Objc_do_find (OBJECT * t,
+Objc_do_find(OBJECT * t,
               WORD     startobject,
               WORD     depth,
               WORD     x,
               WORD     y,
-              WORD     level) {
+              WORD     level)
+{
   /* Avoid crash if someone passes a NULL pointer */
-  if (t == NULL) {
+  if(t == NULL)
+  {
     return -1;
   }
 
-  if (OB_FLAGS(&t[startobject]) & HIDETREE) {
+  if (OB_FLAGS(&t[startobject]) & HIDETREE)
+  {
     return -1;
   }
   
-  if (level == 0) {
+  if (level == 0)
+  {
     WORD lxy[2];
 
     Objc_do_offset(t,startobject,lxy);
@@ -1829,19 +1947,23 @@ Objc_do_find (OBJECT * t,
   }
 	
   if ((x >= 0) && (x < t[startobject].ob_width) &&
-      (y >= 0) && (y < t[startobject].ob_height)) {
+      (y >= 0) && (y < t[startobject].ob_height))
+  {
     WORD deeper;
     WORD bestobj = startobject;
     
-    if((depth > 0) && (t[startobject].ob_head >= 0)) {
+    if((depth > 0) && (t[startobject].ob_head >= 0))
+    {
       WORD i = t[startobject].ob_head;
       
-      while(i != startobject) {
+      while(i != startobject)
+      {
         deeper = Objc_do_find(t,i,depth - 1,
                               x - t[i].ob_x,
                               y - t[i].ob_y,level + 1);
         
-        if(deeper >= 0) {
+        if(deeper >= 0)
+        {
           bestobj = deeper;
         }
         
@@ -1856,74 +1978,84 @@ Objc_do_find (OBJECT * t,
 }
 
 
-void	Objc_find(AES_PB *apb) {
-	apb->int_out[0] = Objc_do_find((OBJECT *)apb->addr_in[0],apb->int_in[0],
-		apb->int_in[1],apb->int_in[2],apb->int_in[3],0);
+void
+Objc_find(AES_PB *apb)
+{
+  apb->int_out[0] =
+    Objc_do_find((OBJECT *)apb->addr_in[0],apb->int_in[0],
+                 apb->int_in[1],apb->int_in[2],apb->int_in[3],0);
 }
+
 
 /*objc_offset 0x002c*/
 
-/****************************************************************************
- * Objc_do_offset                                                           *
- *  Implementation of objc_offset().                                        *
- ****************************************************************************/
-WORD              /* 0 if error, or 1.                                      */
-Objc_do_offset(   /*                                                        */
-OBJECT *tree,     /* Resource tree.                                         */
-WORD   object,    /* Object index.                                          */
-WORD   *xy)       /* X and Y coordinates of object if successfull.          */
-/****************************************************************************/
+/*
+** Description
+** Implementation of objc_offset()
+*/
+WORD
+Objc_do_offset(OBJECT * tree,
+               WORD     object,
+               WORD   * xy)
 {
-	if((tree == NULL)) {
-		return 0;
-	};
-	
-	xy[0] = 0;
-	xy[1] = 0;
-	
-	do {
-		WORD	last;
+  if((tree == NULL))
+  {
+    return 0;
+  }
+  
+  xy[0] = 0;
+  xy[1] = 0;
+  
+  do
+  {
+    WORD last;
+    
+    xy[0] += tree[object].ob_x;
+    xy[1] += tree[object].ob_y;
+    
+    if((tree[object].ob_next < 0) || (object == 0))
+    {
+      break;
+    }
 		
-		xy[0] += tree[object].ob_x;
-		xy[1] += tree[object].ob_y;
-		
-		if((tree[object].ob_next < 0) || (object == 0)) {
-			break;
-		};
-		
-		do {
-			last = object;
-			object = tree[object].ob_next;
-		}while(last != tree[object].ob_tail);	
-	}while(1);
+    do
+    {
+      last = object;
+      object = tree[object].ob_next;
+    } while(last != tree[object].ob_tail);	
+  } while(1);
 	
-	if(object == 0) {
-		return 1;
-	}
-	else {
-		return 0;
-	};
+  if(object == 0)
+  {
+    return 1;
+  }
+  else
+  {
+    return 0;
+  }
 }
 
 
-void	Objc_offset(AES_PB *apb) {
-	apb->int_out[0] = Objc_do_offset((OBJECT *)apb->addr_in[0]
-		,apb->int_in[0], &apb->int_out[1]);
-};
+void
+Objc_offset(AES_PB *apb)
+{
+  apb->int_out[0] = Objc_do_offset((OBJECT *)apb->addr_in[0],
+                                   apb->int_in[0],
+                                   &apb->int_out[1]);
+}
 
-/****************************************************************************
- * Objc_do_edit                                                             *
- *  Implementation of objc_edit().                                          *
- ****************************************************************************/
-WORD              /* 0 if an error occured, or 1.                           */
-Objc_do_edit(     /*                                                        */
-WORD     vid,
-OBJECT * tree,    /* Resource tree.                                         */
-WORD     obj,     /* Object index.                                          */
-WORD     kc,      /* Key code to process.                                   */
-WORD   * idx,     /* Character index.                                       */
-WORD     mode)    /* Edit mode.                                             */
-/****************************************************************************/
+
+/*
+** Description
+** Implementation of objc_edit()
+*/
+WORD
+Objc_do_edit(WORD     vid,
+             OBJECT * tree,
+             WORD     obj,
+             WORD     kc,
+             WORD   * idx,
+             WORD     mode)
 {
   WORD      type;
   U_OB_SPEC ob_spec;
@@ -1937,16 +2069,19 @@ WORD     mode)    /* Edit mode.                                             */
     ob_spec = tree[obj].ob_spec;
   }
 	
-  if((obj < 0) || (tree == NULL) || (idx == NULL)) {
+  if((obj < 0) || (tree == NULL) || (idx == NULL))
+  {
     return 0;
-  };
+  }
 	
   if(((type = tree[obj].ob_type & 0xff) != G_FTEXT) &&
-     (type != G_FBOXTEXT)) {
+     (type != G_FBOXTEXT))
+  {
     return 0;
-  };
+  }
 	
-  switch(mode) {
+  switch(mode)
+  {
   case ED_INIT:
     *idx = (WORD)strlen(ob_spec.tedinfo->te_ptext);
     draw_cursor (vid,*idx,tree,obj);
@@ -1969,55 +2104,55 @@ WORD     mode)    /* Edit mode.                                             */
   return 1;
 }
 
-/****************************************************************************
- * Objc_edit                                                                *
- *   0x002e objc_edit().                                                    *
- ****************************************************************************/
-void              /*                                                        */
-Objc_edit(        /*                                                        */
-AES_PB *apb)      /* AES parameter block.                                   */
-/****************************************************************************/
+
+/*
+** Description
+** 0x002e objc_edit()
+*/
+void
+Objc_edit(AES_PB * apb)
 {
   CHECK_APID(apb->global->apid);
 
   apb->int_out[1] = apb->int_in[2];
-  apb->int_out[0] = Objc_do_edit (apb->global->apid,
-                                  (OBJECT *)apb->addr_in[0],
-                                  apb->int_in[0],
-                                  apb->int_in[1],
-                                  &apb->int_out[1],
-                                  apb->int_in[3]);
+  apb->int_out[0] = Objc_do_edit(apb->global->apid,
+                                 (OBJECT *)apb->addr_in[0],
+                                 apb->int_in[0],
+                                 apb->int_in[1],
+                                 &apb->int_out[1],
+                                 apb->int_in[3]);
 }
 
-/****************************************************************************
- * Objc_do_change                                                           *
- *  Implementation of objc_change().                                        *
- ****************************************************************************/
-WORD                /* 0 if an error occured, or 1.                         */
-Objc_do_change(     /*                                                      */
-WORD     vid,
-OBJECT * tree,      /* Resource tree.                                       */
-WORD     obj,       /* Object index.                                        */
-RECT   * clip,      /* Clipping rectangle.                                  */
-WORD     newstate,  /* New object state.                                    */
-WORD     drawflag)  /* Drawing flag.                                        */
-/****************************************************************************/
+
+/*
+** Description
+** Implementation of objc_change()
+*/
+WORD
+Objc_do_change(WORD     vid,
+               OBJECT * tree,
+               WORD     obj,
+               RECT   * clip,
+               WORD     newstate,
+               WORD     drawflag)
 {
   OB_STATE_PUT(&tree[obj], newstate);
 	
-  if(drawflag == REDRAW) {
+  if(drawflag == REDRAW)
+  {
     Objc_do_draw (vid, tree,obj,9,clip);
-  };
+  }
   
   return 1;
 }
 
+
 /*
 ** Description
-**   0x002f objc_change().
+**  0x002f objc_change()
 */
 void
-Objc_change (AES_PB * apb)
+Objc_change(AES_PB * apb)
 {
   GLOBAL_APPL * globals;
 
@@ -2113,14 +2248,12 @@ Objc_do_sysvar(WORD   mode,
 }
 
 
-/****************************************************************************
- * Objc_sysvar                                                              *
- *  0x0030 objc_sysvar().                                                   *
- ****************************************************************************/
-void              /*                                                        */
-Objc_sysvar(      /*                                                        */
-AES_PB *apb)      /* AES parameter block.                                   */
-/****************************************************************************/
+/*
+** Description
+** 0x0030 objc_sysvar()
+*/
+void
+Objc_sysvar(AES_PB * apb)
 {
   apb->int_out[0] = Objc_do_sysvar(apb->int_in[0],apb->int_in[1],
 				   apb->int_in[2],apb->int_in[3],
@@ -2206,40 +2339,43 @@ Objc_area_needed(OBJECT * tree,
 }
 
 
-/****************************************************************************
- *  Objc_calc_clip                                                          *
- *   Calculate required clip area for object.                               *
- ****************************************************************************/
-void              /*                                                        */
-Objc_calc_clip(   /*                                                        */
-OBJECT *tree,     /* Pointer to the root of the resource tree.              */
-WORD   object,    /* Index of interesting object.                           */
-RECT   *rect)     /* Buffer where the requested area size will be placed.   */
-/****************************************************************************/
+/*
+** Description
+** Calculate required clip area for object
+*/
+void
+Objc_calc_clip(OBJECT * tree,
+               WORD     object,
+               RECT   * rect)
 {
-	WORD owalk = object;
-	
-	while(1) {
-		if(tree[owalk].ob_next == -1) {
-			owalk = -1;
-			break;
-		};
-		
-		if(tree[tree[owalk].ob_next].ob_tail == owalk) {
-			owalk = tree[owalk].ob_next;
-			break;
-		};
-		
-		owalk = tree[owalk].ob_next;
-	};
-	
-	if(owalk == -1) {
-		Objc_area_needed(tree,object,rect);
-	}
-	else {
-		Objc_do_offset(tree,owalk,(WORD *)rect);
-	
-		rect->width = tree[owalk].ob_width;
-		rect->height = tree[owalk].ob_height;
-	};
+  WORD owalk = object;
+  
+  while(1)
+  {
+    if(tree[owalk].ob_next == -1)
+    {
+      owalk = -1;
+      break;
+    }
+    
+    if(tree[tree[owalk].ob_next].ob_tail == owalk)
+    {
+      owalk = tree[owalk].ob_next;
+      break;
+    }
+    
+    owalk = tree[owalk].ob_next;
+  }
+  
+  if(owalk == -1)
+  {
+    Objc_area_needed(tree,object,rect);
+  }
+  else
+  {
+    Objc_do_offset(tree,owalk,(WORD *)rect);
+    
+    rect->width = tree[owalk].ob_width;
+    rect->height = tree[owalk].ob_height;
+  }
 }
