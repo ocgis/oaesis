@@ -203,6 +203,9 @@ top_appl(         /*                                                        */
 WORD apid);       /* Id of application.                                     */
 /****************************************************************************/
 
+static
+WORD
+top_window (WORD winid);
 
 /* 
  * Find MiNT-PID & return AP_LIST entry for that 
@@ -1107,14 +1110,16 @@ srv_menu_register (C_MENU_REGISTER * par,
 }
 
 
-/****************************************************************************
- * srv_appl_control                                                         *
- ****************************************************************************/
-WORD                  /* 0 if error or >0.                                  */
-srv_appl_control(     /*                                                    */
-C_APPL_CONTROL * msg) /*                                                    */
-/****************************************************************************/
-{
+/*
+** Description
+** Server part of srv_appl_control
+**
+** 1999-04-18 CG
+*/
+static
+void
+srv_appl_control (C_APPL_CONTROL * msg,
+                  R_APPL_CONTROL * ret) {
   switch(msg->mode) {
   case APC_TOPNEXT:
     {
@@ -1125,18 +1130,19 @@ C_APPL_CONTROL * msg) /*                                                    */
 	nexttop = al->ai->id;
 	
 	al = al->next;
-      };
+      }
       
       if(nexttop != -1) {
 	top_appl(nexttop);
-      };
+      }
       
-      return 1;
-    };
+      ret->common.retval = 1;
+    }
+    break;
     
   case APC_KILL:
     {
-      AP_INFO *ai = search_appl_info(msg->apid);
+      AP_INFO *ai = search_appl_info (msg->ap_id);
       
       if((ai->newmsg & 0x1) && (ai->killtries < 20)) {
 	COMMSG       m;
@@ -1145,41 +1151,42 @@ C_APPL_CONTROL * msg) /*                                                    */
 	
 	ai->killtries++;
 
-	DB_printf("Sending AP_TERM to %d", msg->apid);
+	DB_printf("Sending AP_TERM to %d", msg->ap_id);
 	
 	m.type = AP_TERM;
 	m.sid = 0;
 	m.length = 0;
 	m.msg2 = AP_TERM;
 	
-	c_appl_write.addressee = msg->apid;
+	c_appl_write.addressee = msg->ap_id;
 	c_appl_write.length = MSG_LENGTH;
         c_appl_write.is_reference = TRUE;
 	c_appl_write.msg.ref = &m;
 	srv_appl_write (&c_appl_write, &r_appl_write);
-      }
-      else {
+      } else {
         C_APPL_EXIT par;
         R_APPL_EXIT ret;
 
-	DB_printf("Killing apid %d", msg->apid);
+	DB_printf("Killing apid %d", msg->ap_id);
 	
 	(void)Pkill(ai->pid,SIGKILL);
 
-	par.common.apid = msg->apid;
+	par.common.apid = msg->ap_id;
 	srv_appl_exit (&par, &ret);
-      };
+      }
       
-      return 1;
-    };
+      ret->common.retval = 1;
+    }
+    break;
     
   case APC_TOP:
-    top_appl (msg->apid);
-    return 1;
-    
+    top_appl (msg->ap_id);
+    ret->common.retval = 1;
+    break;
+
   default:
     DB_printf("srv_appl_control doesn't support mode %d", msg->mode);
-    return 0;
+    ret->common.retval = 0;
   }
 }
 
@@ -1579,6 +1586,7 @@ set_desktop_background (WORD     apid,
 **
 ** 1999-01-01 CG
 ** 1999-04-13 CG
+** 1999-04-18 CG
 */
 static
 WORD
@@ -1588,36 +1596,54 @@ top_appl (WORD apid) {
   WORD       deskbgcount = 0;
   WORD       lasttop;
 
+  DEBUG2 ("srv.c: top_appl: apid = %d", apid);
   lasttop = ap_pri->ai->id;
-  al = &ap_pri;
-  
-  while (*al) {
-    if ((*al)->ai->id == apid) {
-      AP_LIST *tmp = *al;
+
+  if (lasttop != apid) {
+    WINLIST * wl;
+
+    /* Find the first window of the application and top it */
+    wl = win_list;
+
+    while (wl) {
+      if (wl->win->owner == apid) {
+        top_window (wl->win->id);
+        break;
+      }
+
+      wl = wl->next;
+    }
+
+    al = &ap_pri;
+    
+    while (*al) {
+      if ((*al)->ai->id == apid) {
+        AP_LIST *tmp = *al;
+        
+        *al = (*al)->next;
+        
+        tmp->next = ap_pri;
+        ap_pri = tmp;
+        
+        deskbg = tmp->ai->deskbg;
+        
+        break;
+      }
       
-      *al = (*al)->next;
+      if ((*al)->ai->deskbg) {
+        deskbgcount++;
+      }
       
-      tmp->next = ap_pri;
-      ap_pri = tmp;
-      
-      deskbg = tmp->ai->deskbg;
-      
-      break;
+      al = &(*al)->next;
     }
     
-    if((*al)->ai->deskbg) {
-      deskbgcount++;
+    if(deskbg && deskbgcount) {
+      update_desktop_background ();
     }
     
-    al = &(*al)->next;
+    redraw_menu_bar();
   }
-  
-  if(deskbg && deskbgcount) {
-    update_desktop_background ();
-  }
-  
-  redraw_menu_bar();
-  
+
   return lasttop;
 }
 
@@ -2676,7 +2702,16 @@ changewinsize (WINSTRUCT * win,
   return 1;
 }
 
-static WORD	bottom_window(WORD winid) { 
+
+/*
+** Description
+** Put window under all other windows
+**
+** 1999-04-18 CG
+*/
+static
+WORD
+bottom_window (WORD winid) { 
   WORD          wastopped = 0;
   WINSTRUCT     *newtop = 0L;
   REDRAWSTRUCT	m;
@@ -2772,6 +2807,7 @@ static WORD	bottom_window(WORD winid) {
   
   if(wastopped) {
     C_APPL_CONTROL c_appl_control;
+    R_APPL_CONTROL r_appl_control;
 
     /*
     ** FIXME
@@ -2787,10 +2823,11 @@ static WORD	bottom_window(WORD winid) {
     draw_wind_elements(ourwl->win,&ourwl->win->totsize,0);
     draw_wind_elements(newtop,&newtop->totsize,0);
     
-    c_appl_control.apid = newtop->owner;
+    c_appl_control.ap_id = newtop->owner;
     c_appl_control.mode = APC_TOP;
-    srv_appl_control (&c_appl_control);
-  };
+    srv_appl_control (&c_appl_control,
+                      &r_appl_control);
+  }
   
   return 1;
 }
@@ -2801,6 +2838,7 @@ static WORD	bottom_window(WORD winid) {
 ** Try to top window
 **
 ** 1999-03-28 CG
+** 1999-04-18 CG
 */
 static
 WORD
@@ -2944,6 +2982,7 @@ top_window (WORD winid) {
     
     if(wastopped) {
       C_APPL_CONTROL c_appl_control;
+      R_APPL_CONTROL r_appl_control;
       
       /*
       ** FIXME
@@ -2960,9 +2999,10 @@ top_window (WORD winid) {
       draw_wind_elements(oldtop,&oldtop->totsize,0);
       */
 
-      c_appl_control.apid = ourwl->win->owner;
+      c_appl_control.ap_id = ourwl->win->owner;
       c_appl_control.mode = APC_TOP;
-      srv_appl_control(&c_appl_control);
+      srv_appl_control (&c_appl_control,
+                        &r_appl_control);
     }
   }
   
@@ -3628,6 +3668,7 @@ C_PUT_EVENT *msg)
 ** 1999-03-28 CG
 ** 1999-04-11 CG
 ** 1999-04-12 CG
+** 1999-04-18 CG
 */
 static
 WORD
@@ -3729,11 +3770,6 @@ server (LONG arg) {
       DEBUG3 ("srv.c: calling srv_handle_events");
       srv_handle_events ();
     } else {
-      if (par.common.apid != 0) {
-        DEBUG2 ("srv.c: Call: %d apid: %d handle %p",
-                par.common.call, par.common.apid, handle);
-      }
-
       switch (par.common.call) {
       case SRV_SHAKE:
         DB_printf ("I'm fine application %d (process %d)!", apid, client_pid);
@@ -3749,9 +3785,9 @@ server (LONG arg) {
         return 0;
         
       case SRV_APPL_CONTROL:
-        code = srv_appl_control (&par.appl_control);
+        srv_appl_control (&par.appl_control, &ret.appl_control);
         
-        Srv_reply (handle, &par, code);
+        Srv_reply (handle, &ret, sizeof (R_APPL_CONTROL));
         break;
         
       case SRV_APPL_EXIT:
@@ -3979,20 +4015,22 @@ Srv_init_module (void) {
 **
 ** 1998-12-22 CG
 ** 1999-01-09 CG
+** 1999-04-18 CG
 */
 void
 Srv_exit_module (void) {
   DB_printf("Killing off alive processes");
   
   /* Kill all AES processes */
-  while(ap_pri) {
+  while (ap_pri) {
     C_APPL_CONTROL msg;
+    R_APPL_CONTROL ret;
 
-    msg.apid = ap_pri->ai->id;
+    msg.ap_id = ap_pri->ai->id;
     msg.mode = APC_KILL;
 
-    srv_appl_control(&msg);
-  };
+    srv_appl_control (&msg, &ret);
+  }
   
   DB_printf("Killed all processes\r\n");
 

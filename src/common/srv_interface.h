@@ -53,10 +53,14 @@ typedef struct {
 /* appl_* related */
 
 typedef struct {
-  WORD apid;
-  WORD mode;
-  WORD retval;
+  C_ALL common;
+  WORD  ap_id;
+  WORD  mode;
 }C_APPL_CONTROL;
+
+typedef struct {
+  R_ALL common;
+}R_APPL_CONTROL;
 
 typedef struct {
   C_ALL common;
@@ -361,6 +365,7 @@ typedef union {
 
 typedef union {
   R_ALL           common;
+  R_APPL_CONTROL  appl_control;
   R_APPL_EXIT     appl_exit;
   R_APPL_INIT     appl_init;
   R_APPL_SEARCH   appl_search;

@@ -44,6 +44,7 @@
 #endif
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 /*#include "boot.h"*/
@@ -168,6 +169,7 @@ WORD own_graf_handle(void) {
 ** 1999-01-13 CG
 ** 1999-03-11 CG
 ** 1999-04-13 CG
+** 1999-04-18 CG
 */
 void
 init_global (WORD nocnf,
@@ -352,6 +354,16 @@ init_global (WORD nocnf,
 
   /* Default is not to use MiNT pathnames, at least under unix */
   global_appl.use_mint_paths = FALSE;
+
+  /* Initialize application and accessory list as empty */
+  global_appl.appl_menu.count = 0;
+  global_appl.appl_menu.size = 10;
+  global_appl.appl_menu.entries =
+    (APPL_ENTRY *)malloc (sizeof (APPL_ENTRY) * 10);
+  global_appl.acc_menu.count = 0;
+  global_appl.acc_menu.size = 10;
+  global_appl.acc_menu.entries =
+    (APPL_ENTRY *)malloc (sizeof (APPL_ENTRY) * 10);
 
   global_appl.common = &global_common;
 }

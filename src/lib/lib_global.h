@@ -91,12 +91,27 @@ typedef struct global_common {
   OBJC_COLORWORD untop_colour[20];
 }GLOBAL_COMMON;
 
+
+typedef struct {
+  char name[20];
+  WORD type;
+  WORD ap_id;
+} APPL_ENTRY;
+
+typedef struct {
+  WORD         count;
+  WORD         size;
+  APPL_ENTRY * entries;
+} APPL_LIST;
+
+
 /*
 ** Description
 ** global_appl contains variables that are global within a special application
 **
 ** 1999-01-09 CG
 ** 1999-03-11 CG
+** 1999-04-18 CG
 */
 typedef struct global_appl {
   GLOBAL_COMMON * common;
@@ -108,6 +123,8 @@ typedef struct global_appl {
   RSHDR         * rshdr;
   OBJECT       ** rscfile;
   WORD            use_mint_paths;
+  APPL_LIST       appl_menu;
+  APPL_LIST       acc_menu;
 }GLOBAL_APPL;
 
 /*

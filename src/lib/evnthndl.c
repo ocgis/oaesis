@@ -68,6 +68,7 @@ v   Fixed mover grabbing bug; if the mouse was moved during click on
 
 #include <signal.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 #include "appl.h"
@@ -1164,43 +1165,46 @@ static void check_rectevents(WORD x,WORD y) {
 
 /*
 ** Description
-** Update the application menu
+** Update list of running applications and accessories
 **
-** ToDo
-** Fix separation of accessories and applications
-**
-** 1999-04-13 CG
+** 1999-04-18 CG
 */
 static
-WORD
-update_appl_menu (WORD apid) {
-  WORD            rwalk;
-  WORD            topappl;
-  GLOBAL_COMMON * globals = get_global_common ();
+void
+update_appl_list (WORD apid) {
+  GLOBAL_APPL * globals = get_globals (apid);
+  WORD          more;
+  char          name[20];
+  WORD          type;
+  WORD          ap_id;
 
-  char name[20];
-  WORD type;
-  WORD ap_id;
-  WORD more;  
-
-  topappl = 0; /* FIXME: get_top_appl(); */
-
-  rwalk = PMENU_FIRST;
+  /* Reset menu lists */
+  globals->appl_menu.count = 0;
+  globals->acc_menu.count = 0;
 
   more = Appl_do_search (apid, APP_FIRST, name, &type, &ap_id);
   while (TRUE) {
-    strcpy (globals->pmenutad[rwalk].ob_spec.free_string, name);
+    if (type & (APP_APPLICATION | APP_ACCESSORY)) {
+      APPL_LIST * insert_menu;
 
-    if (ap_id == topappl) {
-      globals->pmenutad[rwalk].ob_state |= CHECKED;
-    } else {
-      globals->pmenutad[rwalk].ob_state &= ~CHECKED;
+      if (type & APP_APPLICATION) {
+        insert_menu = &globals->appl_menu;
+      } else { /* Must be APP_ACCESSORY */
+        insert_menu = &globals->acc_menu;
+      }
+
+      if (insert_menu->count == insert_menu->size) {
+        insert_menu->size += 10;
+        insert_menu->entries =
+          (APPL_ENTRY *)realloc (insert_menu->entries,
+                                 sizeof (APPL_ENTRY) * insert_menu->size);
+      }
+
+      strcpy (insert_menu->entries[insert_menu->count].name, name);
+      insert_menu->entries[insert_menu->count].type = type;
+      insert_menu->entries[insert_menu->count].ap_id = ap_id;
+      insert_menu->count++;
     }
-	
-    globals->pmenutad[rwalk].ob_flags &= ~HIDETREE;
-    globals->pmenutad[rwalk].ob_state &= ~DISABLED;
-
-    rwalk++;
 
     if (more == 0) {
       break;
@@ -1208,38 +1212,75 @@ update_appl_menu (WORD apid) {
     
     more = Appl_do_search (apid, APP_NEXT, name, &type, &ap_id);
   }
+}
 
-  /*
-  if(globals.accmenu) {
-    strcpy(globals.pmenutad[rwalk].ob_spec.free_string,
-           "----------------------");
-    globals.pmenutad[rwalk].ob_flags &= ~HIDETREE;
-    globals.pmenutad[rwalk].ob_state &= ~CHECKED;
-    globals.pmenutad[rwalk].ob_state |= DISABLED;
-    rwalk++;
-  };
 
-  mwalk = globals.accmenu;
-	
-  while(mwalk) {
-    strcpy(globals.pmenutad[rwalk].ob_spec.free_string,mwalk->ai->name);
-    if(mwalk->ai->id == topappl) {			globals.pmenutad[rwalk].ob_state |= CHECKED;
+/*
+** Description
+** Update the application menu
+**
+** ToDo
+** Fix separation of accessories and applications
+**
+** 1999-04-13 CG
+** 1999-04-18 CG
+*/
+static
+WORD
+update_appl_menu (WORD apid) {
+  WORD          rwalk;
+  WORD          topappl;
+  GLOBAL_APPL * globals = get_globals (apid);
+  int           i;
+
+  update_appl_list (apid);
+
+  topappl = 0; /* FIXME: get_top_appl(); */
+
+  rwalk = PMENU_FIRST;
+
+  for (i = 0; i < globals->appl_menu.count; i++, rwalk++) {
+    strcpy (globals->common->pmenutad[rwalk].ob_spec.free_string,
+            globals->appl_menu.entries[i].name);
+
+    if (globals->appl_menu.entries[i].ap_id == topappl) {
+      globals->common->pmenutad[rwalk].ob_state |= CHECKED;
+    } else {
+      globals->common->pmenutad[rwalk].ob_state &= ~CHECKED;
     }
-    else {
-      globals.pmenutad[rwalk].ob_state &= ~CHECKED;
-    };
 	
-    globals.pmenutad[rwalk].ob_flags &= ~HIDETREE;
-    globals.pmenutad[rwalk].ob_state &= ~DISABLED;
-
-    mwalk = mwalk->mn_next;
-    rwalk++;
+    globals->common->pmenutad[rwalk].ob_flags &= ~HIDETREE;
+    globals->common->pmenutad[rwalk].ob_state &= ~DISABLED;
   }
-  */
 
-  globals->pmenutad[rwalk].ob_flags |= HIDETREE;
+  if (globals->acc_menu.count > 0) {
+    strcpy(globals->common->pmenutad[rwalk].ob_spec.free_string,
+           "----------------------");
+    globals->common->pmenutad[rwalk].ob_flags &= ~HIDETREE;
+    globals->common->pmenutad[rwalk].ob_state &= ~CHECKED;
+    globals->common->pmenutad[rwalk].ob_state |= DISABLED;
+    rwalk++;
+    
+    for (i = 0; i < globals->acc_menu.count; i++, rwalk++) {
+      strcpy (globals->common->pmenutad[rwalk].ob_spec.free_string,
+              globals->acc_menu.entries[i].name);
+
+      if (globals->acc_menu.entries[i].ap_id == topappl) {
+        globals->common->pmenutad[rwalk].ob_state |= CHECKED;
+      } else {
+        globals->common->pmenutad[rwalk].ob_state &= ~CHECKED;
+      }
+      
+      globals->common->pmenutad[rwalk].ob_flags &= ~HIDETREE;
+      globals->common->pmenutad[rwalk].ob_state &= ~DISABLED;
+    }
+  }
+
+  /* FIXME: Make pmenutad local to the application */
+  globals->common->pmenutad[rwalk].ob_flags |= HIDETREE;
 	
-  globals->pmenutad[0].ob_height = globals->pmenutad[rwalk].ob_y;
+  globals->common->pmenutad[0].ob_height =
+    globals->common->pmenutad[rwalk].ob_y;
 	
   return topappl;
 }
@@ -1310,6 +1351,7 @@ static WORD     get_matching_menu(OBJECT *t,WORD n) {
 ** 1999-01-09 CG
 ** 1999-04-10 CG
 ** 1999-04-13 CG
+** 1999-04-18 CG
 */
 static
 WORD
@@ -1378,56 +1420,46 @@ handle_drop_down (WORD        apid,
       } else if (eo.events & MU_BUTTON) {
         nmenu[entry].ob_state &= ~SELECTED;
                 
-            /*
-            if(nmenu == globals.pmenutad) {
-              AP_LIST *mr;
-              WORD    walk = entry - PMENU_FIRST;
-                        
-              mr = globals.applmenu;
-                                
-              while(walk && mr) {
-                mr = mr->mn_next;
-                walk--;
-              }
-                                                        
-              if(walk) {
-                walk--;
-                mr = globals.accmenu;
-                while(walk && mr) {
-                  mr = mr->mn_next;
-                  walk--;
-                }
-              }
-                                                        
-                                                
-              if(mr) {
-                WORD skeys;
-                
-                Vdi_vq_key_s(evntglbl.evid,&skeys);
+        if (nmenu == globals->common->pmenutad) {
+          APPL_ENTRY * appl_entry;
+          WORD         new_entry = entry - PMENU_FIRST;
 
-                if(skeys & K_CTRL) {
-                  hm_buffer->action = HM_KILL;
-                  hm_buffer->apid = mr->ai->id;
-                }
-                else {
-                  if(mr->ai->type & APP_APPLICATION) {
-                    hm_buffer->action = HM_TOP_APPL;
-                    hm_buffer->apid = mr->ai->id;
-                  }
-                  else {
-                    hm_buffer->action = HM_OPEN_ACC;
-                    hm_buffer->apid = mr->ai->id;
-                  };
-                };
+          if (new_entry < globals->appl_menu.count) {
+            appl_entry = &globals->appl_menu.entries[new_entry];
+          } else {
+            new_entry -= globals->appl_menu.count + 1;
+            if (new_entry < globals->acc_menu.count) {
+              appl_entry = &globals->acc_menu.entries[new_entry];
+            } else {
+              appl_entry = NULL;
+            }
+          }
+                                                
+          if (appl_entry != NULL) {
+            /* FIXME 
+               WORD skeys;
+               
+               Vdi_vq_key_s(evntglbl.evid,&skeys);
+               
+               if(skeys & K_CTRL) {
+               hm_buffer->action = HM_KILL;
+               hm_buffer->apid = mr->ai->id;
+               } else */
+            {
+              if (appl_entry->type & APP_APPLICATION) {
+                hm_buffer->action = HM_TOP_APPL;
+                hm_buffer->apid = appl_entry->ap_id;
+              } else {
+                hm_buffer->action = HM_OPEN_ACC;
+                hm_buffer->apid = appl_entry->ap_id;
               }
-              else {
-                DB_printf("%s: Line %d: handle_drop_down:\r\n"
-                          "Couldn't find application to top!\r\n",
-                          __FILE__,__LINE__);
-                          }
-          
-                          } else */
-        {
+            }
+          } else {
+            DB_printf("%s: Line %d: handle_drop_down:\r\n"
+                      "Couldn't find application to top!\r\n",
+                      __FILE__,__LINE__);
+          }
+        } else {
           hm_buffer->action = HM_MENU_MSG;
           hm_buffer->title = title;
           hm_buffer->item = entry;
@@ -1617,6 +1649,7 @@ handle_selected_title (WORD        apid,
 ** 1998-12-20 CG
 ** 1999-01-09 CG
 ** 1999-03-17 CG
+** 1999-04-18 CG
 */
 void
 Evhd_handle_menu (WORD apid) {
@@ -1632,7 +1665,7 @@ Evhd_handle_menu (WORD apid) {
     break;
 
   case HM_KILL:
-    Srv_appl_control(hm_buffer.apid,APC_KILL);
+    Appl_do_control (apid, hm_buffer.apid, APC_KILL);
     break;
 
   case HM_OPEN_ACC:
@@ -1650,7 +1683,7 @@ Evhd_handle_menu (WORD apid) {
     break;
 
   case HM_TOP_APPL:
-    Srv_appl_control(hm_buffer.apid,APC_TOP);
+    Appl_do_control (apid, hm_buffer.apid, APC_TOP);
     break;
     
   case HM_MENU_MSG:
@@ -1680,6 +1713,7 @@ Evhd_handle_menu (WORD apid) {
 ** Event handler process. This is obsolete and will disappear.
 **
 ** 1998-12-20 CG
+** 1999-04-18 CG
 */
 static
 WORD
@@ -1753,9 +1787,7 @@ evnt_handler (LONG arg) {
       case APPEVNT_KEYBOARD :
         if((((er.ap_value & 0x00ff0000L) >> 16) == 0x09) &&
            (er.ap_value & K_CTRL) && (er.ap_value & K_ALT)) {
-          Srv_appl_control(-1,APC_TOPNEXT);             
-        }
-        else if(er.ap_value == 0x4a1f000cL) {
+          Appl_do_control (apid, -1, APC_TOPNEXT);        } else if(er.ap_value == 0x4a1f000cL) {
           DB_printf("Killing oAESis");
 
           /*

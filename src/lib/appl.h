@@ -85,4 +85,14 @@ Appl_getinfo(     /*                                                        */
 AES_PB *apb);     /* AES parameter block.                                   */
 /****************************************************************************/
 
+/*
+** Description
+** Library part of appl_control ()
+**
+** 1999-04-18 CG
+*/
+WORD
+Appl_do_control (WORD apid,
+                 WORD ap_id,
+                 WORD mode);
 #endif

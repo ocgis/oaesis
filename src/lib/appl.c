@@ -465,3 +465,32 @@ Appl_getinfo(AES_PB *apb) /* AES parameter block.                           */
     apb->int_out[0] = 0;
   }
 }
+
+
+/*
+** Exported
+** Library part of appl_control ()
+**
+** 1999-04-18 CG
+*/
+WORD
+Appl_do_control (WORD apid,
+                 WORD ap_id,
+                 WORD mode) {
+  C_APPL_CONTROL par;
+  R_APPL_CONTROL ret;
+	
+  par.common.call = SRV_APPL_CONTROL;
+  par.common.apid = apid;
+  par.common.pid = getpid ();
+
+  par.ap_id = ap_id;
+  par.mode = mode;
+
+  Client_send_recv (&par,
+                    sizeof (C_APPL_CONTROL),
+                    &ret,
+                    sizeof (R_APPL_CONTROL));
+  
+  return ret.common.retval;
+}
