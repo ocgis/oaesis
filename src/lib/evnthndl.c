@@ -1510,6 +1510,9 @@ handle_selected_title (WORD        apid,
     if(box == deskbox) {
       WORD i;
 
+      /* Get applications for menu */
+      update_appl_menu (apid);
+
       Objc_do_offset (globals->menu, box, &globals->common->pmenutad[0].ob_x);
      
       globals->common->pmenutad[0].ob_y +=
@@ -1562,9 +1565,6 @@ handle_selected_title (WORD        apid,
 
     if (box == deskbox) {
       RECT clip = area;
-
-      /* Get applications for menu */
-      update_appl_menu (apid);
 
       clip.height = globals->common->pmenutad[0].ob_y - area.y;
       Objc_do_draw (globals->vid, globals->menu, box, 9, &clip);
