@@ -163,7 +163,7 @@ Evnt_do_mesag(WORD     apid,
     
   ei.events = MU_MESAG;
 
-  Evnt_do_multi(apid, &ei, &buf, &eo, 0, DONT_HANDLE_MENU_BAR);
+  Evnt_do_multi(apid, &ei, buf, &eo, 0, DONT_HANDLE_MENU_BAR);
   
   return 1;
 }
