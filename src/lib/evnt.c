@@ -301,14 +301,22 @@ Evnt_do_multi (WORD       apid,
         Wind_newtop(apid, ret.msg.msg0, WIND_UNTOPPED);
       }
 
-      DEBUG3("Evnt_do_multi: 18");
-      if (eventin->events & MU_MESAG)
+      /* Do not return unwanted messages */
+      if(!((ret.msg.type == WM_REDRAW) &&
+           ((ret.msg.msg0 == DESKTOP_WINDOW) ||
+            (ret.msg.msg0 == MENU_BAR_WINDOW))))
       {
-        DEBUG3("Evnt_do_multi: 19");
-        *msg = ret.msg;
-        DEBUG3("Evnt_do_multi: 20");
-        events_out |= MU_MESAG;
+        DEBUG3("Evnt_do_multi: 18");
+        
+        if(eventin->events & MU_MESAG)
+        {
+          DEBUG3("Evnt_do_multi: 19");
+          *msg = ret.msg;
+          DEBUG3("Evnt_do_multi: 20");
+          events_out |= MU_MESAG;
+        }        
       }
+
     }
     
     DEBUG3("Evnt_do_multi: 21");
