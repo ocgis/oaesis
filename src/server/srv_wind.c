@@ -389,22 +389,24 @@ setwinsize (WINSTRUCT * win,
 
 /*
 ** Description
-** Get the resource tree of the top desktop
+** Get the owner of the top desktop
 */
 static
-OBJECT *
-get_deskbg (void)
+WORD
+get_deskbg_owner(void)
 {
-  OBJECT  *retval = NULL;
-  AP_INFO *ai;
+  AP_INFO * ai;
   
   ai = search_appl_info (DESK_OWNER);
   
-  if(ai) {
-    retval = ai->deskbg;
+  if(ai != AP_INFO_REF_NIL)
+  {
+    return ai->id;
   }
-		
-  return retval;
+  else
+  {
+    return -1;
+  }
 }
 
 
@@ -421,26 +423,8 @@ draw_wind_elements(WINSTRUCT * win,
 {
   RLIST	*rl = win->rlist;
 
-  if(win->id == 0) {
-    OBJECT *deskbg;
-	
-    deskbg = get_deskbg();
-		
-    if(deskbg) {
-      while(rl) {		
-        RECT	r2;
-			
-        if(srv_intersect(&rl->r,r,&r2)) {
-          /*
-            Objc_do_draw(deskbg,start,9,&r2);
-            */
-        };
-					
-        rl = rl->next;
-      };
-    };
-  }
-  else if(win->tree) {	
+  if((win->id != 0) && win->tree)
+  {	
     while(rl) {		
       RECT	r2;
 		
@@ -453,36 +437,6 @@ draw_wind_elements(WINSTRUCT * win,
       rl = rl->next;
     }
   }
-}
-
-
-/*
-** Description
-** Draw the elements of the window win that intersects with the rectangle
-** r
-*/
-static
-void
-draw_wind_elemfast(WINSTRUCT * win,
-                   RECT *      r,
-                   WORD        start)
-{
-  if(win->id == 0) {
-    OBJECT *deskbg;
-	
-    deskbg = get_deskbg();
-		
-    if(deskbg) {
-      /*
-      Objc_do_draw(deskbg,start,9,r);
-      */
-    };
-  }
-  else if(win->tree) {	
-    /*
-    Objc_do_draw(win->tree,start,3,r);
-    */
-  };
 }
 
 
@@ -1635,22 +1589,23 @@ update_desktop_owner(void)
 */
 static
 WORD
-set_desktop_background (WORD     apid,
-                        OBJECT * tree)
+set_desktop_background(WORD        apid,
+                       SRV_FEATURE state)
 {
-  OBJECT * deskbg;
-  OBJECT * olddeskbg = apps[apid].deskbg;
+  if(apps[apid].id != -1)
+  {
+    WORD old_deskbg_owner;
   
-  if(apps[apid].id != -1) {
-    apps[apid].deskbg = tree;
-    
-    deskbg = get_deskbg ();
-    
-    if(((deskbg == tree) && (deskbg != olddeskbg)) || !tree) {
-      update_desktop_background ();
-    }
+    old_deskbg_owner = get_deskbg_owner();
 
-    update_desktop_owner ();
+    apps[apid].deskbg = state;
+    
+    update_desktop_owner();
+
+    if((apid == old_deskbg_owner) || (apid == get_deskbg_owner()))
+    {
+      update_desktop_background();
+    }
     
     return 0;
   }
@@ -1912,10 +1867,12 @@ bottom_window (WORD winid)
       m.area.width = ourwl->win->totsize.width;
       m.area.height = ourwl->win->totsize.height;
       
+      /* FIXME
       if((*wl)->win != newtop) {
 	draw_wind_elements((*wl)->win,&m.area,0);
       };
-      
+      */
+
       if(globals.realmove) {
 	m.area.x -= (*wl)->win->totsize.x;
 	m.area.y -= (*wl)->win->totsize.y;
@@ -2008,11 +1965,20 @@ srv_wind_set(C_WIND_SET * msg,
 
     case WF_NEWDESK: /*0x000e*/
     {
-      OBJECT *tree = (OBJECT *)INTS2LONG(msg->parm1, msg->parm2);
+      SRV_FEATURE deskbg_install;
+
+      /* FIXME: Never pass addresses to the server */
+      deskbg_install =
+        ((OBJECT *)INTS2LONG(msg->parm1, msg->parm2) == NULL) ?
+        NOT_INSTALLED :
+        INSTALLED;
       
-      if (set_desktop_background (msg->common.apid, tree) == 0) {
+      if(set_desktop_background (msg->common.apid, deskbg_install) == 0)
+      {
         retval = 1;
-      } else {
+      }
+      else
+      {
         retval = 0;
       }
     }

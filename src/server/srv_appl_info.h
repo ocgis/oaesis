@@ -24,28 +24,30 @@
 
 #define MSG_BUFFER_SIZE 1024
 
-typedef struct ap_info {
-  WORD   id;             /*application id                                   */
-  WORD   pid;            /*process id of the head process of the application*/
-  WORD   vid;            /*VDI workstation id of application                */
-  BYTE   msgname[30];    /*name of message pipe of application              */
-  WORD   msgpipe;        /*handle of the message pipe                       */
-  BYTE   eventname[30];  /*name of event pipe                               */
-  WORD   eventpipe;      /*handle of event pipe                             */
-  RSHDR  *rshdr;         /*pointer to memory allocated for resources or 0L  */
-  OBJECT *deskbg;        /*pointer to object tree of desktop, or 0L         */
-  OBJECT *menu;          /*pointer to object tree of menu, or 0L            */
-  WORD   deskmenu;       /*index of desk menu box                           */
-  WORD   newmsg;         /*indicates which messages that are understood     */
-  WORD   killtries;      /*number of times someone has tried to kill the    */
-                         /*application.                                     */
-  WORD   type;           /*application type (acc or app etc)                */
-  struct ap_list  *ap_search_next; /* appl_search() pointer to next app */
-  
-  BYTE   name[21];   /* pretty name of process, init. filename          */
-  BYTE   message_buffer [MSG_BUFFER_SIZE];
-  WORD   message_head;
-  WORD   message_size;
+typedef enum
+{
+  NOT_INSTALLED = 0,
+  INSTALLED     = 1
+}SRV_FEATURE;
+
+typedef struct ap_list * AP_LIST_REF;
+#define AP_LIST_REF_NIL ((AP_LIST_REF)NULL)
+
+typedef struct ap_info
+{
+  WORD        id;        /* Application id                                  */
+  WORD        pid;       /* Process id of the main process of the app       */
+  SRV_FEATURE deskbg;    /* Tells if application has installed a desktop    */
+  SRV_FEATURE menu;      /* Tells if application has installed a menu       */
+  WORD        newmsg;    /* Indicates which messages that are understood    */
+  WORD        killtries; /* Number of times someone has tried to kill the   */
+                         /* application.                                    */
+  WORD        type;      /* Application type (acc or app etc)               */
+  AP_LIST_REF ap_search_next; /* appl_search() pointer to next app          */
+  BYTE        name[21];  /* Pretty name of process, init. filename          */
+  BYTE        message_buffer[MSG_BUFFER_SIZE];
+  WORD        message_head;
+  WORD        message_size;
 } AP_INFO;
 
 typedef AP_INFO * AP_INFO_REF;
@@ -57,9 +59,6 @@ typedef struct ap_list {
   struct ap_list *next;
   struct ap_list *mn_next; /* menu link */
 }AP_LIST;
-
-typedef AP_LIST * AP_LIST_REF;
-#define AP_LIST_REF_NIL ((AP_LIST_REF)NULL)
 
 /* Global variables. These should be removed from here. FIXME */
 extern AP_INFO     apps[MAX_NUM_APPS];

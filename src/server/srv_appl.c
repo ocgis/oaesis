@@ -40,10 +40,10 @@ static
 WORD
 top_appl (WORD apid)
 {
-  AP_LIST ** al;
-  OBJECT  *  deskbg = NULL;
-  WORD       deskbgcount = 0;
-  WORD       lasttop;
+  AP_LIST **  al;
+  SRV_FEATURE deskbg = NOT_INSTALLED;
+  WORD        deskbgcount = 0;
+  WORD        lasttop;
 
   DEBUG2 ("srv.c: top_appl: apid = %d", apid);
   lasttop = ap_pri->ai->id;
@@ -207,7 +207,6 @@ srv_appl_exit (C_APPL_EXIT * par,
   /*clean up*/
 
   c_menu_bar.common.apid = par->common.apid;
-  c_menu_bar.tree = NULL;
   c_menu_bar.mode = MENU_REMOVE;
   srv_menu_bar (&c_menu_bar,
                 &r_menu_bar);
@@ -304,28 +303,28 @@ srv_info_alloc(WORD pid,
   DEBUG2 ("srv.c: srv_info_alloc: Allocating memory");
   al = (AP_LIST *)malloc(sizeof(AP_LIST));
   
-  if(!al) {
+  if(!al)
+  {
     DB_printf("%s: Line %d: srv_info_alloc:\r\n"
 	      "out of memory!\r\n",__FILE__,__LINE__);
     return NULL;
-  };
+  }
   
-  while(apps[next_ap].id != -1) {
+  while(apps[next_ap].id != -1)
+  {
     next_ap = ((next_ap + 1) % MAX_NUM_APPS);
-  };
+  }
   
   al->ai = &apps[next_ap];
   
   al->ai->id = next_ap;
   al->ai->pid = pid;
-  al->ai->deskbg = NULL;
-  al->ai->menu = NULL;
+  al->ai->deskbg = NOT_INSTALLED;
+  al->ai->menu = NOT_INSTALLED;
   al->ai->type = type;
   al->ai->newmsg = 0;
   al->ai->killtries = 0;
  
-  al->ai->rshdr = 0L;
-
   /* Message handling initialization */
   al->ai->message_head = 0;
   al->ai->message_size = 0;

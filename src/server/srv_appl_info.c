@@ -158,15 +158,6 @@ apinfofree(WORD id)
       
       *al = (*al)->next;
       
-      altemp->ai->vid = -1;
-      altemp->ai->msgpipe = -1;
-      altemp->ai->eventpipe = -1;
-      
-      if(altemp->ai->rshdr)
-      {
-        Mfree(altemp->ai->rshdr);	/*free resource memory*/
-      }
-      
       altemp->ai->id = -1;
       /* FIXME Mfree(altemp);*/
       

@@ -458,14 +458,11 @@ Srv_init_module (WORD no_config) {
   DEBUG3 ("srv.c: Srv_init_module: In Srv_init_module");
 
   /* FIXME: Move initializations to server process */
-  for(i = 0; i < MAX_NUM_APPS; i++) {
+  for(i = 0; i < MAX_NUM_APPS; i++)
+  {
     apps[i].id = -1;
-    apps[i].eventpipe = -1;
-    apps[i].msgpipe = -1;
-    apps[i].rshdr = NULL;
-    apps[i].deskbg = NULL;
-    apps[i].menu = NULL;
-    apps[i].deskmenu = -1;
+    apps[i].deskbg = NOT_INSTALLED;
+    apps[i].menu = NOT_INSTALLED;
   }
   
   DEBUG3 ("Starting server process");
