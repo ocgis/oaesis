@@ -217,78 +217,65 @@ handle_arrow_click (WORD apid,
 /*
 ** Description
 ** Handle click on window mover
-**
-** 1998-12-20 CG
-** 1998-12-25 CG
-** 1999-01-01 CG
-** 1999-01-09 CG
-** 1999-02-08 CG
-** 1999-04-10 CG
-** 1999-05-24 CG
 */
 static
 void
 handle_mover_click (WORD apid,
                     WORD win_id,
                     WORD mouse_x,
-                    WORD mouse_y) {
+                    WORD mouse_y)
+{
   WORD      dummy;
   WORD      owner;
   WORD      top;
-  WORD      timeleft = 100;
   WORD      last_x = mouse_x;
   WORD      last_y = mouse_y;
   EVNTREC   er;
   COMMSG    mesag;
   GLOBAL_COMMON * globals = get_global_common ();
+  EVENTIN         ei = {
+    MU_BUTTON | MU_TIMER,
+    0,
+    LEFT_BUTTON,
+    0,
+    0,
+    {0,0,0,0},
+    0,
+    {0,0,0,0},
+    200,
+    0
+  };
+
+  EVENTOUT eo;
+  COMMSG   buffer;
 
   Wind_do_update (apid, BEG_MCTRL);
 
-  Wind_do_get (apid,
-               win_id,
-               WF_OWNER,
-               &owner,
-               &dummy,
-               &top,
-               &dummy,
-               TRUE);
+  Wind_do_get(apid,
+              win_id,
+              WF_OWNER,
+              &owner,
+              &dummy,
+              &top,
+              &dummy,
+              TRUE);
   
   Graf_do_mouse (apid, M_OFF, NULL);
   Wind_change (apid, win_id, W_NAME, SELECTED); 
   Graf_do_mouse (apid, M_ON, NULL);
 
-  /*
-  ** FIXME
-  ** Make new wait-for-click-or-move routine
-  while (TRUE) {
-    if(get_evntpacket(&er,timeleft) == 0) {
-      timeleft = 0;
-      break;
-    }
-    
-    if(er.ap_event == APPEVNT_TIMER) {
-      timeleft -= (WORD)er.ap_value;
-    }
-    
-    if(timeleft < 0) {
-      timeleft = 0;
-      break;
-    }
-    
-    update_local_mousevalues(&er);
-    
-    if((er.ap_event == APPEVNT_BUTTON) &&
-       !(LEFT_BUTTON & er.ap_value)) {
-      break;
-    }
-  }
-  */  
-  if (FALSE /*timeleft*/) { /* FIXME */
-    static COMMSG       m;
-  
-    if(top == -1) {
+  Evnt_do_multi(apid, &ei, &buffer, &eo, 0, DONT_HANDLE_MENU_BAR);
+
+  if(eo.events & MU_BUTTON)
+  {
+    static COMMSG m;
+
+    if(top == -1)
+    {
       m.type = WM_BOTTOM;
-    } else {
+    }
+    else
+    {
       m.type = WM_TOPPED;
     }
     
@@ -297,7 +284,9 @@ handle_mover_click (WORD apid,
     m.msg0 = win_id;
     
     Appl_do_write (apid, owner, 16, &m);
-  } else {
+  }
+  else
+  {
     Graf_do_mouse (apid, FLAT_HAND, NULL);
         
     if (FALSE /*globals.realmove*/) { /* FIXME */
@@ -315,9 +304,8 @@ handle_mover_click (WORD apid,
                    &mesag.msg4,
                    TRUE);
       
-      do {
-        WORD    waittime = EVHD_WAITTIME;
-        
+      do
+      {
         if((last_x != mouse_x) || (last_y != mouse_y)) {
           WORD tmpy;
         
