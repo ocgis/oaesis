@@ -1,5 +1,5 @@
 /*
-** srv_sockets.h
+** srv_pmsg.h
 **
 ** Copyright 1999 Christer Gustavsson <cg@nocrew.org>
 **
@@ -11,10 +11,25 @@
 ** Read the file COPYING for more information.
 */
 
-#ifndef _SRV_SOCKETS_H_
-#define _SRV_SOCKETS_H_
+#ifndef _SRV_PMSG_H_
+#define _SRV_PMSG_H_
 
-/* This is the port to use for the oaesis server */
-#define MYPORT 0x4242
+#include "types.h"
 
-#endif /* _SRV_SOCKETS_H_ */
+#define SRVBOX 0x6f535256l /*'oSRV'*/
+
+typedef struct
+{
+  void * in;
+  void * out;
+}DATA;
+
+typedef struct
+{
+  DATA * par;
+  WORD   bytes_in;
+  WORD   bytes_out;
+  WORD   pid;
+}PMSG;
+
+#endif /* _SRV_PMSG_H_ */

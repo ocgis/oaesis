@@ -99,24 +99,3 @@ Client_send_recv (void * in,
 
   return numbytes;
 }
-
-
-#define MAXDATASIZE 100
-
-/*
-** Description
-** Put a message to the server and wait for a reply
-**
-** 1998-09-25 CG
-*/
-LONG
-Srv_put (WORD   apid,
-         WORD   call,
-         void * spec) {
-  /* FIXME
-  ** Remove all calls to Srv_put
-  */
-  DB_printf ("!!Don't call Srv_put! It is obsolete and will be removed");
-
-  return -1;
-}

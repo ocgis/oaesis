@@ -1,15 +1,15 @@
-/****************************************************************************
-
- Module
-  srv_call.c
-  
- Description
-  Server calling interface for oAESis.
-  
- Author(s)
-  cg (Christer Gustavsson <d2cg@dtek.chalmers.se>)
- 	
- ****************************************************************************/
+/*
+** srv_get_pmsg.c
+**
+** Copyright 1999 Christer Gustavsson <cg@nocrew.org>
+**
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+**  
+** Read the file COPYING for more information.
+*/
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -23,63 +23,78 @@
 
 #include "mintdefs.h"
 #include "srv_get.h"
+#include "srv_pmsg.h"
 
-#define SRVBOX 0x6f535256l /*'oSRV'*/
 
-typedef struct {
-  union {
-    WORD call;
-    WORD retval;
-  } cr;
-
-  WORD    apid;
-  void    *spec;
-  WORD    pid;
-} PMSG;
+/*
+** Description
+** Initialize communication
+*/
+void
+Srv_open(void)
+{
+  /* Nothing needs to be done here */
+}
 
 
 /*
 ** Description
 ** Get a message from an client to the server
-**
-** 1998-09-05 CG
 */
-void *
-Srv_get (WORD * apid,
-         WORD * pid,
-         WORD * call,
-         void * spec) {
-  static PMSG handle;
-  int         err;
+COMM_HANDLE
+Srv_get(void * in,
+	int    max_bytes_in)
+{
+  PMSG * handle = (PMSG *)Malloc(sizeof(PMSG)); /* FIXME */
+  int    i = 0;
+  int    err;
 
-  err = Pmsg (MSG_READ, SRVBOX, &handle);
+  while(i++ < 20)
+  {
+    err = Pmsg(MSG_READ | MSG_NOWAIT, SRVBOX, handle);
 
-  /* Did it work ok? */
-  if (err < 0) {
-    fprintf (stderr, "oaesis: srv_get_pmsg.c: Srv_get: Got error message from Pmsg\n");
+    if(err == 0)
+    {
+      break;
+    }
+
+    (void)Syield();
   }
 
-  /* Copy data that we received */
-  *apid = handle.apid;
-  *pid = handle.pid;
-  *call = handle.cr.call;
+  if(err == 0)
+  {
+    memcpy(in,
+	   handle->par->in,
+	   (max_bytes_in < handle->bytes_in) ?
+	   max_bytes_in : handle->bytes_in);
+	   
+    return (COMM_HANDLE)handle;
+  }
+  else
+  {
+    Mfree(handle);
 
-  /* TBD Copy stuff from handle.spec to spec */
-
-  return &handle;
+    return COMM_HANDLE_NIL;
+  }
 }
 
 
 /*
 ** Description
 ** Reply to a client that has sent a message to the server
-**
-** 1998-09-05 CG
 */
 void
-Srv_reply (void * handle,
-           void * spec,
-           WORD   code)
+Srv_reply(COMM_HANDLE handle,
+	  void *      out,
+	  WORD        bytes_out)
 {
+  ((PMSG *)handle)->bytes_out = (bytes_out < ((PMSG *)handle)->bytes_out) ?
+                                bytes_out :
+                                ((PMSG *)handle)->bytes_out;
+
+  memcpy(((PMSG *)handle)->par->out, out, ((PMSG *)handle)->bytes_out);
   Pmsg (MSG_WRITE, 0xffff0000L | ((PMSG *)handle)->pid, handle);
+
+  /* FIXME */
+  Mfree(handle);
 }

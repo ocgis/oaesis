@@ -1,15 +1,15 @@
-/****************************************************************************
-
- Module
-  srv_call.c
-  
- Description
-  Server calling interface for oAESis.
-  
- Author(s)
-  cg (Christer Gustavsson <d2cg@dtek.chalmers.se>)
- 	
- ****************************************************************************/
+/*
+** srv_put_pmsg.c
+**
+** Copyright 1999 Christer Gustavsson <cg@nocrew.org>
+**
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+**  
+** Read the file COPYING for more information.
+*/
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -20,35 +20,41 @@
 #endif
 
 #include "mintdefs.h"
+#include "srv_pmsg.h"
 #include "srv_put.h"
 
-#define SRVBOX 0x6f535256l /*'oSRV'*/
 
-typedef struct {
-  union {
-    WORD call;
-    WORD retval;
-  } cr;
-
-  WORD    apid;
-  void    *spec;
-  WORD    pid;
-} PMSG;
-
-
-/* Client call of server */
+/*
+** Exported
+*/
 LONG
-Srv_put (WORD   apid,
-         WORD   call,
-         void * spec)
+Client_open(void)
+{
+  /* Nothing needs to be done here: just return OK */
+  return 0;
+}
+
+
+/*
+** Exported
+*/
+LONG
+Client_send_recv(void * in,
+		 int    bytes_in,
+		 void * out,
+		 int    max_bytes_out)
 {
   PMSG msg;
+  DATA par;
 
-  msg.apid = apid;
-  msg.cr.call = call;
-  msg.spec = spec;
-  
+  msg.par = &par;
+  msg.par->in = in;
+  msg.par->out = out;
+  msg.bytes_in = bytes_in;
+  msg.bytes_out = max_bytes_out;
+
   Pmsg(MSG_READWRITE, SRVBOX, &msg);
 
-  return (LONG)msg.cr.retval;
+  return msg.bytes_out;
 }
+

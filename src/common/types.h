@@ -124,7 +124,7 @@ typedef enum {
   TRUE  = 1
 }BOOLEAN;
 
-#if 0 /* REMOVE: now in mintbind.h */
+#ifdef MINT_TARGET
 typedef struct  {
   UWORD mode;
   LONG  index;

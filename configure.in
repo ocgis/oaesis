@@ -83,8 +83,12 @@ else
 fi
 
 if test x$target_os = xmint ; then
+  COMM_IFC="pmsg"
+
   AC_CHECK_LIB(socket,accept)
 else
+  COMM_IFC="sockets"
+
   dnl extra options
   AC_ARG_ENABLE(vdi-tunnel, [  --disable-vdi-tunnel    tunnel VDI calls to the oAESis server ], , AC_DEFINE(TUNNEL_VDI_CALLS))
 
@@ -143,6 +147,7 @@ else
   CPPFLAGS="$CPPFLAGS $OTOSIS_CFLAGS"
 fi
 
+
 dnl Use libtool to create liboaesis, but not for MiNT
 AM_PROG_LIBTOOL
 
@@ -186,18 +191,12 @@ AC_SUBST(LT_VERSION_INFO)
 AC_SUBST(OSISINCLUDE)
 AC_SUBST(target_cpu)
 AC_SUBST(target_os)
+AC_SUBST(COMM_IFC)
 
 dnl Set CPPFLAGS
 CPPFLAGS="$CPPFLAGS -Wall"
 
-dnl Setup symbolic links
-AC_LINK_FILES(src/common/debug.c, src/lib/debug.c)
-AC_LINK_FILES(src/common/debug.c, src/server/debug.c)
-AC_LINK_FILES(src/comm/srv_get_sockets.c, src/server/srv_get.c)
-AC_LINK_FILES(src/comm/srv_put_sockets.c, src/lib/srv_put.c)
-
 dnl Specify which files that should be created
-AC_OUTPUT(Makefile src/Makefile src/comm/Makefile src/common/Makefile src/launcher/Makefile src/lib/Makefile src/server/Makefile test/Makefile tools/Makefile oaesis.m4 oaesis-config)
-
+AC_OUTPUT(Makefile src/Makefile src/comm/Makefile src/common/Makefile src/launcher/Makefile src/lib/Makefile src/lib/srv_put.c src/server/Makefile src/server/srv_get.c test/Makefile tools/Makefile oaesis.m4 oaesis-config)
 
 

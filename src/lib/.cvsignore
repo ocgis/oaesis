@@ -10,3 +10,4 @@ resource.c
 .libs
 Makefile.in
 *.lib
+srv_put.c

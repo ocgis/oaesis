@@ -3,3 +3,4 @@ Makefile
 .libs
 oaesis
 Makefile.in
+srv_get.c
