@@ -1959,11 +1959,11 @@ Objc_draw(AES_PB *apb)
 */
 WORD
 Objc_do_find(OBJECT * t,
-              WORD     startobject,
-              WORD     depth,
-              WORD     x,
-              WORD     y,
-              WORD     level)
+             WORD     startobject,
+             WORD     depth,
+             WORD     x,
+             WORD     y,
+             WORD     level)
 {
   /* Avoid crash if someone passes a NULL pointer */
   if(t == NULL)
@@ -1990,12 +1990,14 @@ Objc_do_find(OBJECT * t,
       (y >= 0) && (y < OB_HEIGHT(&t[startobject])))
   {
     WORD deeper;
-    WORD bestobj = startobject;
+    WORD bestobj;
+    WORD i;
     
-    if((depth > 0) && (OB_HEAD(&t[startobject]) >= 0))
+    bestobj = startobject;
+    i = OB_HEAD(&t[startobject]);
+
+    if((depth > 0) && (i >= 0))
     {
-      WORD i = OB_HEAD(&t[startobject]);
-      
       while(i != startobject)
       {
         deeper = Objc_do_find(t,
