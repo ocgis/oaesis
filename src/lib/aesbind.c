@@ -207,8 +207,8 @@ evnt_multi (int           Type,
   aespb.intin[12] = In2W;
   aespb.intin[13] = In2H;
   
-  aespb.intin[14] = ((short *)&Interval)[1];
-  aespb.intin[15] = ((short *)&Interval)[0];
+  aespb.intin[14] = Interval & 0x0000ffff;
+  aespb.intin[15] = (Interval >> 16) & 0x0000ffff;
   
   aespb.addrin[0] = (long)MesagBuf;
   
