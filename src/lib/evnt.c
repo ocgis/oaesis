@@ -369,7 +369,8 @@ Evnt_do_multi (WORD       apid,
     }
     
     if (ret.eventout.events & MU_BUTTON) {
-      DEBUG2 ("evnt.c: Evnt_do_multi: bclicks = 0x%x", par.eventin.bclicks);
+      DEBUG2 ("evnt.c: Evnt_do_multi: apid = %d bclicks = 0x%x bstate = 0x%x",
+              apid, par.eventin.bclicks, par.eventin.bstate);
       events_out |= Evhd_handle_button (apid,
                                         ret.eventout.mb,
                                         ret.eventout.mx,

@@ -605,8 +605,14 @@ handle_keys (WORD vdi_workstation_id) {
       apps [topped_appl].key_buffer [index].scan = (str[i] >> 8) & 0xff;
       apps [topped_appl].key_buffer [index].state = 0; /* FIXME */
       
-      if (str[i] == 0x5d00) { /* SHIFT + F10 */
+      if(str[i] == 0x5d00) /* F20 */
+      {
 	Srv_stop ();
+      }
+      else if(str[i] == 0x5c00) /* F19 */
+      {
+        /* Output debugging information */
+        srv_wind_debug(x_last, y_last);
       }
 
       apps [topped_appl].key_size++;

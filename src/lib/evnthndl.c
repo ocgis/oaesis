@@ -1437,14 +1437,6 @@ handle_drop_down (WORD        apid,
 /*
 ** Description
 ** Handle selected menu title
-**
-** 1998-12-20 CG
-** 1999-01-09 CG
-** 1999-03-17 CG
-** 1999-04-10 CG
-** 1999-04-13 CG
-** 1999-05-24 CG
-** 1999-08-22 CG
 */
 static
 WORD
@@ -1535,6 +1527,12 @@ handle_selected_title (WORD        apid,
                   dropwin,
                   &area);
 #else
+    /*
+    ** FIXME: Control that we don't lock the system by trying to get the
+    ** semaphores.
+    */
+    Wind_do_update (apid, BEG_MCTRL);
+    Wind_do_update(apid, BEG_UPDATE);
     menu_buffer = Misc_Vdi_Malloc (((area.width+16) * area.height * 
 				    globals->common->num_planes)/8);
     pxy[0] = area.x;
@@ -1555,7 +1553,6 @@ handle_selected_title (WORD        apid,
     mfdb_dst.fd_r1 = 0;
     mfdb_dst.fd_r2 = 0;
     mfdb_dst.fd_r3 = 0;
-    Wind_do_update (apid, BEG_UPDATE);
     Graf_do_mouse (apid, M_OFF, NULL);
     vro_cpyfm (globals->vid, S_ONLY, pxy, &mfdb_src, &mfdb_dst);
     Graf_do_mouse (apid, M_ON, NULL);
@@ -1650,6 +1647,7 @@ handle_selected_title (WORD        apid,
 	  vro_cpyfm (globals->vid, S_ONLY, pxy, &mfdb_src, &mfdb_dst);
 	  Graf_do_mouse (apid, M_ON, NULL);
 	  Wind_do_update (apid, END_UPDATE);
+          Wind_do_update (apid, END_MCTRL);
 	  Misc_Vdi_Free (menu_buffer);
 #endif
 

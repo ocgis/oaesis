@@ -510,3 +510,15 @@ srv_click_owner (WORD mouse_x,
   
   return 0;
 }
+
+
+/*
+** Description
+** Output debugging information about windowing functions
+*/
+void
+srv_wind_debug(int mouse_x,
+               int mouse_y)
+{
+  DB_printf("Mouse click owner: %d", srv_click_owner(mouse_x, mouse_y));
+}

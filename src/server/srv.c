@@ -2601,7 +2601,7 @@ void
 srv_wind_set (C_WIND_SET * msg,
               R_WIND_SET * ret) {
   WINSTRUCT * win;
-  WORD        retval;
+  WORD        retval = 0;
   
   win = find_wind_description(msg->handle);
   
@@ -2612,6 +2612,7 @@ srv_wind_set (C_WIND_SET * msg,
     case WF_INFO        :       /*0x0003*/
       DEBUG1 ("srv.c: srv_wind_set: no support for mode %d in server",
               msg->mode);
+      retval = 0;
       break;
       
     case WF_CURRXYWH: /*0x0005*/

@@ -73,4 +73,12 @@ WORD
 srv_click_owner (WORD mouse_x,
                  WORD mouse_y);
 
+/*
+** Description
+** Output debugging information about windowing functions
+*/
+void
+srv_wind_debug(int mouse_x,
+               int mouse_y);
+
 #endif /* _SRV_WIND_H_ */
