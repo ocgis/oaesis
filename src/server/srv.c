@@ -207,7 +207,10 @@ srv_wind_new(  /*                                                           */
 WORD apid);    /* Application whose windows should be erased.               */
 /****************************************************************************/
 
-WORD srv_wind_set(WORD apid, C_WIND_SET *msg);
+static
+void
+srv_wind_set (C_WIND_SET * msg,
+              R_WIND_SET * ret);
 
 /****************************************************************************
  * draw_wind_elements                                                       *
@@ -2356,7 +2359,19 @@ WORD id)                /* Identification number of window.                 */
 	return NULL;
 }
 
-static WORD	changewinsize(WINSTRUCT *win,RECT *size,WORD vid,WORD drawall) {	
+
+/*
+** Description
+** Change the size of a window
+**
+** 1998-12-25 CG
+*/
+static
+WORD
+changewinsize (WINSTRUCT * win,
+               RECT *      size,
+               WORD        vid,
+               WORD        drawall) {	
   WORD dx = size->x - win->totsize.x;
   WORD dy = size->y - win->totsize.y;
   WORD dw = size->width - win->totsize.width;
@@ -2366,22 +2381,20 @@ static WORD	changewinsize(WINSTRUCT *win,RECT *size,WORD vid,WORD drawall) {
   
   setwinsize(win,size);
   
-  if(win->status & WIN_OPEN) {
+  if (win->status & WIN_OPEN) {
     if(dx || dy) { /* pos (and maybe size) is to be changed */
       REDRAWSTRUCT	m;
       
       WINLIST	*wl = win_vis;
       
-      while(wl)
-	{
-	  if(wl->win == win)
-	    {
-	      wl = wl->next;
-	      break;
-	    };
-	  
-	  wl = wl->next;
-	};
+      while(wl) {
+        if(wl->win == win) {
+          wl = wl->next;
+          break;
+        }
+        
+        wl = wl->next;
+      }
       
       if(wl) {
 	RLIST	*rlwalk;
@@ -2393,7 +2406,7 @@ static WORD	changewinsize(WINSTRUCT *win,RECT *size,WORD vid,WORD drawall) {
 	WINLIST *wlwalk = wl;
 	
 	win->rlist = 0L;
-			
+        
 	/*grab the rectangles we need from our old list*/
 	
 	Rlist_rectinter(&rlournew,size,&rlourold);
@@ -2404,72 +2417,74 @@ static WORD	changewinsize(WINSTRUCT *win,RECT *size,WORD vid,WORD drawall) {
 	  Rlist_rectinter(&rlournew,size,&wlwalk->win->rlist);
 	  
 	  wlwalk = wlwalk->next;
-	};
+	}
 	
 	Rlist_insert(&win->rlist,&rlournew);
 	
-	if(drawall) {
+	if (drawall) {
 	  C_APPL_WRITE c_appl_write;
 	  R_APPL_WRITE r_appl_write;
-
+          
 	  m.type = WM_REDRAW;
 	  
-	  if(globals.realmove) {
+	  if (FALSE /*globals.realmove*/) {
 	    m.sid = -1;
-	  }
-	  else {
+	  } else {
 	    m.sid = 0;
-	  };
+	  }
 	  
 	  m.length = 0;
 	  m.wid = win->id;
 	  
 	  m.area = *size;
 	  
+          /* FIXME
 	  draw_wind_elements(win,&m.area,0);
-	  
-	  if(globals.realmove) {
+	  */
+
+	  if (FALSE /*globals.realmove*/) { /* FIXME */
 	    m.area.x = 0;
 	    m.area.y = 0;
-	  };
+	  }
 	  
 	  c_appl_write.addressee = win->owner;
 	  c_appl_write.length = MSG_LENGTH;
           c_appl_write.is_reference = TRUE;
 	  c_appl_write.msg.ref = &m;
 	  srv_appl_write (&c_appl_write, &r_appl_write);
-	}
-	else {			
-	  /*figure out which rectangles that are moveable*/
-	  
+	} else {			
+	  /* figure out which rectangles that are moveable*/
 	  if(dw || dh) {
-	    Rlist_rectinter(&rlmove1,&win->worksize,&win->rlist);
-	  }
-	  else {
+	    Rlist_rectinter (&rlmove1, &win->worksize, &win->rlist);
+	  } else {
 	    rlmove1 = win->rlist;
 	    win->rlist = NULL;
-	  };
+	  }
 	  
 	  rlwalk = old_rlist;
 	  
-	  while(rlwalk) {
+	  while (rlwalk) {
 	    rlwalk->r.x += dx;
 	    rlwalk->r.y += dy;
 	    
 	    Rlist_rectinter(&rlmove,&rlwalk->r,&rlmove1);
 	    
 	    rlwalk = rlwalk->next;
-	  };
+	  }
 	  
-	  /*move the rectangles that are moveable*/
-	  
+	  /* move the rectangles that are moveable */
 	  Rlist_sort(&rlmove,dx,dy);
 	  
 	  rlwalk = rlmove;
 	  
 	  Vdi_v_hide_c(vid);
 	  
-	  while(rlwalk) {
+          /*
+          ** FIXME
+          ** All drawing should be done by the client. Implement a way of
+          ** returning which rectangles are moveable to the client.
+          */
+	  while (rlwalk) {
 	    MFDB	mfdbd,mfdbs;
 	    WORD	koordl[8];
 	    
@@ -2488,20 +2503,19 @@ static WORD	changewinsize(WINSTRUCT *win,RECT *size,WORD vid,WORD drawall) {
 	    Vdi_vro_cpyfm(vid,S_ONLY,koordl,&mfdbs,&mfdbd);
 	    
 	    rlwalk = rlwalk->next;
-	  };
+	  }
 	  
 	  Vdi_v_show_c(vid,1);
 	  
-	  /*update rectangles that are not moveable*/
+	  /* update rectangles that are not moveable */
 	  
 	  m.type = WM_REDRAW;
 	  
-	  if(globals.realmove) {
+	  if (FALSE /*globals.realmove*/) { /* FIXME */
 	    m.sid = -1;
-	  }
-	  else {
+	  } else {
 	    m.sid = 0;
-	  };
+	  }
 	  
 	  m.length = 0;
 	  m.wid = win->id;
@@ -2510,7 +2524,7 @@ static WORD	changewinsize(WINSTRUCT *win,RECT *size,WORD vid,WORD drawall) {
 	  
 	  rlwalk = win->rlist;
 	  
-	  while(rlwalk) {
+	  while (rlwalk) {
 	    C_APPL_WRITE c_appl_write;
             R_APPL_WRITE r_appl_write;
 
@@ -2520,12 +2534,14 @@ static WORD	changewinsize(WINSTRUCT *win,RECT *size,WORD vid,WORD drawall) {
 	    m.area.width = rlwalk->r.width;
 	    m.area.height = rlwalk->r.height;
 	    
+            /* FIXME
 	    draw_wind_elemfast(win,&m.area,0);
-	    
-	    if(globals.realmove) {
+	    */
+
+	    if (FALSE /*globals.realmove*/) { /* FIXME */
 	      m.area.x -= size->x;
 	      m.area.y -= size->y;
-	    };
+	    }
 	    
 	    c_appl_write.addressee = win->owner;
 	    c_appl_write.length = MSG_LENGTH;
@@ -2534,20 +2550,19 @@ static WORD	changewinsize(WINSTRUCT *win,RECT *size,WORD vid,WORD drawall) {
 	    srv_appl_write (&c_appl_write, &r_appl_write);
 	    
 	    rlwalk = rlwalk->next;
-	  };
+	  }
 	  
 	  Rlist_insert(&win->rlist,&rlmove);
-	};
+	}
 	
-	Rlist_erase(&old_rlist);
+	Rlist_erase (&old_rlist);
 	
 	wlwalk = wl;
 	
-	while(wlwalk) {
+	while (wlwalk) {
 	  RLIST	*rltheirnew = NULL;
 	  
 	  /*give away the rectangles we don't need*/
-	  
 	  Rlist_rectinter(&rltheirnew,&wlwalk->win->totsize,&rlourold);
 	  
 	  /*update the new rectangles*/
@@ -2560,34 +2575,35 @@ static WORD	changewinsize(WINSTRUCT *win,RECT *size,WORD vid,WORD drawall) {
 	    
 	    m.area.x = rlwalk->r.x;
 	    m.area.y = rlwalk->r.y;
-	    
+	   
+            /* FIXME
 	    draw_wind_elemfast(wlwalk->win,&m.area,0);
-	    
+	    */
+
 	    rlwalk = rlwalk->next;
-	  };				
+	  }				
 	  
-	  if(rltheirnew && !(wlwalk->win->status & WIN_DESKTOP)) {
+	  if (rltheirnew && !(wlwalk->win->status & WIN_DESKTOP)) {
 	    C_APPL_WRITE c_appl_write;
             R_APPL_WRITE r_appl_write;
 
 	    m.type = WM_REDRAW;
 	    
-	    if(globals.realmove) {
+	    if (FALSE /*globals.realmove*/) { /* FIXME */
 	      m.sid = -1;
-	    }
-	    else {
+	    } else {
 	      m.sid = 0;
-	    };
+	    }
 	    
 	    m.length = 0;
 	    m.wid = wlwalk->win->id;
 	    
 	    m.area = oldtotsize;
 	    
-	    if(globals.realmove) {
+	    if (FALSE /*globals.realmove*/) { /* FIXME */
 	      m.area.x -= wlwalk->win->totsize.x;
 	      m.area.y -= wlwalk->win->totsize.y;
-	    };
+	    }
 	    
 	    c_appl_write.addressee = wlwalk->win->owner;
 	    c_appl_write.length = MSG_LENGTH;
@@ -2601,12 +2617,11 @@ static WORD	changewinsize(WINSTRUCT *win,RECT *size,WORD vid,WORD drawall) {
 	  wlwalk->win->rpos = wlwalk->win->rlist;
 	  
 	  wlwalk = wlwalk->next;
-	};
+	}
 	
 	win->rpos = win->rlist;
-      };			
-    }
-    else if(dw || dh)	/*only size changed*/ {
+      }
+    } else if (dw || dh) /*only size changed*/ {
       RECT	rt;
       RECT	dn;
       
@@ -2623,11 +2638,10 @@ static WORD	changewinsize(WINSTRUCT *win,RECT *size,WORD vid,WORD drawall) {
       
       if(dw < 0) {
 	rt.width = -dw;
-      }
-      else {
+      } else {
 	rt.x -= dw;
 	rt.width = dw;
-      };
+      }
       
       rt.y = size->y;
       rt.height = size->height;
@@ -2637,22 +2651,21 @@ static WORD	changewinsize(WINSTRUCT *win,RECT *size,WORD vid,WORD drawall) {
       if(dh < 0) {
 	dn.height = -dh;
 	dn.width = oldtotsize.width;
-      }
-      else {
+      } else {
 	dn.y -= dh;
 	dn.height = dh;
 	dn.width = size->width;
-      };
+      }
       
       dn.x = size->x;
       
       if(dw < 0) {
 	Rlist_rectinter(&rl,&rt,&win->rlist);
-      };
+      }
       
       if(dh < 0) {
 	Rlist_rectinter(&rl,&dn,&win->rlist);
-      };
+      }
       
       /* Find our window */
       
@@ -2660,49 +2673,47 @@ static WORD	changewinsize(WINSTRUCT *win,RECT *size,WORD vid,WORD drawall) {
 	if(wl->win == win) {
 	  wl = wl->next;
 	  break;
-	};
+	}
 	
 	wl = wl->next;
-      };
+      }
       
       while(wl) {
 	RLIST	*rd = 0;
 	
 	if(dw < 0) {
 	  Rlist_rectinter(&rd,&wl->win->totsize,&rl);
-	}
-	else if(dw > 0) {
+	} else if(dw > 0) {
 	  Rlist_rectinter(&rltop,&rt,&wl->win->rlist);
-	};
+	}
 	
 	if(dh < 0) {
 	  Rlist_rectinter(&rd,&wl->win->totsize,&rl);
-	}
-	else if(dh > 0) {
+	} else if(dh > 0) {
 	  Rlist_rectinter(&rltop,&dn,&wl->win->rlist);
-	};
+	}
 	
 	rl2 = rd;
 	
 	while(rl2) {
-	  draw_wind_elemfast(wl->win,&rl2->r,0);
-	  
+          /* FIXME
+          draw_wind_elemfast(wl->win,&rl2->r,0);
+	  */
 	  
 	  rl2 = rl2->next;
-	};
+	}
 	
 	m.type = WM_REDRAW;
 	
-	if(globals.realmove) {
+	if(FALSE /*globals.realmove*/) { /* FIXME */
 	  m.sid = -1;
-	}
-	else {
+	} else {
 	  m.sid = 0;
-	};
+	}
 	
 	m.length = 0;
 
-	if(rd && !(wl->win->status & WIN_DESKTOP)) {
+	if (rd && !(wl->win->status & WIN_DESKTOP)) {
 	  C_APPL_WRITE c_appl_write;
           R_APPL_WRITE r_appl_write;
           
@@ -2710,24 +2721,24 @@ static WORD	changewinsize(WINSTRUCT *win,RECT *size,WORD vid,WORD drawall) {
 	  
 	  m.area = oldtotsize;
 	  
-	  if(globals.realmove) {
+	  if (FALSE /*globals.realmove*/) { /* FIXME */
 	    m.area.x -= wl->win->totsize.x;
 	    m.area.y -= wl->win->totsize.y;
-	  };
+	  }
 
 	  c_appl_write.addressee = wl->win->owner;
 	  c_appl_write.length = MSG_LENGTH;
           c_appl_write.is_reference = TRUE;
 	  c_appl_write.msg.ref = &m;
 	  srv_appl_write (&c_appl_write, &r_appl_write);
-	};
+	}
 	
 	Rlist_insert(&wl->win->rlist,&rd);
 				
 	wl->win->rpos = wl->win->rlist;
 	
 	wl = wl->next;
-      };
+      }
       
       rl2 = 0;
       
@@ -2746,17 +2757,17 @@ static WORD	changewinsize(WINSTRUCT *win,RECT *size,WORD vid,WORD drawall) {
       
       rl2 = rltop;
       
-      while(rl2) {
+      while (rl2) {
 	C_APPL_WRITE c_appl_write;
         R_APPL_WRITE r_appl_write;
 
 	m.area.x = rl2->r.x;
 	m.area.y = rl2->r.y;
 	
-	if(globals.realmove) {
+	if (FALSE /*globals.realmove*/) { /* FIXME */
 	  m.area.x -= size->x;
 	  m.area.y -= size->y;
-	};
+	}
 	
 	m.area.width = rl2->r.width;
 	m.area.height = rl2->r.height;
@@ -2768,21 +2779,23 @@ static WORD	changewinsize(WINSTRUCT *win,RECT *size,WORD vid,WORD drawall) {
 	srv_appl_write (&c_appl_write, &r_appl_write);
 	
 	rl2 = rl2->next;
-      };
+      }
       
       Rlist_insert(&win->rlist,&rltop);
       
       rl2 = win->rlist;
       
       while(rl2) {
-	draw_wind_elemfast(win,&rl2->r,0);
-	
+	/* FIXME
+        draw_wind_elemfast(win,&rl2->r,0);
+	*/
+
 	rl2 = rl2->next;
-      };
+      }
       
       win->rpos = win->rlist;
-    };
-  };
+    }
+  }
   
   return 1;
 }
@@ -3809,7 +3822,17 @@ srv_wind_update (C_WIND_UPDATE * msg,
 
 
 /*wind_set 0x0069*/
-WORD srv_wind_set(WORD apid, C_WIND_SET *msg) {
+
+/*
+** Description
+** Server part of wind_set ()
+**
+** 1998-12-25 CG
+*/
+static
+void
+srv_wind_set (C_WIND_SET * msg,
+              R_WIND_SET * ret) {
   WINSTRUCT	*win;
   
   win = find_wind_description(msg->handle);
@@ -3832,95 +3855,105 @@ WORD srv_wind_set(WORD apid, C_WIND_SET *msg) {
 	  
 	  draw_wind_elements(win,&win->totsize,object);
 	  
-	  return 1;
+	  ret->common.retval = 1;
+	} else {
+	  ret->common.retval = 0;
 	}
-	else {
-	  return 0;
-	};
-      };
+      }
+      break;
       
-    case	WF_CURRXYWH	:	/*0x0005*/
-      return changewinsize(win,(RECT *)&msg->parm1,svid,0);
-            
+    case WF_CURRXYWH: /*0x0005*/
+      ret->common.retval = changewinsize (win, (RECT *)&msg->parm1, svid, 0);
+      break;
+
     case	WF_HSLIDE: /*0x08*/
-      return changeslider(win,1,HSLIDE,msg->parm1,-1);
-      
+      ret->common.retval = changeslider(win,1,HSLIDE,msg->parm1,-1);
+      break;
+
     case	WF_VSLIDE: /*0x09*/
-      return changeslider(win,1,VSLIDE,msg->parm1,-1);
-      
+      ret->common.retval = changeslider(win,1,VSLIDE,msg->parm1,-1);
+      break;
+
     case	WF_TOP	:	/*0x000a*/
-      return top_window(msg->handle);
-      
+      ret->common.retval = top_window(msg->handle);
+      break;
+
     case WF_NEWDESK: /*0x000e*/
       {
 	OBJECT *tree = (OBJECT *)INTS2LONG(msg->parm1, msg->parm2);
 	
-	if(tree) {	
+	if (tree) {	
 	  if(tree->ob_y + tree->ob_height < globals.screen.height) {
 	    tree->ob_y =
 	      globals.screen.height - tree->ob_height;
-	  };
-	};
-	
-	if(set_deskbg(apid,tree) == 0) {
-	  return 1;
+	  }
 	}
-	else {
-	  return 0;
-	};
-      };
-      
+	
+	if (set_deskbg (msg->common.apid, tree) == 0) {
+	  ret->common.retval = 1;
+	} else {
+	  ret->common.retval = 0;
+	}
+      }
+      break;
+
     case	WF_HSLSIZE: /*0x0f*/
-      return changeslider(win,1,HSLIDE,-1,msg->parm1);
-      
+      ret->common.retval = changeslider(win,1,HSLIDE,-1,msg->parm1);
+      break;
+
     case	WF_VSLSIZE: /*0x10*/
-      return changeslider(win,1,VSLIDE,-1,msg->parm1);
+      ret->common.retval = changeslider(win,1,VSLIDE,-1,msg->parm1);
+      break;
       
     case WF_COLOR:  /*0x12*/
       DB_printf("srv_wind_set WF_COLOR not implemented");
-      return 0;
-      
+      ret->common.retval = 0;
+      break;
+
     case WF_DCOLOR: /*0x13*/
       top_colour[msg->parm1] = *(OBJC_COLORWORD *)&msg->parm2;
       untop_colour[msg->parm1] = *(OBJC_COLORWORD *)&msg->parm3;
       
-      return 0;
-      
+      ret->common.retval = 0;
+      break;
+
     case WF_BEVENT: /*0x18*/
       if(msg->parm1 & 1) {
 	win->status |= WIN_UNTOPPABLE;
-      }
-      else {
+      } else {
 	win->status &= ~WIN_UNTOPPABLE;
-      };
+      }
       
-      return 1;
-      
+      ret->common.retval = 1;
+      break;
+
     case WF_BOTTOM: /*0x0019*/
-      return bottom_window(msg->handle);
-      
+      ret->common.retval = bottom_window(msg->handle);
+      break;
+
     case WF_ICONIFY: /*0x1a*/
       win->origsize = win->totsize;
       set_win_elem(win->tree,IMOVER);
       win->status |= WIN_ICONIFIED;
       calcworksize(IMOVER,&win->totsize,&win->worksize,WC_WORK);
-      return changewinsize(win,(RECT *)&msg->parm1,svid,1);
+      ret->common.retval = changewinsize(win,(RECT *)&msg->parm1,svid,1);
+      break;
 
     case WF_UNICONIFY: /*0x1b*/
       set_win_elem(win->tree,win->elements);
       win->status &= ~WIN_ICONIFIED;
       calcworksize(win->elements,&win->totsize,&win->worksize,WC_WORK);
-      return changewinsize(win,(RECT *)&msg->parm1,svid,1);
-      
+      ret->common.retval = changewinsize(win,(RECT *)&msg->parm1,svid,1);
+      break;
+
     default:
       DB_printf("%s: Line %d: srv_wind_set:\r\n"
 		"Unknown mode %d",__FILE__,__LINE__,msg->mode);
-      return 0;
-    };
+      ret->common.retval = 0;
+    }
+  } else {
+    ret->common.retval = 0;	
   }
-  else {
-    return 0;	
-  };
 }
 
 /****************************************************************************
@@ -4024,6 +4057,7 @@ C_PUT_EVENT *msg)
 ** 1998-12-20 CG
 ** 1998-12-22 CG
 ** 1998-12-23 CG
+** 1998-12-25 CG
 */
 static
 WORD
@@ -4300,10 +4334,11 @@ server (LONG arg) {
         break;
         
       case SRV_WIND_SET:
-        code = 
-          srv_wind_set(apid, &par.wind_set);
+        DB_printf ("srv.c: server: srv_wind_set will be called");
+        srv_wind_set (&par.wind_set, &ret.wind_set);
         
-        Srv_reply (handle, &par, code);
+        Srv_reply (handle, &ret, sizeof (R_WIND_SET));
+        DB_printf ("srv.c: server: srv_wind_set reply sent");
         break;
         
       case SRV_WIND_UPDATE:

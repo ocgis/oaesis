@@ -286,35 +286,62 @@ Graf_rubberbox (AES_PB *apb) {
 ** Exported
 **
 ** 1998-12-20 CG
+** 1998-12-25 CG
 */
 WORD
-Graf_do_dragbox (WORD   w,
+Graf_do_dragbox (WORD   apid,
+                 WORD   w,
                  WORD   h,
                  WORD   sx,
                  WORD   sy,
                  RECT * bound,
                  WORD * endx,
                  WORD * endy) {
-  /* FIXME
-  ** Rewrite with evnt_multi
-  EVNTREC er;
-  WORD    relx = sx - globals->common->mouse_x;
-  WORD    rely = sy - globals->common->mouse_y;
-  WORD    xyarray[10];
-  WORD    lastx = sx,lasty = sy;
-  WORD    newx,newy;
-  
-  if(!(globals->common->mouse_button & LEFT_BUTTON)) {   
+  EVENTIN ei = {
+    MU_BUTTON | MU_M1,
+    0,
+    LEFT_BUTTON,
+    0,
+    MO_LEAVE,
+    {0,0,1,1},
+    0,
+    {0,0,0,0},
+    0,
+    0
+  };
+  EVENTOUT      eo;
+  COMMSG        buffer;
+    
+  WORD          relx;
+  WORD          rely;
+  WORD          xyarray[10];
+  WORD          lastx = sx;
+  WORD          lasty = sy;
+  WORD          newx;
+  WORD          newy;
+  WORD          mx;
+  WORD          my;
+  WORD          mb;
+  WORD          ks;
+  GLOBAL_APPL * globals = get_globals (apid);
+
+  /* Get the initial mouse state */
+  Graf_do_mkstate (apid, &mx, &my, &mb, &ks);
+
+  /* Calculate offset from mouse position to rectangle origo */
+  relx = sx - mx;
+  rely = sy - my;
+
+  /* If the mouse button is release return directly */
+  if (!(mb & LEFT_BUTTON)) {   
     *endx = sx;
     *endy = sy;
     
     return 1;
-  };
+  }
 
-  Psemaphore(SEM_LOCK,GRAFSEM,-1);
-
-  Vdi_vswr_mode(grafvid,MD_XOR);
-  Vdi_vsl_type(grafvid,DOTTED);
+  Vdi_vswr_mode (globals->vid, MD_XOR);
+  Vdi_vsl_type (globals->vid, DOTTED);
 
   xyarray[0] = lastx;
   xyarray[1] = lasty;
@@ -327,32 +354,36 @@ Graf_do_dragbox (WORD   w,
   xyarray[8] = xyarray[0];
   xyarray[9] = xyarray[1];
          
-  Vdi_v_hide_c(grafvid);
-  Vdi_v_pline(grafvid,5,xyarray);
-  Vdi_v_show_c(grafvid,1);
-        
-  while(Fread(eventpipe,sizeof(EVNTREC),&er)) {
-    if(er.ap_event == APPEVNT_MOUSE) {
-      newx = (WORD)((er.ap_value & 0xffff) + relx);
-      newy = (WORD)((er.ap_value >> 16) + rely);
-      
-      if(newx < bound->x) {
-        newx = bound->x;
-      }
-      else if(newx > (bound->x + bound->width - w)) {
-        newx = bound->x + bound->width - w;
-      };
+  Vdi_v_hide_c (globals->vid);
+  Vdi_v_pline (globals->vid, 5, xyarray);
+  Vdi_v_show_c (globals->vid, 1);
 
-      if(newy < bound->y) {
-        newy = bound->y;
-      }
-      else if(newy > (bound->y + bound->height - h)) {
-        newy = bound->y + bound->height - h;
-      };
+  ei.m1r.x = mx;
+  ei.m1r.y = my;
+  
+  while (TRUE) {
+
+    Evnt_do_multi (apid, &ei, &buffer, &eo, 0);
+
+    if (eo.events & MU_M1) {
+      newx = eo.mx + relx;
+      newy = eo.my + rely;
       
-      if((lastx != newx) || (lasty != newy)) {
-        Vdi_v_hide_c(grafvid);
-        Vdi_v_pline(grafvid,5,xyarray);
+      if (newx < bound->x) {
+        newx = bound->x;
+      } else if (newx > (bound->x + bound->width - w)) {
+        newx = bound->x + bound->width - w;
+      }
+
+      if (newy < bound->y) {
+        newy = bound->y;
+      } else if (newy > (bound->y + bound->height - h)) {
+        newy = bound->y + bound->height - h;
+      }
+      
+      if ((lastx != newx) || (lasty != newy)) {
+        Vdi_v_hide_c (globals->vid);
+        Vdi_v_pline (globals->vid, 5, xyarray);
 
         xyarray[0] = newx;
         xyarray[1] = newy;
@@ -365,32 +396,28 @@ Graf_do_dragbox (WORD   w,
         xyarray[8] = xyarray[0];
         xyarray[9] = xyarray[1];
         
-        Vdi_v_pline(grafvid,5,xyarray);
-        Vdi_v_show_c(grafvid,1);
+        Vdi_v_pline (globals->vid, 5, xyarray);
+        Vdi_v_show_c (globals->vid, 1);
         
         lastx = newx;
         lasty = newy;
-      };
-    };
+      }
+    }
     
-    if(er.ap_event == APPEVNT_BUTTON) {
-      if(!(er.ap_value & LEFT_BUTTON)) {
+    if(eo.events & MU_BUTTON) {
+      if (!(eo.mb & LEFT_BUTTON)) {
         break;
-      };
-    };
-  };
+      }
+    }
+  }
 
-  Vdi_v_hide_c(grafvid);
-  Vdi_v_pline(grafvid,5,xyarray);
-  Vdi_v_show_c(grafvid,1);
+  Vdi_v_hide_c (globals->vid);
+  Vdi_v_pline (globals->vid, 5, xyarray);
+  Vdi_v_show_c (globals->vid, 1);
 
   *endx = lastx;
   *endy = lasty;
   
-  Psemaphore(SEM_UNLOCK,GRAFSEM,-1);
-  */
-  DB_printf ("!!Implement Graf_do_dragbox in graf.c");
-
   return 1;
 }
 
@@ -399,12 +426,14 @@ Graf_do_dragbox (WORD   w,
 ** Exported
 **
 ** 1998-12-20 CG
+** 1998-12-25 CG
 */
 void
 Graf_dragbox (AES_PB *apb) {
-  Evhd_wind_update (apb->global->apid, BEG_MCTRL | SRV_COMPLETE_MCTRL);
+  Wind_do_update (apb->global->apid, BEG_MCTRL);
   
-  apb->int_out[0] = Graf_do_dragbox (apb->int_in[0],
+  apb->int_out[0] = Graf_do_dragbox (apb->global->apid,
+                                     apb->int_in[0],
                                      apb->int_in[1],
                                      apb->int_in[2],
                                      apb->int_in[3],
@@ -412,7 +441,7 @@ Graf_dragbox (AES_PB *apb) {
                                      &apb->int_out[1],
                                      &apb->int_out[2]);
   
-  Evhd_wind_update (apb->global->apid, END_MCTRL);
+  Wind_do_update (apb->global->apid, END_MCTRL);
 }
 
 
@@ -655,6 +684,7 @@ Graf_watchbox (AES_PB *apb) {
 ** Exported
 **
 ** 1998-12-20 CG
+** 1998-12-25 CG
 */
 WORD
 Graf_do_slidebox (WORD     apid,
@@ -666,36 +696,36 @@ Graf_do_slidebox (WORD     apid,
   RECT slid;
   WORD x,y;
         
-  if(!tree) {
+  if (tree == NULL) {
     return 0;
-  };
+  }
         
   Objc_area_needed(tree,obj,&slid);
   Objc_area_needed(tree,parent,&bound);
         
-  Evhd_wind_update(apid,BEG_MCTRL | SRV_COMPLETE_MCTRL);
+  Wind_do_update (apid, BEG_MCTRL);
                 
-  Graf_do_dragbox (slid.width,
+  Graf_do_dragbox (apid,
+                   slid.width,
                    slid.height,
                    slid.x,slid.y,
                    &bound,
                    &x,
                    &y);
                                                                         
-  Evhd_wind_update(apid,END_MCTRL);
+  Wind_do_update (apid, END_MCTRL);
         
   if(orient == 0) {
     if(tree[obj].ob_width != tree[parent].ob_width) {
       return (WORD)((((LONG)x - (LONG)bound.x) * 1000L) /
                     ((LONG)(tree[parent].ob_width - tree[obj].ob_width)));
-    };
-  }
-  else {
+    }
+  } else {
     if(tree[obj].ob_height != tree[parent].ob_height) {
       return (WORD)((((LONG)y - (LONG)bound.y) * 1000L) /
                     ((LONG)(tree[parent].ob_height - tree[obj].ob_height)));
-    };
-  };
+    }
+  }
                                                                         
   return 0;
 }

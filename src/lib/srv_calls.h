@@ -172,18 +172,4 @@ Srv_wind_new(  /*                                                           */
 WORD apid);    /* Application whose windows should be erased.               */
 /****************************************************************************/
 
-/****************************************************************************
- * Srv_wind_set                                                             *
- ****************************************************************************/
-WORD           /*                                                           */
-Srv_wind_set(  /*                                                           */
-WORD apid,     /*                                                           */
-WORD handle,   /* Identification number of window.                          */
-WORD mode,     /* Tells what to return.                                     */
-WORD parm1,    /* Parameter 1.                                              */
-WORD parm2,    /* Parameter 2.                                              */
-WORD parm3,    /* Parameter 3.                                              */
-WORD parm4);   /* Parameter 4.                                              */
-/****************************************************************************/
-
 #endif

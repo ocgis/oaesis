@@ -320,9 +320,10 @@ handle_arrow_click (WORD apid,
 
 /*
 ** Description
-** Handle a click on a mover
+** Handle click on window mover
 **
 ** 1998-12-20 CG
+** 1998-12-25 CG
 */
 static
 void
@@ -336,7 +337,7 @@ handle_mover_click (WORD apid,
   WORD      last_y = mouse_y;
   EVNTREC   er;
   COMMSG    mesag;
-  
+
   Wind_do_get (apid,
                win_id,
                WF_OWNER,
@@ -347,50 +348,51 @@ handle_mover_click (WORD apid,
                TRUE);
   
   Wind_change (apid, win_id, W_NAME, SELECTED); 
-  
-  while(1) {
+
+  /*
+  ** FIXME
+  ** Make new wait-for-click-or-move routine
+  while (TRUE) {
     if(get_evntpacket(&er,timeleft) == 0) {
       timeleft = 0;
       break;
-    };
+    }
     
     if(er.ap_event == APPEVNT_TIMER) {
       timeleft -= (WORD)er.ap_value;
-    };
+    }
     
     if(timeleft < 0) {
       timeleft = 0;
       break;
-    };
+    }
     
     update_local_mousevalues(&er);
     
     if((er.ap_event == APPEVNT_BUTTON) &&
        !(LEFT_BUTTON & er.ap_value)) {
       break;
-    };
-  };
-  
-  if(timeleft) {
+    }
+  }
+  */  
+  if (FALSE /*timeleft*/) { /* FIXME */
     static COMMSG       m;
   
     if(top == -1) {
       m.type = WM_BOTTOM;
-    }
-    else {
+    } else {
       m.type = WM_TOPPED;
-    };
+    }
     
     m.sid = 0;
     m.length = 0;
     m.msg0 = win_id;
     
-    Appl_do_write (apid, owner,16,&m);
-  }
-  else {
-    Graf_do_mouse(FLAT_HAND,NULL);
+    Appl_do_write (apid, owner, 16, &m);
+  } else {
+    Graf_do_mouse (FLAT_HAND, NULL);
         
-    if(0 /*globals.realmove*/) {
+    if (FALSE /*globals.realmove*/) { /* FIXME */
       mesag.type = WM_MOVED;
       mesag.sid = 0;
       mesag.length = 0;
@@ -419,14 +421,14 @@ handle_mover_click (WORD apid,
           
           tmpy = mesag.msg2;
 
-          if(mesag.msg2 < (0/*globals.clheight*/ + 3)) {
+          if(mesag.msg2 < (0/*globals.clheight*/ + 3)) { /* FIXME */
             mesag.msg2 = 0 /*globals.clheight*/ + 3;
           }
   
           Appl_do_write (apid, owner,16,&mesag);
           
           mesag.msg2 = tmpy;
-        };
+        }
         
         while(1) {
           if(get_evntpacket(&er,(WORD)waittime) == 0) {
@@ -448,19 +450,18 @@ handle_mover_click (WORD apid,
             break;
           };
         };
-      }while(!((er.ap_event == APPEVNT_BUTTON) &&
+      } while(!((er.ap_event == APPEVNT_BUTTON) &&
                !(er.ap_value & LEFT_BUTTON)));
-    }
-    else {
+    } else { /* No realtime moving */
       RECT bound;
       RECT winsize;
       
-      bound.y = 0/*globals.clheight*/ + 3;
+      bound.y = 0/*globals.clheight*/ + 3; /* FIXME */
       bound.height = 30000;
       bound.x = -15000;
       bound.width = 30000;
       
-      Evhd_wind_update(Pgetpid(),BEG_UPDATE);
+      Wind_do_update (apid, BEG_UPDATE);
 
       Wind_do_get (apid,
                    win_id,
@@ -471,11 +472,8 @@ handle_mover_click (WORD apid,
                    &winsize.height,
                    TRUE);
                 
-      /*
-      globals.mouse_button = mouse_button;
-      */
-
-      Graf_do_dragbox (winsize.width,
+      Graf_do_dragbox (apid,
+                       winsize.width,
                        winsize.height,
                        winsize.x,
                        winsize.y,
@@ -483,10 +481,6 @@ handle_mover_click (WORD apid,
                        &mesag.msg1,
                        &mesag.msg2);
       
-      /*
-      Vdi_vq_mouse(globals.vid,&mouse_button,&mouse_x,&mouse_y);
-      */
-
       mesag.type = WM_MOVED;
       mesag.sid = 0;
       mesag.length = 0;
@@ -501,17 +495,15 @@ handle_mover_click (WORD apid,
       mesag.msg3 = winsize.width;
       mesag.msg4 = winsize.height;
       
-      Appl_do_write (apid, owner,MSG_LENGTH,&mesag);
-                        
-      Evhd_wind_update(Pgetpid(),END_UPDATE);
-    };
+      Appl_do_write (apid, owner, MSG_LENGTH,&mesag);
+                
+      Wind_do_update (apid, END_UPDATE);
+    }
     
     Graf_do_mouse(M_RESTORE,NULL);
-  };
+  }
         
   Wind_change (apid, win_id, W_NAME, 0);
-
-  globalize_mousevalues();
 }
 
 
@@ -716,6 +708,7 @@ handle_slider_click (WORD apid,
 ** Exported
 **
 ** 1998-12-20 CG
+** 1998-12-25 CG
 */
 void 
 Evhd_handle_button (WORD apid,
@@ -734,8 +727,6 @@ Evhd_handle_button (WORD apid,
     
     win_id = Wind_do_find (apid, mouse_x, mouse_y);
 
-    DB_printf ("evnthndl.c: Evhd_handle_button: win_id = %d", win_id);
-
     Wind_do_get (apid,
                  win_id,
                  WF_OWNER,
@@ -745,8 +736,6 @@ Evhd_handle_button (WORD apid,
                  &dummy,
                  TRUE);
 
-    DB_printf ("evnthndl.c: Evhd_handle_button: owner = %d", owner);
-
     Wind_do_get (apid,
                  win_id,
                  WF_WORKXYWH,
@@ -755,12 +744,6 @@ Evhd_handle_button (WORD apid,
                  &worksize.width,
                  &worksize.height,
                  TRUE);
-
-    DB_printf ("evnthndl.c: Evhd_handle_button: workarea: %d %d %d %d",
-               worksize.x,
-               worksize.y,
-               worksize.width,
-               worksize.height);
 
     if (status & (WIN_DESKTOP | WIN_DIALOG)) {
       /* Return the click to the user */
@@ -826,12 +809,8 @@ Evhd_handle_button (WORD apid,
       OBJECT * tree;
       COMMSG   mesag;
 
-      DB_printf ("evnthndl.c: Evhd_handle_button: Click on window element!");
-      
       tree = Wind_get_rsrc (apid, win_id);
-      DB_printf ("evnthndl.c: Evhd_handle_button: tree = 0x%x", tree);
       obj = Objc_do_find (tree, 0, 9, mouse_x, mouse_y, 0);
-      DB_printf ("evnthndl.c: Evhd_handle_button: obj = %d", obj);
 
       switch(obj) {         
       case WCLOSER :
@@ -883,7 +862,7 @@ Evhd_handle_button (WORD apid,
         */
         
         Appl_do_write (apid, owner,16,&mesag);
-      };
+      }
       break;
       
       case WFULLER:
@@ -999,8 +978,6 @@ Evhd_handle_button (WORD apid,
       
       case WAPP:            
       case WMOVER:
-        DB_printf ("Mover was pressed");
-        return;
         handle_mover_click (apid, win_id);
         break;
         

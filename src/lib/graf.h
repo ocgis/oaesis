@@ -5,9 +5,11 @@ void	Graf_init_module(void);
 ** Implementation of graf_dragbox ()
 **
 ** 1998-12-20 CG
+** 1998-12-25 CG
 */
 WORD
-Graf_do_dragbox (WORD     w,
+Graf_do_dragbox (WORD     apid,
+                 WORD     w,
                  WORD     h,
                  WORD     sx,
                  WORD     sy,

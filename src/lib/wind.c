@@ -763,17 +763,13 @@ find_window_struct (WORD apid,
 ** 1998-10-11 CG
 */
 void
-Wind_redraw_elements (
-WORD   apid,
-WORD   id,
-RECT * clip,
-WORD   start)
-{
+Wind_redraw_elements (WORD   apid,
+                      WORD   id,
+                      RECT * clip,
+                      WORD   start) {
   GLOBAL_APPL * globals = get_globals (apid);
   WINDOW_LIST * wl = globals->windows;
   
-  DB_printf ("wind.c: Wind_redraw_elements: id=%d", id);
-
   while (wl) {
     if (wl->ws.id == id) {
       if(wl->ws.tree != NULL) {
@@ -792,9 +788,6 @@ WORD   start)
         while (!((r.width == 0) && (r.height == 0))) {
           RECT	r2;
           
-          DB_printf ("wind.c: Wind_redraw_elements: x=%d y=%d w=%d h=%d",
-                     r.x, r.y, r.width, r.height);
-
           if(Misc_intersect(&r, clip, &r2)) {
             Objc_do_draw (globals->vid, wl->ws.tree, start, 3, &r2);
           }
@@ -1174,15 +1167,65 @@ Wind_get (AES_PB *apb)
 }
 
 
-/*wind_set 0x0069*/
-void	Wind_set(AES_PB *apb) {
-	apb->int_out[0] = Srv_wind_set(apb->global->apid,
-		apb->int_in[0],
-		apb->int_in[1],
-		apb->int_in[2],
-		apb->int_in[3],
-		apb->int_in[4],
-		apb->int_in[5]);
+/*
+** Exported
+**
+** 1998-12-25 CG
+*/
+WORD
+Wind_do_set (WORD apid,
+             WORD handle,
+             WORD mode,
+             WORD parm1,
+             WORD parm2,
+             WORD parm3,
+             WORD parm4) {
+  C_WIND_SET par;
+  R_WIND_SET ret;
+  
+  par.common.call = SRV_WIND_SET;
+  par.common.apid = apid;
+  par.common.pid = getpid ();
+
+  par.handle = handle;
+  par.mode = mode;
+  
+  par.parm1 = parm1;
+  par.parm2 = parm2;
+  par.parm3 = parm3;
+  par.parm4 = parm4;
+  
+  Client_send_recv (&par,
+                    sizeof (C_WIND_SET),
+                    &ret,
+                    sizeof (R_WIND_SET));
+
+  /* FIXME
+  ** Check the retval if the server operation went ok
+  */
+  switch (mode) {
+  case WF_CURRXYWH :
+    Wind_set_size (apid, handle, (RECT *)&par.parm1);
+  }
+
+  return ret.common.retval;
+}
+
+
+/*
+** Exported
+**
+** 1998-12-25 CG
+*/
+void
+Wind_set (AES_PB *apb) {
+  apb->int_out[0] = Wind_do_set (apb->global->apid,
+                                  apb->int_in[0],
+                                  apb->int_in[1],
+                                  apb->int_in[2],
+                                  apb->int_in[3],
+                                  apb->int_in[4],
+                                  apb->int_in[5]);
 }
 
 

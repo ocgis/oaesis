@@ -347,6 +347,7 @@ typedef union {
   R_WIND_FIND    wind_find;
   R_WIND_GET     wind_get;
   R_WIND_OPEN    wind_open;
+  R_WIND_SET     wind_set;
   R_WIND_UPDATE  wind_update;
 } R_SRV;
 

@@ -148,6 +148,7 @@ Menu_exit_module(void) /*                                                   */
 ** Handle main menu events.
 **
 ** 1998-12-19 CG
+** 1998-12-25 CG
 */
 void
 Menu_handler (WORD   apid,
@@ -181,7 +182,7 @@ Menu_handler (WORD   apid,
                &globals->common->deskbgtad[0].ob_height,
                TRUE);
   
-  Srv_wind_set(mglob.menu_handl_apid,0,WF_NEWDESK,
+  Wind_do_set (mglob.menu_handl_apid,0,WF_NEWDESK,
 	       (WORD)(((LONG)globals->common->deskbgtad) >> 16),
 	       (WORD)((LONG)globals->common->deskbgtad),0,0);
   

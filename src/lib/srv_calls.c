@@ -331,33 +331,6 @@ WORD apid)     /* Application whose windows should be erased.               */
 }
 
 /****************************************************************************
- * Srv_wind_set                                                             *
- ****************************************************************************/
-WORD           /*                                                           */
-Srv_wind_set(  /*                                                           */
-WORD apid,     /*                                                           */
-WORD handle,   /* Identification number of window.                          */
-WORD mode,     /* Tells what to return.                                     */
-WORD parm1,    /* Parameter 1.                                              */
-WORD parm2,    /* Parameter 2.                                              */
-WORD parm3,    /* Parameter 3.                                              */
-WORD parm4)    /* Parameter 4.                                              */
-/****************************************************************************/
-{
-	C_WIND_SET par;
-	
-	par.handle = handle;
-	par.mode = mode;
-	
-	par.parm1 = parm1;
-	par.parm2 = parm2;
-	par.parm3 = parm3;
-	par.parm4 = parm4;
-
-	return Srv_put (apid, SRV_WIND_SET, &par);
-}
-
-/****************************************************************************
  * Srv_put_event                                                            *
  *  Put event message in event pipe                                         *
  ****************************************************************************/

@@ -245,6 +245,7 @@ check_mouse_buttons (C_EVNT_MULTI * par,
 ** Check if the mouse is inside / outside an area
 **
 ** 1998-12-13 CG
+** 1998-12-25 CG
 */
 static
 WORD
@@ -270,6 +271,18 @@ check_mouse_motion (WORD           x,
         ((!inside) && (par->eventin.m2flag == MO_LEAVE))) {
       retval |= MU_M2;
     }
+  }
+
+  /* Fill in mouse status if it hasn't been done already */
+  if (!(ret->eventout.events & MU_BUTTON)) {
+    ret->eventout.mx = x_last;
+    ret->eventout.my = y_last;
+    ret->eventout.mb = buttons_last;
+    ret->eventout.ks = 0; /* FIXME
+                          ** Return keystate once the keyboard handling is
+                          ** implemented
+                          */
+
   }
 
   return retval;

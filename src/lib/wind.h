@@ -111,7 +111,24 @@ Wind_do_get (WORD   apid,
              WORD   in_workarea);
 
 void Wind_get(AES_PB *apb);    /*0x0068*/
-void Wind_set(AES_PB *apb);    /*0x0069*/
+
+/*
+** Description
+** Library part of wind_set ()
+**
+** 1998-12-25 CG
+*/
+WORD
+Wind_do_set (WORD apid,
+             WORD handle,
+             WORD mode,
+             WORD parm1,
+             WORD parm2,
+             WORD parm3,
+             WORD parm4);
+
+void
+Wind_set(AES_PB *apb);    /*0x0069*/
 
 /*
 ** Description
