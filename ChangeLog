@@ -1,3 +1,8 @@
+1999-11-05  Christer Gustavsson  <cg@nocrew.org>
+
+	* Added callback handler for emulated programs, which is called to
+	handle callbacks in APPLBLK resource objects.
+
 1999-10-09  Christer Gustavsson  <cg@nocrew.org>
 
 	* Fixed bug with wrong application updating the desktop background.
