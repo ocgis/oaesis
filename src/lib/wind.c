@@ -130,6 +130,78 @@ WINDOW_STRUCT *
 find_window_struct (WORD apid,
                     WORD id);
 
+
+/*
+** Description
+** Set window widget colour
+*/
+static
+void
+set_widget_colour(WINDOW_STRUCT * win,
+                  WORD            widget,
+                  WORD            top,
+                  WORD            untop)
+{
+  U_OB_SPEC * ob_spec;
+  WORD        object = 0;
+  WORD *      colour;
+
+  if(win->tree)
+  {
+    object = widgetmap[widget];
+    
+    if(win->tree[object].ob_flags & INDIRECT)
+    {
+      ob_spec = (U_OB_SPEC *)win->tree[object].ob_spec.indirect;
+    }
+    else
+    {
+      ob_spec = (U_OB_SPEC *)&win->tree[object].ob_spec;
+    }
+    
+    switch(win->tree[object].ob_type & 0xff)
+    {
+    case G_BOX:
+    case G_IBOX:
+    case G_BOXCHAR:
+      colour = &((WORD *)ob_spec)[1];
+      break;
+      
+    case G_TEXT:
+    case G_BOXTEXT:
+    case G_FTEXT:
+    case G_FBOXTEXT:
+      colour = (WORD *)&ob_spec->tedinfo->te_color;
+      break;
+      
+    case G_IMAGE:
+      colour = (WORD *)&ob_spec->bitblk->bi_color;
+      break;
+      
+    case G_BUTTON:
+    case G_PROGDEF:
+    case G_STRING:
+    case G_TITLE:
+      return;
+      
+    default:
+      DEBUG1("Unsupported type %d in set_widget_colour, widget %d",
+             win->tree[object].ob_type, widget);
+      return;
+    }
+    
+    if(win->status & WIN_TOPPED)
+    {
+      *colour = top;
+    }
+    else
+    {
+      *colour = untop;
+    }
+  }
+}
+
+
 /*calcworksize calculates the worksize or the total size of
 a window. If dir == WC_WORK the worksize will be calculated and 
 otherwise the total size will be calculated.*/
@@ -1137,11 +1209,14 @@ Wind_do_create (WORD   apid,
   ws->hslidepos = 1;
   ws->hslidesize = 1000;
 
-  if((ws->status & WIN_DIALOG) || (ws->status & WIN_MENU)) {
+  if((ws->status & WIN_DIALOG) || (ws->status & WIN_MENU))
+  {
     ws->tree = 0L;
     ws->totsize = ws->maxsize;
     ws->worksize = ws->totsize;
-  } else {
+  }
+  else
+  {
     WORD    i;
 
     ws->tree = allocate_window_elements ();
@@ -1177,6 +1252,8 @@ Wind_do_create (WORD   apid,
                   (WORD *)&ws->untop_colour[i],
                   &elem,
                   0);
+
+      set_widget_colour(ws, i, ws->top_colour[i], ws->untop_colour[i]);
     }
 
     ws->own_colour = 0;
@@ -1336,9 +1413,12 @@ Wind_do_get (WORD   apid,
   /*
   ** We can handle some calls without calling the server.
   */
-  switch (mode) {
-  case WF_WORKXYWH :
-  case WF_FULLXYWH :
+  switch (mode)
+  {
+  case WF_WORKXYWH:
+  case WF_CURRXYWH:
+  case WF_PREVXYWH:
+  case WF_FULLXYWH:
   {
     WINDOW_STRUCT * ws;
     
@@ -1347,17 +1427,30 @@ Wind_do_get (WORD   apid,
     ** Return area if we have it. If not just do a server call the normal
     ** way.
     */
-    if (ws != NULL) {
+    if (ws != NULL)
+    {
       RECT * size;
 
-      switch (mode) {
+      switch (mode)
+      {
       case WF_WORKXYWH :
         size = &ws->worksize;
+        break;
+
+      case WF_CURRXYWH :
+        size = &ws->totsize;
+        break;
+
+      case WF_PREVXYWH :
+        size = &ws->lastsize;
         break;
 
       case WF_FULLXYWH :
         size = &ws->maxsize;
         break;
+
+      default:
+        DEBUG1("Wind_do_get: Unhandled size mode %d", mode);
       }
 
       *parm1 = size->x;
@@ -1370,9 +1463,49 @@ Wind_do_get (WORD   apid,
     }
   }
   break;
+
+  case WF_TOP:
+  case WF_DCOLOR:
+  case WF_OWNER:
+  case WF_BOTTOM:
+  case WF_ICONIFY:
+  case WF_UNICONIFY:
+    /* These calls are only handled in the server */
+    break;
+
+  case WF_FIRSTXYWH:
+  case WF_NEXTXYWH:
+  case WF_FTOOLBAR:
+  case WF_NTOOLBAR:
+    /* These calls are handled locally after server call(s) */
+    break;
+
+  case WF_HSLIDE:
+  case WF_VSLIDE:
+  case WF_NEWDESK:
+  case WF_HSLSIZE:
+  case WF_VSLSIZE:
+  case WF_SCREEN:
+  case WF_COLOR:
+  case WF_BEVENT:
+  case WF_TOOLBAR:
+    /* These calls should be implemented locally */
+    DEBUG1("Wind_do_get: Implement mode %d locally!", mode);
+    break;
+
+  case WF_NAME:
+  case WF_INFO:
+  case WF_KIND:
+  case WF_RESVD:
+  case WF_UNICONIFYXYWH:
+  case WF_WINX:
+  case WF_WINXCFG:
+  default:
+    DEBUG1("Unhandled mode in Wind_do_get %d. Implement?\n", mode);
   }
 
-  if (in_workarea && ((mode == WF_FIRSTXYWH) || (mode == WF_NEXTXYWH))) {
+  if(in_workarea && ((mode == WF_FIRSTXYWH) || (mode == WF_NEXTXYWH)))
+  {
     /* Get work area of window for later use */
     if (Wind_do_get (apid,
                      handle,
@@ -1381,7 +1514,8 @@ Wind_do_get (WORD   apid,
                      &workarea.y,
                      &workarea.width,
                      &workarea.height,
-                     TRUE) == 0) {
+                     TRUE) == 0)
+    {
       /* An error occurred */
       return 0;
     }
@@ -1394,28 +1528,34 @@ Wind_do_get (WORD   apid,
   par.parm1 = *parm1;
         
   /* Loop until we get the data we need (needed for WF_{FIRST,NEXT}XYWH */
-  while (TRUE) {
+  while(TRUE)
+  {
     CLIENT_SEND_RECV(&par,
                      sizeof (C_WIND_GET),
                      &ret,
                      sizeof (R_WIND_GET));
     
-    if (in_workarea && ((mode == WF_FIRSTXYWH) || (mode == WF_NEXTXYWH))) {
+    if(in_workarea && ((mode == WF_FIRSTXYWH) || (mode == WF_NEXTXYWH)))
+    {
       RECT r;
 
       /* If the rectangle is empty anyhow just exit the loop */
-      if ((ret.parm3 == 0) && (ret.parm4 == 0)) {
+      if((ret.parm3 == 0) && (ret.parm4 == 0))
+      {
         break;
       }
       
-      if (Misc_intersect ((RECT *)&ret.parm1, &workarea, &r) > 0) {
+      if(Misc_intersect ((RECT *)&ret.parm1, &workarea, &r) > 0)
+      {
         /* Rectangles do intersect. Now return the intersecting area */
         *(RECT *)&ret.parm1 = r;
         break;
       }
 
       par.mode = WF_NEXTXYWH;
-    } else {
+    }
+    else
+    {
       /*
       ** Get out of the loop. It is only needed for WF_{FIRST,NEXT}XYWH 
       ** when getting rectangles within workarea
@@ -1519,29 +1659,54 @@ Wind_set_desktop_background (WORD     apid,
 
 /*
 ** Exported
-**
-** 1998-12-25 CG
-** 1999-01-01 CG
-** 1999-04-07 CG
 */
 WORD
-Wind_do_set (WORD apid,
-             WORD handle,
-             WORD mode,
-             WORD parm1,
-             WORD parm2,
-             WORD parm3,
-             WORD parm4) {
+Wind_do_set(WORD apid,
+            WORD handle,
+            WORD mode,
+            WORD parm1,
+            WORD parm2,
+            WORD parm3,
+            WORD parm4)
+{
   C_WIND_SET par;
   R_WIND_SET ret;
   
-  switch (mode) {
+  switch (mode)
+  {
   case WF_NAME :
   case WF_INFO :
     ret.common.retval = 1;
     break;
 
-  default:
+  case WF_KIND:
+  case WF_WORKXYWH:
+  case WF_CURRXYWH:
+  case WF_PREVXYWH:
+  case WF_FULLXYWH:
+  case WF_HSLIDE:
+  case WF_VSLIDE:
+  case WF_TOP:
+  case WF_FIRSTXYWH:
+  case WF_NEXTXYWH:
+  case WF_RESVD:
+  case WF_NEWDESK:
+  case WF_HSLSIZE:
+  case WF_VSLSIZE:
+  case WF_SCREEN:
+  case WF_COLOR:
+  case WF_DCOLOR:
+  case WF_OWNER:
+  case WF_BEVENT:
+  case WF_BOTTOM:
+  case WF_ICONIFY:
+  case WF_UNICONIFY:
+  case WF_UNICONIFYXYWH:
+  case WF_TOOLBAR:
+  case WF_FTOOLBAR:
+  case WF_NTOOLBAR:
+  case WF_WINX:
+  case WF_WINXCFG:
     PUT_C_ALL(WIND_SET, &par);
     
     par.handle = handle;
@@ -1556,12 +1721,17 @@ Wind_do_set (WORD apid,
                      sizeof (C_WIND_SET),
                      &ret,
                      sizeof (R_WIND_SET));
+    break;
+
+  default:
+    DEBUG1("oaesis: Unhandled mode %d in Wind_do_set\n", mode);
   }
 
   /* FIXME
   ** Check the retval if the server operation went ok
   */
-  switch (mode) {
+  switch (mode)
+  {
   case WF_NAME :
   case WF_INFO :
     return Wind_set_name_or_info (apid,
@@ -1608,6 +1778,34 @@ Wind_do_set (WORD apid,
                             VSLIDE,
                             -1,
                             parm1);
+
+  case WF_DCOLOR:
+    /* These are calls that should not be handled here */
+    break;
+
+  case WF_KIND:
+  case WF_WORKXYWH:
+  case WF_PREVXYWH:
+  case WF_FULLXYWH:
+  case WF_TOP:
+  case WF_FIRSTXYWH:
+  case WF_NEXTXYWH:
+  case WF_RESVD:
+  case WF_SCREEN:
+  case WF_COLOR:
+  case WF_OWNER:
+  case WF_BEVENT:
+  case WF_BOTTOM:
+  case WF_ICONIFY:
+  case WF_UNICONIFY:
+  case WF_UNICONIFYXYWH:
+  case WF_TOOLBAR:
+  case WF_FTOOLBAR:
+  case WF_NTOOLBAR:
+  case WF_WINX:
+  case WF_WINXCFG:
+  default:
+    DEBUG1("oaesis: Unhandled mode %d in Wind_do_set\n", mode);
   }
 
   return ret.common.retval;
