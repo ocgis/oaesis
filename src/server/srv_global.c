@@ -1,37 +1,19 @@
-/****************************************************************************
+/*
+** srv_global.c
+**
+** Copyright 1996 - 2000 Christer Gustavsson <cg@nocrew.org>
+** Copyright 1996 Jan Paul Schmidt <Jan.P.Schmidt@mni.fh-giessen.de>
+**
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+**  
+** Read the file COPYING for more information.
+*/
 
- Module
-  global.c
-  
- Description
-  Variables of global interest in oAESis.
-  
- Author(s)
-  cg (Christer Gustavsson <d2cg@dtek.chalmers.se>)
-  jps (Jan Paul Schmidt <Jan.P.Schmidt@mni.fh-giessen.de>)
-
- Revision history
- 
-  960103 cg
-   Added standard header. 
-
-  960507 jps
-   Added globals.realslide initialisation.
-
-  960816 jps
-   Initialisation of some new variables
-
- Copyright notice
-  The copyright to the program code herein belongs to the authors. It may
-  be freely duplicated and distributed without fee, but not charged for.
- 
- ****************************************************************************/
 
 #define DEBUGLEVEL 0
-
-/****************************************************************************
- * Used interfaces                                                          *
- ****************************************************************************/
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -55,7 +37,6 @@
 #include "srv_global.h"
 #include "lxgemdos.h"
 #include "types.h"
-#include "version.h"
 
 #ifdef MINT_TARGET
 #include "lib_global.h"
@@ -67,29 +48,15 @@
 # define OAESIS_CDECL cdecl
 #endif
 
-/****************************************************************************
- * Global variables                                                         *
- ****************************************************************************/
-
 GLOBALVARS	globals;
 /* FIXME char *p_fsel_extern = (char *)&globals.fsel_extern; */
 WORD global[15];
-
-/****************************************************************************
- * Module global variables                                                  *
- ****************************************************************************/
 
 #ifdef MINT_TARGET
 static WORD open_physical_ws; /* set in own_appl_init. jps */
 
 static WORD oldmode,oldmodecode;
 #endif /* MINT_TARGET */
-
-static BYTE versionstring[50];
-
-/****************************************************************************
- * Module local functions                                                   *
- ****************************************************************************/
 
 #ifdef MINT_TARGET
 
@@ -290,8 +257,6 @@ srv_init_global (WORD no_configuration_file)
   globals.bsheight = work_out[9] / 2 + 3;
   globals.cswidth = work_out[8] / 2;
   globals.csheight = work_out[9] / 2;
-  
-  sprintf(versionstring,"Version %s",VERSIONTEXT);
 }
 
 

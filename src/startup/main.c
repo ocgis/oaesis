@@ -47,7 +47,6 @@
 #include "mousedev.h"
 #include "srv.h"
 #include "srv_misc.h"
-#include "version.h"
 
 #ifdef HAVE_SYSVARS_H
 #include	<sysvars.h>
@@ -116,7 +115,7 @@ main (int     argc,
   };
 #endif
   
-  fprintf(stderr,"Starting oAESis version %s.\r\n",VERSIONTEXT);
+  fprintf(stderr,"Starting oAESis version %s.\r\n", OAESIS_VERSION);
   fprintf(stderr,"Compiled on %s at %s with ",__DATE__,__TIME__);
   
 #ifdef __TURBOC__

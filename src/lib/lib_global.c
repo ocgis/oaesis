@@ -1,5 +1,5 @@
 /*
-** lib_global.h
+** lib_global.c
 **
 ** Copyright 1996 - 2000 Christer Gustavsson <cg@nocrew.org>
 ** Copyright 1996 Jan Paul Schmidt <Jan.P.Schmidt@mni.fh-giessen.de>
@@ -41,7 +41,6 @@
 #include "resource.h"
 #include "rsrc.h"
 #include "types.h"
-#include "version.h"
 
 #ifdef MINT_TARGET
 #include "mintdefs.h"
@@ -78,8 +77,6 @@ short
 
 static OAESIS_PATH_MODE default_path_mode = OAESIS_PATH_MODE_UNIX;
 #endif /* MINT_TARGET */
-
-static BYTE versionstring[50];
 
 /****************************************************************************
  * Module local functions                                                   *
@@ -325,9 +322,6 @@ init_global (WORD physical_vdi_id)
                    R_FRSTR,
                    0,
                    (OBJECT **)&global_common.fr_string);
-    
-    sprintf(versionstring,"Version %s",VERSIONTEXT);
-    /*  global_common.informtad[INFOVERSION].ob_spec.tedinfo->te_ptext = versionstring; */
     
     /* Initialize window elements and resource counters */
     Rsrc_do_gaddr((RSHDR *)resource,
