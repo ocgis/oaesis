@@ -817,101 +817,106 @@ Graf_do_mouse(WORD    apid,
               WORD    mode,
               MFORM * formptr)
 {
-  WORD retval = 1;
-  MFORM tmp;
+  WORD          retval = 1;
   GLOBAL_APPL * globals;
 
-  C_GRAF_MOUSE par;
-  R_GRAF_MOUSE ret;
+  C_GRAF_MOUSE         par;
+  static R_GRAF_MOUSE  ret;
 
   globals = get_globals (apid);
-
-  /* FIXME
-  PUT_C_ALL(GRAF_MOUSE, &par);
-
-  par.mode = mode;
-	
-  CLIENT_SEND_RECV(&par,
-                   sizeof (C_GRAF_MOUSE),
-                   &ret,
-                   sizeof (R_GRAF_MOUSE));
-
-  return ret.common.retval;
-
-  return 0;
-  */
 
   switch (mode)
   {
   case ARROW: /*0x000*/
-    last = current;
-    current = m_arrow;
-    v_hide_c (globals->vid);
-    vsc_form (globals->vid, &m_arrow);
-    v_show_c (globals->vid, 0);
+    par.cursor = m_arrow;
     break;
     
   case TEXT_CRSR: /*0x001*/
-    last = current;
-    current = m_text_crsr;
-    v_hide_c (globals->vid);
-    vsc_form(globals->vid, &m_text_crsr);
-    v_show_c(globals->vid, 0);
+    par.cursor = m_text_crsr;
     break;
     
   case BUSY_BEE: /*0x002*/
-    last = current;
-    current = m_busy_bee;
-    v_hide_c (globals->vid);
-    vsc_form (globals->vid, &m_busy_bee);
-    v_show_c (globals->vid, 0);
+    par.cursor = m_busy_bee;
     break;
     
   case POINT_HAND: /*0x003*/
-    last = current;
-    current = m_point_hand;
-    v_hide_c (globals->vid);
-    vsc_form (globals->vid, &m_point_hand);
-    v_show_c (globals->vid, 0);
+    par.cursor = m_point_hand;
     break;
     
   case FLAT_HAND: /*0x004*/
-    last = current;
-    current = m_flat_hand;
-    v_hide_c (globals->vid);
-    vsc_form (globals->vid, &m_flat_hand);
-    v_show_c (globals->vid, 0);
+    par.cursor = m_flat_hand;
     break;
     
   case THIN_CROSS: /*0x005*/
-    last = current;
-    current = m_thin_cross;
-    v_hide_c (globals->vid);
-    vsc_form (globals->vid, &m_thin_cross);
-    v_show_c (globals->vid, 0);
+    par.cursor = m_thin_cross;
     break;
     
   case THICK_CROSS: /*0x006*/
-    last = current;
-    current = m_thick_cross;
-    v_hide_c (globals->vid);
-    vsc_form (globals->vid, &m_thick_cross);
-    v_show_c (globals->vid, 0);
+    par.cursor = m_thick_cross;
     break;
     
   case OUTLN_CROSS: /*0x007*/
-    last = current;
-    current = m_outln_cross;
-    v_hide_c (globals->vid);
-    vsc_form (globals->vid, &m_outln_cross);
-    v_show_c (globals->vid, 0);
+    par.cursor = m_outln_cross;
     break;
     
+  case USER_DEF:
+    par.cursor = *formptr;
+    break;
+
+  case M_OFF:
+  case M_ON:
+  case M_SAVE:
+  case M_LAST:
+  case M_RESTORE:
+  default:
+    ;
+  }
+
+  switch (mode)
+  {
+  case ARROW: /*0x000*/
+  case TEXT_CRSR: /*0x001*/
+  case BUSY_BEE: /*0x002*/
+  case POINT_HAND: /*0x003*/
+  case FLAT_HAND: /*0x004*/
+  case THIN_CROSS: /*0x005*/
+  case THICK_CROSS: /*0x006*/
+  case OUTLN_CROSS: /*0x007*/
+  case USER_DEF:
+  case M_RESTORE:
+    PUT_C_ALL(GRAF_MOUSE, &par);
+    
+    par.mode = mode;
+    
+    CLIENT_SEND_RECV(&par,
+                     sizeof (C_GRAF_MOUSE),
+                     &ret,
+                     sizeof (R_GRAF_MOUSE));
+
+    retval = ret.common.retval;
+    break;
+
+  case M_OFF:
+  case M_ON:
+  case M_SAVE:
+  case M_LAST:
+  default:
+    ;
+  }
+
+  switch (mode)
+  {
+  case ARROW: /*0x000*/
+  case TEXT_CRSR: /*0x001*/
+  case BUSY_BEE: /*0x002*/
+  case POINT_HAND: /*0x003*/
+  case FLAT_HAND: /*0x004*/
+  case THIN_CROSS: /*0x005*/
+  case THICK_CROSS: /*0x006*/
+  case OUTLN_CROSS: /*0x007*/
   case USER_DEF :
-    last = current;
-    current = *formptr;
     v_hide_c (globals->vid);
-    vsc_form (globals->vid, formptr);
+    vsc_form (globals->vid, &ret.cursor);
     v_show_c (globals->vid, 0);
     break;
 

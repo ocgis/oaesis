@@ -243,13 +243,11 @@ srv_call(COMM_HANDLE handle,
     SRV_REPLY(handle, &ret, sizeof (R_GRAF_MKSTATE));
     break;
 
-    /* FIXME
   case SRV_GRAF_MOUSE :
-    srv_graf_mouse (globals.vid, &par->graf_mouse, &ret.graf_mouse);
+    srv_graf_mouse(&par->graf_mouse, &ret.graf_mouse);
     
     SRV_REPLY(handle, &ret, sizeof (R_GRAF_MOUSE));
     break;
-    */
 
   case SRV_MENU_BAR:
     srv_menu_bar (&par->menu_bar, &ret.menu_bar);

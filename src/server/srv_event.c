@@ -791,18 +791,39 @@ srv_graf_mkstate (C_GRAF_MKSTATE * par,
 ** Exported
 */
 void
-srv_graf_mouse (WORD           vid,
-                C_GRAF_MOUSE * par,
-                R_GRAF_MOUSE * ret) {
-  switch (par->mode) {
+srv_graf_mouse(C_GRAF_MOUSE * par,
+               R_GRAF_MOUSE * ret)
+{
+  static MFORM current;
+  static MFORM last;
+
+  switch (par->mode)
+  {
+  case ARROW: /*0x000*/
+  case TEXT_CRSR: /*0x001*/
+  case BUSY_BEE: /*0x002*/
+  case POINT_HAND: /*0x003*/
+  case FLAT_HAND: /*0x004*/
+  case THIN_CROSS: /*0x005*/
+  case THICK_CROSS: /*0x006*/
+  case OUTLN_CROSS: /*0x007*/
+  case USER_DEF:
+    last = current;
+    current = par->cursor;
+    break;
+
+  case M_RESTORE:
+    current = last = current;
+    break;
+
   case M_ON :
-    v_show_c (vid, 0);
-    break;
-    
   case M_OFF :
-    v_hide_c (vid);
-    break;
+  case M_SAVE:
+  case M_LAST:
+  default:
   }
+
+  ret->cursor = current;
 
   PUT_R_ALL(GRAF_MOUSE, ret, 0);
 }

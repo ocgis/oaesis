@@ -1,7 +1,7 @@
 /*
 ** srv_event.h
 **
-** Copyright 1998-1999 Christer Gustavsson <cg@nocrew.org>
+** Copyright 1998 - 2000 Christer Gustavsson <cg@nocrew.org>
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -62,13 +62,10 @@ srv_graf_mkstate (C_GRAF_MKSTATE * par,
 /*
 ** Description
 ** Server part of graf_mouse ()
-**
-** 1999-01-03 CG
 */
 void
-srv_graf_mouse (WORD           vid,
-                C_GRAF_MOUSE * par,
-                R_GRAF_MOUSE * ret);
+srv_graf_mouse(C_GRAF_MOUSE * par,
+               R_GRAF_MOUSE * ret);
 
 /*
 ** Description
