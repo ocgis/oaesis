@@ -3,6 +3,8 @@ AS = gcc
 LD = gcc
 GLOBAL_INCLUDES = -I/usr/local/include/osis
 GLOBAL_DEFINES = -DHAVE_CONFIG_H -Wall -Wmissing-prototypes -Wunused -O2
+AR = ar
+RANLIB = ranlib
 
 CFLAGS = $(INCLUDES) $(GLOBAL_INCLUDES) $(DEFINES) $(GLOBAL_DEFINES)
 

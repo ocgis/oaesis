@@ -1,4 +1,4 @@
-INCLUDES = -I../comm -I../common -I../..	 
+INCLUDES = -I../comm -I../common -I../..
 
 BINDINGS_CSRCS = \
 	aesbind.c
@@ -13,8 +13,8 @@ TRAP_OBJS = \
 	$(TRAP_CSRCS:.c=.o)
 
 LIB_CSRCS = \
-	appl.c cursors.c lib_debug.c docalls.c evnt.c evnthndl.c form.c \
-	fsel.c graf.c lib_global.c lib_misc.c menu.c objc.c resource.c rsrc.c \
+	resource.c appl.c cursors.c lib_debug.c docalls.c evnt.c evnthndl.c \
+	form.c fsel.c graf.c lib_global.c lib_misc.c menu.c objc.c rsrc.c \
 	scrp.c shel.c srv_put.c wind.c
 
 LIB_OBJS = \
