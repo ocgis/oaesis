@@ -47,36 +47,77 @@
 #include "vdi.h"
 #include "version.h"
 
-WORD appl_init(void);
-WORD appl_exit(void);
-WORD graf_handle(WORD *,WORD *,WORD *,WORD *);
-extern WORD _global[];
-
 /****************************************************************************
  * Global variables                                                         *
  ****************************************************************************/
 
 GLOBALVARS	globals;
 char *p_fsel_extern = (char *)&globals.fsel_extern;
-
+WORD global[15];
 
 /****************************************************************************
  * Module global variables                                                  *
  ****************************************************************************/
 
-static WORD open_physical_ws = 0; /* Set this to 1 if you want to
-				     start oAESis without running
-				     GEM. */
-
+static WORD open_physical_ws; /* set in own_appl_init. jps */
 static BYTE versionstring[50];
 
 static WORD oldmode,oldmodecode;
 
 /****************************************************************************
+ * Module local functions                                                   *
+ ****************************************************************************/
+
+WORD own_appl_init(void) {
+    LONG addr_in[3],
+         addr_out[1];
+    WORD contrl[5] = { 10, 0, 1 , 0, 0 },
+         int_in[16],
+         int_out[7];
+
+    void *aespb[6] = { contrl, global, int_in, int_out, addr_in, addr_out };
+
+    global[0] = 0;                   /* clear AES version number  */
+    aescall(aespb); 
+    open_physical_ws = !(global[0]); /* if AES version still cleared,
+                                        no AES installed */
+
+    return(int_out[0]);
+}
+
+WORD own_appl_exit(void) {
+    LONG addr_in[3],
+         addr_out[1];
+    WORD contrl[5] = { 19, 0, 1 , 0, 0 },
+         int_in[16],
+         int_out[7];
+
+    void *aespb[6] = { contrl, global, int_in, int_out, addr_in, addr_out };
+
+    aescall(aespb);
+
+    return(int_out[0]);
+}
+
+WORD own_graf_handle(void) {
+    LONG addr_in[3],
+         addr_out[1];
+    WORD contrl[5] = { 77, 0, 5 , 0, 0 },
+         int_in[16],
+         int_out[7];
+
+    void *aespb[6] = { contrl, global, int_in, int_out, addr_in, addr_out };
+
+    aescall(aespb);
+
+    return(int_out[0]);
+}
+
+/****************************************************************************
  * Public functions                                                         *
  ****************************************************************************/
 
-void init_global(WORD physical) {
+void init_global(WORD nocnf) {
   WORD work_in[] = {1,1,1,1,1,1,1,1,1,1,2};
   WORD work_out[57];
   WORD dum;
@@ -105,33 +146,26 @@ void init_global(WORD physical) {
     globals.fsel_sorted = 1;
     globals.fsel_extern = 0;
   
-  Boot_parse_cnf();
-  
 /*
   _global[2] = -1;
   appl_init();
   DB_printf("_AESapid=%d\r\n",_global[2]);
 */
 
-  open_physical_ws = physical;
+    if(!nocnf) Boot_parse_cnf();
   
+    own_appl_init();
   if(open_physical_ws) {	
-    /* open up a vdi workstation to use in the process */
-    
-    work_in[0] = 5;
-
+        printf("No other AES found. Opening own Workstation.\r\n");
+        work_in[0] = 1; /* 5 */
     Vdi_v_opnwk(work_in,&globals.vid,work_out);
-
-    VsetScreen(NULL,NULL,globals.vmode,globals.vmodecode);
+/*        VsetScreen(NULL, NULL, globals.vmode, globals.vmodecode); */
   }
   else {
-    WORD dum;
-    
-    appl_init();
-    globals.vid = graf_handle(&dum,&dum,&dum,&dum);
-    
+        printf("Other AES detected.\r\n");
+        globals.vid = own_graf_handle();
     Vdi_v_clrwk(globals.vid);
-  };
+    }
   
   Vdi_vq_extnd(globals.vid,0,work_out);
   
@@ -215,9 +249,9 @@ void init_global(WORD physical) {
 
 void	exit_global(void) {
   if(open_physical_ws) {
-    VsetScreen(NULL,NULL,oldmode,oldmodecode);
+/*    VsetScreen(NULL,NULL,oldmode,oldmodecode); */
     
     Vdi_v_clswk(globals.vid);
-    appl_exit();
+    own_appl_exit();
   };
 }

@@ -243,8 +243,9 @@ WORD *handle,     /* Workstation handle.                                    */
 WORD *work_out)   /* Out parameters.                                        */
 /****************************************************************************/
 {
-	WORD  contrl[7];
-	VDIPB vdipb;
+/* static for NVDI's sake. jps */
+static	WORD  contrl[7];
+static	VDIPB vdipb;
 	
 	contrl[0] = 1;
 	contrl[1] = 0;

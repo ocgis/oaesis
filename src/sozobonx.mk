@@ -1,0 +1,63 @@
+#
+# Makefile for oAESis using SozobonX
+#
+# This makefile assumes, that mint libraries and includes for SozobonX are
+# in your standard paths.
+#
+
+NOWARNINGS = -D__LONG_TRAPS__ -D_TRAP_X_ -Dassert -D__assert
+# -D__LONG_TRAPS__, -D_TRAP_X_, -Dassert and -D__assert
+# are defined to avoid warnings with mint includes
+# as I don't like them (the warnings, not the mint includes ;)
+
+CFLAGS = -O $(NOWARNINGS)
+
+oaesis.prg: appl.o boot.o debug.o docalls.o evnt.o evnthndl.o form.o fsel.o \
+            global.o graf.o main.o menu.o misc.o mousedev.o objc.o \
+            resource.o rlist.o rsrc.o scrp.o shel.o sozobonx.o srv.o vdi.o \
+            wind.o
+
+appl.o:     appl.c appl.h mesagdef.h global.h types.h debug.h gemdefs.h srv.h
+boot.o:     boot.c debug.h types.h gemdefs.h global.h mintdefs.h misc.h srv.h
+debug.o:    debug.c debug.h types.h
+docalls.o:  docalls.c appl.h mesagdef.h global.h types.h debug.h evnt.h \
+            form.h fsel.h graf.h menu.h objc.h rsrc.h scrp.h shel.h wind.h \
+            rlist.h
+evnt.o:     evnt.c debug.h types.h evnt.h mesagdef.h global.h evnthndl.h \
+            gemdefs.h mintdefs.h resource.h srv.h
+evnthndl.o: evnthndl.c debug.h types.h evnt.h mesagdef.h global.h evnthndl.h \
+            gemdefs.h graf.h mintdefs.h misc.h mousedev.h objc.h resource.h \
+            srv.h vdi.h wmdefs.h
+form.o:     form.c debug.h types.h evnt.h mesagdef.h global.h evnthndl.h \
+            form.h gemdefs.h graf.h mintdefs.h objc.h resource.h srv.h
+fsel.o:     fsel.c debug.h types.h evnt.h mesagdef.h global.h form.h fsel.h \
+            gemdefs.h graf.h mintdefs.h misc.h objc.h resource.h rsrc.h srv.h
+global.o:   global.c boot.h types.h debug.h gemdefs.h global.h lxgemdos.h \
+            resource.h rsrc.h vdi.h version.h
+graf.o:     graf.c debug.h types.h evnt.h mesagdef.h global.h evnthndl.h \
+            gemdefs.h graf.h misc.h objc.h resource.h srv.h vdi.h
+main.o:     main.c debug.h types.h evnthndl.h graf.h global.h lxgemdos.h \
+            menu.h misc.h mousedev.h objc.h resource.h srv.h version.h
+menu.o:     menu.c boot.h types.h debug.h evnt.h mesagdef.h global.h form.h \
+            fsel.h gemdefs.h mintdefs.h menu.h misc.h objc.h resource.h \
+            rsrc.h srv.h
+misc.o:     misc.c gemdefs.h global.h types.h lxgemdos.h misc.h vdi.h
+mousedev.o: mousedev.c gemdefs.h global.h types.h lxgemdos.h mintdefs.h \
+            mousedev.h misc.h vdi.h
+objc.o:     objc.c debug.h types.h gemdefs.h global.h misc.h objc.h srv.h vdi.h
+resource.o: resource.c
+rlist.o:    rlist.c mintdefs.h misc.h types.h rlist.h
+rsrc.o:     rsrc.c debug.h types.h gemdefs.h global.h mintdefs.h rsrc.h \
+            shel.h srv.h vdi.h
+scrp.o:     scrp.c scrp.h types.h
+shel.o:     shel.c debug.h types.h gemdefs.h lxgemdos.h misc.h srv.h
+sozononx.o: sozononx.s lxgemdos.h
+srv.o:      srv.c debug.h types.h gemdefs.h global.h lxgemdos.h mesagdef.h \
+            mintdefs.h misc.h objc.h resource.h rlist.h srv.h vdi.h
+vdi.o:      vdi.c debug.h types.h lxgemdos.h vdi.h
+wind.o:     wind.c debug.h types.h gemdefs.h global.h mintdefs.h mesagdef.h \
+            misc.h objc.h resource.h rlist.h srv.h vdi.h wind.h
+
+
+
+

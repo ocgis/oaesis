@@ -16,6 +16,7 @@
 	XREF Moudev_handler
 
 	XREF p_fsel_extern
+	XREF aescall
 
 	TEXT
 	
@@ -128,6 +129,12 @@ VsetMode:
 	move.w #$58,-(sp)
 	trap   #14
 	addq.l #4,sp
+	rts
+
+aescall:
+	move.l a0,d1
+	move.l #200,d0
+	trap   #2
 	rts
 		
 	.even

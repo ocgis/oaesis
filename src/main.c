@@ -22,10 +22,10 @@
 
 #include	<sysvars.h>
 
-void init_aes(WORD physical) {
+void init_aes(WORD nocnf) {
   fprintf(stderr,"Initializing:\r\n");
   
-  init_global(physical);
+  init_global(nocnf);
 
   fprintf(stderr,"Server\r\n");
   Srv_init_module();
@@ -86,7 +86,7 @@ void exit_aes(void) {
 
 
 int main(int argc,BYTE *argv[],BYTE *envp[]) {
-  WORD physical = 0;
+  WORD nocnf = 0;
   WORD i;
   LONG mintval;
   
@@ -146,15 +146,15 @@ int main(int argc,BYTE *argv[],BYTE *envp[]) {
   }
   
   for(i = 1; i < argc; i++) {
-    if(!strcmp("--physical",argv[i])) {
-      physical = 1;
+    if(!strcmp("--nocnf",argv[i])) {
+      nocnf = 1;
     }
     else {
       fprintf(stderr,"Unknown option %s\r\n",argv[i]);
     };
   };
   
-  init_aes(physical);
+  init_aes(nocnf);
   
   Misc_setpath("u:\\");
   

@@ -88,29 +88,49 @@ void Boot_parse_cnf(void) /*                                                */
 {
   FILE *fp;
   BYTE line[200];
-  BYTE bootpath[] = "u:\\c\\";
   BYTE filepath[128];
+  BYTE homepath[128] = "\0";
   
-  BYTE *filelist[] = {
-    "mint\\oaesis.cnf",
-    "multitos\\oaesis.cnf",
-    "oaesis.cnf",
+  BYTE bootdrive = (get_sysvar(_bootdev) >> 16) + 'a';
+
+  BYTE *pathlist[] = {
+    homepath,
+    "u:\\?\\mint",
+    "u:\\?\\multitos",
+    "u:\\?",
     NULL
     };
   
   WORD i = 0;
   
-  bootpath[3] = (get_sysvar(_bootdev) >> 16) + 'a';
-  
-  fp = fopen("oaesis.cnf","r");
+  (pathlist[0])[3] = bootdrive;
+  (pathlist[1])[3] = bootdrive;
+  (pathlist[2])[3] = bootdrive;
+  (pathlist[3])[3] = bootdrive;
 
-  while(!fp && filelist[i]) {
-    sprintf(filepath,"%s%s",bootpath,filelist[i]);
+  if(getenv("HOME") != NULL) {
+    BYTE *tmp = homepath;
+
+    strcpy(homepath, getenv("HOME"));
+
+    while(*tmp) if(*tmp++ == '/') (tmp[-1] = '\\');
+    if(tmp[-1] == '\\') tmp[-1] = '\0';
+  }
+  else {
+    i++;
+  }
+  
+  do {
+    sprintf(filepath, "%s\\.oaesisrc", pathlist[i]);
+    fp = fopen(filepath, "r");
+
+    if(fp) break;
     
+    sprintf(filepath, "%s\\oaesis.cnf", pathlist[i]);
     fp = fopen(filepath,"r");
     
     i++;
-  };
+  } while(!fp && pathlist[i]);  
   
   if(!fp) {
     return;

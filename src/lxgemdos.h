@@ -20,3 +20,4 @@ void accstart(void);
 void VsetScreen(void *log,void *phys,WORD mode,WORD modecode);
 WORD VsetMode(WORD mode);
 #endif
+void aescall(void *aespb); 

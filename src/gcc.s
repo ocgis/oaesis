@@ -14,6 +14,7 @@
 	.globl	_oldbvec
 	.globl	_Moudev_handler
 	.globl	_p_fsel_extern
+        .globl _aescall
 
 	.text
 	
@@ -135,6 +136,12 @@ _VsetMode:
 	trap  #14
 	addql #4,sp
 	unlk  a6
+	rts
+
+_aescall:
+	movel sp@(4),d1
+	movel #200,d0
+	trap   #2
 	rts
 
 mmov:

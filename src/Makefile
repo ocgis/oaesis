@@ -6,7 +6,7 @@ CC = gcc
 AS = gcc
 LD = gcc
 MODEL = -mshort
-LDLIBS = -lgem16 -lc16
+#LDLIBS = -lc16
 
 
 DEFS = -D__MINT__ 

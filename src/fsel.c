@@ -41,6 +41,7 @@
 #include <unistd.h>
 
 #include "debug.h"
+#include "evnt.h"
 #include "form.h"
 #include "fsel.h"
 #include "gemdefs.h"
@@ -305,6 +306,88 @@ static DIRENTRY *find_entry(DIRDESC *dd,WORD pos) {
 	return walk;
 }
 
+static void slider_handle (WORD apid, WORD vid, WORD eventpipe, OBJECT *tree,
+			  RECT *clip, DIRDESC *dd) {
+
+  if(tree[FISEL_SLIDER].ob_height != tree[FISEL_SB].ob_height) {
+
+    WORD newpos,
+         oldpos = dd->pos,
+         slidpos,
+         oldslidpos = tree[FISEL_SLIDER].ob_y,
+         slidmax = tree[FISEL_SB].ob_height
+	             - tree[FISEL_SLIDER].ob_height, buffer[16];
+
+    EVENTIN ei = { MU_BUTTON | MU_M1,
+                   0x102,
+                   0,
+                   0,
+                   1,
+                   { globals.mouse_x, globals.mouse_y, 1, 1},
+                   0,
+                   {0, 0, 0, 0},
+                   0,
+                   0 };
+
+    EVENTOUT eo;
+
+    Srv_wind_update(apid, BEG_MCTRL);
+    Graf_do_mouse(vid, FLAT_HAND, NULL);
+    Objc_do_change(vid, tree, FISEL_SLIDER, clip, SELECTED, REDRAW);
+
+    while(1) {
+      Evnt_do_multi(apid, eventpipe, -1, &ei, (COMMSG *)buffer, &eo, 0);
+
+      if(eo.events & MU_BUTTON) {
+
+        Objc_do_change(vid, tree, FISEL_SLIDER, clip, 0, REDRAW);
+        Graf_do_mouse(vid, M_LAST, NULL);
+
+        if(eo.mb & RIGHT_BUTTON) {
+          dd->pos = oldpos;
+          get_files(tree, dd);
+          Objc_do_draw(vid, tree, FISEL_ENTBG, 9, clip);
+          Objc_do_draw(vid, tree, FISEL_SB, 9, clip);
+
+          if(eo.mb & LEFT_BUTTON) {
+            WORD dummy;
+
+            Evnt_do_button(apid,
+                           eventpipe,
+                           1,
+                           LEFT_BUTTON,
+                           0,
+                           &dummy,
+                           &dummy,
+                           &dummy,
+                           &dummy);
+          }
+        }
+        break;
+      }
+
+      if(eo.events & MU_M1) {
+        slidpos = oldslidpos - (ei.m1r.y - eo.my);
+        if(slidpos < 0) slidpos = 0;
+        if(slidpos > slidmax) slidpos = slidmax;
+        if(slidpos != oldslidpos) {
+          newpos = (WORD)(((LONG)(dd->num_files - FISEL_LAST + FISEL_FIRST - 1) * ((LONG)slidpos * 1000L / (LONG)slidmax)) / 1000L);
+          if(newpos != dd->pos) {
+             dd->pos = newpos;
+             get_files(tree, dd);
+             Objc_do_draw(vid, tree, FISEL_ENTBG, 9, clip);
+             Objc_do_draw(vid, tree, FISEL_SB, 9, clip);
+          }
+          oldslidpos = slidpos;
+        }
+        ei.m1r.x = eo.mx;
+        ei.m1r.y = eo.my;
+      }
+    }
+    Srv_wind_update(apid, END_MCTRL);
+  }
+}
+
 /****************************************************************************
  * Public functions                                                         *
  ****************************************************************************/
@@ -520,25 +603,7 @@ BYTE *file)         /* File name buffer.                                    */
 			break;
 		
 		case FISEL_SLIDER:
-			{
-				WORD newpos;
-				
-
-                Graf_do_mouse(vid, FLAT_HAND, NULL);
-			
-				Objc_do_change(vid,tree,FISEL_SLIDER,&clip,SELECTED,REDRAW);
-				newpos = Graf_do_slidebox(apid,vid,eventpipe,tree,FISEL_SB,FISEL_SLIDER,1);
-				
-				dd.pos = (WORD)(((LONG)(dd.num_files - FISEL_LAST + FISEL_FIRST - 1) * (LONG)newpos) / 1000L);
-				
-				get_files(tree,&dd);
-				Objc_do_change(vid,tree,FISEL_SLIDER,&clip,0,NO_DRAW);
-				Objc_do_draw(vid,tree,FISEL_ENTBG,9,&clip);
-				Objc_do_draw(vid,tree,FISEL_SB,9,&clip);
-
-                Graf_do_mouse(vid, M_LAST, NULL);
-
-			};
+      slider_handle(apid, vid, eventpipe, tree, &clip, &dd);
 			break;
 			
 		case FISEL_BACK:
@@ -597,12 +662,12 @@ BYTE *file)         /* File name buffer.                                    */
 
 				if(dent) {
 
-                        Graf_do_mouse(vid, BUSY_BEE, NULL);
-
 					if(dent->type & S_IFDIR) {
 						BYTE newpath[128];
 						BYTE *tmp;
 						
+            Graf_do_mouse(vid, BUSY_BEE, NULL);
+		
 						strcpy(newpath,path);
 							
 						tmp = strrchr(newpath,'\\');
