@@ -81,13 +81,11 @@ v   Fixed mover grabbing bug; if the mouse was moved during click on
 #include "mintdefs.h"
 #include "mesagdef.h"
 #include "lib_misc.h"
-/*#include "mousedev.h"*/
 #include "objc.h"
 #include "resource.h"
 #include "srv_calls.h"
 #include "types.h"
 #include "wind.h"
-/*#include "wm/wm.h"*/
 
 #ifdef HAVE_SYSVARS_H
 #include <sysvars.h>
@@ -97,16 +95,9 @@ v   Fixed mover grabbing bug; if the mouse was moved during click on
  * Macros                                                                   *
  ****************************************************************************/
 
-#define EVHD_APID     (-2)
 #define EVHD_WAITTIME 200
-#define EVHD_PIPE     "u:\\pipe\\aesmsg"
-
-#define MOUSE_SEM 0x6f4d4f55L  /*'oMOU'*/
 
 #define EACCESS 36
-
-#define MOUSE_LOCK  0x01010202
-#define UPDATE_LOCK 0x02020101
 
 /****************************************************************************
  * Typedefs of module global interest                                       *
@@ -136,20 +127,17 @@ typedef struct {
 
 static struct {
   WORD       evid;
-  REVENTLIST *eventlist;
-  
   WORD       lastervalid;
   EVNTREC    last_evntrec;
   WORD       mousefd;
   ULONG      lasttime;
 }evntglbl = {
   -1,
-  0L,
   0,
   {-1,-1},
   -1,
   0UL
-  };
+};
 
 static struct {
   RECT   area;
@@ -1033,83 +1021,6 @@ Evhd_handle_button (WORD apid,
   }
 }
 
-static void check_rectevents(WORD x,WORD y) {
-  REVENTLIST    **rl;
-  
-  struct {
-    EVNTREC       head;
-    EVNTREC_MOUSE tail;
-  }m;
-
-  /* This speeds things up when there is nothing in the list */
-  if(!evntglbl.eventlist) {
-    return;
-  };
-    
-  Psemaphore(SEM_LOCK,MOUSE_SEM,-1);
-  
-  rl = &evntglbl.eventlist;
-  
-  while(*rl) {
-    if((0 /*globals.mouse_owner*/ == -1) ||
-       (0 /*globals.mouse_owner*/ == (*rl)->event.apid)) {
-      WORD    sendflag = 0;
-      
-      if((*rl)->event.flag1 != -1) {
-        WORD insideflag = Misc_inside(&(*rl)->event.r1,x,y);
-                
-        if((insideflag && ((*rl)->event.flag1 == MO_ENTER)) ||
-           ((!insideflag) && ((*rl)->event.flag1 == MO_LEAVE))) {       
-          m.head.ap_event = MO_RECT1;
-          m.head.ap_value = (*rl)->event.apid;
-          m.tail.mx = x;
-          m.tail.my = y;
-          m.tail.buttons = 0 /*globals.mouse_button*/;
-          /*m.tail.kstate = TODO <--*/
-          
-          sendflag = 1; 
-        };
-      }
-      else if((*rl)->event.flag2 != -1) {
-        WORD insideflag = Misc_inside(&(*rl)->event.r2,x,y);
-        
-        if((insideflag && ((*rl)->event.flag2 == MO_ENTER)) ||
-           ((!insideflag) && ((*rl)->event.flag2 == MO_LEAVE))) {
-          m.head.ap_event = MO_RECT2;
-          m.head.ap_value = (*rl)->event.apid;
-          m.tail.mx = x;
-          m.tail.my = y;
-          m.tail.buttons = 0 /*globals.mouse_button*/;
-          /*m.tail.kstate = TODO <--*/
-          
-          sendflag = 1;
-        };
-      };
-
-      if(sendflag) {
-        REVENTLIST *tmp = *rl;
-
-        Srv_put_event(tmp->event.apid,&m,sizeof(EVNTREC) +
-                      sizeof(EVNTREC_MOUSE));
-        
-        /* Make sure that we only send one message => remove the entry*/
-        
-        *rl = (*rl)->next;
-
-        Mfree(tmp);
-      };
-                                    
-      if(!(*rl)) {
-        break;
-      };
-    };
-          
-    rl = &(*rl)->next;
-  };
-  
-  Psemaphore(SEM_UNLOCK,MOUSE_SEM,-1);
-}
-
 
 /*
 ** Description
@@ -1233,27 +1144,6 @@ update_appl_menu (WORD apid) {
   return topappl;
 }
 
-
-static void     getmenuxpos(WORD *x,WORD *width) {
-  OBJECT        *t;
-        
-  WORD start;
-        
-  *width = 0;
-
-  t = Srv_get_top_menu();
-        
-  if(t) {
-    start = t[t[0].ob_head].ob_head;
-        
-    *x = t[0].ob_x + t[t[0].ob_head].ob_x + t[start].ob_x;
-    *width = t[t[start].ob_tail].ob_x + t[t[start].ob_tail].ob_width;
-  }
-  else {
-    DB_printf("%s: Line %d: getmenuxpos:\r\n"
-              "Couldn't find top menu.\r\n",__FILE__,__LINE__);
-  };
-}
 
 static WORD     get_matching_menu(OBJECT *t,WORD n) {
   WORD parent,start,i = 0;
@@ -1660,174 +1550,3 @@ Evhd_handle_menu (WORD apid,
     DB_printf("Unknown action %d\r\n",hm_buffer.action);
   }
 }
-
-/****************************************************************************
- * Public functions                                                         *
- ****************************************************************************/
-
-/****************************************************************************
- * Evhd_init_module                                                         *
- *  Initiate event processing module.                                       *
- ****************************************************************************/
-void                   /*                                                   */
-Evhd_init_module(void) /*                                                   */
-/****************************************************************************/
-{       
-  /* Initialize internal mouse variables */
-
-  /*
-  Vdi_vq_mouse(globals.vid,&globals.mouse_button,
-               &globals.mouse_x,&globals.mouse_y);
-               */
-
-  /*  globals.evntpid = (WORD)Misc_fork(evnt_handler,0,"EvntHndl");*/
-
-  Psemaphore(SEM_CREATE,MOUSE_LOCK,-1);
-  Psemaphore(SEM_UNLOCK,MOUSE_LOCK,-1);
-  Psemaphore(SEM_CREATE,UPDATE_LOCK,-1);
-  Psemaphore(SEM_UNLOCK,UPDATE_LOCK,-1);
-  Psemaphore(SEM_CREATE,MOUSE_SEM,-1);
-  Psemaphore(SEM_UNLOCK,MOUSE_SEM,-1);
-}
-
-/****************************************************************************
- * Evhd_exit_module                                                         *
- *  Shutdown event processing module.                                       *
- ****************************************************************************/
-void                   /*                                                   */
-Evhd_exit_module(void) /*                                                   */
-/****************************************************************************/
-{
-  Psemaphore(SEM_LOCK,MOUSE_SEM,-1);
-
-  /*
-  (void)Pkill(globals.evntpid,SIGKILL);
-  */
-  
-  Psemaphore(SEM_DESTROY,MOUSE_SEM,-1);
-}
-
-/****************************************************************************
- * Evhd_make_rectevent                                                      *
- *  Start reporting of mouse events.                                        *
- ****************************************************************************/
-void                   /*                                                   */
-Evhd_make_rectevent(   /*                                                   */
-RECTEVENT *re)         /* Description of events that should be reported.    */
-/****************************************************************************/
-{
-  REVENTLIST *rl = (REVENTLIST *)Mxalloc(sizeof(REVENTLIST),GLOBALMEM);
-  
-  Psemaphore(SEM_LOCK,MOUSE_SEM,-1);
-  
-  rl->event = *re;
-  rl->next = evntglbl.eventlist;
-  evntglbl.eventlist = rl;
-  
-  Psemaphore(SEM_UNLOCK,MOUSE_SEM,-1);
-
-  /*
-  check_rectevents(globals.mouse_x,globals.mouse_y);
-  */
-}
-
-/****************************************************************************
- * Evhd_kill_rectevent                                                      *
- *  End reporting of mouse events.                                          *
- ****************************************************************************/
-void                   /*                                                   */
-Evhd_kill_rectevent(   /*                                                   */
-WORD apid)             /* Application id to end reporting to.               */
-/****************************************************************************/
-{
-  REVENTLIST    **rl;
-  
-  Psemaphore(SEM_LOCK,MOUSE_SEM,-1);
-  
-  rl = &evntglbl.eventlist;
-  
-  while(*rl) {
-    if((*rl)->event.apid == apid) {
-      REVENTLIST        *tmp = *rl;
-      
-      *rl = tmp->next;
-      
-      Mfree(tmp);
-      break;
-    };
-    
-    rl = &(*rl)->next;
-  };
-  
-  Psemaphore(SEM_UNLOCK,MOUSE_SEM,-1);
-}
-
-
-/* FIXME
-** Remove!!!
-*/
-#if 0
-/****************************************************************************
- * Evhd_wind_update                                                         *
- *  Get / release update semaphore.                                         *
- ****************************************************************************/
-WORD                   /*                                                   */
-Evhd_wind_update(      /*                                                   */
-WORD apid,             /* Application id.                                   */
-WORD mode)             /* Mode.                                             */
-/****************************************************************************/
-{
-  static WORD update_lock = 0,update_cnt = 0;
-  static WORD mouse_lock,mouse_cnt = 0;
-
-  WORD clnt_pid = Pgetpid();
-  long timeout = (mode & 0x100) ? 0L : -1L; /* test for check-and-set mode */
-  
-  switch(mode & 0xff) {
-  case BEG_UPDATE:      /* Grab the update lock */
-  case BEG_UPDATE|0x100:
-    if (update_lock==clnt_pid) {
-      update_cnt++ ;
-      break ;
-    }
-
-    if(Psemaphore(2,UPDATE_LOCK,timeout) == -EACCESS) {
-      return 0; /* screen locked by different process */
-    }
-
-    update_lock=clnt_pid;
-    update_cnt=1 ;
-    break;
-  
-  case END_UPDATE:
-    if ((update_lock == clnt_pid) && (--update_cnt == 0)) {
-      update_lock=FALSE;
-      Psemaphore(3,UPDATE_LOCK,0);
-    }
-    break;
-  
-  case BEG_MCTRL:               /* Grab the mouse lock */
-  case BEG_MCTRL|0x100:
-    if (mouse_lock==clnt_pid) {
-      mouse_cnt++ ;
-      break ;
-    }
-     
-    if (Psemaphore(2,MOUSE_LOCK,timeout) == -EACCESS) {
-      return 0; /* mouse locked by different process */
-    }
-    
-    mouse_lock=clnt_pid;
-    mouse_cnt=1 ;
-    break;
-    
-  case END_MCTRL:
-    if ((mouse_lock==clnt_pid)&&(--mouse_cnt==0)) {
-      mouse_lock=FALSE;
-      Psemaphore(3,MOUSE_LOCK,0);
-    }
-  }
-
-  return 1;
-}
-#endif

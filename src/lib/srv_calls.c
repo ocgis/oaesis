@@ -124,51 +124,6 @@ BYTE *fname)      /* File name of application to seek.                      */
 
 
 /****************************************************************************
- * Srv_click_owner                                                          *
- *  Find out which application that "owns" mouse clicks.                    *
- ****************************************************************************/
-WORD                    /* Application to receive clicks.                   */
-Srv_click_owner(void)   /*                                                  */
-/****************************************************************************/
-{
-  C_CLICK_OWNER par;
-	
-  return Srv_put (0, SRV_CLICK_OWNER, &par);
-}
-
-
-/****************************************************************************
- * Srv_get_top_menu                                                         *
- *  Get the resource tree of the menu of an application                     *
- ****************************************************************************/
-OBJECT *                /* Resource tree, or NULL.                          */
-Srv_get_top_menu(void)  /*                                                  */
-/****************************************************************************/
-{
-  C_GET_TOP_MENU par;
-	
-  return (OBJECT *)Srv_put (0, SRV_GET_TOP_MENU, &par);
-}
-
-
-/****************************************************************************
- * Srv_get_wm_info                                                          *
- *  Get window manager info on window.                                      *
- ****************************************************************************/
-void *            /* Pointer to window manager structure, or NULL.          */
-Srv_get_wm_info(  /*                                                        */
-WORD id)          /* Window handle.                                         */
-/****************************************************************************/
-{
-  C_GET_WM_INFO par;
-	
-  par.id = id;
-	
-  return (OBJECT *)Srv_put (0, SRV_GET_WM_INFO, &par);
-}
-
-
-/****************************************************************************
  * Srv_shel_envrn                                                           *
  *  Implementation of shel_envrn().                                         *
  ****************************************************************************/
@@ -243,25 +198,5 @@ WORD apid)     /* Application whose windows should be erased.               */
 	C_WIND_NEW par;
 
 	return Srv_put (apid, SRV_WIND_NEW, &par);
-}
-
-/****************************************************************************
- * Srv_put_event                                                            *
- *  Put event message in event pipe                                         *
- ****************************************************************************/
-WORD              /*  0 if ok or -1                                         */
-Srv_put_event(    /*                                                        */
-WORD    apid,     /* Id of application that is to receive a message.        */
-void    *m,       /* Message to be sent.                                    */
-WORD    length)   /* Length of message.                                     */
-/****************************************************************************/
-{
-	C_PUT_EVENT par;
-	
-	par.apid = apid;
-	par.er = m;
-	par.length = length;
-	
-	return Srv_put (apid, SRV_PUT_EVENT, &par);
 }
 

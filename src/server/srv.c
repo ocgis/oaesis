@@ -824,42 +824,6 @@ SRV_APPL_INFO *appl_info)  /* Returned info.                                */
 }
 
 
-/*
-** Description
-** Get physical vdi handle of oaesis
-**
-** 1998-11-15 CG
-** 1999-01-09 CG
-*/
-static
-void
-srv_get_vdi_id (C_GET_VDI_ID * par,
-            R_GET_VDI_ID * ret) {
-  ret->vid = globals.vid;
-}
-
-
-/****************************************************************************
- * srv_get_wm_info                                                          *
- *  Get window manager info on window.                                      *
- ****************************************************************************/
-int                  /*                                                     */
-srv_get_wm_info(     /*                                                     */
-C_GET_WM_INFO * msg) /*                                                     */
-/****************************************************************************/
-{
-  WINSTRUCT *win = find_wind_description (msg->id);
-  
-  if(win) {
-    msg->retval = win->tree;
-  } else {
-    msg->retval = NULL;
-  }
-
-  return 1;
-}
-
-
 /****************************************************************************
  * set_menu                                                                 *
  *  Set the resource tree of the menu of an application                     *
@@ -896,25 +860,6 @@ get_top_menu_owner (void) {
   }
 }
 
-
-/****************************************************************************
- * srv_get_top_menu                                                         *
- *  Get the resource tree of the menu of an application                     *
- ****************************************************************************/
-int                                     /*                                  */
-srv_get_top_menu(C_GET_TOP_MENU * msg)  /*                                  */
-/****************************************************************************/
-{
-  AP_INFO *ai = search_appl_info(TOP_MENU_OWNER);
-  
-  if(ai) {
-    msg->retval = ai->menu;
-  } else {
-    msg->retval = NULL;
-  }
-  
-  return 1;
-}
 
 /****************************************************************************
  * unregister_menu                                                          *
@@ -3626,49 +3571,6 @@ WORD apid)     /* Application whose windows should be erased.               */
   return 1;
 }
 
-/****************************************************************************
- * srv_put_event                                                            *
- *  Put event message in event pipe                                         *
- ****************************************************************************/
-WORD              /*  0 if ok or -1                                         */
-srv_put_event(    /*                                                        */
-WORD    apid,     /* Id of application that is to receive a message.        */
-C_PUT_EVENT *msg)
-/****************************************************************************/
-{
-	AP_INFO *ai;
-	WORD    retval = 0;
-
-	ai = search_appl_info(apid);			
-
-	if(ai) {
-		LONG fd = Fopen(ai->eventname,O_WRONLY);
-
-		if(fd >= 0) {
-			Fwrite((WORD)fd, msg->length, msg->er);
-			Fclose((WORD)fd);
-		}			
-		else {
-			DB_printf("%s: Line %d:\r\n"
-				"Couldn't open event pipe %s. apid=%d error code=%ld\r\n",
-				__FILE__,__LINE__,ai->eventname,ai->id,fd);
-
-			retval = -1;
-		};
-	}
-	else
-	{
-		DB_printf(
-			"%s: Line %d: Couldn't find description of application %d\r\n",
-			__FILE__,__LINE__,apid);
-
-		retval = -1;
-	};
-
-	return retval;
-}
-
-
 
 /* Description
 ** Copy MFDB with network order conversion
@@ -3934,35 +3836,8 @@ server (LONG arg) {
         Srv_reply (handle, &ret, sizeof (R_APPL_WRITE));
         break;
         
-      case SRV_CLICK_OWNER:
-        code = 
-          srv_click_owner(0, 0); /* FIXME: Remove call? */
-        
-        Srv_reply (handle, &par, code);
-        break;
-        
       case SRV_EVNT_MULTI:
         srv_wait_for_event (handle, &par.evnt_multi);
-        break;
-        
-      case SRV_GET_TOP_MENU:
-        code = 
-          srv_get_top_menu (&par.get_top_menu);
-        
-        Srv_reply (handle, &par, code);
-        break;
-        
-      case SRV_GET_VDI_ID :
-        srv_get_vdi_id (&par.get_vdi_id, &ret.get_vdi_id);
-        
-        Srv_reply (handle, &ret, sizeof (R_GET_VDI_ID));
-        break;
-        
-      case SRV_GET_WM_INFO:
-        code = 
-          srv_get_wm_info (&par.get_wm_info);
-        
-        Srv_reply (handle, &par, code);
         break;
         
       case SRV_GRAF_MKSTATE :
@@ -3987,13 +3862,6 @@ server (LONG arg) {
         srv_menu_register (&par.menu_register, &ret.menu_register);
         
         Srv_reply (handle, &par, sizeof (R_MENU_REGISTER));
-        break;
-        
-      case SRV_PUT_EVENT:
-        code = 
-          srv_put_event (apid, &par.put_event);
-        
-        Srv_reply (handle, &par, code);
         break;
         
       case SRV_SHEL_ENVRN:

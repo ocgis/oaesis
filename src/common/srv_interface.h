@@ -15,16 +15,11 @@ enum {
   SRV_APPL_FIND     =  13,
   SRV_APPL_SEARCH   =  18,
   SRV_APPL_EXIT     =  19,
-  SRV_CLICK_OWNER,
   SRV_EVNT_MULTI    =  25,
-  SRV_GET_TOP_MENU,
-  SRV_GET_WM_INFO,
-  SRV_GET_VDI_ID,
   SRV_MENU_BAR      =  30,
   SRV_MENU_REGISTER =  35,
   SRV_GRAF_MOUSE    =  78,
   SRV_GRAF_MKSTATE  =  79,
-  SRV_PUT_EVENT,
   SRV_WIND_DRAW,
   SRV_WIND_CREATE   = 100,
   SRV_WIND_OPEN     = 101,
@@ -121,10 +116,6 @@ typedef struct {
   R_ALL common;
 } R_APPL_WRITE;
 
-typedef struct {
-  WORD retval;
-}C_CLICK_OWNER;
-
 /*
 ** Events used in evnt_multi
 */
@@ -145,24 +136,6 @@ typedef struct {
   COMMSG   msg;
   EVENTOUT eventout;
 }R_EVNT_MULTI;
-
-typedef struct {
-  void *retval;
-}C_GET_TOP_MENU;
-
-typedef struct {
-  C_ALL common;
-} C_GET_VDI_ID;
-
-typedef struct {
-  R_ALL common;
-  WORD  vid;
-} R_GET_VDI_ID;
-
-typedef struct {
-  WORD id;
-  void *retval;
-}C_GET_WM_INFO;
 
 typedef struct {
   C_ALL common;
@@ -204,13 +177,6 @@ typedef struct {
 typedef struct {
   R_ALL common;
 } R_MENU_REGISTER;
-
-typedef struct {
-  WORD    apid;
-  EVNTREC *er;
-  WORD    length;
-  WORD    retval;
-}C_PUT_EVENT;
 
 typedef struct {
   WORD pid;
@@ -351,16 +317,11 @@ typedef union {
   C_APPL_INIT     appl_init;
   C_APPL_SEARCH   appl_search;
   C_APPL_WRITE    appl_write;
-  C_CLICK_OWNER   click_owner;
   C_EVNT_MULTI    evnt_multi;
-  C_GET_TOP_MENU  get_top_menu;
-  C_GET_VDI_ID    get_vdi_id;
-  C_GET_WM_INFO   get_wm_info;
   C_GRAF_MKSTATE  graf_mkstate;
   C_GRAF_MOUSE    graf_mouse;
   C_MENU_BAR      menu_bar;
   C_MENU_REGISTER menu_register;
-  C_PUT_EVENT     put_event;
   C_REGISTER_PRG  register_prg;
   C_SHEL_ENVRN    shel_envrn;
   C_SHEL_WRITE    shel_write;
@@ -386,7 +347,6 @@ typedef union {
   R_APPL_SEARCH   appl_search;
   R_APPL_WRITE    appl_write;
   R_EVNT_MULTI    evnt_multi;
-  R_GET_VDI_ID    get_vdi_id;
   R_GRAF_MKSTATE  graf_mkstate;
   R_GRAF_MOUSE    graf_mouse;
   R_MENU_BAR      menu_bar;
