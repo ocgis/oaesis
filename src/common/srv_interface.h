@@ -28,7 +28,9 @@ enum {
   SRV_WIND_FIND     = 106,
   SRV_WIND_UPDATE   = 107,
   SRV_WIND_NEW      = 109,
-  SRV_VDI_CALL      = 200
+  SRV_VDI_CALL      = 200,
+  SRV_MALLOC        = 300,
+  SRV_FREE          = 301
 };
 
 
@@ -295,6 +297,25 @@ typedef struct {
   WORD  outpar[140+145];
 } R_VDI_CALL;
 
+typedef struct {
+  C_ALL common;
+  ULONG amount;
+} C_MALLOC;
+
+typedef struct {
+  R_ALL common;
+  ULONG address;
+} R_MALLOC;
+
+typedef struct {
+  C_ALL common;
+  ULONG address;
+} C_FREE;
+
+typedef struct {
+  R_ALL common;
+} R_FREE;
+
 typedef union {
   C_ALL           common;
   C_APPL_CONTROL  appl_control;
@@ -318,6 +339,8 @@ typedef union {
   C_WIND_SET      wind_set;
   C_WIND_UPDATE   wind_update;
   C_VDI_CALL      vdi_call;
+  C_MALLOC        malloc;
+  C_FREE          free;
 } C_SRV;
 
 
@@ -344,6 +367,8 @@ typedef union {
   R_WIND_SET      wind_set;
   R_WIND_UPDATE   wind_update;
   R_VDI_CALL      vdi_call;
+  R_MALLOC        malloc;
+  R_FREE          free;
 } R_SRV;
 
 /*

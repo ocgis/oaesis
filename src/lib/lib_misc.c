@@ -46,12 +46,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <netinet/in.h>
 #include <vdibind.h>
 
 #include "aesbind.h"
 #include "lib_global.h"
 /*#include "lxgemdos.h"*/
 #include "lib_misc.h"
+#include "srv_put.h"
+#include "srv_interface.h"
 #include "types.h"
 
 #ifdef HAVE_SYSVARS_H
@@ -190,4 +193,60 @@ BYTE *dir)        /* New directory.                                         */
 	};
 	
 	return 0;
+}
+
+
+/****************************************************************************
+ * Misc_Vdi_Malloc                                                          *
+ *  Reserve a memory block for use with VDI calls. The server does the      *
+ *  actual malloc if VDI calls are tunnelled.                               *
+ ****************************************************************************/
+void *              /* Address of reserved memory.                          */
+Misc_Vdi_Malloc(    /*                                                      */
+size_t amount)      /* Amount of bytes to reserve.                          */ 
+/****************************************************************************/
+{
+#ifdef TUNNEL_VDI_CALLS
+  C_MALLOC par;
+  R_MALLOC ret;
+
+  par.common.call = htons (SRV_MALLOC);
+  par.amount = htonl ((ULONG)amount);
+
+  /* Pass the call to the server */
+  Client_send_recv (&par,
+                    sizeof (C_MALLOC),
+                    &ret,
+                    sizeof (R_MALLOC));
+  
+  return (void *)ntohl (ret.address);
+#else /* TUNNEL_VDI_CALLS */
+  return malloc (amount);
+#endif /* TUNNEL_VDI_CALLS */
+}
+
+/****************************************************************************
+ * Misc_Vdi_Free                                                            *
+ *  Free a memory block reserved by Misc_Vdi_Malloc.                        *
+ ****************************************************************************/
+void                /*                                                      */
+Misc_Vdi_Free(      /*                                                      */
+void *address)      /* Pointer to block to free.                            */ 
+/****************************************************************************/
+{
+#ifdef TUNNEL_VDI_CALLS
+  C_FREE par;
+  R_FREE ret;
+
+  par.common.call = htons (SRV_FREE);
+  par.address = htonl ((ULONG)address);
+
+  /* Pass the call to the server */
+  Client_send_recv (&par,
+                    sizeof (C_FREE),
+                    &ret,
+                    sizeof (R_FREE));  
+#else /* TUNNEL_VDI_CALLS */
+  free (address);
+#endif /* TUNNEL_VDI_CALLS */
 }

@@ -3109,6 +3109,17 @@ server (LONG arg) {
                       &par.vdi_call);
         break;
 
+      case SRV_MALLOC:
+        ret.malloc.address = (ULONG)malloc (par.malloc.amount);
+        Srv_reply (handle, &ret, sizeof (R_MALLOC));
+        break;
+
+      case SRV_FREE:
+        free ((void *)par.free.address);
+
+        Srv_reply (handle, &ret, sizeof (R_FREE));
+        break;
+
       default:
         DB_printf("%s: Line %d:\r\n"
                   "Unknown call %d to server!",

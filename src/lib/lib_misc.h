@@ -60,3 +60,23 @@ WORD fnamelen,      /* Length of filename buffer.                           */
 BYTE *cmdlin,       /* Command line buffer.                                 */
 BYTE *fname);       /* File name buffer.                                    */
 /****************************************************************************/
+
+/****************************************************************************
+ * Misc_Vdi_Malloc                                                          *
+ *  Reserve a memory block for use with VDI calls. The server does the      *
+ *  actual malloc if VDI calls are tunneled.                                *
+ ****************************************************************************/
+void *              /* Address of reserved memory.                          */
+Misc_Vdi_Malloc(    /*                                                      */
+size_t amount);     /* Amount of bytes to reserve.                          */ 
+/****************************************************************************/
+
+/****************************************************************************
+ * Misc_Vdi_Free                                                            *
+ *  Free a memory block reserved by Misc_Vdi_Malloc.                        *
+ ****************************************************************************/
+void                /*                                                      */
+Misc_Vdi_Free(      /*                                                      */
+void *address);     /* Pointer to block to free.                            */ 
+/****************************************************************************/
+
