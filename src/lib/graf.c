@@ -81,8 +81,6 @@ static MFORM m_arrow,m_text_crsr,m_busy_bee,m_point_hand,m_flat_hand,
              m_thin_cross,m_thick_cross,m_outln_cross;
 static MFORM current,last,last_saved;
 
-static int grafvid;
-
 /****************************************************************************
  * Local functions (use static!)                                            *
  ****************************************************************************/
@@ -122,14 +120,6 @@ icon2mform(MFORM  *  mf,
 void Graf_init_module(void) {   
   int work_in[] = {1,7,1,1,1,1,1,1,1,1,2};
   int work_out[57];
-
-  /*
-  grafvid = globals->common->vid;
-  */
-  v_opnvwk(work_in,&grafvid,work_out);
-  
-  Psemaphore(SEM_CREATE,GRAFSEM,-1);
-  Psemaphore(SEM_UNLOCK,GRAFSEM,-1);
 
   /*
   icon2mform (&m_arrow, &globals->common->mouseformstad[MARROW]);
@@ -483,32 +473,33 @@ Graf_dragbox (AES_PB *apb) {
 }
 
 
-/****************************************************************************
- * Graf_do_grmobox                                                          *
- *  Implementation of graf_growbox() and graf_movebox().                    *
- ****************************************************************************/
-WORD              /*                                                        */
-Graf_do_grmobox(  /*                                                        */
-RECT *r1,         /* Start rectangle.                                       */
-RECT *r2)         /* End rectangle.                                         */
-/****************************************************************************/
+/*
+** Description
+** Implementation of graf_growbox() and graf_movebox()
+*/
+WORD
+Graf_do_grmobox(WORD   apid,
+                RECT * r1,
+                RECT * r2)
 {
   WORD f,g;
   int  xy[10];
+  GLOBAL_APPL * globals = get_globals(apid);
   
   WORD dx = (r2->x - r1->x) / GRAF_STEPS;
   WORD dy = (r2->y - r1->y) / GRAF_STEPS;
   WORD dw = (r2->width - r1->width) / GRAF_STEPS;
   WORD dh = (r2->height - r1->height) / GRAF_STEPS;
   
-  Psemaphore(SEM_LOCK,GRAFSEM,-1);
+  Wind_do_update(apid, BEG_UPDATE);
 
-  vswr_mode(grafvid,MD_XOR);
-  vsl_type(grafvid,3);
+  vswr_mode(globals->vid,MD_XOR);
+  vsl_type(globals->vid,3);
   
-  v_hide_c(grafvid);
+  v_hide_c(globals->vid);
   
-  for(g = 0; g < 2; g++) {
+  for(g = 0; g < 2; g++)
+  {
     xy[0] = r1->x;
     xy[1] = r1->y;
     xy[2] = r1->x + r1->width - 1;
@@ -520,10 +511,11 @@ RECT *r2)         /* End rectangle.                                         */
     xy[8] = xy[0];
     xy[9] = xy[1];
     
-    for(f=0; f < GRAF_STEPS; f++) { 
+    for(f=0; f < GRAF_STEPS; f++)
+    { 
       /* Draw initial growing outline */
       
-      v_pline(grafvid,5,xy);
+      v_pline(globals->vid,5,xy);
         
       xy[0] += dx;
       xy[1] += dy;
@@ -538,11 +530,9 @@ RECT *r2)         /* End rectangle.                                         */
     }
   }
   
-  v_show_c(grafvid,1);
+  v_show_c(globals->vid, 1);
   
-  vswr_mode(grafvid,MD_TRANS);
-  
-  Psemaphore(SEM_LOCK,GRAFSEM,-1);
+  Wind_do_update(apid, END_UPDATE);
 
   return 1;
 }
@@ -558,7 +548,8 @@ Graf_movebox (AES_PB *apb) {
   RECT r1,r2;
   GLOBAL_APPL * globals = get_globals (apb->global->apid);
 
-  if(globals->common->graf_mbox) {
+  if(globals->common->graf_mbox)
+  {
     r1.x = apb->int_in[2];
     r1.y = apb->int_in[3];
     r1.width = apb->int_in[0];
@@ -569,12 +560,10 @@ Graf_movebox (AES_PB *apb) {
     r2.width = apb->int_in[0];
     r2.height = apb->int_in[1];
     
-    Wind_do_update (apb->global->apid, BEG_UPDATE);
-    
-    apb->int_out[0] = Graf_do_grmobox(&r1,&r2);
-    
-    Wind_do_update (apb->global->apid, END_UPDATE);
-  } else {
+    apb->int_out[0] = Graf_do_grmobox(apb->global->apid, &r1, &r2);
+  }
+  else
+  {
     apb->int_out[0] = 1;
   }
 }
@@ -582,19 +571,20 @@ Graf_movebox (AES_PB *apb) {
 
 /*
 ** Exported
-**
-** 1999-01-11 CG
 */
 void
-Graf_growbox (AES_PB *apb) {
+Graf_growbox(AES_PB *apb)
+{
   GLOBAL_APPL * globals = get_globals (apb->global->apid);
 
-  if(globals->common->graf_growbox) {
-    Wind_do_update (apb->global->apid, BEG_UPDATE);
-    apb->int_out[0] = Graf_do_grmobox((RECT *)&apb->int_in[0],
+  if(globals->common->graf_growbox)
+  {
+    apb->int_out[0] = Graf_do_grmobox(apb->global->apid,
+                                      (RECT *)&apb->int_in[0],
                                       (RECT *)&apb->int_in[4]);
-    Wind_do_update (apb->global->apid, END_UPDATE);
-  } else {
+  }
+  else
+  {
     apb->int_out[0] = 1;
   }
 }
@@ -602,19 +592,19 @@ Graf_growbox (AES_PB *apb) {
 
 /*
 ** Exported
-**
-** 1999-01-11 CG
 */
 void
 Graf_shrinkbox (AES_PB * apb) {
   GLOBAL_APPL * globals = get_globals (apb->global->apid);
 
-  if(globals->common->graf_shrinkbox) {
-    Wind_do_update (apb->global->apid, BEG_UPDATE);
-    apb->int_out[0] = Graf_do_grmobox((RECT *)&apb->int_in[4], 
+  if(globals->common->graf_shrinkbox)
+  {
+    apb->int_out[0] = Graf_do_grmobox(apb->global->apid,
+                                      (RECT *)&apb->int_in[4], 
                                       (RECT *)&apb->int_in[0]);
-    Wind_do_update (apb->global->apid, END_UPDATE);
-  } else {
+  }
+  else
+  {
     apb->int_out[0] = 1;
   }
 }

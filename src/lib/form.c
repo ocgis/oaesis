@@ -171,10 +171,6 @@ Form_do (AES_PB *apb) {
 
 /*
 ** Exported
-**
-** 1998-12-20 CG
-** 1999-01-02 CG
-** 1999-01-11 CG
 */
 WORD
 Form_do_dial (WORD   apid,
@@ -185,10 +181,9 @@ Form_do_dial (WORD   apid,
     
   switch(mode) {
   case	FMD_GROW		:	/*0x0001*/
-    if(globals->common->graf_growbox) {
-      Wind_do_update (apid, BEG_UPDATE);
-      Graf_do_grmobox(r1,r2);
-      Wind_do_update (apid, END_UPDATE);
+    if(globals->common->graf_growbox)
+    {
+      Graf_do_grmobox(apid, r1, r2);
     }
     return 1;
 					
@@ -240,10 +235,9 @@ Form_do_dial (WORD   apid,
     };
 
   case	FMD_SHRINK	:	/*0x0002*/
-    if(globals->common->graf_shrinkbox) {
-      Wind_do_update (apid, BEG_UPDATE);
-      Graf_do_grmobox(r2,r1);
-      Wind_do_update (apid, END_UPDATE);
+    if(globals->common->graf_shrinkbox)
+    {
+      Graf_do_grmobox(apid, r2, r1);
     }
 
   case	FMD_FINISH	:	/*0x0003*/

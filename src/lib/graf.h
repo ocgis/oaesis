@@ -40,15 +40,14 @@ Graf_do_rubberbox (WORD   apid,
 
 void Graf_do_handle(WORD *cwidth,WORD *cheight,WORD *width,WORD *height);
 
-/****************************************************************************
- * Graf_do_grmobox                                                          *
- *  Implementation of graf_growbox() and graf_movebox().                    *
- ****************************************************************************/
-WORD              /*                                                        */
-Graf_do_grmobox(  /*                                                        */
-RECT *r1,         /* Start rectangle.                                       */
-RECT *r2);        /* End rectangle.                                         */
-/****************************************************************************/
+/*
+** Description
+** Implementation of graf_growbox() and graf_movebox()
+*/
+WORD
+Graf_do_grmobox(WORD   apid,
+                RECT * r1,
+                RECT * r2);
 
 /*
 ** Description
