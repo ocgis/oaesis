@@ -585,6 +585,7 @@ WORD     level)      /* Number of times the function has been called by     */
 ** 1999-01-09 CG
 ** 1999-03-21 CG
 ** 1999-04-10 CG
+** 1999-05-24 CG
 */
 void
 Evnt_do_multi (WORD       apid,
@@ -597,6 +598,7 @@ Evnt_do_multi (WORD       apid,
   C_EVNT_MULTI  par;
   R_EVNT_MULTI  ret;
   GLOBAL_APPL * globals = get_globals (apid);
+  WORD          events_out = 0;
 
   par.common.call = SRV_EVNT_MULTI;
   par.common.apid = apid;
@@ -609,41 +611,53 @@ Evnt_do_multi (WORD       apid,
     par.eventin.menu_bar = globals->menu_bar_rect;
   }
 
-  Client_send_recv (&par,
-                    sizeof (C_EVNT_MULTI),
-                    &ret,
-                    sizeof (R_EVNT_MULTI));
-
-  /* Handle messages */
-  if (ret.eventout.events & MU_MENU_BAR) {
-    Evhd_handle_menu (apid);
-
-    ret.eventout.events &= ~MU_MENU_BAR;
-  }
-
-  if (ret.eventout.events & MU_MESAG) {
-    if (ret.msg.type == WM_REDRAW) {
-      /* Redraw window borders */
-      Graf_do_mouse (apid, M_OFF, NULL);
-      Wind_do_update (apid, BEG_UPDATE);
-      Wind_redraw_elements (apid, ret.msg.msg0, (RECT *)&ret.msg.msg1, 0);
-      Wind_do_update (apid, END_UPDATE);
-      Graf_do_mouse (apid, M_ON, NULL);
-    }
-  }
-
-  if (ret.eventout.events & MU_BUTTON) {
-    Evhd_handle_button (apid,
-                        ret.eventout.mb,
+  /* Loop until a user event has been found */
+  while (events_out == 0) {
+    Client_send_recv (&par,
+                      sizeof (C_EVNT_MULTI),
+                      &ret,
+                      sizeof (R_EVNT_MULTI));
+    
+    /* Handle messages */
+    if (ret.eventout.events & MU_MENU_BAR) {
+      Evhd_handle_menu (apid,
                         ret.eventout.mx,
                         ret.eventout.my);
-  }
+    }
+    
+    if (ret.eventout.events & MU_MESAG) {
+      if (ret.msg.type == WM_REDRAW) {
+        /* Redraw window borders */
+        Graf_do_mouse (apid, M_OFF, NULL);
+        Wind_do_update (apid, BEG_UPDATE);
+        Wind_redraw_elements (apid, ret.msg.msg0, (RECT *)&ret.msg.msg1, 0);
+        Wind_do_update (apid, END_UPDATE);
+        Graf_do_mouse (apid, M_ON, NULL);
+      }
 
-  if (eventin->events & MU_MESAG) {
-    *msg = ret.msg;
-  }
+      if (eventin->events & MU_MESAG) {
+        *msg = ret.msg;
+        events_out |= MU_MESAG;
+      }
+    }
+    
+    if (ret.eventout.events & MU_BUTTON) {
+      events_out |= Evhd_handle_button (apid,
+                                        ret.eventout.mb,
+                                        ret.eventout.mx,
+                                        ret.eventout.my,
+                                        par.eventin.bmask,
+                                        par.eventin.bstate);
+    }
+
+    if (ret.eventout.events & (MU_KEYBD | MU_M1 | MU_M2 | MU_TIMER)) {
+      events_out |=
+        ret.eventout.events & (MU_KEYBD | MU_M1 | MU_M2 | MU_TIMER);
+    }
+  } /* end while (events_out == 0) */
 
   *eventout = ret.eventout;
+  eventout->events = events_out;
 }
 
 

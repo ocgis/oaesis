@@ -157,109 +157,7 @@ static struct {
   {0, 0, 0, 0}
 };
 
-static WORD mouse_x;
-static WORD mouse_y;
-static WORD mouse_button;
-
 static WORD iconify_x = 0;
-
-/****************************************************************************
- * Local functions (use static!)                                            *
- ****************************************************************************/
-
-
-static WORD time_message(EVNTREC *er) {
-  ULONG newtime;
-  
-  newtime = 0 /*globals.time*/;
-  
-  if(newtime != evntglbl.lasttime) {
-    er->ap_event = APPEVNT_TIMER;
-    er->ap_value = newtime - evntglbl.lasttime;
-    
-    evntglbl.lasttime = newtime;
-    
-    return 1;
-  };
-  
-  return 0;
-}
-
-static LONG get_evntpacket(EVNTREC *er,WORD maxwait) {
-  LONG kb_shift;
-  
-  LONG stdinrfds,mrfds;
-  LONG rhndl;
-  
-  
-  if(evntglbl.lastervalid) {
-    *er = evntglbl.last_evntrec;
-    evntglbl.lastervalid = 0;
-    return 1;
-  };
-  
-  stdinrfds = 1L << (LONG)STDIN_FILENO;
-  mrfds = 1L << (LONG)evntglbl.mousefd;
-  rhndl = stdinrfds | mrfds;
-  
-  DEBUG3 ("Fselect in get_evntpacket");
-  if(Fselect(maxwait,&rhndl,NULL,0L) == 0) {
-    return 0;
-  };
-  
-  if(rhndl & stdinrfds) {
-    ULONG c = Fgetchar(STDIN_FILENO,0);
-    
-    kb_shift = Kbshift(-1);
-    
-    evntglbl.last_evntrec.ap_event = APPEVNT_KEYBOARD;
-    evntglbl.last_evntrec.ap_value = ((c & 0xff) << 16) +
-      ((c & 0x00ff0000L) << 8) + kb_shift;
-  }
-  
-  if(rhndl & mrfds)  {
-    Fread(evntglbl.mousefd, sizeof(EVNTREC), 
-          &evntglbl.last_evntrec);
-  };
-  
-  if(time_message(er)) {
-    evntglbl.lastervalid = 1;
-  }
-  else {
-    *er = evntglbl.last_evntrec;
-  };    
-  
-  return 1;
-}
-
-static void     update_local_mousevalues(EVNTREC *er) {
-  switch((WORD)er->ap_event) {
-  case  APPEVNT_BUTTON  :
-    mouse_button = ((WORD *)&er->ap_value)[1];
-    break;      
-    
-  case  APPEVNT_MOUSE   :
-    mouse_x = ((WORD *)&er->ap_value)[1];
-    mouse_y = ((WORD *)&er->ap_value)[0];
-    break;
-  };
-}
-
-static void globalize_mousevalues(void) {
-  /*
-  globals.mouse_x = mouse_x;
-  globals.mouse_y = mouse_y;
-  globals.mouse_button = mouse_button;
-  */
-}
-
-static void localize_mousevalues(void) {
-  /*
-  mouse_x = globals.mouse_x;
-  mouse_y = globals.mouse_y;
-  mouse_button = globals.mouse_button;
-  */
-}
 
 
 /*
@@ -273,6 +171,7 @@ static void localize_mousevalues(void) {
 ** 1999-01-11 CG
 ** 1999-04-09 CG
 ** 1999-04-10 CG
+** 1999-05-24 CG
 */
 static
 void
@@ -281,7 +180,6 @@ handle_arrow_click (WORD apid,
                     WORD object,
                     WORD msg) {
   COMMSG    mesag;
-  EVNTREC   er;
   WORD      owner;
   WORD      dummy;
         
@@ -339,11 +237,14 @@ handle_arrow_click (WORD apid,
 ** 1999-01-09 CG
 ** 1999-02-08 CG
 ** 1999-04-10 CG
+** 1999-05-24 CG
 */
 static
 void
 handle_mover_click (WORD apid,
-                    WORD win_id) {
+                    WORD win_id,
+                    WORD mouse_x,
+                    WORD mouse_y) {
   WORD      dummy;
   WORD      owner;
   WORD      top;
@@ -450,6 +351,7 @@ handle_mover_click (WORD apid,
           mesag.msg2 = tmpy;
         }
         
+        /* FIXME
         while(1) {
           if(get_evntpacket(&er,(WORD)waittime) == 0) {
             er.ap_event = -1;
@@ -470,6 +372,7 @@ handle_mover_click (WORD apid,
             break;
           };
         };
+        */
       } while(!((er.ap_event == APPEVNT_BUTTON) &&
                !(er.ap_value & LEFT_BUTTON)));
     } else { /* No realtime moving */
@@ -538,12 +441,15 @@ handle_mover_click (WORD apid,
 ** 1998-12-25 CG
 ** 1999-04-07 CG
 ** 1999-04-10 CG
+** 1999-05-24 CG
 */
 static
 void
 handle_sizer_click (WORD apid,
                     WORD win_id,
-                    WORD owner) {
+                    WORD owner,
+                    WORD mouse_x,
+                    WORD mouse_y) {
   EVNTREC er;
   RECT    totsize;
   COMMSG  mesag;
@@ -590,6 +496,7 @@ handle_sizer_click (WORD apid,
         Appl_do_write (apid, owner,16,&mesag);
       }
       
+      /* FIXME
       while (TRUE) {
         if(get_evntpacket(&er,(WORD)waittime) == 0) {
           er.ap_event = -1;
@@ -609,6 +516,7 @@ handle_sizer_click (WORD apid,
           break;
         }
       }
+      */
     }while(!((er.ap_event == APPEVNT_BUTTON) &&
              !(er.ap_value & LEFT_BUTTON)));
   } else {
@@ -649,14 +557,17 @@ handle_sizer_click (WORD apid,
 ** 1999-01-11 CG
 ** 1999-04-09 CG
 ** 1999-04-10 CG
+** 1999-05-24 CG
 */
 static
 void
-handle_slider_click (WORD apid,
-                     WORD win_id,
-                     WORD elem,
-                     WORD owner,
-                     OBJECT *tree) {
+handle_slider_click (WORD     apid,
+                     WORD     win_id,
+                     WORD     elem,
+                     WORD     owner,
+                     OBJECT * tree,
+                     WORD     mouse_x,
+                     WORD     mouse_y) {
   WORD last_x = mouse_x, last_y = mouse_y, new_x = last_x, new_y = last_y;
   WORD waittime = EVHD_WAITTIME;
   WORD bg = (elem == WVSLIDER)? WVSB : WHSB;
@@ -695,6 +606,7 @@ handle_slider_click (WORD apid,
   Graf_do_mouse (apid, M_ON, NULL);
 
   if(0 /*globals.realslide*/) {
+    /* FIXME
     while(1) {
       get_evntpacket(&er,0);
       update_local_mousevalues(&er);
@@ -752,6 +664,7 @@ handle_slider_click (WORD apid,
         }
       }
     }
+    */
   } else {
     Wind_do_update (apid, BEG_UPDATE);
 
@@ -781,18 +694,229 @@ handle_slider_click (WORD apid,
 
 
 /*
+** Description
+** Check user click against pattern
+**
+** FIXME: Count number of clicks and return them
+**
+** 1999-05-24 CG
+*/
+static
+WORD
+handle_user_click (WORD mouse_button,
+                   WORD mask,
+                   WORD bstate) {
+  if ((mouse_button & mask) == bstate) {
+    return MU_BUTTON;
+  } else {
+    return 0;
+  }
+}
+
+
+/*
+** Description
+** Handle mouse click on window element
+**
+** 1999-05-24 CG
+*/
+static
+WORD
+handle_window_element_click (WORD apid,
+                             WORD win_id,
+                             WORD owner,
+                             WORD top,
+                             WORD mouse_button,
+                             WORD mouse_x,
+                             WORD mouse_y) {
+  WORD     obj;
+  OBJECT * tree;
+  COMMSG   mesag;
+  
+  DEBUG2 ("evnthndl.c: Click on window element");
+  tree = Wind_get_rsrc (apid, win_id);
+  obj = Objc_do_find (tree, 0, 9, mouse_x, mouse_y, 0);
+  
+  DEBUG2 ("evnthndl.c: obj = %d\n", obj);
+  switch(obj) {         
+  case WCLOSER :
+    if (Graf_do_watchbox (apid, tree, WCLOSER, SELECTED, 0)) {
+      mesag.type = WM_CLOSED;
+      mesag.sid = 0;
+      mesag.length = 0;
+      mesag.msg0 = win_id;
+      Appl_do_write (apid, owner, 16, &mesag);
+    }
+    return 0;
+    
+  case WSMALLER:
+  {
+    int skeys;
+    
+    Wind_change (apid, win_id, W_SMALLER, SELECTED);
+    
+    /* FIXME: Replace with evnt_multi    
+    do {
+      get_evntpacket(&er,0);
+      update_local_mousevalues(&er);
+    }while(!((er.ap_event == APPEVNT_BUTTON) &&
+             !(er.ap_value & LEFT_BUTTON)));
+    */
+
+    Wind_change (apid, win_id, W_SMALLER, 0);
+    
+    vq_key_s(evntglbl.evid,&skeys);
+    
+    if(skeys & K_CTRL) {
+      mesag.type = WM_ALLICONIFY;
+    } else {
+      mesag.type = WM_ICONIFY;
+    }
+    
+    mesag.sid = 0;
+    mesag.length = 0;
+    mesag.msg0 = win_id;
+    /*
+      mesag.msg3 = globals.icon_width;
+      mesag.msg4 = globals.icon_height;
+      mesag.msg1 = iconify_x;
+      mesag.msg2 = globals.screen.height - mesag.msg4;
+      
+      iconify_x += mesag.msg3;
+      if(iconify_x + mesag.msg3 > globals.screen.width) {
+      iconify_x = 0;
+      };
+    */
+    
+    Appl_do_write (apid, owner,16,&mesag);
+  }
+  return 0;
+  
+  case WFULLER:
+    if (Graf_do_watchbox (apid, tree, WFULLER, SELECTED, 0)) {
+      mesag.type = WM_FULLED;
+      mesag.sid = 0;
+      mesag.length = 0;
+      mesag.msg0 = win_id;
+      Appl_do_write (apid, owner, 16, &mesag);
+    }
+    return 0;
+    
+  case WSIZER:
+    handle_sizer_click (apid, win_id, owner, mouse_x, mouse_y);
+    return 0;
+    
+  case WAPP:            
+  case WMOVER:
+    DEBUG2 ("evnthndl.c: calling handle_mover_click");
+    handle_mover_click (apid, win_id, mouse_x, mouse_y);
+    DEBUG2 ("evnthndl.c: returned from handle_mover_click");
+    return 0;
+    
+  case WLEFT:
+    handle_arrow_click (apid, win_id,W_LFARROW,WA_LFLINE);
+    return 0;
+    
+  case WRIGHT:
+    handle_arrow_click (apid, win_id,W_RTARROW,WA_RTLINE);
+    return 0;
+    
+  case WUP:
+    handle_arrow_click (apid, win_id,W_UPARROW,WA_UPLINE);
+    return 0;
+    
+  case WDOWN:
+    handle_arrow_click (apid, win_id,W_DNARROW,WA_DNLINE);
+    return 0;
+    
+  case WHSB:
+  {
+    WORD xy[2];
+    
+    if(tree) {
+      Objc_do_offset (tree, WHSLIDER, xy);
+    }
+    
+    if(mouse_x > xy[0]) {
+      handle_arrow_click (apid, win_id, 0, WA_RTPAGE);
+    } else {
+      handle_arrow_click (apid, win_id, 0, WA_LFPAGE);
+    }
+  }
+  return 0;
+  
+  case WVSB:
+  {
+    WORD xy[2];
+    
+    if (tree) {
+      Objc_do_offset (tree, WVSLIDER, xy);
+    }
+    
+    if (mouse_y > xy[1]) {
+      handle_arrow_click (apid, win_id, 0, WA_DNPAGE);
+    } else {
+      handle_arrow_click (apid, win_id, 0, WA_UPPAGE);
+    }
+  }
+  return 0;
+  
+  case WVSLIDER:
+  case WHSLIDER:
+    handle_slider_click (apid, win_id, obj, owner, tree, mouse_x, mouse_y);
+    return 0;
+    
+  default:
+    if(win_id > 0) {
+      COMMSG    m;
+      
+      if(top != -1) {
+        /*
+          Vdi_vq_mouse(globals.vid,&mouse_button,&mouse_x,&mouse_y);
+        */
+        
+        if(mouse_button & LEFT_BUTTON) {
+          /* FIXME: Replace with evnt_multi
+          do {
+            get_evntpacket(&er,0);
+            update_local_mousevalues(&er);
+          }while(!((er.ap_event == APPEVNT_BUTTON) &&
+                   !(er.ap_value & LEFT_BUTTON)));
+          */
+
+          m.type = WM_TOPPED;
+          m.sid = 0;
+          m.length = 0;
+          m.msg0 = win_id;
+          
+          Appl_do_write (apid, owner,16,&m);
+
+          return 0;
+        }
+      }
+    }
+  }
+  
+  return handle_user_click;
+}
+
+
+/*
 ** Exported
 **
 ** 1998-12-20 CG
 ** 1998-12-25 CG
 ** 1999-04-09 CG
 ** 1999-05-16 CG
+** 1999-05-24 CG
 */
-void 
+WORD
 Evhd_handle_button (WORD apid,
                     WORD mouse_button,
                     WORD mouse_x,
-                    WORD mouse_y) {
+                    WORD mouse_y,
+                    WORD mask,
+                    WORD bstate) {
   EVNTREC     er;
 
   DEBUG2 ("evnthndl.c: Entering Evhd_handle_button");
@@ -826,16 +950,23 @@ Evhd_handle_button (WORD apid,
 
     if (status & (WIN_DESKTOP | WIN_DIALOG)) {
       /* Return the click to the user */
-      return;
+      return handle_user_click (mouse_button,
+                                mask,
+                                bstate);
     } else if (Misc_inside (&worksize, mouse_x, mouse_y)) {
       if((status & (WIN_UNTOPPABLE | WIN_ICONIFIED)) == WIN_UNTOPPABLE) {
         /* Return the click to the user */
-        return;
+        return handle_user_click (mouse_button,
+                                  mask,
+                                  bstate);
       } else {
         COMMSG      m;
         
-        return;
+        return handle_user_click (mouse_button,
+                                  mask,
+                                  bstate);
 
+        /* FIXME!! */
         if((status & WIN_ICONIFIED) &&
            (Evnt_waitclicks(evntglbl.mousefd,LEFT_BUTTON,LEFT_BUTTON,1,
                             LEFT_BUTTON) >= 1)) {
@@ -857,18 +988,21 @@ Evhd_handle_button (WORD apid,
           /*
             Vdi_vq_mouse(globals.vid,&mouse_button,&mouse_x,&mouse_y);
           */
+          return 0;
         } else if(top != -1) {
           /*
             Vdi_vq_mouse(globals.vid,&mouse_button,&mouse_x,&mouse_y);
           */
           
+          /* FIXME
           if(mouse_button & LEFT_BUTTON) {
             do {
               get_evntpacket(&er,0);
               update_local_mousevalues(&er);
-            }while(!((er.ap_event == APPEVNT_BUTTON) &&
-                     !(er.ap_value & LEFT_BUTTON)));
-          };
+            } while(!((er.ap_event == APPEVNT_BUTTON) &&
+                      !(er.ap_value & LEFT_BUTTON)));
+          }
+          */
           
           m.type = WM_TOPPED;
           m.sid = 0;
@@ -876,217 +1010,26 @@ Evhd_handle_button (WORD apid,
           m.msg0 = win_id;
           
           Appl_do_write (apid, owner,16,&m);
+          return 0;
         } else {
-          er.ap_event = APPEVNT_BUTTON;
-          er.ap_value = (LONG)mouse_button | (1L << 16);
-          Srv_put_event(owner,&er,sizeof(EVNTREC));
+          return handle_user_click (mouse_button,
+                                    mask,
+                                    bstate);
         }
       }
     } else { /* Click on a window element */
-      WORD     obj;
-      OBJECT * tree;
-      COMMSG   mesag;
-
-      DEBUG2 ("evnthndl.c: Click on window element");
-      tree = Wind_get_rsrc (apid, win_id);
-      obj = Objc_do_find (tree, 0, 9, mouse_x, mouse_y, 0);
-
-      DEBUG2 ("evnthndl.c: obj = %d\n", obj);
-      switch(obj) {         
-      case WCLOSER :
-        if (Graf_do_watchbox (apid, tree, WCLOSER, SELECTED, 0)) {
-          mesag.type = WM_CLOSED;
-          mesag.sid = 0;
-          mesag.length = 0;
-          mesag.msg0 = win_id;
-          Appl_do_write (apid, owner, 16, &mesag);
-        }
-        break;
-        
-      case WSMALLER:
-      {
-        int skeys;
-        
-        Wind_change (apid, win_id, W_SMALLER, SELECTED);
-        
-        do {
-          get_evntpacket(&er,0);
-          update_local_mousevalues(&er);
-        }while(!((er.ap_event == APPEVNT_BUTTON) &&
-                 !(er.ap_value & LEFT_BUTTON)));
-        
-        Wind_change (apid, win_id, W_SMALLER, 0);
-        
-        vq_key_s(evntglbl.evid,&skeys);
-        
-        if(skeys & K_CTRL) {
-          mesag.type = WM_ALLICONIFY;
-        }
-        else {
-          mesag.type = WM_ICONIFY;
-        };
-        
-        mesag.sid = 0;
-        mesag.length = 0;
-        mesag.msg0 = win_id;
-        /*
-          mesag.msg3 = globals.icon_width;
-          mesag.msg4 = globals.icon_height;
-          mesag.msg1 = iconify_x;
-          mesag.msg2 = globals.screen.height - mesag.msg4;
-          
-          iconify_x += mesag.msg3;
-          if(iconify_x + mesag.msg3 > globals.screen.width) {
-          iconify_x = 0;
-          };
-        */
-        
-        Appl_do_write (apid, owner,16,&mesag);
-      }
-      break;
-      
-      case WFULLER:
-        if (Graf_do_watchbox (apid, tree, WFULLER, SELECTED, 0)) {
-          mesag.type = WM_FULLED;
-          mesag.sid = 0;
-          mesag.length = 0;
-          mesag.msg0 = win_id;
-          Appl_do_write (apid, owner, 16, &mesag);
-        }
-        break;
-        
-      case WSIZER:
-        handle_sizer_click (apid, win_id, owner);
-        break;
-      
-      case WAPP:            
-      case WMOVER:
-        DEBUG2 ("evnthndl.c: calling handle_mover_click");
-        handle_mover_click (apid, win_id);
-        DEBUG2 ("evnthndl.c: returned from handle_mover_click");
-        break;
-        
-      case WLEFT:
-        handle_arrow_click (apid, win_id,W_LFARROW,WA_LFLINE);
-        break;
-        
-      case WRIGHT:
-        handle_arrow_click (apid, win_id,W_RTARROW,WA_RTLINE);
-        break;
-        
-      case WUP:
-        handle_arrow_click (apid, win_id,W_UPARROW,WA_UPLINE);
-        break;
-        
-      case WDOWN:
-        handle_arrow_click (apid, win_id,W_DNARROW,WA_DNLINE);
-        break;
-        
-      case WHSB:
-      {
-        WORD xy[2];
-        
-        if(tree) {
-          Objc_do_offset (tree, WHSLIDER, xy);
-        }
-        
-        if(mouse_x > xy[0]) {
-          handle_arrow_click (apid, win_id, 0, WA_RTPAGE);
-        } else {
-          handle_arrow_click (apid, win_id, 0, WA_LFPAGE);
-        }
-      }
-      break;
-      
-      case WVSB:
-      {
-        WORD xy[2];
-        
-        if (tree) {
-          Objc_do_offset (tree, WVSLIDER, xy);
-        }
-              
-        if (mouse_y > xy[1]) {
-          handle_arrow_click (apid, win_id, 0, WA_DNPAGE);
-        } else {
-          handle_arrow_click (apid, win_id, 0, WA_UPPAGE);
-        }
-      }
-      break;
-      
-      case WVSLIDER:
-      case WHSLIDER:
-        handle_slider_click (apid, win_id, obj, owner, tree);
-        break;
-        
-      default:
-        if(win_id > 0) {
-          COMMSG    m;
-          
-          if(top != -1) {
-            /*
-              Vdi_vq_mouse(globals.vid,&mouse_button,&mouse_x,&mouse_y);
-            */
-            
-            if(mouse_button & LEFT_BUTTON) {
-              do {
-                get_evntpacket(&er,0);
-                update_local_mousevalues(&er);
-              }while(!((er.ap_event == APPEVNT_BUTTON) &&
-                       !(er.ap_value & LEFT_BUTTON)));
-              
-              m.type = WM_TOPPED;
-              m.sid = 0;
-              m.length = 0;
-              m.msg0 = win_id;
-              
-              Appl_do_write (apid, owner,16,&m);
-            };
-          };
-        };
-      };
-    };
-  } else { /* not handle & LEFT_BUTTON */
-    /*
-    WORD wid;
-    WORD owner;
-    WORD status;
-    WORD dummy;
-    RECT worksize;
-    
-    wid = Wind_do_find (apid, mouse_x, mouse_y);
-    Wind_do_get (apid,
-                   wid,
-                 WF_OWNER,
-                 &owner,
-                 &status,
-                 &dummy,
-                 &dummy,
-                 TRUE);
-    Wind_do_get (apid,
-                 wid,
-                 WF_WORKXYWH,
-                 &worksize.x,
-                 &worksize.y,
-                 &worksize.width,
-                 &worksize.height,
-                 TRUE);
-    
-    
-    if(status & WIN_DESKTOP) {
-      EVNTREC e;
-      
-        e.ap_event = APPEVNT_BUTTON;
-        e.ap_value = mouse_button | (1L << 16);
-        Srv_put_event(DESK_OWNER,&e,sizeof(EVNTREC));
-    } else if(Misc_inside(&worksize,mouse_x,mouse_y)) {
-      EVNTREC e;
-      
-      e.ap_event = APPEVNT_BUTTON;
-      e.ap_value = mouse_button | (1L << 16);
-      Srv_put_event(owner,&e,sizeof(EVNTREC));
+      return handle_window_element_click (apid,
+                                          win_id,
+                                          owner,
+                                          top,
+                                          mouse_button,
+                                          mouse_x,
+                                          mouse_y);
     }
-    */
+  } else { /* not handle & LEFT_BUTTON */
+    return handle_user_click (mouse_button,
+                              mask,
+                              bstate);
   }
 }
 
@@ -1490,12 +1433,14 @@ handle_drop_down (WORD        apid,
 ** 1999-03-17 CG
 ** 1999-04-10 CG
 ** 1999-04-13 CG
+** 1999-05-24 CG
 */
 static
 WORD
 handle_selected_title (WORD        apid,
-                       HM_BUFFER * hm_buffer) {
-  EVNTREC       er;
+                       HM_BUFFER * hm_buffer,
+                       WORD        mouse_x,
+                       WORD        mouse_y) {
   WORD          box;
   WORD          title;
   WORD          deskbox;
@@ -1655,15 +1600,19 @@ handle_selected_title (WORD        apid,
 ** 1999-01-09 CG
 ** 1999-03-17 CG
 ** 1999-04-18 CG
+** 1999-05-24 CG
 */
 void
-Evhd_handle_menu (WORD apid) {
+Evhd_handle_menu (WORD apid,
+                  WORD mouse_x,
+                  WORD mouse_y) {
   WORD      menu_handled = 0;
-  EVNTREC   er;
   HM_BUFFER hm_buffer = {HM_NO,-1,NULL,-1,-1};
 
   handle_selected_title (apid,
-                         &hm_buffer);
+                         &hm_buffer,
+                         mouse_x,
+                         mouse_y);
 
   switch(hm_buffer.action) {
   case HM_NO:
@@ -1710,114 +1659,6 @@ Evhd_handle_menu (WORD apid) {
   default:
     DB_printf("Unknown action %d\r\n",hm_buffer.action);
   }
-}
-
-
-/*
-** Description
-** Event handler process. This is obsolete and will disappear.
-**
-** 1998-12-20 CG
-** 1999-04-18 CG
-*/
-static
-WORD
-evnt_handler (LONG arg) {
-  WORD    work_in[] = {1,7,1,1,1,1,1,1,1,1,2};
-  WORD    work_out[57];
-  EVNTREC er;
-  WORD    evhd_pipe;
-  WORD    apid = -1;
-
-  NOT_USED(arg);
-
-  /* Create a pipe to take commands from */
-  evhd_pipe = Fcreate(EVHD_PIPE,0);
-
-  /*
-  menu.area.height = globals.clheight + 3;
-  */
-
-  /*
-  evntglbl.mousefd = (WORD)Fopen(globals.mousename,0);
-  */
-
-  if(evntglbl.mousefd < 0) {
-    DB_printf("Couldn't open mouse pipe! Error %d",evntglbl.mousefd);
-  };
-  
-  /*
-  evntglbl.lasttime = globals.time;
-  */
-  /* open up a vdi workstation to use in the process */
-  /*
-  evntglbl.evid = globals.vid;
-  */
-  v_opnvwk(work_in,&evntglbl.evid,work_out);
-  
-  while(1) {
-    get_evntpacket(&er,0);
-
-    switch((WORD)er.ap_event) {
-    case APPEVNT_TIMER:
-        break;
-                        
-    case APPEVNT_BUTTON :
-      /*      handle_button (apid, (WORD)er.ap_value);*/
-      break;    
-      
-    case APPEVNT_MOUSE  :
-      /*
-      globals.mouse_x = (WORD)(er.ap_value & 0xffff);
-      globals.mouse_y = (WORD)(er.ap_value >> 16);
-
-        if(globals.mouse_owner >= 0) {
-          check_rectevents(globals.mouse_x,globals.mouse_y);
-
-          if(globals.mouse_mode) {
-            Srv_put_event((WORD)globals.mouse_owner,&er,sizeof(EVNTREC));
-          };
-        }
-        else {
-          if(globals.mouse_y < menu.area.height) {
-            handle_menu();
-          }
-          else {
-            check_rectevents(globals.mouse_x,globals.mouse_y);
-          };
-        };
-        */
-        break;
-      
-      case APPEVNT_KEYBOARD :
-        if((((er.ap_value & 0x00ff0000L) >> 16) == 0x09) &&
-           (er.ap_value & K_CTRL) && (er.ap_value & K_ALT)) {
-          Appl_do_control (apid, -1, APC_TOPNEXT);        } else if(er.ap_value == 0x4a1f000cL) {
-          DB_printf("Killing oAESis");
-
-          /*
-          (void)Pkill(globals.srvpid,SIGQUIT);
-          (void)Pkill(globals.applpid,SIGQUIT);
-          (void)Pkill(globals.evntpid,SIGQUIT);
-          */
-        }
-        else if(er.ap_value == 0x1910000cL) {
-          DB_printf("Event handler OK.");
-          Srv_shake();
-        }
-        else if((er.ap_value & 0xc) == 0xc) {
-          DB_printf("Unknown command %lx",er.ap_value);
-        }
-        else {
-          Srv_put_event(TOP_APPL,&er,sizeof(EVNTREC));
-        };
-        break;
-      
-      default:
-        DB_printf("%s: Line %d:\r\nUnknown mouse event %ld!",
-                  __FILE__,__LINE__,er.ap_event);
-      };
-  };
 }
 
 /****************************************************************************

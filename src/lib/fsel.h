@@ -3,13 +3,13 @@
 
 /*
 ** Description
-** Implementation of fsel_exinput()                                        *
+** Implementation of fsel_exinput ()
 **
 ** 1998-12-20 CG
+** 1999-05-24 CG
 */
 WORD
 Fsel_do_exinput (WORD   apid,
-                 WORD   vid,
                  WORD * button,
                  BYTE * description,
                  BYTE * path,

@@ -434,17 +434,14 @@ static DIRENTRY *find_entry(DIRDESC *dd,WORD pos) {
 ** 1999-01-09 CG
 ** 1999-01-11 CG
 ** 1999-01-30 CG
+** 1999-05-24 CG
 */
 static
 void
 slider_handle (WORD      apid,
-               WORD      vid,
                OBJECT  * tree,
                RECT    * clip,
-               DIRDESC * dd,
-               WORD      global_x,
-               WORD      global_y) {
-
+               DIRDESC * dd) {
   if(tree[FISEL_SLIDER].ob_height != tree[FISEL_SB].ob_height) {
 
     WORD newpos,
@@ -466,9 +463,12 @@ slider_handle (WORD      apid,
                    0 };
     EVENTOUT      eo;
     GLOBAL_APPL * globals = get_globals (apid);
+    WORD          mx, my, mb, ks;
+  
+    Graf_do_mkstate (apid, &mx, &my, &mb, &ks);
 
-    ei.m1r.x = global_x;
-    ei.m1r.y = global_y;
+    ei.m1r.x = mx;
+    ei.m1r.y = my;
 
     Wind_do_update (apid, BEG_MCTRL);
     Graf_do_mouse (apid, FLAT_HAND, NULL);
@@ -542,10 +542,10 @@ slider_handle (WORD      apid,
 ** 1999-01-01 CG
 ** 1999-01-11 CG
 ** 1999-03-11 CG
+** 1999-05-24 CG
 */
 WORD
 Fsel_do_exinput (WORD   apid,
-                 WORD   vid,
                  WORD * button,
                  BYTE * description,
                  BYTE * path,
@@ -675,13 +675,13 @@ Fsel_do_exinput (WORD   apid,
         };
 					
         get_files(tree,&dd);
-        Misc_copy_area(vid,&src,&dst);
+        Misc_copy_area (globals->vid, &src, &dst);
 
         Objc_do_draw (globals->vid, tree,FISEL_FIRST,9,&clip);
         tree[FISEL_UP].ob_state &= ~SELECTED;
         Objc_do_draw (globals->vid, tree,FISEL_UP,9,&clip);					
         Objc_do_draw (globals->vid, tree,FISEL_SB,9,&clip);					
-      };
+      }
       break;
 			
     case FISEL_DOWN:
@@ -692,32 +692,31 @@ Fsel_do_exinput (WORD   apid,
         if(((selected - dd.pos) >= 0) &&
            ((selected - dd.pos) <= (FISEL_LAST - FISEL_FIRST))) {
           WORD oldobj = selected - dd.pos + FISEL_FIRST;
-											
           Objc_do_change (globals->vid, tree,oldobj,&clip,
-                          tree[oldobj].ob_state &= ~SELECTED,NO_DRAW);								
-        };
+                          tree[oldobj].ob_state &= ~SELECTED,NO_DRAW);
+        }
 					
         dd.pos++;
 
         if(((selected - dd.pos) >= 0) &&
            ((selected - dd.pos) <= (FISEL_LAST - FISEL_FIRST))) {
           WORD oldobj = selected - dd.pos + FISEL_FIRST;
-											
           Objc_do_change (globals->vid, tree,oldobj,&clip,
-                          tree[oldobj].ob_state |= SELECTED,NO_DRAW);								
-        };
+                          tree[oldobj].ob_state |= SELECTED,NO_DRAW);
+        }
 					
         get_files(tree,&dd);
-        Misc_copy_area(vid,&dst,&src);
+        Misc_copy_area (globals->vid, &dst, &src);
         Objc_do_draw (globals->vid, tree,FISEL_LAST,9,&clip);
         tree[FISEL_DOWN].ob_state &= ~SELECTED;
-        Objc_do_draw (globals->vid, tree,FISEL_DOWN,9,&clip);					
-        Objc_do_draw (globals->vid, tree,FISEL_SB,9,&clip);					
-      };
+        Objc_do_draw (globals->vid, tree,FISEL_DOWN,9,&clip);
+        Objc_do_draw (globals->vid, tree,FISEL_SB,9,&clip);
+      }
       break;
 			
     case FISEL_SB:
     {
+      WORD mx, my, mb, ks;
       WORD xy[2];
 				
       Objc_do_offset(tree,FISEL_SLIDER,xy);
@@ -725,49 +724,47 @@ Fsel_do_exinput (WORD   apid,
       if(((selected - dd.pos) >= 0) &&
          ((selected - dd.pos) <= (FISEL_LAST - FISEL_FIRST))) {
         WORD oldobj = selected - dd.pos + FISEL_FIRST;
-											
+
         Objc_do_change (globals->vid, tree,oldobj,&clip,
-                        tree[oldobj].ob_state &= ~SELECTED,NO_DRAW);								
-      };
-					
-      if(globals->common->mouse_y > xy[1]) {
+                        tree[oldobj].ob_state &= ~SELECTED,NO_DRAW);
+      }
+
+      Graf_do_mkstate (apid, &mx, &my, &mb, &ks);
+
+      if (my > xy[1]) {
         dd.pos += FISEL_LAST - FISEL_FIRST + 1;
         if(dd.pos >= (dd.num_files - FISEL_LAST + FISEL_FIRST)) {
           dd.pos = dd.num_files - FISEL_LAST + FISEL_FIRST - 1;
-        };
-      }
-      else {
+        }
+      } else {
         dd.pos -= FISEL_LAST - FISEL_FIRST + 1;
         if(dd.pos < 0) {
           dd.pos = 0;
-        };
-      };
-				
+        }
+      }
+			
 
       if(((selected - dd.pos) >= 0) &&
          ((selected - dd.pos) <= (FISEL_LAST - FISEL_FIRST))) {
         WORD oldobj = selected - dd.pos + FISEL_FIRST;
-											
+
         Objc_do_change (globals->vid, tree,oldobj,&clip,
-                        tree[oldobj].ob_state |= SELECTED,NO_DRAW);								
-      };
+                        tree[oldobj].ob_state |= SELECTED,NO_DRAW);
+      }
 
       get_files(tree,&dd);
       Objc_do_draw (globals->vid, tree,FISEL_ENTBG,9,&clip);
       Objc_do_draw (globals->vid, tree,FISEL_SB,9,&clip);
-    };
+    }
     break;
 		
     case FISEL_SLIDER:
-      slider_handle(apid,
-                    vid,
-                    tree,
-                    &clip,
-                    &dd,
-                    globals->common->mouse_x,
-                    globals->common->mouse_y);
+      slider_handle (apid,
+                     tree,
+                     &clip,
+                     &dd);
       break;
-			
+		
     case FISEL_BACK:
     {
       BYTE newpath[128],*tmp;
@@ -915,13 +912,11 @@ Fsel_do_exinput (WORD   apid,
 ** Exported
 **
 ** 1998-12-20 CG
+** 1999-05-24 CG
 */
 void
 Fsel_input (AES_PB *apb) {
-  GLOBAL_APPL * globals = get_globals (apb->global->apid);
-  
   apb->int_out[0] = Fsel_do_exinput (apb->global->apid,
-                                     globals->vid,
                                      &apb->int_out[1],
                                      "Select a file",
                                      (BYTE *)apb->addr_in[0],
@@ -933,15 +928,13 @@ Fsel_input (AES_PB *apb) {
 ** Exported
 **
 ** 1998-12-20 CG
+** 1999-05-24 CG
 */
 void
 Fsel_exinput (AES_PB *apb) {
-  GLOBAL_APPL * globals = get_globals (apb->global->apid);
-
-  apb->int_out[0] = Fsel_do_exinput(apb->global->apid,
-                                    globals->vid,
-                                    &apb->int_out[1],
-                                    (BYTE *)apb->addr_in[2],
-                                    (BYTE *)apb->addr_in[0],
-                                    (BYTE *)apb->addr_in[1]);
+  apb->int_out[0] = Fsel_do_exinput (apb->global->apid,
+                                     &apb->int_out[1],
+                                     (BYTE *)apb->addr_in[2],
+                                     (BYTE *)apb->addr_in[0],
+                                     (BYTE *)apb->addr_in[1]);
 }
