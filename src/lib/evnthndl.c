@@ -34,7 +34,7 @@ v   Fixed mover grabbing bug; if the mouse was moved during click on
  
  ****************************************************************************/
 
-#define DEBUGLEVEL 3
+#define DEBUGLEVEL 0
 
 /****************************************************************************
  * Used interfaces                                                          *
@@ -266,8 +266,13 @@ static void localize_mousevalues(void) {
 ** Description
 ** Handle mouse button click on window arrow
 **
+** ToDo
+** Fix repeat
+**
 ** 1998-12-20 CG
 ** 1999-01-11 CG
+** 1999-04-09 CG
+** 1999-04-10 CG
 */
 static
 void
@@ -289,7 +294,9 @@ handle_arrow_click (WORD apid,
   mesag.msg1 = msg;
   
   if(object) {
+    Graf_do_mouse (apid, M_OFF, NULL);
     Wind_change (apid, win_id, object, SELECTED);
+    Graf_do_mouse (apid, M_ON, NULL);
   }
   
   Wind_do_get (apid,
@@ -301,17 +308,19 @@ handle_arrow_click (WORD apid,
                &dummy,
                TRUE);
   
-  do {
-    if(get_evntpacket(&er,0 /*globals.arrowrepeat*/) == 0) {
-      Appl_do_write (apid, owner,16,&mesag);
-    }
-    
-    update_local_mousevalues(&er);
-  }while(!((er.ap_event == APPEVNT_BUTTON) &&
-           !(er.ap_value & LEFT_BUTTON)));
+  Evnt_do_button (apid,
+                  1,
+                  LEFT_BUTTON,
+                  0,
+                  &dummy,
+                  &dummy,
+                  &dummy,
+                  &dummy);
   
   if(object) {
+    Graf_do_mouse (apid, M_OFF, NULL);
     Wind_change (apid, win_id, object,0);
+    Graf_do_mouse (apid, M_ON, NULL);
   }
   
   Appl_do_write (apid, owner,16,&mesag);
@@ -329,6 +338,7 @@ handle_arrow_click (WORD apid,
 ** 1999-01-01 CG
 ** 1999-01-09 CG
 ** 1999-02-08 CG
+** 1999-04-10 CG
 */
 static
 void
@@ -355,7 +365,9 @@ handle_mover_click (WORD apid,
                &dummy,
                TRUE);
   
+  Graf_do_mouse (apid, M_OFF, NULL);
   Wind_change (apid, win_id, W_NAME, SELECTED); 
+  Graf_do_mouse (apid, M_ON, NULL);
 
   /*
   ** FIXME
@@ -511,7 +523,9 @@ handle_mover_click (WORD apid,
     Graf_do_mouse(apid, M_RESTORE,NULL);
   }
         
+  Graf_do_mouse (apid, M_OFF, NULL);
   Wind_change (apid, win_id, W_NAME, 0);
+  Graf_do_mouse (apid, M_ON, NULL);
 
   Wind_do_update (apid, END_MCTRL);
 }
@@ -523,6 +537,7 @@ handle_mover_click (WORD apid,
 **
 ** 1998-12-25 CG
 ** 1999-04-07 CG
+** 1999-04-10 CG
 */
 static
 void
@@ -534,7 +549,9 @@ handle_sizer_click (WORD apid,
   COMMSG  mesag;
   
   Wind_do_update (apid, BEG_MCTRL);
+  Graf_do_mouse (apid, M_OFF, NULL);
   Wind_change (apid, win_id, W_SIZER, SELECTED);
+  Graf_do_mouse (apid, M_ON, NULL);
   Wind_do_get (apid,
                win_id,
                WF_CURRXYWH,
@@ -616,7 +633,9 @@ handle_sizer_click (WORD apid,
   }
   
   Wind_do_update (apid, BEG_UPDATE);
+  Graf_do_mouse (apid, M_OFF, NULL);
   Wind_change (apid, win_id, W_SIZER, 0);
+  Graf_do_mouse (apid, M_ON, NULL);
   Wind_do_update (apid, END_UPDATE);
   Wind_do_update (apid, END_MCTRL);
 }
@@ -628,6 +647,8 @@ handle_sizer_click (WORD apid,
 ** 1998-12-20 CG
 ** 1999-01-01 CG
 ** 1999-01-11 CG
+** 1999-04-09 CG
+** 1999-04-10 CG
 */
 static
 void
@@ -654,7 +675,7 @@ handle_slider_click (WORD apid,
   WORD *p_bgrectxy   = (elem == WHSLIDER)? &bgrect.x       : &bgrect.y;
   WORD *p_bgrectwh   = (elem == WHSLIDER)? &bgrect.width   : &bgrect.height;
 
-  WORD widget = (elem == WHSLIDER) ? W_HSLIDE : W_VSLIDE;
+  WORD widget = (elem == WHSLIDER) ? W_HELEV : W_VELEV;
 
   Graf_do_mouse (apid, FLAT_HAND, NULL);
 
@@ -669,7 +690,9 @@ handle_slider_click (WORD apid,
   bgrect.width = tree[bg].ob_width;
   bgrect.height = tree[bg].ob_height;
 
+  Graf_do_mouse (apid, M_OFF, NULL);
   Wind_change (apid, win_id, widget, SELECTED);
+  Graf_do_mouse (apid, M_ON, NULL);
 
   if(0 /*globals.realslide*/) {
     while(1) {
@@ -731,89 +754,27 @@ handle_slider_click (WORD apid,
     }
   } else {
     Wind_do_update (apid, BEG_UPDATE);
-    
-    Vdi_vsl_type(evntglbl.evid,3);
-    Vdi_vswr_mode(evntglbl.evid,MD_XOR);
 
-    xyarray[0] = elemrect.x;
-    xyarray[1] = elemrect.y;
-    xyarray[2] = elemrect.x + elemrect.width - 1;
-    xyarray[3] = xyarray[1];
-    xyarray[4] = xyarray[2];
-    xyarray[5] = elemrect.y + elemrect.height - 1;
-    xyarray[6] = xyarray[0];
-    xyarray[7] = xyarray[5];
-    xyarray[8] = xyarray[0];
-    xyarray[9] = xyarray[1];
+    mesag.msg1 = Graf_do_slidebox (apid,
+                                   tree,
+                                   (elem == WHSLIDER) ? WHSB : WVSB,
+                                   elem,
+                                   (elem == WHSLIDER) ? 0 : 1);
     
-    Vdi_v_hide_c(evntglbl.evid);
-    Vdi_v_pline(evntglbl.evid,5,xyarray);
-    Vdi_v_show_c(evntglbl.evid,1);
-    
-    while(1) {
-      get_evntpacket(&er,0);
-      update_local_mousevalues(&er);
-
-      if((er.ap_event == APPEVNT_BUTTON) &&
-         !(er.ap_value & LEFT_BUTTON)) {
-        break;
-      }
-
-      if((*p_mousexy - *p_dxy + *p_elemrectwh) > (*p_bgrectxy + *p_bgrectwh)) {
-        *p_newxy = *p_bgrectxy + *p_bgrectwh - *p_elemrectwh + *p_dxy;
-      }
-      else {
-        if((*p_mousexy - *p_dxy) < *p_bgrectxy) {
-          *p_newxy = *p_bgrectxy + *p_dxy;
-        }
-        else {
-          *p_newxy = *p_mousexy;
-        }
-      }
-      
-      if(*p_newxy != *p_lastxy) {
-        Vdi_v_hide_c(evntglbl.evid);
-        Vdi_v_pline(evntglbl.evid,5,xyarray);
-        Vdi_v_show_c(evntglbl.evid,1);
-        
-        xyarray[0] += new_x - last_x;
-        xyarray[1] += new_y - last_y;
-        xyarray[2] += new_x - last_x;
-        xyarray[3] = xyarray[1];
-        xyarray[4] = xyarray[2];
-        xyarray[5] += new_y - last_y;
-        xyarray[6] = xyarray[0];
-        xyarray[7] = xyarray[5];
-        xyarray[8] = xyarray[0];
-        xyarray[9] = xyarray[1];
-
-        Vdi_v_hide_c(evntglbl.evid);
-        Vdi_v_pline(evntglbl.evid,5,xyarray);
-        Vdi_v_show_c(evntglbl.evid,1);
-        
-        *p_lastxy = *p_newxy;
-      }
-    }
-    
-    Vdi_v_hide_c(evntglbl.evid);
-    Vdi_v_pline(evntglbl.evid,5,xyarray);
-    Vdi_v_show_c(evntglbl.evid,1);
 
     mesag.type = (elem == WHSLIDER)? WM_HSLID : WM_VSLID;      
     mesag.sid = 0;
     mesag.length = 0;
     mesag.msg0 = win_id;
-    mesag.msg1 = (*p_bgrectwh == *p_elemrectwh)? 0 :
-      (WORD)((((LONG)*p_newxy - (LONG)*p_dxy -
-               (LONG)*p_bgrectxy) * (LONG)1000L) / 
-             ((LONG)*p_bgrectwh - (LONG)*p_elemrectwh));
     
-    Appl_do_write (apid, owner,16,&mesag);
+    Appl_do_write (apid, owner, 16, &mesag);
 
     Wind_do_update (apid, END_UPDATE);
   }
 
+  Graf_do_mouse (apid, M_OFF, NULL);
   Wind_change (apid, win_id, widget, 0);
+  Graf_do_mouse (apid, M_ON, NULL);
 
   Graf_do_mouse (apid, M_RESTORE, NULL);  
 }
@@ -824,6 +785,7 @@ handle_slider_click (WORD apid,
 **
 ** 1998-12-20 CG
 ** 1998-12-25 CG
+** 1999-04-09 CG
 */
 void 
 Evhd_handle_button (WORD apid,
@@ -1016,44 +978,39 @@ Evhd_handle_button (WORD apid,
         
       case WHSB:
       {
-        WORD      xy[2];
+        WORD xy[2];
         
         if(tree) {
-                Objc_do_offset(tree,WHSLIDER,xy);
-        };
+          Objc_do_offset (tree, WHSLIDER, xy);
+        }
         
         if(mouse_x > xy[0]) {
-          handle_arrow_click (apid, win_id,0,WA_RTPAGE);
+          handle_arrow_click (apid, win_id, 0, WA_RTPAGE);
+        } else {
+          handle_arrow_click (apid, win_id, 0, WA_LFPAGE);
         }
-        else {
-          handle_arrow_click (apid, win_id,0,WA_LFPAGE);
-        };
-      };
+      }
       break;
       
       case WVSB:
       {
         WORD xy[2];
         
-        if(tree) {
-          Objc_do_offset(tree,WVSLIDER,xy);
-        };
-              
-        if(mouse_y > xy[1]) {
-          handle_arrow_click (apid, win_id,0,WA_DNPAGE);
+        if (tree) {
+          Objc_do_offset (tree, WVSLIDER, xy);
         }
-        else {
-          handle_arrow_click (apid, win_id,0,WA_UPPAGE);
-        };
-      };
+              
+        if (mouse_y > xy[1]) {
+          handle_arrow_click (apid, win_id, 0, WA_DNPAGE);
+        } else {
+          handle_arrow_click (apid, win_id, 0, WA_UPPAGE);
+        }
+      }
       break;
       
-      case WHSLIDER:
-        handle_slider_click (apid, win_id, WHSLIDER, owner, tree);
-        break;
-        
       case WVSLIDER:
-        handle_slider_click (apid, win_id, WVSLIDER, owner, tree);
+      case WHSLIDER:
+        handle_slider_click (apid, win_id, obj, owner, tree);
         break;
         
       default:
@@ -1267,6 +1224,7 @@ static WORD     get_matching_menu(OBJECT *t,WORD n) {
 ** Handle drop down menu
 **
 ** 1999-01-09 CG
+** 1999-04-10 CG
 */
 static
 WORD
@@ -1315,7 +1273,9 @@ handle_drop_down (WORD        apid,
 
       nmenu[entry].ob_state |= SELECTED;
       
+      Graf_do_mouse (apid, M_OFF, NULL);
       Objc_do_draw (globals->vid, nmenu, 0, 9, &ei.m1r);
+      Graf_do_mouse (apid, M_ON, NULL);
     }
 
     while(TRUE) {
@@ -1325,7 +1285,9 @@ handle_drop_down (WORD        apid,
         if(!(nmenu[entry].ob_state & DISABLED)) {
           nmenu[entry].ob_state &= ~SELECTED;
           
+          Graf_do_mouse (apid, M_OFF, NULL);
           Objc_do_draw (globals->vid, nmenu, 0, 9, &ei.m1r);
+          Graf_do_mouse (apid, M_ON, NULL);
         }
         
         return 0;
@@ -1405,6 +1367,7 @@ handle_drop_down (WORD        apid,
 ** 1998-12-20 CG
 ** 1999-01-09 CG
 ** 1999-03-17 CG
+** 1999-04-10 CG
 */
 static
 WORD
@@ -1451,7 +1414,10 @@ handle_selected_title (WORD        apid,
     globals->menu[title].ob_state |= SELECTED;
 
     Objc_area_needed (globals->menu, title, &titlearea);
+
+    Graf_do_mouse (apid, M_OFF, NULL);
     Objc_do_draw (globals->vid, globals->menu, 0, 9, &titlearea);
+    Graf_do_mouse (apid, M_ON, NULL);
 
     Objc_area_needed (globals->menu, box, &area);
     
@@ -1493,7 +1459,9 @@ handle_selected_title (WORD        apid,
       Objc_do_draw (apid, globals.pmenutad,0,9,&clip);
       */
     } else {
+      Graf_do_mouse (apid, M_OFF, NULL);
       Objc_do_draw (globals->vid, globals->menu, box, 9, &area);
+      Graf_do_mouse (apid, M_ON, NULL);
     }
 
     ei.m1r = titlearea;
@@ -1523,7 +1491,9 @@ handle_selected_title (WORD        apid,
 
         if(closebox) {
           globals->menu[title].ob_state &= ~SELECTED;
+          Graf_do_mouse (apid, M_OFF, NULL);
           Objc_do_draw (globals->vid, globals->menu, 0, 9, &titlearea);
+          Graf_do_mouse (apid, M_ON, NULL);
           
           Wind_do_close (apid, dropwin);
           Wind_do_delete (apid, dropwin);

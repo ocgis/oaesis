@@ -23,7 +23,7 @@
  
  ****************************************************************************/
 
-#define DEBUGLEVEL 3
+#define DEBUGLEVEL 0
 
 /****************************************************************************
  * Used interfaces                                                          *
@@ -584,6 +584,7 @@ WORD     level)      /* Number of times the function has been called by     */
 ** 1999-01-01 CG
 ** 1999-01-09 CG
 ** 1999-03-21 CG
+** 1999-04-10 CG
 */
 void
 Evnt_do_multi (WORD       apid,
@@ -623,9 +624,11 @@ Evnt_do_multi (WORD       apid,
   if (ret.eventout.events & MU_MESAG) {
     if (ret.msg.type == WM_REDRAW) {
       /* Redraw window borders */
+      Graf_do_mouse (apid, M_OFF, NULL);
       Wind_do_update (apid, BEG_UPDATE);
       Wind_redraw_elements (apid, ret.msg.msg0, (RECT *)&ret.msg.msg1, 0);
       Wind_do_update (apid, END_UPDATE);
+      Graf_do_mouse (apid, M_ON, NULL);
     }
   }
 

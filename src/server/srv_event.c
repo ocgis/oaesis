@@ -405,12 +405,14 @@ check_mouse_motion (WORD           x,
   /*
   ** Check if the menu bar area has been entered
   */
+  DEBUG3 ("srv_event.c: Checking menu area");
   if ((par->common.apid == get_top_menu_owner ()) &&
       (par->eventin.events & MU_MENU_BAR)) {
     if (Misc_inside (&par->eventin.menu_bar, x, y)) {
       retval |= MU_MENU_BAR;
     }
   }
+  DEBUG3 ("srv_event.c: Checked menu area");
 
   /* Fill in mouse status if it hasn't been done already */
   if (!(ret->eventout.events & MU_BUTTON)) {

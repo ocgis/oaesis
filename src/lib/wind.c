@@ -123,10 +123,26 @@ static WORD     elemnumber = -1;
 static WORD     tednumber;
 
 static WORD widgetmap[] = {
-        0,0,WCLOSER,WMOVER,WFULLER,
-        WINFO,0,0,WSIZER,0,
-        WUP,WDOWN,WVSB,WVSLIDER,0,
-        WLEFT,WRIGHT,WHSB,WHSLIDER,WSMALLER
+  0,        /* W_BOX     */
+  0,        /* W_TITLE   */
+  WCLOSER,  /* W_CLOSER  */
+  WMOVER,   /* W_NAME    */
+  WFULLER,  /* W_FULLER  */
+  WINFO,    /* W_INFO    */
+  0,        /* W_DATA    */
+  0,        /* W_WORK    */
+  WSIZER,   /* W_SIZER   */
+  0,        /* W_VBAR    */
+  WUP,      /* W_UPARROW */
+  WDOWN,    /* W_DNARROW */
+  WVSB,     /* W_VSLIDE  */
+  WVSLIDER, /* W_VELEV   */
+  0,        /* W_HBAR    */
+  WLEFT,    /* W_LFARROW */
+  WRIGHT,   /* W_RTARROW */
+  WHSB,     /* W_HSLIDE  */
+  WHSLIDER, /* W_HELEV   */
+  WSMALLER  /* W_SMALLER */
 };
 
 static
@@ -207,12 +223,128 @@ calcworksize (WORD apid,
 
 /*
 ** Description
+** Change window slider position and size
+**
+** 1999-03-28 CG
+*/
+static
+WORD
+Wind_set_slider (WORD        apid,
+                 WORD        id,
+                 WORD        redraw,
+                 WORD        which,
+                 WORD        position,
+                 WORD        size) {	
+  WINDOW_STRUCT * win = find_window_struct (apid, id);
+  WORD redraw2 = 0;
+  GLOBAL_COMMON * globals = get_global_common ();
+  
+  DEBUG3 ("wind.c: Wind_set_slider: position %d size %d", position, size);
+
+  if(which & VSLIDE) {
+    WORD newheight,newy;
+    
+    if (position != -1) {
+      if(position > 1000) {
+        win->vslidepos = 1000;
+      } else if (position < 1) {
+        win->vslidepos = 1;
+      } else {
+        win->vslidepos = position;
+      }
+    }
+		
+    if (size != -1) {
+      if (size > 1000) {
+        win->vslidesize = 1000;
+      } else if (size < 1) {
+        win->vslidesize = 1;
+      } else {
+        win->vslidesize = size;
+      }
+    }
+
+    newy = (WORD)(((LONG)win->vslidepos *
+                   (LONG)(win->tree[WVSB].ob_height -
+                          win->tree[WVSLIDER].ob_height)) / 1000L);
+    newheight = (WORD)(((LONG)win->vslidesize *
+                        (LONG)win->tree[WVSB].ob_height) / 1000L);
+    
+    if((win->tree[WVSLIDER].ob_y != newy) ||
+       (win->tree[WVSLIDER].ob_height != newheight)) {
+      win->tree[WVSLIDER].ob_y = newy;
+      win->tree[WVSLIDER].ob_height = newheight;
+      
+      redraw2 = 1;
+    }
+  }
+  
+  if(which & HSLIDE) {
+    WORD newx,newwidth;
+    
+    if(position != -1) {
+      if(position > 1000) {
+        win->hslidepos = 1000;
+      } else if (position < 1) {
+        win->hslidepos = 1;
+      } else {
+        win->hslidepos = position;
+      }
+    }
+    
+    if(size != -1) {
+      if(size > 1000) {
+        win->hslidesize = 1000;
+      } else if(size < 1) {
+        win->hslidesize = 1;
+      } else {
+        win->hslidesize = size;
+      }
+    }
+    
+    newx = (WORD)(((LONG)win->hslidepos *
+                   (LONG)(win->tree[WHSB].ob_width -
+                          win->tree[WHSLIDER].ob_width)) / 1000L);
+    newwidth = (WORD)(((LONG)win->hslidesize *
+                       (LONG)win->tree[WHSB].ob_width) / 1000L);
+    
+    if((win->tree[WHSLIDER].ob_x != newx) ||
+       (win->tree[WHSLIDER].ob_width != newwidth)) {
+      win->tree[WHSLIDER].ob_x = newx;
+      win->tree[WHSLIDER].ob_width = newwidth;
+      
+      redraw2 = 1;
+    }
+  }
+
+  if(redraw && redraw2 && (win->status & WIN_OPEN)) {
+    DEBUG3 ("screen : %d %d %d %d",
+            globals->screen.x,
+            globals->screen.y,
+            globals->screen.width,
+            globals->screen.height);
+    if(which & VSLIDE) { 
+      Wind_redraw_elements (apid, id, &globals->screen, WVSB);
+    }
+    
+    if(which & HSLIDE) {
+      Wind_redraw_elements (apid, id, &globals->screen, WHSB);
+    }
+  }
+  
+  return 1;
+}
+
+
+/*
+** Description
 ** Wind_set_size sets the size and position of window <win> to <size>
 **
 ** 1998-10-11 CG
 ** 1998-12-25 CG
 ** 1999-01-01 CG
 ** 1999-01-10 CG
+** 1999-04-10 CG
 */
 static
 WORD
@@ -283,9 +415,12 @@ Wind_set_size (WORD   apid,
       
       ws->tree[WAPP].ob_width = ws->tree[WMOVER].ob_width;
       
-      /*
-      changeslider(win,0,HSLIDE | VSLIDE,-1,-1);
-      */
+      Wind_set_slider (apid,
+                       id,
+                       0,
+                       HSLIDE | VSLIDE,
+                       -1,
+                       -1);
     }
 
     /* If the window changed size we need to redraw the elements */
@@ -983,14 +1118,16 @@ Wind_create (AES_PB *apb)
 **
 ** 1998-12-20 CG
 ** 1999-01-10 CG
+** 1999-04-09 CG
 */
 WORD
 Wind_do_open (WORD   apid,
               WORD   id,
               RECT * size) {
-  C_WIND_OPEN par;
-  R_WIND_OPEN ret;
-  
+  C_WIND_OPEN     par;
+  R_WIND_OPEN     ret;
+  WINDOW_STRUCT * win = find_window_struct (apid, id);
+
   par.common.call = SRV_WIND_OPEN;
   par.common.apid = apid;
   par.common.pid = getpid ();
@@ -1004,6 +1141,8 @@ Wind_do_open (WORD   apid,
 
   /* Set the size of the window elements */
   Wind_set_size (apid, id, size);
+
+  win->status |= WIN_OPEN;
 
   return ret.common.retval;
 }
@@ -1299,6 +1438,7 @@ Wind_set_desktop_background (WORD     apid,
 **
 ** 1998-12-25 CG
 ** 1999-01-01 CG
+** 1999-04-07 CG
 */
 WORD
 Wind_do_set (WORD apid,
@@ -1353,7 +1493,39 @@ Wind_do_set (WORD apid,
     
   case WF_NEWDESK :
     return Wind_set_desktop_background (apid,
-                                         (OBJECT *)INTS2LONG (parm1, parm2));
+                                        (OBJECT *)INTS2LONG (parm1, parm2));
+
+  case WF_HSLIDE :
+    return Wind_set_slider (apid,
+                            handle,
+                            1,
+                            HSLIDE,
+                            parm1,
+                            -1);
+
+  case WF_VSLIDE :
+    return Wind_set_slider (apid,
+                            handle,
+                            1,
+                            VSLIDE,
+                            parm1,
+                            -1);
+
+  case WF_HSLSIZE :
+    return Wind_set_slider (apid,
+                            handle,
+                            1,
+                            HSLIDE,
+                            -1,
+                            parm1);
+
+  case WF_VSLSIZE :
+    return Wind_set_slider (apid,
+                            handle,
+                            1,
+                            VSLIDE,
+                            -1,
+                            parm1);
   }
 
   return ret.common.retval;

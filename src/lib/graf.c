@@ -163,6 +163,7 @@ void Graf_exit_module(void) {
 ** 1998-12-26 CG
 ** 1999-01-03 CG
 ** 1999-01-09 CG
+** 1999-04-10 CG
 */
 WORD
 Graf_do_rubberbox (WORD   apid,
@@ -235,9 +236,9 @@ Graf_do_rubberbox (WORD   apid,
   xyarray[8] = xyarray[0];
   xyarray[9] = xyarray[1];
   
-  Vdi_v_hide_c (globals->vid);
+  Graf_do_mouse (apid, M_OFF, NULL);
   Vdi_v_pline (globals->vid, 5, xyarray);
-  Vdi_v_show_c (globals->vid, 1);
+  Graf_do_mouse (apid, M_ON, NULL);
   
   ei.m1r.x = mx;
   ei.m1r.y = my;
@@ -258,7 +259,7 @@ Graf_do_rubberbox (WORD   apid,
       }
 
       if ((lastw != neww) || (lasth != newh)) {
-        Vdi_v_hide_c (globals->vid);
+        Graf_do_mouse (apid, M_OFF, NULL);
         Vdi_v_pline (globals->vid, 5, xyarray);
 
         lastw = neww;
@@ -276,7 +277,7 @@ Graf_do_rubberbox (WORD   apid,
         xyarray[9] = xyarray[1];
          
         Vdi_v_pline (globals->vid, 5, xyarray);
-        Vdi_v_show_c (globals->vid, 1);
+        Graf_do_mouse (apid, M_ON, NULL);
       }
     }
                 
@@ -287,9 +288,9 @@ Graf_do_rubberbox (WORD   apid,
     }
   }
 
-  Vdi_v_hide_c (globals->vid);
+  Graf_do_mouse (apid, M_OFF, NULL);
   Vdi_v_pline (globals->vid, 5, xyarray);
-  Vdi_v_show_c (globals->vid, 1);
+  Graf_do_mouse (apid, M_ON, NULL);
 
   *endw = lastw;
   *endh = lasth;
@@ -631,6 +632,7 @@ Graf_shrinkbox (AES_PB * apb) {
 ** 1998-12-19 CG
 ** 1998-12-23 CG
 ** 1999-01-09 CG
+** 1999-04-10 CG
 */
 WORD
 Graf_do_watchbox (WORD     apid,
@@ -671,11 +673,15 @@ Graf_do_watchbox (WORD     apid,
   if(Misc_inside(&ei.m1r, mx, my)) {
     ei.m1flag = MO_LEAVE;
     
+    Graf_do_mouse (apid, M_OFF, NULL);
     Objc_do_change (globals->vid, tree, obj, &clip, instate, REDRAW);
+    Graf_do_mouse (apid, M_ON, NULL);
   } else {
     ei.m1flag = MO_ENTER;
     
+    Graf_do_mouse (apid, M_OFF, NULL);
     Objc_do_change (globals->vid, tree, obj, &clip, outstate, REDRAW);
+    Graf_do_mouse (apid, M_ON, NULL);
   }
   
   Wind_do_update (apid, BEG_MCTRL);
@@ -689,10 +695,14 @@ Graf_do_watchbox (WORD     apid,
     
     if(ei.m1flag == MO_LEAVE) {
       ei.m1flag = MO_ENTER;
+      Graf_do_mouse (apid, M_OFF, NULL);
       Objc_do_change (globals->vid, tree, obj, &clip, outstate, REDRAW);
+      Graf_do_mouse (apid, M_ON, NULL);
     } else {
       ei.m1flag = MO_LEAVE;
+      Graf_do_mouse (apid, M_OFF, NULL);
       Objc_do_change (globals->vid, tree, obj, &clip, instate, REDRAW);
+      Graf_do_mouse (apid, M_ON, NULL);
     }
   }
   
