@@ -140,13 +140,23 @@ Evnt_do_button (WORD   apid,
 }
 
 
-void	Evnt_button(AES_PB *apb) {
-  /*	apb->int_out[0] = Evnt_do_button(apb->global->apid,
-			apb->global->int_info->eventpipe,
-			apb->int_in[0],apb->int_in[1],apb->int_in[2]
-			,&apb->int_out[1],&apb->int_out[2],&apb->int_out[3]
-			,&apb->int_out[4]);*/
+/*
+** Description
+** Implementation of evnt_button()
+*/
+void
+Evnt_button(AES_PB *apb)
+{
+  apb->int_out[0] = Evnt_do_button(apb->global->apid,
+                                   apb->int_in[0],
+                                   apb->int_in[1],
+                                   apb->int_in[2],
+                                   &apb->int_out[1],
+                                   &apb->int_out[2],
+                                   &apb->int_out[3],
+                                   &apb->int_out[4]);
 }
+
 
 /*0x0016 evnt_mouse*/
 void	Evnt_mouse(AES_PB *apb) {
@@ -157,48 +167,36 @@ void	Evnt_mouse(AES_PB *apb) {
 
 
 /*
+** Description
+** Implementation of evnt_mesag()
+*/
+static
+WORD
+Evnt_do_mesag(WORD     apid,
+              COMMSG * buf)
+{
+  EVENTIN	ei;
+  
+  EVENTOUT	eo;
+    
+  ei.events = MU_MESAG;
+
+  Evnt_do_multi(apid, &ei, &buf, &eo, 0, DONT_HANDLE_MENU_BAR);
+  
+  return 1;
+}
+
+
+/*
 ** Exported
-**
-** 1998-12-19 CG
 */
 void
-Evnt_mesag (AES_PB *apb) {
-  /*
-  ** FIXME
-  ** Call evnt_multi instead
-  COMMSG    e;
-  WORD      i;
-  SRV_APPL_INFO appl_info;
-	
-  Srv_get_appl_info(apb->global->apid,&appl_info);
-
-  Fread(appl_info.msgpipe,MSG_LENGTH,&e);
-
-  for(i = 0; i < 8; i++) {
-    ((WORD *)apb->addr_in[0])[i] = ((WORD *)&e)[i];
-  };
-	
-  if((e.type == WM_REDRAW) && (e.sid == -1)) {
-    RECT totsize;
-		
-    Wind_do_get (apb->global->apid,
-                 ((WORD *)apb->addr_in[0])[3],
-                 WF_CURRXYWH,
-                 &totsize.x,
-                 &totsize.y,
-                 &totsize.width,
-                 &totsize.height,
-                 TRUE);
-	
-    ((WORD *)apb->addr_in)[4] += totsize.x;
-    ((WORD *)apb->addr_in)[5] += totsize.y;
-  };			
-  */
-
-  DB_printf ("!!Implement Evnt_mesag in evnt.c");
-
-  apb->int_out[0] = 1;
+Evnt_mesag(AES_PB * apb)
+{
+  apb->int_out[0] = Evnt_do_mesag(apb->global->apid,
+                                  (COMMSG *)apb->addr_in[0]);
 }
+
 
 /*0x0018 evnt_timer*/
 
