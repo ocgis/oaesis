@@ -244,20 +244,13 @@ open_config_file(void)
   
   for(i = 0; filelist[i] && (fp == NULL); i++)
   {
-    if(strchr(filelist[i], '/'))
-    {
-      strcpy(config_path, bootdrive);
-    }
-    else
-    {
-      config_path[0] = '\0';
-    }
+    strcpy(config_path, bootdrive);
     
     strcat(config_path, filelist[i]);
     DEBUG2("Trying to find config file in %s", config_path);
     fp = fopen(config_path, "r");
   }
-  
+
   return fp;
 }
 
