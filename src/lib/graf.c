@@ -934,8 +934,8 @@ Graf_do_mouse(WORD    apid,
     break;
 
   default:
-    DB_printf("%s: Line %d: Graf_do_mouse:\r\n"
-              "Unknown mode %d\r\n",__FILE__,__LINE__,mode);
+    DEBUG0("%s: Line %d: Graf_do_mouse:\r\n"
+           "Unknown mode %d\r\n",__FILE__,__LINE__,mode);
     retval = 0;
   }
 

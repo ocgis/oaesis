@@ -1490,9 +1490,9 @@ handle_drop_down (WORD        apid,
               }
             }
           } else {
-            DB_printf("%s: Line %d: handle_drop_down:\r\n"
-                      "Couldn't find application to top!\r\n",
-                      __FILE__,__LINE__);
+            DEBUG0("%s: Line %d: handle_drop_down:\r\n"
+                   "Couldn't find application to top!\r\n",
+                   __FILE__,__LINE__);
           }
         }
 	else
@@ -1805,6 +1805,6 @@ Evhd_handle_menu (WORD apid,
     break;
 
   default:
-    DB_printf("Unknown action %d\r\n",hm_buffer.action);
+    DEBUG0("Unknown action %d\r\n",hm_buffer.action);
   }
 }

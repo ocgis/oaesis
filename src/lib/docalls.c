@@ -483,14 +483,14 @@ aes_call(AESPB * apb)
     aescalls[apb->contrl[0]].func(apb);
   } else {
     if(aescalls[apb->contrl[0]].name) {
-      DB_printf("%s: Line %d:\r\n"
-                "Unimplemented AES call %d %s",
-                __FILE__,__LINE__,apb->contrl[0],
-                aescalls[apb->contrl[0]].name);
+      DEBUG0("%s: Line %d:\r\n"
+             "Unimplemented AES call %d %s",
+             __FILE__,__LINE__,apb->contrl[0],
+             aescalls[apb->contrl[0]].name);
     } else {
-      DB_printf( "%s: Line %d:\r\n"
-                 "Illegal AES call %d",
-                 __FILE__,__LINE__,apb->contrl[0]);
+      DEBUG0( "%s: Line %d:\r\n"
+              "Illegal AES call %d",
+              __FILE__,__LINE__,apb->contrl[0]);
     }
   }
   

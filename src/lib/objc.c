@@ -1961,8 +1961,8 @@ WORD     mode)    /* Edit mode.                                             */
     break;
 		
   default:
-    DB_printf("%s: Line %d: Objc_do_edit:\r\n"
-              "Unknown mode %d\r\n",__FILE__,__LINE__,mode);
+    DEBUG0("%s: Line %d: Objc_do_edit:\r\n"
+           "Unknown mode %d\r\n",__FILE__,__LINE__,mode);
     return 0;
   }
 
@@ -2107,7 +2107,7 @@ Objc_do_sysvar(WORD   mode,
     }
   }
   
-  DB_printf("Objc_do_sysvar: mode=%d which=%d",mode,which);
+  DEBUG0("Objc_do_sysvar: mode=%d which=%d",mode,which);
   
   return 0;
 }

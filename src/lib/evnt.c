@@ -143,10 +143,12 @@ Evnt_button(AES_PB *apb)
 
 
 /*0x0016 evnt_mouse*/
-void	Evnt_mouse(AES_PB *apb) {
-	DB_printf("evnt_mouse not implemented yet");
+void
+Evnt_mouse(AES_PB *apb)
+{
+  DEBUG0("evnt_mouse not implemented yet");
 	
-	apb->int_out[0] = 1;
+  apb->int_out[0] = 1;
 }
 
 

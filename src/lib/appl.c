@@ -127,7 +127,7 @@ Appl_do_read (WORD   apid,
   return 1;
   */
 
-  DB_printf ("!!Implement Appl_do_read in appl.c");
+  DEBUG0("!!Implement Appl_do_read in appl.c");
 
   return 0;
 }
@@ -819,8 +819,8 @@ Appl_getinfo(AES_PB *apb) /* AES parameter block.                           */
     break;
 
   default:
-    DB_printf("%s: Line %d: Appl_getinfo:\r\n"
-              "Unknown type %d\r\n",__FILE__,__LINE__,apb->int_in[0]);
+    DEBUG0("%s: Line %d: Appl_getinfo:\r\n"
+           "Unknown type %d\r\n",__FILE__,__LINE__,apb->int_in[0]);
     apb->int_out[0] = 0;
   }
 }

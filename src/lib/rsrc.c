@@ -88,7 +88,7 @@ Rsrc_do_load_mint (WORD   apid,
   strcpy (namebuf, filename);
   DEBUG2 ("rsrc.c: Rsrc_do_load_mint: trying to load %s", namebuf);
   if (Shel_do_find (apid, namebuf) == SHEL_FIND_ERROR) {
-    DB_printf("rsrc.c: loadrsc: Could not find %s",namebuf);
+    DEBUG0("rsrc.c: loadrsc: Could not find %s",namebuf);
                 
     return NULL;
   }
@@ -96,7 +96,7 @@ Rsrc_do_load_mint (WORD   apid,
   fnr = Fopen( namebuf, FO_READ);
 
   if(fnr < 0) {
-    DB_printf("rsrc.c: loadrsc: Could not open %s",namebuf);
+    DEBUG0("rsrc.c: loadrsc: Could not open %s",namebuf);
 
     return NULL;
   }
@@ -106,7 +106,7 @@ Rsrc_do_load_mint (WORD   apid,
   rsc = (RSHDR *)malloc(flen);
 
   if(!rsc) {
-    DB_printf("rsrc.c: loadrsc: Could not malloc memory for %s",namebuf);
+    DEBUG0("rsrc.c: loadrsc: Could not malloc memory for %s",namebuf);
 
     return NULL;
   }
@@ -143,7 +143,7 @@ Rsrc_do_load_unix (WORD   apid,
 
   strcpy( namebuf, filename);
   if (Shel_do_find (apid, namebuf) == SHEL_FIND_ERROR) {
-    DB_printf("rsrc.c: loadrsc: Could not find %s",namebuf);
+    DEBUG0("rsrc.c: loadrsc: Could not find %s",namebuf);
                 
     return NULL;
   }
@@ -151,25 +151,25 @@ Rsrc_do_load_unix (WORD   apid,
   fnr = open (namebuf, 0);
 
   if (fnr < 0) {
-    DB_printf ("rsrc.c: Rsrc_do_load_unix: Could not open %s", namebuf);
+    DEBUG0("rsrc.c: Rsrc_do_load_unix: Could not open %s", namebuf);
 
     return NULL;
   }
 
   if (fstat (fnr, &st) == -1) {
-    DB_printf ("rsrc.c: Rsrc_do_load_unix: Could not stat %s", namebuf);
+    DEBUG0("rsrc.c: Rsrc_do_load_unix: Could not stat %s", namebuf);
   }
 
   rsc = (RSHDR *)malloc (st.st_size);
 
   if (rsc == NULL) {
-    DB_printf ("rsrc.c: loadrsc: Could not malloc memory for %s",namebuf);
+    DEBUG0("rsrc.c: loadrsc: Could not malloc memory for %s",namebuf);
 
     return NULL;
   }
         
   if (read (fnr, rsc, st.st_size) == -1) {
-    DB_printf ("rsrc.c: loadrsc: Could not read from %s",namebuf);
+    DEBUG0("rsrc.c: loadrsc: Could not read from %s",namebuf);
 
     return NULL;
   }

@@ -486,7 +486,7 @@ Shel_do_write(WORD   apid,
       break;
       
     default:
-      DB_printf("shel_write(SWM_ENVIRON,%d,...) not implemented.", wisgr);
+      DEBUG0("shel_write(SWM_ENVIRON,%d,...) not implemented.", wisgr);
       r = 0;
     }
     break;
