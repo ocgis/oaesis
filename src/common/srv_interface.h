@@ -1,3 +1,17 @@
+/*
+** srv_interface.h
+**
+** Copyright 1999 Christer Gustavsson <cg@nocrew.org>
+**
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+**  
+** Read the file COPYING for more information.
+**
+*/
+
 #ifndef _SRV_INTERFACE_H_
 #define _SRV_INTERFACE_H_
 
@@ -44,58 +58,72 @@ enum
 
 
 /* Common structures */
-typedef struct {
+typedef struct
+{
   WORD words;
+  WORD longs;
   WORD apid;
   WORD pid;
   WORD call;
 }C_ALL;
 
-#define C_ALL_WORDS 4
+#define C_ALL_WORDS 5
 
-typedef struct {
+typedef struct
+{
   WORD words;
+  WORD longs;
   WORD retval;
 }R_ALL;
 
-#define R_ALL_WORDS 2
+#define R_ALL_WORDS 3
 
 /* appl_* related */
 
-typedef struct {
+typedef struct
+{
   C_ALL common;
   WORD  ap_id;
   WORD  mode;
 }C_APPL_CONTROL;
 
 #define C_APPL_CONTROL_WORDS 2
+#define C_APPL_CONTROL_LONGS 0
 
-typedef struct {
+typedef struct
+{
   R_ALL common;
 }R_APPL_CONTROL;
 
 #define R_APPL_CONTROL_WORDS 0
+#define R_APPL_CONTROL_LONGS 0
 
-typedef struct {
+typedef struct
+{
   C_ALL common;
 }C_APPL_EXIT;
 
 #define C_APPL_EXIT_WORDS 0
+#define C_APPL_EXIT_LONGS 0
 
-typedef struct {
+typedef struct
+{
   R_ALL common;
 }R_APPL_EXIT;
 
 #define R_APPL_EXIT_WORDS 0
+#define R_APPL_EXIT_LONGS 0
 
 #define APPL_FIND_NAME_TO_APID 0
 #define APPL_FIND_PID_TO_APID  1
 #define APPL_FIND_APID_TO_PID  2
 
-typedef struct {
+typedef struct
+{
   C_ALL  common;
   WORD   mode;
-  union {
+  union
+  {
     BYTE   name[20];
     WORD   pid;
     WORD   apid;
@@ -103,36 +131,44 @@ typedef struct {
 } C_APPL_FIND;
 
 #define C_APPL_FIND_WORDS 1 /* FIXME */
+#define C_APPL_FIND_LONGS 0
 
-typedef struct {
+typedef struct
+{
   R_ALL common;
 } R_APPL_FIND;
 
 #define R_APPL_FIND_WORDS 0
+#define R_APPL_FIND_LONGS 0
 
-typedef struct {
+typedef struct
+{
   C_ALL common;
   BYTE  appl_name[20];
 }C_APPL_INIT;
 
 #define C_APPL_INIT_WORDS 0
+#define C_APPL_INIT_LONGS 0
 
-typedef struct {
+typedef struct
+{
   R_ALL common;
   WORD  apid;
   WORD  physical_vdi_id;
 }R_APPL_INIT;
 
 #define R_APPL_INIT_WORDS 2
+#define R_APPL_INIT_LONGS 0
 
 typedef struct
 {
   C_ALL common;
   WORD  type;   /* APP_APPLICATION or APP_ACCESSORY */
   WORD  pid;    /* Process id: FIXME: make more general id */
-} C_APPL_RESERVE;
+}C_APPL_RESERVE;
 
-#define C_APPL_RESERVE_WORDS 0
+#define C_APPL_RESERVE_WORDS 2
+#define C_APPL_RESERVE_LONGS 0
 
 typedef struct
 {
@@ -140,34 +176,42 @@ typedef struct
 } R_APPL_RESERVE;
 
 #define R_APPL_RESERVE_WORDS 0
+#define R_APPL_RESERVE_LONGS 0
 
-typedef struct {
+typedef struct
+{
   C_ALL  common;
   WORD   mode;
 } C_APPL_SEARCH;
 
 #define C_APPL_SEARCH_WORDS 1
+#define C_APPL_SEARCH_LONGS 0
 
-typedef struct {
+typedef struct
+{
   WORD   type;
   WORD   ap_id;
   BYTE   name[20];
-} APPL_SEARCH_INFO;
+}APPL_SEARCH_INFO;
 
-typedef struct {
+typedef struct
+{
   R_ALL            common;
   WORD             count;
   APPL_SEARCH_INFO info;
-} R_APPL_SEARCH;
+}R_APPL_SEARCH;
 
 #define R_APPL_SEARCH_WORDS 3
+#define R_APPL_SEARCH_LONGS 0
 
-typedef struct {
+typedef struct
+{
   C_ALL common;
   WORD  addressee;
   WORD  length;
   WORD  is_reference; /* != 0 => msg.ref is a pointer to the buffer */
-  union {
+  union
+  {
     void *       ref;
     COMMSG       event;
     REDRAWSTRUCT redraw;
@@ -175,12 +219,15 @@ typedef struct {
 } C_APPL_WRITE;
 
 #define C_APPL_WRITE_WORDS 11
+#define C_APPL_WRITE_LONGS 0
 
-typedef struct {
+typedef struct
+{
   R_ALL common;
 } R_APPL_WRITE;
 
 #define R_APPL_WRITE_WORDS 0
+#define R_APPL_WRITE_LONGS 0
 
 /*
 ** Events used in evnt_multi
@@ -192,28 +239,35 @@ typedef struct {
 #define MU_MESAG        0x0010
 #define MU_TIMER        0x0020
 
-typedef struct {
+typedef struct
+{
   C_ALL   common;
   EVENTIN eventin;
 }C_EVNT_MULTI;
 
 #define C_EVNT_MULTI_WORDS (sizeof(EVENTIN) / sizeof(WORD))
+#define C_EVNT_MULTI_LONGS 0
 
-typedef struct {
+typedef struct
+{
   R_ALL    common;
   COMMSG   msg;
   EVENTOUT eventout;
 }R_EVNT_MULTI;
 
 #define R_EVNT_MULTI_WORDS ((sizeof(COMMSG) + sizeof(EVENTOUT)) / sizeof(WORD))
+#define R_EVNT_MULTI_LONGS 0
 
-typedef struct {
+typedef struct
+{
   C_ALL common;
 } C_GRAF_MKSTATE;
 
 #define C_GRAF_MKSTATE_WORDS 0
+#define C_GRAF_MKSTATE_LONGS 0
 
-typedef struct {
+typedef struct
+{
   R_ALL common;
   WORD  mx;
   WORD  my;
@@ -222,64 +276,82 @@ typedef struct {
 } R_GRAF_MKSTATE;
 
 #define R_GRAF_MKSTATE_WORDS 4
+#define R_GRAF_MKSTATE_LONGS 0
 
-typedef struct {
+typedef struct
+{
   C_ALL common;
   WORD  mode;
   MFORM cursor;
-} C_GRAF_MOUSE;
+}C_GRAF_MOUSE;
 
 #define C_GRAF_MOUSE_WORDS (1 + sizeof(MFORM) / sizeof(WORD))
+#define C_GRAF_MOUSE_LONGS 0
 
-typedef struct {
+typedef struct
+{
   R_ALL common;
 } R_GRAF_MOUSE;
 
 #define R_GRAF_MOUSE_WORDS 0
+#define R_GRAF_MOUSE_LONGS 0
 
-typedef struct {
+typedef struct
+{
   C_ALL    common;
   WORD     mode;
-  OBJECT * tree;
-} C_MENU_BAR;
+  OBJECT * tree; /* FIXME */
+}C_MENU_BAR;
 
 #define C_MENU_BAR_WORDS 1
+#define C_MENU_BAR_LONGS 1
 
-typedef struct {
+typedef struct
+{
   R_ALL common;
-} R_MENU_BAR;
+}R_MENU_BAR;
 
 #define R_MENU_BAR_WORDS 0
+#define R_MENU_BAR_LONGS 0
 
-typedef struct {
+typedef struct
+{
   C_ALL common;
   WORD  register_apid;
   BYTE  title[20];
-} C_MENU_REGISTER;
+}C_MENU_REGISTER;
 
 #define C_MENU_REGISTER_WORDS 1
+#define C_MENU_REGISTER_LONGS 0
 
-typedef struct {
+typedef struct
+{
   R_ALL common;
-} R_MENU_REGISTER;
+}R_MENU_REGISTER;
 
 #define R_MENU_REGISTER_WORDS 0
+#define R_MENU_REGISTER_LONGS 0
 
-typedef struct {
+typedef struct
+{
   C_ALL common;
   WORD  id;
   WORD  retval;
 } C_WIND_CLOSE;
 
 #define C_WIND_CLOSE_WORDS 2
+#define C_WIND_CLOSE_LONGS 0
 
-typedef struct {
+typedef struct
+{
   R_ALL common;
 } R_WIND_CLOSE;
 
 #define R_WIND_CLOSE_WORDS 0
+#define R_WIND_CLOSE_LONGS 0
 
-typedef struct {
+typedef struct
+{
   C_ALL  common;
   WORD   elements;
   RECT   maxsize;
@@ -287,41 +359,53 @@ typedef struct {
 }C_WIND_CREATE;
 
 #define C_WIND_CREATE_WORDS 6
+#define C_WIND_CREATE_LONGS 0
 
-typedef struct {
+typedef struct
+{
   R_ALL common;
 }R_WIND_CREATE;
 
 #define R_WIND_CREATE_WORDS 0
+#define R_WIND_CREATE_LONGS 0
 
-typedef struct {
+typedef struct
+{
   C_ALL common;
   WORD id;
 }C_WIND_DELETE;
 
 #define C_WIND_DELETE_WORDS 1
+#define C_WIND_DELETE_LONGS 0
 
-typedef struct {
+typedef struct
+ {
   R_ALL common;
 }R_WIND_DELETE;
 
 #define R_WIND_DELETE_WORDS 0
+#define R_WIND_DELETE_LONGS 0
 
-typedef struct {
+typedef struct
+{
   C_ALL common;
   WORD  x;
   WORD  y;
-} C_WIND_FIND;
+}C_WIND_FIND;
 
 #define C_WIND_FIND_WORDS 2
+#define C_WIND_FIND_LONGS 0
 
-typedef struct {
+typedef struct
+{
   R_ALL common;
-} R_WIND_FIND;
+}R_WIND_FIND;
 
 #define R_WIND_FIND_WORDS 0
+#define R_WIND_FIND_LONGS 0
 
-typedef struct {
+typedef struct
+{
   C_ALL common;
   WORD  handle;
   WORD  mode;
@@ -329,8 +413,10 @@ typedef struct {
 }C_WIND_GET;
 
 #define C_WIND_GET_WORDS 3
+#define C_WIND_GET_LONGS 0
 
-typedef struct {
+typedef struct
+{
   R_ALL common;
   WORD  parm1;
   WORD  parm2;
@@ -339,20 +425,26 @@ typedef struct {
 }R_WIND_GET;
 
 #define R_WIND_GET_WORDS 4
+#define R_WIND_GET_LONGS 0
 
-typedef struct {
+typedef struct
+{
   C_ALL common;
 }C_WIND_NEW;
 
 #define C_WIND_NEW_WORDS 0
+#define C_WIND_NEW_LONGS 0
 
-typedef struct {
+typedef struct
+{
   R_ALL common;
 }R_WIND_NEW;
 
 #define R_WIND_NEW_WORDS 0
+#define R_WIND_NEW_LONGS 0
 
-typedef struct {
+typedef struct
+{
   C_ALL common;
   WORD  handle;
   WORD  mode;
@@ -363,58 +455,71 @@ typedef struct {
 }C_WIND_SET;
 
 #define C_WIND_SET_WORDS 6
+#define C_WIND_SET_LONGS 0
 
-typedef struct {
+typedef struct
+{
   R_ALL common;
 }R_WIND_SET;
 
 #define R_WIND_SET_WORDS 0
+#define R_WIND_SET_LONGS 0
 
-typedef struct {
+typedef struct
+{
   C_ALL common;
   WORD  id;
   RECT  size;
 }C_WIND_OPEN;
 
 #define C_WIND_OPEN_WORDS 5
+#define C_WIND_OPEN_LONGS 0
 
-typedef struct {
+typedef struct
+{
   R_ALL common;
 }R_WIND_OPEN;
 
 #define R_WIND_OPEN_WORDS 0
+#define R_WIND_OPEN_LONGS 0
 
-typedef struct {
+typedef struct
+{
   C_ALL common;
   WORD  mode;
 }C_WIND_UPDATE;
 
 #define C_WIND_UPDATE_WORDS 1
+#define C_WIND_UPDATE_LONGS 0
 
-typedef struct {
+typedef struct
+{
   R_ALL common;
 }R_WIND_UPDATE;
 
 #define R_WIND_UPDATE_WORDS 0
+#define R_WIND_UPDATE_LONGS 0
 
-typedef struct {
+typedef struct
+{
   C_ALL common;
   WORD  contrl[15];
   WORD  inpar[132+145];
-} C_VDI_CALL;
+}C_VDI_CALL;
 
 typedef struct {
   R_ALL common;
   WORD  contrl[15];
   WORD  outpar[140+145];
-} R_VDI_CALL;
+}R_VDI_CALL;
 
 typedef struct {
   C_ALL common;
   ULONG amount;
-} C_MEMORY_ALLOC;
+}C_MEMORY_ALLOC;
 
 #define C_MEMORY_ALLOC_WORDS 0
+#define C_MEMORY_ALLOC_LONGS 1
 
 typedef struct
 {
@@ -423,6 +528,7 @@ typedef struct
 } R_MEMORY_ALLOC;
 
 #define R_MEMORY_ALLOC_WORDS 0
+#define R_MEMORY_ALLOC_LONGS 1
 
 typedef struct
 {
@@ -431,13 +537,15 @@ typedef struct
 } C_MEMORY_FREE;
 
 #define C_MEMORY_FREE_WORDS 0
+#define C_MEMORY_FREE_LONGS 1
 
 typedef struct
 {
   R_ALL common;
-} R_MEMORY_FREE;
+}R_MEMORY_FREE;
 
 #define R_MEMORY_FREE_WORDS 0
+#define R_MEMORY_FREE_LONGS 0
 
 #define MEMORY_BLOCK_SIZE 1024
 
@@ -446,7 +554,7 @@ typedef struct
   C_ALL common;
   WORD  amount;
   ULONG address;
-} C_MEMORY_GET;
+}C_MEMORY_GET;
 
 #define C_MEMORY_GET_WORDS 1
 #define C_MEMORY_GET_LONGS 1
@@ -455,7 +563,7 @@ typedef struct
 {
   R_ALL common;
   BYTE  data[MEMORY_BLOCK_SIZE];
-} R_MEMORY_GET;
+}R_MEMORY_GET;
 
 #define R_MEMORY_GET_WORDS 0
 #define R_MEMORY_GET_LONGS 0
@@ -466,7 +574,7 @@ typedef struct
   WORD  amount;
   ULONG address;
   BYTE  data[MEMORY_BLOCK_SIZE];
-} C_MEMORY_SET;
+}C_MEMORY_SET;
 
 #define C_MEMORY_SET_WORDS 1
 #define C_MEMORY_SET_LONGS 1
@@ -474,7 +582,7 @@ typedef struct
 typedef struct
 {
   R_ALL common;
-} R_MEMORY_SET;
+}R_MEMORY_SET;
 
 #define R_MEMORY_SET_WORDS 0
 #define R_MEMORY_SET_LONGS 0
@@ -543,16 +651,22 @@ typedef union {
 } R_SRV;
 
 
-#define FIX_ENDIAN(parameters,routine,n_o_words) \
+#define FIX_ENDIAN(parameters,routine,n_o_words,n_o_longs) \
 { \
   int    i; \
   void * walk = parameters; \
   int    words = n_o_words; \
+  int    longs = n_o_longs; \
 \
   for(i = 0; i < words; i++) \
   { \
     *(UWORD *)walk = routine##s(*(UWORD *)walk); \
     ((UWORD *)walk)++; \
+  } \
+  for(i = 0; i < longs; i++) \
+  { \
+    *(ULONG *)walk = routine##l(*(ULONG *)walk); \
+    ((ULONG *)walk)++; \
   } \
 }
 
@@ -575,24 +689,26 @@ typedef union {
 #ifndef WORDS_BIGENDIAN
 #define HTON(parameters)
 #else
-#define HTON(parameters) FIX_ENDIAN(parameters,hton,(parameters)->common.words)
+#define HTON(parameters) FIX_ENDIAN(parameters,hton,(parameters)->common.words,(parameters)->common.longs)
 #endif
 
 #ifndef WORDS_BIGENDIAN
 #define NTOH(parameters)
 #else
-#define NTOH(parameters) FIX_ENDIAN(parameters,ntoh,ntohs((parameters)->common.words))
+#define NTOH(parameters) FIX_ENDIAN(parameters,ntoh,ntohs((parameters)->common.words),ntohs((parameters)->common.longs))
 #endif
 
 #define PUT_R_ALL(callname,parameters,retval_in) \
 { \
-  (parameters)->common.words = R_ALL_WORDS + R_##callname##_WORDS; \
+  (parameters)->common.words  = R_ALL_WORDS + R_##callname##_WORDS; \
+  (parameters)->common.longs  = R_##callname##_LONGS; \
   (parameters)->common.retval = retval_in; \
 }
 
 #define PUT_R_ALL_W(callname,parameters,words_in) \
 { \
-  (parameters)->common.words = words_in; \
+  (parameters)->common.words  = words_in; \
+  (parameters)->common.longs  = 0; \
   (parameters)->common.retval = retval; \
 }
 

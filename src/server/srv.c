@@ -344,20 +344,20 @@ srv_call(COMM_HANDLE handle,
     break;
     
   case SRV_MEMORY_ALLOC:
-    ret.memory_alloc.address = htonl((ULONG)malloc(ntohl(par->memory_alloc.amount)));
+    ret.memory_alloc.address = (ULONG)malloc(par->memory_alloc.amount);
     PUT_R_ALL(MEMORY_ALLOC, &ret, 0);
     SRV_REPLY(handle, &ret, sizeof (R_MEMORY_ALLOC));
     break;
     
   case SRV_MEMORY_FREE:
-    free((void *)ntohl(par->memory_free.address));
+    free((void *)par->memory_free.address);
     
     PUT_R_ALL(MEMORY_FREE, &ret, 0);
     SRV_REPLY(handle, &ret, sizeof (R_MEMORY_FREE));
     break;
     
   case SRV_MEMORY_SET:
-    memcpy((void *)ntohl(par->memory_set.address),
+    memcpy((void *)par->memory_set.address,
            &par->memory_set.data,
            par->memory_set.amount);
     PUT_R_ALL(MEMORY_SET, &ret, 0);
@@ -366,7 +366,7 @@ srv_call(COMM_HANDLE handle,
 
   case SRV_MEMORY_GET:
     memcpy(&ret.memory_get.data,
-           (void *)ntohl(par->memory_get.address),
+           (void *)par->memory_get.address,
            par->memory_get.amount);
     PUT_R_ALL(MEMORY_GET, &ret, 0);
     SRV_REPLY(handle, &ret, sizeof(R_MEMORY_GET));

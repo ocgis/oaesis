@@ -46,8 +46,7 @@ Mem_alloc(size_t amount)
 
   PUT_C_ALL(MEMORY_ALLOC, &par);
 
-  /* FIXME: Integrate longs into PUT_C_ALL */
-  par.amount = htonl((ULONG)amount);
+  par.amount = (ULONG)amount;
 
   /* Pass the call to the server */
   CLIENT_SEND_RECV(&par,
@@ -55,7 +54,7 @@ Mem_alloc(size_t amount)
                    &ret,
                    sizeof (R_MEMORY_ALLOC));
   
-  return (void *)ntohl(ret.address);
+  return (void *)ret.address;
 }
 
 
@@ -73,8 +72,8 @@ Mem_free(void * address)
   WORD          apid = 0;
 
   PUT_C_ALL(MEMORY_FREE, &par);
-  /* FIXME: Integrate longs into PUT_C_ALL */
-  par.address = htonl((ULONG)address);
+
+  par.address = (ULONG)address;
 
   /* Pass the call to the server */
   CLIENT_SEND_RECV(&par,
@@ -103,8 +102,7 @@ Mem_set_block(void * dst,
   PUT_C_ALL(MEMORY_SET, &par);
 
   par.amount = amount;
-  /* FIXME: Integrate longs into PUT_C_ALL */
-  par.address = htonl((ULONG)dst);
+  par.address = (ULONG)dst;
   memcpy(&par.data, src, amount);
 
   /* Pass the call to the server */
@@ -134,8 +132,7 @@ Mem_get_block(void * dst,
   PUT_C_ALL(MEMORY_GET, &par);
 
   par.amount = amount;
-  /* FIXME: Integrate longs into PUT_C_ALL */
-  par.address = htonl((ULONG)src);
+  par.address = (ULONG)src;
 
   /* Pass the call to the server */
   CLIENT_SEND_RECV(&par,
