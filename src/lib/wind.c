@@ -391,24 +391,18 @@ Wind_set_slider (WORD        apid,
 /*
 ** Description
 ** Wind_set_size sets the size and position of window <win> to <size>
-**
-** 1998-10-11 CG
-** 1998-12-25 CG
-** 1999-01-01 CG
-** 1999-01-10 CG
-** 1999-04-10 CG
-** 1999-04-11 CG
-** 1999-06-13 CG
 */
 static
 WORD
-Wind_set_size (WORD   apid,
-               WORD   id,
-               RECT * size) {
+Wind_set_size (int    apid,
+               int    id,
+               RECT * size)
+{
   WORD            dx,dy,dw,dh;
   WINDOW_STRUCT * ws = find_window_struct (apid, id);
 
-  if (ws != NULL) {
+  if(ws != NULL)
+  {
     ws->lastsize = ws->totsize;
     
     dx = size->x - ws->lastsize.x;
@@ -416,58 +410,70 @@ Wind_set_size (WORD   apid,
     dw = size->width - ws->lastsize.width;
     dh = size->height - ws->lastsize.height;
 
-    /* Update areas where widget elements were placed */
-    if (dw > 0) {
-      REDRAWSTRUCT m;
-
-      m.type = WM_REDRAW;
-      m.sid = apid;
-      m.length = sizeof (REDRAWSTRUCT);
-      m.wid = id;
-
-      m.area.x = ws->worksize.x + ws->worksize.width + dx;
-      m.area.y = ws->worksize.y + dy;
-      m.area.width = ws->totsize.x + ws->totsize.width - m.area.x;
-
-      if (dw < m.area.width) {
-        m.area.width = dw;
+    /* Only need to redraw if window is open */
+    if(ws->status & WIN_OPEN)
+    {
+      /* Update areas where widget elements were placed */
+      if(dw > 0)
+      {
+        REDRAWSTRUCT m;
+        
+        m.type = WM_REDRAW;
+        m.sid = apid;
+        m.length = sizeof (REDRAWSTRUCT);
+        m.wid = id;
+        
+        m.area.x = ws->worksize.x + ws->worksize.width + dx;
+        m.area.y = ws->worksize.y + dy;
+        m.area.width = ws->totsize.x + ws->totsize.width - m.area.x;
+        
+        if(dw < m.area.width)
+        {
+          m.area.width = dw;
+        }
+        
+        m.area.height = ws->totsize.y + ws->totsize.height - ws->worksize.y;
+        
+        if(dh < 0)
+        {
+          m.area.height += dh;
+        }
+        
+        if((m.area.width > 0) && (m.area.height > 0))
+        {
+          Appl_do_write (apid, apid, m.length, &m);
+        }
       }
-
-      m.area.height = ws->totsize.y + ws->totsize.height - ws->worksize.y;
-
-      if (dh < 0) {
-        m.area.height += dh;
-      }
-
-      if ((m.area.width > 0) && (m.area.height > 0)) {
-        Appl_do_write (apid, apid, m.length, &m);
-      }
-    }
-
-    if (dh > 0) {
-      REDRAWSTRUCT m;
-
-      m.type = WM_REDRAW;
-      m.sid = apid;
-      m.length = sizeof (REDRAWSTRUCT);
-      m.wid = id;
-
-      m.area.x = ws->worksize.x + dx;
-      m.area.y = ws->worksize.y + ws->worksize.height + dy;
-      m.area.width = ws->totsize.x + ws->totsize.width - ws->worksize.x;
-
-      if (dw < 0) {
-        m.area.width += dw;
-      }
-
-      m.area.height = ws->totsize.y + ws->totsize.height - m.area.y;
-
-      if (dh < m.area.height) {
-        m.area.height = dh;
-      }
-
-      if ((m.area.width > 0) && (m.area.height > 0)) {
-        Appl_do_write (apid, apid, m.length, &m);
+      
+      if(dh > 0)
+      {
+        REDRAWSTRUCT m;
+        
+        m.type = WM_REDRAW;
+        m.sid = apid;
+        m.length = sizeof (REDRAWSTRUCT);
+        m.wid = id;
+        
+        m.area.x = ws->worksize.x + dx;
+        m.area.y = ws->worksize.y + ws->worksize.height + dy;
+        m.area.width = ws->totsize.x + ws->totsize.width - ws->worksize.x;
+        
+        if(dw < 0)
+        {
+          m.area.width += dw;
+        }
+        
+        m.area.height = ws->totsize.y + ws->totsize.height - m.area.y;
+        
+        if(dh < m.area.height)
+        {
+          m.area.height = dh;
+        }
+        
+        if((m.area.width > 0) && (m.area.height > 0))
+        {
+          Appl_do_write (apid, apid, m.length, &m);
+        }
       }
     }
 
@@ -478,7 +484,8 @@ Wind_set_size (WORD   apid,
     ws->worksize.width += dw;
     ws->worksize.height += dh;
     
-    if(ws->tree) {
+    if(ws->tree)
+    {
       ws->tree[0].ob_x = ws->totsize.x;
       ws->tree[0].ob_y = ws->totsize.y;
       ws->tree[0].ob_width = ws->totsize.width;
@@ -533,7 +540,8 @@ Wind_set_size (WORD   apid,
     }
 
     /* If the window changed size we need to redraw the elements */
-    if ((dw != 0) || (dh != 0)) {
+    if((ws->status & WIN_OPEN) && ((dw != 0) || (dh != 0)))
+    {
       Wind_redraw_elements (apid, id, size, 0);
     }
   }
@@ -1285,7 +1293,8 @@ Wind_create (AES_PB *apb)
 WORD
 Wind_do_open (WORD   apid,
               WORD   id,
-              RECT * size) {
+              RECT * size)
+{
   C_WIND_OPEN     par;
   R_WIND_OPEN     ret;
   WINDOW_STRUCT * win = find_window_struct (apid, id);
@@ -2011,4 +2020,50 @@ Wind_change (WORD apid,
   }
   
   return 0;
+}
+
+
+/*
+** Description
+** Inform a window that it is new top window or no longer top window
+*/
+void
+Wind_newtop(int apid,
+            int id,
+            int status)
+{
+  if((status == WIND_NEWTOP) || (status == WIND_UNTOPPED))
+  {
+    WINDOW_STRUCT * win;
+
+    win = find_window_struct(apid, id);
+
+    if(win != NULL)
+    {
+      int i;
+
+      if(status == WIND_NEWTOP)
+      {
+        win->status |= WIN_TOPPED;
+      }
+      else
+      {
+        win->status &= ~WIN_TOPPED;
+      }
+
+      for(i = 0; i <= W_SMALLER; i++)
+      {
+        set_widget_colour(win, i, win->top_colour[i], win->untop_colour[i]);
+      }
+    }
+    else
+    {
+      DEBUG1("Wind_newtop: window struct for apid %d id %d not found",
+             apid, id);
+    }
+  }
+  else
+  {
+    DEBUG0("Wind_newtop: illegal status: %d\n", status);
+  }
 }

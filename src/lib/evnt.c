@@ -245,14 +245,17 @@ Evnt_do_multi (WORD       apid,
 		     sizeof (R_EVNT_MULTI));
     
     /* Handle messages */
-    if (ret.eventout.events & MU_MENU_BAR) {
+    if (ret.eventout.events & MU_MENU_BAR)
+    {
       Evhd_handle_menu (apid,
                         ret.eventout.mx,
                         ret.eventout.my);
     }
     
-    if (ret.eventout.events & MU_MESAG) {
-      if (ret.msg.type == WM_REDRAW) {
+    if (ret.eventout.events & MU_MESAG)
+    {
+      if((ret.msg.type == WM_REDRAW) || (ret.msg.type == WM_EREDRAW))
+      {
         /* Redraw window borders */
         Graf_do_mouse (apid, M_OFF, NULL);
         Wind_do_update (apid, BEG_UPDATE);
@@ -260,8 +263,22 @@ Evnt_do_multi (WORD       apid,
         Wind_do_update (apid, END_UPDATE);
         Graf_do_mouse (apid, M_ON, NULL);
       }
+      else if(ret.msg.type == WM_AREDRAW)
+      {
+        /* Don't redraw elements, just window content */
+        ret.msg.type = WM_REDRAW;
+      }
+      else if(ret.msg.type == WM_NEWTOP)
+      {
+        Wind_newtop(apid, ret.msg.msg0, WIND_NEWTOP);
+      }
+      else if(ret.msg.type == WM_UNTOPPED)
+      {
+        Wind_newtop(apid, ret.msg.msg0, WIND_UNTOPPED);
+      }
 
-      if (eventin->events & MU_MESAG) {
+      if (eventin->events & MU_MESAG)
+      {
         *msg = ret.msg;
         events_out |= MU_MESAG;
       }

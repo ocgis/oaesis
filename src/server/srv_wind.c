@@ -472,31 +472,60 @@ get_deskbg_owner(void)
 
 /*
 ** Description
-** Draw the elements of the window win that intersects with the rectangle
-**  r
+** Send a top/untop message for a window
 */
 static
+inline
 void
-draw_wind_elements(WINSTRUCT * win,
-                   RECT *      r,
-                   WORD start)
+send_simple_window_message(int id,
+                           int owner,
+                           int message)
 {
-  RLIST	*rl = win->rlist;
+  C_APPL_WRITE c_appl_write;
+  R_APPL_WRITE r_appl_write;
+  
+  c_appl_write.addressee = owner;
+  c_appl_write.length = MSG_LENGTH;
+  c_appl_write.is_reference = FALSE;
+  c_appl_write.msg.event.type = message;
+  c_appl_write.msg.event.sid = 0;
+  c_appl_write.msg.event.length = 0;
+  c_appl_write.msg.event.msg0 = id;
+  srv_appl_write(&c_appl_write, &r_appl_write);
+}
 
-  if((win->id != 0) && win->tree)
-  {	
-    while(rl) {		
-      RECT	r2;
-		
-      if(srv_intersect(&rl->r,r,&r2)) {
-        /*
-          Objc_do_draw(win->tree,start,3,&r2);
-          */
-      }
-			
-      rl = rl->next;
-    }
-  }
+
+/*
+** Description
+** Send a redraw message for a window
+*/
+static
+inline
+void
+send_redraw_message(int sender,
+                    int id,
+                    int owner,
+                    int x,
+                    int y,
+                    int w,
+                    int h,
+                    int message)
+{
+  C_APPL_WRITE c_appl_write;
+  R_APPL_WRITE r_appl_write;
+  
+  c_appl_write.addressee = owner;
+  c_appl_write.length = MSG_LENGTH;
+  c_appl_write.is_reference = FALSE;
+  c_appl_write.msg.event.type = message;
+  c_appl_write.msg.event.sid = sender;
+  c_appl_write.msg.event.length = 0;
+  c_appl_write.msg.event.msg0 = id;
+  c_appl_write.msg.event.msg1 = x;
+  c_appl_write.msg.event.msg2 = y;
+  c_appl_write.msg.event.msg3 = w;
+  c_appl_write.msg.event.msg4 = h;
+  srv_appl_write(&c_appl_write, &r_appl_write);
 }
 
 
@@ -559,7 +588,8 @@ changewinsize (WINSTRUCT * win,
 	
 	Rlist_insert(&win->rlist,&rlournew);
 	
-	if (drawall) {
+	if(drawall)
+        {
 	  C_APPL_WRITE c_appl_write;
 	  R_APPL_WRITE r_appl_write;
           
@@ -1416,8 +1446,6 @@ srv_wind_open (C_WIND_OPEN * msg,
   WINLIST      *wl,*wp;
   WINSTRUCT    *ws,*oldtop = NULL;
   RLIST	       *rl = 0L;
-  REDRAWSTRUCT m;
-  WORD         owner;
   WORD         wastopped = 0;
   WORD         retval;
 
@@ -1425,8 +1453,10 @@ srv_wind_open (C_WIND_OPEN * msg,
 
   ws = find_wind_description (msg->id);
   
-  if(ws) {
-    if(!(ws->status & WIN_OPEN)) {
+  if(ws)
+  {
+    if(!(ws->status & WIN_OPEN))
+    {
       KDEBUG2("srv.c: srv_wind_open: Allocating memory");
       wl = (WINLIST *)MALLOC(sizeof(WINLIST));
       
@@ -1434,23 +1464,30 @@ srv_wind_open (C_WIND_OPEN * msg,
       
       setwinsize (wl->win, &msg->size);
       
-      if (win_vis) {
-	if(win_vis->win->status & WIN_DIALOG) {
+      if (win_vis)
+      {
+	if(win_vis->win->status & WIN_DIALOG)
+        {
 	  wl->next = win_vis->next;
 	  win_vis->next = wl;
 	  wl->win->status &= ~WIN_TOPPED;
-	} else {					
+	}
+        else
+        {					
 	  oldtop = win_vis->win;
 	  wl->next = win_vis;
 	  win_vis = wl;
 	  
-	  if (!(wl->win->status & WIN_MENU)) {
+	  if (!(wl->win->status & WIN_MENU))
+          {
 	    wl->win->status |= WIN_TOPPED;
 	    oldtop->status &= ~WIN_TOPPED;
 	    wastopped = 1;
 	  }
 	}
-      } else {	
+      }
+      else
+      {	
 	wl->next = 0L;
 	win_vis = wl;
 	wl->win->status |= WIN_TOPPED;
@@ -1458,7 +1495,8 @@ srv_wind_open (C_WIND_OPEN * msg,
       
       wp = wl->next;
       
-      while (wp != NULL) {
+      while (wp != NULL)
+      {
 	RLIST	*rd = 0L;
 	
 	Rlist_rectinter(&rl,&wl->win->totsize,&wp->win->rlist);
@@ -1480,65 +1518,62 @@ srv_wind_open (C_WIND_OPEN * msg,
       };
       */
       
-      if (!(wl->win->status & WIN_DIALOG)){
-	C_APPL_WRITE c_appl_write;
-        R_APPL_WRITE r_appl_write;
+      if (!(wl->win->status & WIN_DIALOG))
+      {
+        if(wastopped)
+        {
+          /* Tell the window that it is on top */
+          send_simple_window_message(wl->win->id,
+                                     wl->win->owner,
+                                     WM_NEWTOP);
+        }
 
-	m.type = WM_REDRAW;
-	m.length = 0;
-        
-	/*
-          if(globals.realmove) {
-        m.sid = -1; */
-        /*x and y are relative to the position of the window*/
-        /*	  m.area.x = 0;
-                  m.area.y = 0;
-          } else {
-        */
-        m.sid = 0;
-        m.area.x = wl->win->totsize.x;
-        m.area.y = wl->win->totsize.y;
-        /*	}*/
-	
-	m.area.width = wl->win->totsize.width;
-	m.area.height = wl->win->totsize.height;
-	
-	m.wid = wl->win->id;
-	
-	owner = wl->win->owner;
-	
+        /* Redraw window */
         /*
-	draw_wind_elements(wl->win,&wl->win->totsize,0);
+        ** FIXME: for realmove x and y are relative to window position
+        ** and sender is -1
         */
-
-	c_appl_write.addressee = owner;
-	c_appl_write.length = MSG_LENGTH;
-        c_appl_write.is_reference = TRUE;
-	c_appl_write.msg.ref = &m;
-	srv_appl_write (&c_appl_write, &r_appl_write);
+        send_redraw_message(0,
+                            wl->win->id,
+                            wl->win->owner,
+                            wl->win->totsize.x,
+                            wl->win->totsize.y,
+                            wl->win->totsize.width,
+                            wl->win->totsize.height,
+                            WM_REDRAW);
       }
-      
-      /*
-      if(wastopped) {
-	WORD           i;
-	C_APPL_CONTROL c_appl_control;
-	
-	for(i = 0; i <= W_SMALLER; i++) {
-	  set_widget_colour(oldtop,i,&oldtop->untop_colour[i],
-			    &oldtop->top_colour[i]);
-	}
-	
-	draw_wind_elements (oldtop,&oldtop->totsize,0);
-	
+
+      /* Tell the old top window that it is not topped anymore */
+      if(oldtop)
+      {
+        send_simple_window_message(oldtop->id,
+                                   oldtop->owner,
+                                   WM_UNTOPPED);
+
+        send_redraw_message(0,
+                            oldtop->id,
+                            oldtop->owner,
+                            oldtop->totsize.x,
+                            oldtop->totsize.y,
+                            oldtop->totsize.width,
+                            oldtop->totsize.height,
+                            WM_EREDRAW);
+
+        /*
+        ** FIXME: investigate what should be done here
 	c_appl_control.apid = wl->win->owner;
 	c_appl_control.mode = APC_TOP;
 	srv_appl_control(&c_appl_control);
+        */
       }
-      */
-    } else {
+    }
+    else
+    {
       retval = 0;
     }
-  } else {
+  }
+  else
+  {
     retval = 0;
   }
   
@@ -1762,47 +1797,57 @@ set_desktop_background(WORD        apid,
 ** Try to top window
 */
 WORD
-top_window (WORD winid)
+top_window(WORD winid)
 {
   WORD         wastopped = 0;
-  WINSTRUCT    *oldtop = NULL;
+  WINSTRUCT *  oldtop = NULL;
   REDRAWSTRUCT m;
   
-  RLIST        *rl = 0L;
-  RLIST	       *rl2 = 0L;
+  RLIST *      rl = 0L;
+  RLIST	*      rl2 = 0L;
   
-  WINLIST      **wl = &win_vis;
-  WINLIST      *wl2;
-  WINLIST      *ourwl;
+  WINLIST **   wl = &win_vis;
+  WINLIST *    wl2;
+  WINLIST *    ourwl;
   
   WORD	dx,dy;
 
-  if(winid == 0) {
-    if(win_vis && (win_vis->win->status & WIN_TOPPED)) {
+  if(winid == 0) /* Hmmm, why top the desktop window? FIXME */
+  {
+    if(win_vis && (win_vis->win->status & WIN_TOPPED))
+    {
       win_vis->win->status &= ~WIN_TOPPED;
       
-      /*
-      ** FIXME
-      ** Move? Remove?
-      WORD i;
+      /* Tell the window that it is no longer on top */
+      send_simple_window_message(win_vis->win->id,
+                                 win_vis->win->owner,
+                                 WM_UNTOPPED);
       
-      for(i = 0; i <= W_SMALLER; i++) {
-	set_widget_colour(win_vis->win,i,&win_vis->win->untop_colour[i],
-			  &win_vis->win->top_colour[i]);
-      };
-      
-      draw_wind_elements(win_vis->win,&win_vis->win->totsize,0);
-      */
-    };
-  } else {
-    while(*wl) {
+      /* Redraw window elements */
+      send_redraw_message(0,
+                          win_vis->win->id,
+                          win_vis->win->owner,
+                          win_vis->win->totsize.x,
+                          win_vis->win->totsize.y,
+                          win_vis->win->totsize.width,
+                          win_vis->win->totsize.height,
+                          WM_EREDRAW);
+    }
+  }
+  else
+  {
+    while(*wl)
+    {
       if((*wl)->win->id == winid)
+      {
 	break;
+      }
       
       wl = &(*wl)->next;
     }
     
-    if (*wl == NULL) {
+    if(*wl == NULL)
+    {
       return 0;
     }
 
@@ -1810,33 +1855,42 @@ top_window (WORD winid)
     
     *wl = (*wl)->next;
     
-    if(win_vis) {
-      if(win_vis->win->status & WIN_DIALOG) {
+    if(win_vis)
+    {
+      if(win_vis->win->status & WIN_DIALOG)
+      {
 	wl2->next = win_vis->next;
 	win_vis->next = wl2;
       }
-      else {
+      else
+      {
 	oldtop = win_vis->win;
 	wl2->next = win_vis;
 	win_vis = wl2;
 	
-	if(!(wl2->win->status & WIN_TOPPED)) {
+	if(!(wl2->win->status & WIN_TOPPED))
+        {
 	  wl2->win->status |= WIN_TOPPED;
 	  oldtop->status &= ~WIN_TOPPED;
 	  
 	  wastopped = 1;
 	}
       }
-    } else {	
+    }
+    else
+    {	
       wl2->next = 0L;
       win_vis = wl2;
     }
     
-    m.type = WM_REDRAW;
+    m.type = WM_AREDRAW;
     
-    if(globals.realmove) {
+    if(globals.realmove)
+    {
       m.sid = -1;
-    } else {
+    }
+    else
+    {
       m.sid = 0;
     }
     
@@ -1850,7 +1904,8 @@ top_window (WORD winid)
     
     wl2 = wl2->next;
 	
-    while(wl2) {
+    while(wl2)
+    {
       RLIST	*rd = 0L;
       
       Rlist_rectinter(&rl,&ourwl->win->totsize,&wl2->win->rlist);
@@ -1867,10 +1922,11 @@ top_window (WORD winid)
     
     rl = rl2;
     
-    while(rl) {
+    while(rl)
+    {
       C_APPL_WRITE c_appl_write;
       R_APPL_WRITE r_appl_write;
-
+      
       m.area.x = rl->r.x;
       m.area.y = rl->r.y;
       
@@ -1883,7 +1939,8 @@ top_window (WORD winid)
       }
       */
       
-      if(globals.realmove) {
+      if(globals.realmove)
+      {
 	m.area.x -= dx;
 	m.area.y -= dy;
       }
@@ -1901,24 +1958,43 @@ top_window (WORD winid)
     
     ourwl->win->rpos = ourwl->win->rlist;
     
-    if(wastopped) {
+    if(oldtop != NULL)
+    {
+      /* Make window aware that it is not topped anymore */
+      send_simple_window_message(oldtop->id,
+                                 oldtop->owner,
+                                 WM_UNTOPPED);
+
+      /* Redraw window elements */
+      send_redraw_message(0,
+                          oldtop->id,
+                          oldtop->owner,
+                          oldtop->totsize.x,
+                          oldtop->totsize.y,
+                          oldtop->totsize.width,
+                          oldtop->totsize.height,
+                          WM_EREDRAW);
+    }
+
+    if(wastopped)
+    {
       C_APPL_CONTROL c_appl_control;
       R_APPL_CONTROL r_appl_control;
       
-      /*
-      ** FIXME
-      ** Move? Remove?
-      WORD i;
-      for(i = 0; i <= W_SMALLER; i++) {
-	set_widget_colour(oldtop,i,&oldtop->untop_colour[i],
-			  &oldtop->top_colour[i]);
-	set_widget_colour(ourwl->win,i,&ourwl->win->untop_colour[i],
-			  &ourwl->win->top_colour[i]);
-      };
-	
-      draw_wind_elements(ourwl->win,&ourwl->win->totsize,0);
-      draw_wind_elements(oldtop,&oldtop->totsize,0);
-      */
+      /* Make window aware that it was topped */
+      send_simple_window_message(ourwl->win->id,
+                                 ourwl->win->owner,
+                                 WM_NEWTOP);
+
+      /* Redraw window elements */
+      send_redraw_message(0,
+                          ourwl->win->id,
+                          ourwl->win->owner,
+                          ourwl->win->totsize.x,
+                          ourwl->win->totsize.y,
+                          ourwl->win->totsize.width,
+                          ourwl->win->totsize.height,
+                          WM_EREDRAW);
 
       c_appl_control.ap_id = ourwl->win->owner;
       c_appl_control.mode = APC_TOP;
@@ -1946,59 +2022,72 @@ bottom_window (WORD winid)
   WINLIST	**wl = &win_vis;
   WINLIST	*ourwl;
   
-  while(*wl) {
+  while(*wl != NULL)
+  {
     if((*wl)->win->id == winid)
+    {
       break;
+    }
     
     wl = &(*wl)->next;
-  };
+  }
   
-  if(!*wl) {
+  if(*wl == NULL)
+  {
     return 0;
-  };
+  }
   
   ourwl = *wl;
   
   *wl = (*wl)->next;
   
-  if(*wl) {
-    if((*wl)->win->status & WIN_MENU) {
+  if(*wl)
+  {
+    if((*wl)->win->status & WIN_MENU)
+    {
       wl = &(*wl)->next;
-    };
-  };
+    }
+  }
   
-  if((ourwl->win->status & WIN_TOPPED) && *wl) {
-    if(!((*wl)->win->status & WIN_DESKTOP)) {
+  if((ourwl->win->status & WIN_TOPPED) && *wl)
+  {
+    if(!((*wl)->win->status & WIN_DESKTOP))
+    {
       newtop = (*wl)->win;
       (*wl)->win->status |= WIN_TOPPED;
       ourwl->win->status &= ~WIN_TOPPED;
       wastopped = 1;
-    };
-  };
+    }
+  }
   
   m.type = WM_REDRAW;
   
-  if(globals.realmove) {
+  if(globals.realmove)
+  {
     m.sid = -1;
   }
-  else {
+  else
+  {
     m.sid = 0;
-  };
+  }
   
   m.length = 0;
   
-  while(*wl) {
+  while(*wl)
+  {
     RLIST *newrects = 0L;
     
-    if((*wl)->win->status & WIN_DESKTOP) {
+    if((*wl)->win->status & WIN_DESKTOP)
+    {
       break;
-    };
+    }
     
     Rlist_rectinter(&newrects,&(*wl)->win->totsize,&ourwl->win->rlist);
     
     Rlist_insert(&(*wl)->win->rlist,&newrects);
     
-    if(!((*wl)->win->status & WIN_MENU)) {
+    if(!((*wl)->win->status & WIN_MENU))
+    {
       C_APPL_WRITE c_appl_write;
       R_APPL_WRITE r_appl_write;
 
@@ -2016,42 +2105,60 @@ bottom_window (WORD winid)
       };
       */
 
-      if(globals.realmove) {
+      if(globals.realmove)
+      {
 	m.area.x -= (*wl)->win->totsize.x;
 	m.area.y -= (*wl)->win->totsize.y;
-      };
+      }
 
       c_appl_write.addressee = (*wl)->win->owner;
       c_appl_write.length = MSG_LENGTH;
       c_appl_write.is_reference = TRUE;
       c_appl_write.msg.ref = &m;
       srv_appl_write (&c_appl_write, &r_appl_write);
-    };
+    }
     
     wl = &(*wl)->next;
-  };
+  }
   
   ourwl->next = *wl;
   *wl = ourwl;
   
-  if(wastopped) {
+  if(newtop)
+  {
+    /* Make window aware that it is on top */
+    send_simple_window_message(newtop->id,
+                               newtop->owner,
+                               WM_NEWTOP);
+    send_redraw_message(0,
+                        newtop->id,
+                        newtop->owner,
+                        newtop->totsize.x,
+                        newtop->totsize.y,
+                        newtop->totsize.width,
+                        newtop->totsize.height,
+                        WM_EREDRAW);
+  }
+
+  if(wastopped)
+  {
     C_APPL_CONTROL c_appl_control;
     R_APPL_CONTROL r_appl_control;
 
-    /*
-    ** FIXME
-    ** Remove? Move?
-    WORD           i;
+    /* Make window aware that it is no longer on top */
+    send_simple_window_message(ourwl->win->id,
+                               ourwl->win->owner,
+                               WM_UNTOPPED);
 
-    for(i = 0; i <= W_SMALLER; i++) {
-      set_widget_colour(ourwl->win,i,&ourwl->win->untop_colour[i],&ourwl->win->top_colour[i]);
-      set_widget_colour(newtop,i,&newtop->top_colour[i],&newtop->top_colour[i]);
-    };
-    */
-    
-    draw_wind_elements(ourwl->win,&ourwl->win->totsize,0);
-    draw_wind_elements(newtop,&newtop->totsize,0);
-    
+    send_redraw_message(0,
+                        ourwl->win->id,
+                        ourwl->win->owner,
+                        ourwl->win->totsize.x,
+                        ourwl->win->totsize.y,
+                        ourwl->win->totsize.width,
+                        ourwl->win->totsize.height,
+                        WM_EREDRAW);
+
     c_appl_control.ap_id = newtop->owner;
     c_appl_control.mode = APC_TOP;
     srv_appl_control (&c_appl_control,
@@ -2287,46 +2394,55 @@ srv_wind_close (C_WIND_CLOSE * par,
   WINSTRUCT * newtop = NULL;
   WORD        retval;
 
-  while (*wl) {
-    if((*wl)->win->id == par->id) {
+  while(*wl)
+  {
+    if((*wl)->win->id == par->id)
+    {
       break;
     }
 
     wl = &(*wl)->next;
   }
   
-  if (*wl) {
-    WINLIST      *wp = (*wl)->next;
+  if(*wl != NULL)
+  {
+    WINLIST *    wp = (*wl)->next;
     REDRAWSTRUCT m;
 
-    if(((*wl)->win->status & WIN_TOPPED) && wp) {
+    if(((*wl)->win->status & WIN_TOPPED) && wp)
+    {
       (*wl)->win->status &= ~WIN_TOPPED;
       wp->win->status |= WIN_TOPPED;
       newtop = wp->win;
     }
     
-    while (wp) {			
-      RLIST	*rl = NULL;
-      RLIST	*tl;
+    while(wp)
+    {			
+      RLIST * rl = NULL;
 
       Rlist_rectinter (&rl, &wp->win->totsize, &(*wl)->win->rlist);
 
       /* Redraw "new" rectangles of windows below */
       
-      if(rl) {
+      if(rl != NULL)
+      {
 	C_APPL_WRITE c_appl_write;
         R_APPL_WRITE r_appl_write;
 
-	if(!(wp->win->status & WIN_MENU)) {
+	if(!(wp->win->status & WIN_MENU))
+        {
 	  m.type = WM_REDRAW;
 	  m.length = 0;
 	  m.wid = wp->win->id;
 	  
-	  if (FALSE /* FIXME globals.realmove*/) {
+	  if (FALSE /* FIXME globals.realmove*/)
+          {
 	    m.sid = -1;
 	    m.area.x = (*wl)->win->totsize.x - wp->win->totsize.x;
 	    m.area.y = (*wl)->win->totsize.y - wp->win->totsize.y;
-	  } else {
+	  }
+          else
+          {
 	    m.sid = 0;
 	    m.area.x = (*wl)->win->totsize.x;
 	    m.area.y = (*wl)->win->totsize.y;
@@ -2343,19 +2459,6 @@ srv_wind_close (C_WIND_CLOSE * par,
 	  srv_appl_write (&c_appl_write, &r_appl_write);
 	}
 	
-        /*
-        ** FIXME
-	if(wp->win != newtop) {
-	  tl = rl;
-	  
-	  while (tl) {
-	    draw_wind_elemfast(wp->win,&tl->r,0);
-	    
-	    tl = tl->next;
-	  }
-	}
-        */
-	
 	Rlist_insert (&wp->win->rlist, &rl);
 	wp->win->rpos = wp->win->rlist;
       }
@@ -2370,23 +2473,28 @@ srv_wind_close (C_WIND_CLOSE * par,
     wp->win->status &= ~WIN_OPEN;
     FREE(wp);
     
-    if(newtop) {
-      /*
-      ** FIXME
-      ** Move? Remove?
-      WORD i;
-      
-      for(i = 0; i <= W_SMALLER; i++) {
-	set_widget_colour(newtop,i,&newtop->untop_colour[i],
-			  &newtop->top_colour[i]);
-      };
-      
-      draw_wind_elements(newtop,&newtop->totsize,0);
-      */
+    if(newtop != NULL)
+    {
+      /* Make window aware that it was topped */
+      send_simple_window_message(newtop->id,
+                                 newtop->owner,
+                                 WM_NEWTOP);
+
+      /* Redraw window elements */
+      send_redraw_message(0,
+                          newtop->id,
+                          newtop->owner,
+                          newtop->totsize.x,
+                          newtop->totsize.y,
+                          newtop->totsize.width,
+                          newtop->totsize.height,
+                          WM_EREDRAW);
     }
     
     retval = 1;
-  } else {
+  }
+  else
+  {
     retval = 0;
   }
 
