@@ -186,7 +186,8 @@ srv_init_event_handler (WORD vdi_workstation_id) {
 static
 void
 queue_appl (COMM_HANDLE    handle,
-            C_EVNT_MULTI * par) {
+            C_EVNT_MULTI * par)
+{
   APPL_LIST_REF this_entry = &appl_list [par->common.apid];
 
   /* We got an empty list node => fill in some data and queue it */
@@ -195,7 +196,8 @@ queue_appl (COMM_HANDLE    handle,
   this_entry->par = *par;
   this_entry->next = waiting_appl;
   this_entry->prev = APPL_LIST_REF_NIL;
-  if (waiting_appl != APPL_LIST_REF_NIL) {
+  if (waiting_appl != APPL_LIST_REF_NIL)
+  {
     waiting_appl->prev = this_entry;
   }
   waiting_appl = this_entry;
@@ -208,17 +210,22 @@ queue_appl (COMM_HANDLE    handle,
 */
 static
 void
-dequeue_appl (APPL_LIST_REF this_entry) {
+dequeue_appl (APPL_LIST_REF this_entry)
+{
   this_entry->is_waiting = FALSE;
 
-  if (this_entry->prev != APPL_LIST_REF_NIL) {
+  if (this_entry->prev != APPL_LIST_REF_NIL)
+  {
     this_entry->prev->next = this_entry->next;
-  } else if (this_entry == waiting_appl) {
+  }
+  else if (this_entry == waiting_appl)
+  {
     /* This should always be true if this_entry->prev == NULL */
     waiting_appl = this_entry->next;
   }
 
-  if (this_entry->next != APPL_LIST_REF_NIL) {
+  if (this_entry->next != APPL_LIST_REF_NIL)
+  {
     this_entry->next->prev = this_entry->prev;
   }
 
@@ -470,8 +477,9 @@ check_timer (C_EVNT_MULTI * par,
 ** Exported
 */
 void
-srv_wait_for_event (COMM_HANDLE    handle,
-                    C_EVNT_MULTI * par) {
+srv_wait_for_event(COMM_HANDLE    handle,
+                   C_EVNT_MULTI * par)
+{
   R_EVNT_MULTI   ret;
 
   /* Reset events before calling any check routines */
@@ -652,30 +660,37 @@ handle_keys(void)
 
 /*
 ** Description
-** Check if the mouse has been moved and now matches a rectangle for an
+** Check if the mouse has been moved and now matches a rectangle for a
 ** waiting application
 */
 static
 void
-handle_mouse_motion (void) {
+handle_mouse_motion(void)
+{
   /* Did the mouse move? */
-  if ((x_new != x_last) || (y_new != y_last)) {
-    APPL_LIST_REF appl_walk = waiting_appl;
+  if ((x_new != x_last) || (y_new != y_last))
+  {
+    APPL_LIST_REF appl_walk;
+
+    appl_walk = waiting_appl;
 
     DEBUG3 ("handle_mouse_motion: Mouse moved!: x = %d y = %d", x_new, y_new);
-    while (appl_walk != APPL_LIST_REF_NIL) {
-      APPL_LIST_REF this_appl = appl_walk;
+    while (appl_walk != APPL_LIST_REF_NIL)
+    {
+      APPL_LIST_REF this_appl;
       R_EVNT_MULTI  ret;
 
+      this_appl = appl_walk;
       appl_walk = appl_walk->next;
 
       /* Reset events before calling check_mouse_motion! */
       ret.eventout.events = 0;
-      ret.eventout.events = check_mouse_motion (x_new,
-                                                y_new,
-                                                &this_appl->par,
-                                                &ret);
-      if (ret.eventout.events != 0) {
+      ret.eventout.events = check_mouse_motion(x_new,
+                                               y_new,
+                                               &this_appl->par,
+                                               &ret);
+      if (ret.eventout.events != 0)
+      {
         PUT_R_ALL(EVNT_MULTI, &ret, 0);
         SRV_REPLY(this_appl->handle, &ret, sizeof (R_EVNT_MULTI));
 
@@ -697,32 +712,42 @@ handle_mouse_motion (void) {
 */
 static
 void
-handle_timer (void) {
-  /* Has any timer events at all occurred? */
-  if (timer_counter > next_timer_event) {
-    APPL_LIST_REF appl_walk = waiting_appl;
+handle_timer(void)
+{
+  /* Has any timer event at all occurred? */
+  if(timer_counter > next_timer_event)
+  {
+    APPL_LIST_REF appl_walk;
+
+    appl_walk = waiting_appl;
 
     next_timer_event = MAX_TIMER_COUNT;
 
-    while (appl_walk != APPL_LIST_REF_NIL) {
-      APPL_LIST_REF this_appl = appl_walk;
+    while(appl_walk != APPL_LIST_REF_NIL)
+    {
+      APPL_LIST_REF this_appl;
       R_EVNT_MULTI  ret;
 
+      this_appl = appl_walk; 
       appl_walk = appl_walk->next;
 
       /* Reset events before calling check_timer! */
       ret.eventout.events = 0;
-      ret.eventout.events = check_timer (&this_appl->par,
-                                         &ret);
-      if (ret.eventout.events != 0) {
+      ret.eventout.events = check_timer(&this_appl->par,
+                                        &ret);
+      if(ret.eventout.events != 0)
+      {
         PUT_R_ALL(EVNT_MULTI, &ret, 0);
-        SRV_REPLY(this_appl->handle, &ret, sizeof (R_EVNT_MULTI));
+        SRV_REPLY(this_appl->handle, &ret, sizeof(R_EVNT_MULTI));
 
         /* The application is not waiting anymore */
         dequeue_appl (this_appl);
-      } else {
+      }
+      else
+      {
         /* Update next timer event */
-        if (this_appl->timer_event < next_timer_event) {
+        if(this_appl->timer_event < next_timer_event)
+        {
           next_timer_event = this_appl->timer_event;
         }
       }
