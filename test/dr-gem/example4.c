@@ -67,10 +67,13 @@ do_menu(void)
 	WORD	menu_option;		/* Holds menu option number	*/
 	WORD	wbutton;		/* Button chosen in QUIT alert	*/
 		
-	menu_bar(main_menu, TRUE);	/* Switch on menu bar		*/
-	graf_mouse(ARROW, 0L);		/* Make sure mouse is an arrow	*/
-	evnt_mesag(ad_rmsg);		/* wait for menu event		*/
+        evnt_mesag(ad_rmsg);		/* wait for menu event		*/
 	
+        if(gl_rmsg[0] != MN_SELECTED)
+        {
+          return TRUE;
+        }
+
 	menu_title  = gl_rmsg[3];	/* Number of menu title 	*/
 	menu_option = gl_rmsg[4];	/* number of menu option	*/
 	
@@ -127,7 +130,7 @@ do_menu(void)
 		
 	}
 
-        return FALSE;
+        return TRUE;
 }
 
 /*------------------------------*/
@@ -175,6 +178,9 @@ main(void)
 	rsrc_gaddr(R_STRING, OPEALERT, &open_alert);
 	rsrc_gaddr(R_STRING, QUIALERT, &quit_alert);
 	
+	menu_bar(main_menu, TRUE);	/* Switch on menu bar		*/
+	graf_mouse(ARROW, 0L);		/* Make sure mouse is an arrow	*/
+
 	while (do_menu());		/* process menu		*/
 
 	appl_exit();			/* exit AES tidily		*/
