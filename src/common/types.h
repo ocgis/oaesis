@@ -11,6 +11,10 @@
 #include "config.h"
 #endif
 
+#ifdef HAVE_MINTBIND_H
+#include <mintbind.h> /* for XATTR */
+#endif
+
 #include <fcntl.h>
 #include <sys/types.h>
 
@@ -120,6 +124,7 @@ typedef enum {
   TRUE  = 1
 }BOOLEAN;
 
+#if 0 /* REMOVE: now in mintbind.h */
 typedef struct  {
   UWORD mode;
   LONG  index;
@@ -142,6 +147,7 @@ typedef struct  {
   LONG  reserved3;
   LONG  reserved4;
 }XATTR;
+#endif
 
 struct filesys;         /* forward declaration */
 struct devdrv;          /* ditto */
