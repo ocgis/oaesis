@@ -77,6 +77,28 @@
 #define MOUSE_SEM 0x6f4d4f55L  /*'oMOU'*/
 
 /****************************************************************************
+ * Typedefs of module global interest                                       *
+ ****************************************************************************/
+
+/* Menu actions */
+typedef enum {
+  HM_NO,         /* No action          */
+  HM_KILL,       /* Kill application   */
+  HM_OPEN_ACC,   /* Open accessory     */
+  HM_TOP_APPL,   /* Top application    */
+  HM_MENU_MSG    /* Menu item selected */
+}HM_ACTION;
+
+typedef struct {
+  HM_ACTION action;  /* Action to take                     */
+  WORD      apid;    /* Application affected by the action */
+  OBJECT    *tree;
+  WORD      title;
+  WORD      item;
+  WORD      parent;
+}HM_BUFFER;
+
+/****************************************************************************
  * Module global variables                                                  *
  ****************************************************************************/
 
@@ -1110,148 +1132,144 @@ static WORD	get_matching_menu(OBJECT *t,WORD n) {
 	return start;
 }
 
-static WORD	handle_drop_down(WORD menubox,WORD title) {
-	WORD     entry;
-	WORD     deskbox = menu.tree[menu.tree[0].ob_tail].ob_head;
+static WORD handle_drop_down(HM_BUFFER *hm_buffer,WORD menubox,WORD title) {
+  WORD     entry;
+  WORD     deskbox = menu.tree[menu.tree[0].ob_tail].ob_head;
+  
+  OBJECT   *nmenu;
+  
+  if((deskbox == menubox) && (mouse_y >= globals.pmenutad[0].ob_y)) {
+    nmenu = globals.pmenutad;
+    entry = Objc_do_find(nmenu,0,9,mouse_x,mouse_y,0);
+  }
+  else {
+    nmenu = menu.tree;
+    entry = Objc_do_find(nmenu, menubox, 9, mouse_x, mouse_y,0);
+  };
 
-	OBJECT   *nmenu;
-	
-	if((deskbox == menubox) && (mouse_y >= globals.pmenutad[0].ob_y)) {
-		nmenu = globals.pmenutad;
-		entry = Objc_do_find(nmenu,0,9,mouse_x,mouse_y,0);
-	}
-	else {
-		nmenu = menu.tree;
-		entry = Objc_do_find(nmenu, menubox, 9, mouse_x, mouse_y,0);
-	};
+  if(entry >= 0) {
+    RECT entryarea;
+    
+    Objc_area_needed(nmenu,entry,&entryarea);
+    
+    if(!(nmenu[entry].ob_state & DISABLED) && (entry != 0)) {
+      /* select the entry and update it */
 
-	if(entry >= 0) {
-		RECT entryarea;
+      nmenu[entry].ob_state |= SELECTED;
+      
+      Objc_do_draw(evntglbl.evid,nmenu,0,9,&entryarea);
+    };
 
-		Objc_area_needed(nmenu,entry,&entryarea);
-
-		if(!(nmenu[entry].ob_state & DISABLED) && (entry != 0)) {
-			/* select the entry and update it */
-
-			nmenu[entry].ob_state |= SELECTED;
-
-			Objc_do_draw(evntglbl.evid,nmenu,0,9,&entryarea);
-		};
-
-		while(TRUE) {
-			EVNTREC er;
+    while(TRUE) {
+      EVNTREC er;
 			
-	    get_evntpacket(&er,0);
+      get_evntpacket(&er,0);
 	
-	    switch((WORD)er.ap_event) {		
-	    case APPEVNT_KEYBOARD :
-	    case APPEVNT_TIMER :
-	      break;	
+      switch((WORD)er.ap_event) {		
+      case APPEVNT_KEYBOARD :
+      case APPEVNT_TIMER :
+	break;	
 	      
-	    case APPEVNT_MOUSE	:
-	      mouse_y = (WORD)(er.ap_value >> 16);
-	      mouse_x = (WORD)er.ap_value;
+      case APPEVNT_MOUSE	:
+	mouse_y = (WORD)(er.ap_value >> 16);
+	mouse_x = (WORD)er.ap_value;
 
-	    	if(!Misc_inside(&entryarea,mouse_x,mouse_y)) {
-					if(!(nmenu[entry].ob_state & DISABLED)) {
-						nmenu[entry].ob_state &= ~SELECTED;
-			
-						Objc_do_draw(evntglbl.evid,nmenu,0,9,&entryarea);
-					};
-					
-					return 0;
-				};
- 	    	break;
+	if(!Misc_inside(&entryarea,mouse_x,mouse_y)) {
+	  if(!(nmenu[entry].ob_state & DISABLED)) {
+	    nmenu[entry].ob_state &= ~SELECTED;
 	    
-	    case APPEVNT_BUTTON	:
-	    	{
-	    		WORD changebut = (WORD)(mouse_button ^ er.ap_value);
-
-			    mouse_button = (WORD)er.ap_value;
-
-		    	if(changebut & LEFT_BUTTON & (!mouse_button)) {
-						nmenu[entry].ob_state &= ~SELECTED;
-		
-						if(nmenu == globals.pmenutad) {
-							AP_LIST *mr;							WORD    walk = entry - PMENU_FIRST;
-						
-							mr = globals.applmenu;
-						
-							while(walk && mr) {
-								mr = mr->mn_next;								walk--;
-							};
-							
-							if(walk) {
-								walk--;
-								mr = globals.accmenu;
-
-								while(walk && mr) {
-									mr = mr->mn_next;									walk--;
-								};
-							};
-							
-						
-							if(mr) {
-								WORD skeys;
-
-								Vdi_vq_key_s(evntglbl.evid,&skeys);
-
-								if(skeys & K_CTRL) {
-									Srv_appl_control(mr->ai->id,APC_KILL);
-								}
-								else {
-									COMMSG m;
-									m.sid = 0;
-									m.length = 0;
-
-									if(mr->ai->type & APP_APPLICATION) {
-										Srv_appl_control(mr->ai->id,APC_TOP);									}
-									else { /* Accessory */
-										m.msg0 = mr->ai->id;										m.msg1 = mr->ai->id;										m.type = AC_OPEN;
-									
-										Srv_appl_write(m.msg0, 16, &m);
-									};
-								};
-							}
-							else {
-								DB_printf("%s: Line %d: handle_drop_down:\r\n"
-									"Couldn't find application to top!\r\n",__FILE__,__LINE__);
-							};
-						}
-						else {
-							MENUMSG m;
-		
-							m.type = MN_SELECTED;
-							m.sid = 0;
-							m.length = 0;
-							m.title = title;
-							m.item = entry;
-							m.tree = nmenu;
-							m.parent = menubox;
-		
-							Srv_appl_write(TOP_MENU_OWNER, 16, &m);
-						};
-						
-						return 1;
-					};
-				};
-	    	break;
-	    	
-	    default:
-	    	DB_printf("%s: Line %d: handle_menu:\r\n"
-	    									"Unknown message.\r\n",__FILE__,__LINE__);
-			};
-		};	
+	    Objc_do_draw(evntglbl.evid,nmenu,0,9,&entryarea);
+	  };
+					
+	  return 0;
 	};
+	break;
+	    
+      case APPEVNT_BUTTON	:
+	{
+	  WORD changebut = (WORD)(mouse_button ^ er.ap_value);
+
+	  mouse_button = (WORD)er.ap_value;
+
+	  if(changebut & LEFT_BUTTON & (!mouse_button)) {
+	    nmenu[entry].ob_state &= ~SELECTED;
+		
+	    if(nmenu == globals.pmenutad) {
+	      AP_LIST *mr;
+	      WORD    walk = entry - PMENU_FIRST;
+						
+	      mr = globals.applmenu;
+						
+	      while(walk && mr) {
+		mr = mr->mn_next;
+		walk--;
+	      };
+							
+	      if(walk) {
+		walk--;
+		mr = globals.accmenu;
+		
+		while(walk && mr) {
+		  mr = mr->mn_next;
+		  walk--;
+		};
+	      };
+							
+						
+	      if(mr) {
+		WORD skeys;
+		
+		Vdi_vq_key_s(evntglbl.evid,&skeys);
+
+		if(skeys & K_CTRL) {
+		  hm_buffer->action = HM_KILL;
+		  hm_buffer->apid = mr->ai->id;
+		}
+		else {
+		  if(mr->ai->type & APP_APPLICATION) {
+		    hm_buffer->action = HM_TOP_APPL;
+		    hm_buffer->apid = mr->ai->id;
+		  }
+		  else { /* Accessory */
+		    hm_buffer->action = HM_OPEN_ACC;
+		    hm_buffer->apid = mr->ai->id;
+		  };
+		};
+	      }
+	      else {
+		DB_printf("%s: Line %d: handle_drop_down:\r\n"
+			  "Couldn't find application to top!\r\n",
+			  __FILE__,__LINE__);
+	      };
+	    }
+	    else {
+	      hm_buffer->action = HM_MENU_MSG;
+	      hm_buffer->title = title;
+	      hm_buffer->item = entry;
+	      hm_buffer->tree = nmenu;
+	      hm_buffer->parent = menubox;
+	    };
+	    
+	    return 1;
+	  };
+	};
+	break;
 	
-	return 0;
+      default:
+	DB_printf("%s: Line %d: handle_drop_down:\r\n"
+		  "Unknown message.\r\n",__FILE__,__LINE__);
+      };
+    };	
+  };
+	
+  return 0;
 }
 
-static WORD	handle_selected_title(void) {
-	EVNTREC er;
+static WORD handle_selected_title(HM_BUFFER *hm_buffer) {
+  EVNTREC er;
   WORD    box;
   WORD    title;
- 	WORD    deskbox;
+  WORD    deskbox;
   	
   title = Objc_do_find(menu.tree, 0, 9, mouse_x, mouse_y, 0);
   box = get_matching_menu(menu.tree, title);
@@ -1259,99 +1277,101 @@ static WORD	handle_selected_title(void) {
   deskbox = menu.tree[menu.tree[0].ob_tail].ob_head;
 	  
   if(box >= 0) {
-		RECT area;
-		RECT titlearea;
+    RECT area;
+    RECT titlearea;
 	    
     /* select the title and update it */
 	    
     menu.tree[title].ob_state |= SELECTED;
 
     Objc_area_needed(menu.tree,title,&titlearea);
-		Objc_do_draw(evntglbl.evid,menu.tree,0,9,&titlearea);
+    Objc_do_draw(evntglbl.evid,menu.tree,0,9,&titlearea);
 
-		Objc_area_needed(menu.tree,box,&area);
-
-		if(box == deskbox) {
-			WORD i;
-			
-	    Objc_do_offset(menu.tree,box,&globals.pmenutad[0].ob_x);
+    Objc_area_needed(menu.tree,box,&area);
     
-	    globals.pmenutad[0].ob_y += (menu.tree[menu.tree[box].ob_head].ob_height << 1);
-			globals.pmenutad[0].ob_width = menu.tree[box].ob_width;
+    if(box == deskbox) {
+      WORD i;
+			
+      Objc_do_offset(menu.tree,box,&globals.pmenutad[0].ob_x);
+    
+      globals.pmenutad[0].ob_y +=
+	(menu.tree[menu.tree[box].ob_head].ob_height << 1);
+      globals.pmenutad[0].ob_width = menu.tree[box].ob_width;
 
-			for(i = PMENU_FIRST; i <= PMENU_LAST; i++) {
-				globals.pmenutad[i].ob_width = globals.pmenutad[0].ob_width;
-			}
+      for(i = PMENU_FIRST; i <= PMENU_LAST; i++) {
+	globals.pmenutad[i].ob_width = globals.pmenutad[0].ob_width;
+      }
 		
-			area.height = globals.pmenutad[0].ob_height + (globals.pmenutad[1].ob_height << 1) + 2;
-		};
+      area.height = globals.pmenutad[0].ob_height + 
+	(globals.pmenutad[1].ob_height << 1) + 2;
+    };
 
-		menu.dropwin = Srv_wind_create(0,0,&area,WIN_MENU);
+    menu.dropwin = Srv_wind_create(0,0,&area,WIN_MENU);
     Srv_wind_open(menu.dropwin,&area);
 
-		menu.tree[box].ob_flags &= ~HIDETREE;
+    menu.tree[box].ob_flags &= ~HIDETREE;
 
-		if(box == deskbox) {
-			RECT clip = area;
-			
-			clip.height = globals.pmenutad[0].ob_y - area.y;
-			Objc_do_draw(evntglbl.evid,menu.tree,box,9,&clip);
-			
-			clip.y = globals.pmenutad[0].ob_y;
-			clip.height = globals.pmenutad[0].ob_height + 1;
-			Objc_do_draw(evntglbl.evid,globals.pmenutad,0,9,&clip);
-		}
-		else {
-			Objc_do_draw(evntglbl.evid,menu.tree,box,9,&area);
-		};
+    if(box == deskbox) {
+      RECT clip = area;
+      
+      clip.height = globals.pmenutad[0].ob_y - area.y;
+      Objc_do_draw(evntglbl.evid,menu.tree,box,9,&clip);
+      
+      clip.y = globals.pmenutad[0].ob_y;
+      clip.height = globals.pmenutad[0].ob_height + 1;
+      Objc_do_draw(evntglbl.evid,globals.pmenutad,0,9,&clip);
+    }
+    else {
+      Objc_do_draw(evntglbl.evid,menu.tree,box,9,&area);
+    };
 
     /* Start to wait for messages and rect 1 */
     while(TRUE) {
-	    get_evntpacket(&er,0);
+      get_evntpacket(&er,0);
 	
-	    switch((WORD)er.ap_event) {		
-	    case APPEVNT_BUTTON	:
-	    case APPEVNT_KEYBOARD :
-	    case APPEVNT_TIMER :
-	      break;	
-	      
-	    case APPEVNT_MOUSE	:
-	      mouse_x = (WORD)er.ap_value;
-	      mouse_y = (WORD)(er.ap_value >> 16);
-
-				if(!Misc_inside(&titlearea,mouse_x,mouse_y)) {
-	      	WORD closebox = 0;
+      switch((WORD)er.ap_event) {		
+      case APPEVNT_BUTTON	:
+      case APPEVNT_KEYBOARD :
+      case APPEVNT_TIMER :
+	break;	
+	
+      case APPEVNT_MOUSE	:
+	mouse_x = (WORD)er.ap_value;
+	mouse_y = (WORD)(er.ap_value >> 16);
+	
+	if(!Misc_inside(&titlearea,mouse_x,mouse_y)) {
+	  WORD closebox = 0;
 	      	
-	      	if((deskbox == box) && (mouse_y >= globals.pmenutad[0].ob_y)) {
-	      		if(!Misc_inside((RECT *)&globals.pmenutad[0].ob_x,mouse_x,mouse_y) ||
-	      			(Objc_do_find(globals.pmenutad,0,9,mouse_x,mouse_y,0) < 0) ||
-	      			handle_drop_down(box,title)) {
-	      			closebox = 1;
-	      		};
-	      	}
-	      	else if((Objc_do_find(menu.tree, box, 9, mouse_x, mouse_y,0)
-					    < 0) || handle_drop_down(box,title)) {
-						closebox = 1;
-					};
-									    
-					if(closebox) {
-					  menu.tree[title].ob_state &= ~SELECTED;
-						Objc_do_draw(evntglbl.evid,menu.tree,0,9,&titlearea);
-					  
-					  Srv_wind_close(menu.dropwin);
-					  Srv_wind_delete(menu.dropwin);
-					  
-						menu.tree[box].ob_flags |= HIDETREE;
-					  
-					  return 0;
-					};
-				};
-	      break;
-	    
-	    default:
-	    	DB_printf("%s: Line %d: handle_menu:\r\n"
-	    									"Unknown message.\r\n",__FILE__,__LINE__);
+	  if((deskbox == box) && (mouse_y >= globals.pmenutad[0].ob_y)) {
+	    if(!Misc_inside((RECT *)&globals.pmenutad[0].ob_x,mouse_x,mouse_y) ||
+	       (Objc_do_find(globals.pmenutad,0,9,mouse_x,mouse_y,0) < 0) ||
+	       handle_drop_down(hm_buffer,box,title)) {
+	      closebox = 1;
 	    };
+	  }
+	  else if((Objc_do_find(menu.tree, box, 9, mouse_x, mouse_y,0)
+		   < 0) || handle_drop_down(hm_buffer,box,title)) {
+	    closebox = 1;
+	  };
+	  
+	  if(closebox) {
+	    menu.tree[title].ob_state &= ~SELECTED;
+	    Objc_do_draw(evntglbl.evid,menu.tree,0,9,&titlearea);
+	    
+	    Srv_wind_close(menu.dropwin);
+	    Srv_wind_delete(menu.dropwin);
+	    
+	    menu.tree[box].ob_flags |= HIDETREE;
+	    
+	    return 0;
+	  };
+	};
+	break;
+	    
+      default:
+	DB_printf("%s: Line %d: handle_selected_title:\r\n"
+		  "Unknown message.\r\n",__FILE__,__LINE__);
+      };
     };	
   };
   
@@ -1359,15 +1379,17 @@ static WORD	handle_selected_title(void) {
 }
 
 static void handle_menu(void) {
-	EVNTREC er;
-	
-	localize_mousevalues();
-	
-  menu.tree = Srv_get_top_menu();
+  WORD      menu_handled = 0;
+  EVNTREC   er;
+  HM_BUFFER hm_buffer = {HM_NO,-1,NULL,-1,-1};
 
+  localize_mousevalues();
+  
+  menu.tree = Srv_get_top_menu();
+  
   getmenuxpos(&menu.area.x,&menu.area.width);
 
-  while(TRUE) {
+  while(!menu_handled) {
     get_evntpacket(&er,0);
 
     switch((WORD)er.ap_event) {		
@@ -1380,21 +1402,68 @@ static void handle_menu(void) {
       mouse_x = ((WORD *)&er.ap_value)[1];
       mouse_y = ((WORD *)&er.ap_value)[0];
 
-			if(Misc_inside(&menu.area,mouse_x,mouse_y)) {
-				handle_selected_title();
-			};
-			
-			if(mouse_y > menu.area.height) {
-			  globalize_mousevalues();
-			
-				return;
-			};
+      if(Misc_inside(&menu.area,mouse_x,mouse_y)) {
+	handle_selected_title(&hm_buffer);
+      };
+      
+      if(mouse_y > menu.area.height) {
+	globalize_mousevalues();
+	
+	menu_handled = 1;
+      };
       break;
-    
+      
     default:
-    	DB_printf("%s: Line %d: handle_menu:\r\n"
-    									"Unknown message.\r\n",__FILE__,__LINE__);
+      DB_printf("%s: Line %d: handle_menu:\r\n"
+		"Unknown message.\r\n",__FILE__,__LINE__);
     };
+  };
+
+  switch(hm_buffer.action) {
+  case HM_NO:
+    DB_printf("No action!\r\n");
+    break;
+
+  case HM_KILL:
+    Srv_appl_control(hm_buffer.apid,APC_KILL);
+    break;
+
+  case HM_OPEN_ACC:
+    {
+      COMMSG m;
+
+      m.sid = 0;
+      m.length = 0;
+      m.msg0 = hm_buffer.apid;
+      m.msg1 = hm_buffer.apid;
+      m.type = AC_OPEN;
+    
+      Srv_appl_write(m.msg0, 16, &m);
+    };
+    break;
+
+  case HM_TOP_APPL:
+    Srv_appl_control(hm_buffer.apid,APC_TOP);
+    break;
+    
+  case HM_MENU_MSG:
+    {
+      MENUMSG m;
+      
+      m.type = MN_SELECTED;
+      m.sid = 0;
+      m.length = 0;
+      m.title = hm_buffer.title;
+      m.item = hm_buffer.item;
+      m.tree = hm_buffer.tree;
+      m.parent = hm_buffer.parent;
+      
+      Srv_appl_write(TOP_MENU_OWNER, 16, &m);
+    };
+    break;
+
+  default:
+    DB_printf("Unknown action %d\r\n",hm_buffer.action);
   };
 }
 
