@@ -173,8 +173,8 @@ set_widget_colour(WINDOW_STRUCT * win,
     case G_BOX:
     case G_IBOX:
     case G_BOXCHAR:
-      obspec->index = HL_TO_CL((CL_TO_HL(obspec->index) && 0xffff0000) |
-                               new_colour);
+      obspec->index = HL_TO_CL((CL_TO_HL(obspec->index) & 0xffff0000) |
+                               (new_colour & 0x0000ffff));
       break;
       
     case G_TEXT:
