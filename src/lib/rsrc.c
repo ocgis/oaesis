@@ -194,7 +194,7 @@ Rsrc_do_load_unix (int    apid,
   DEBUG3 ("Calling Rsrc_do_rcfix");
   Rsrc_do_rcfix (vid,
                  rsc,
-                 (st.st_size != rsc->rsh_rssize) && (rsc->rsh_vrsn == 0),
+                 FALSE,
                  is_internal);
   DEBUG3 ("Returned from Rsrc_do_rcfix");
         
@@ -307,14 +307,31 @@ Rsrc_do_rcfix(int      vid,
   LARRAY *    frstrwalk;
   LARRAY *    frimgwalk;
   CICONBLK ** cicons = NULL;
+  int         msb = 0;
+  int         lsb = 0;
 
   DEBUG3("Rsrc_do_rcfix: rsc = %p", rsc);
   /*
-  ** Detect previously undetected endian mismatch. This issue has to be
-  ** solved in a better way.
+  ** Detect endian mismatch
   */
-  if((CW_TO_HW(rsc->rsh_nobs) & 0xff00) &&
-     ((CW_TO_HW(rsc->rsh_nobs) & 0xff) == 0))
+  for(iwalk = &rsc->rsh_nobs; iwalk != (WORD *)&rsc->rsh_rssize; iwalk++)
+  {
+    WORD check_word;
+
+    check_word = CW_TO_HW(*iwalk);
+
+    if((check_word & 0xff00) == 0)
+    {
+      msb++;
+    }
+
+    if((check_word & 0x00ff) == 0)
+    {
+      lsb++;
+    }
+  }
+
+  if(lsb > msb)
   {
     swap_endian = TRUE;
   }
@@ -595,6 +612,21 @@ Rsrc_do_rcfix(int      vid,
       owalk[i].ob_width = SWAP_WORD(owalk[i].ob_width);
       owalk[i].ob_height = SWAP_WORD(owalk[i].ob_height);
     }
+
+    DEBUG3("OBJECT[0x%04x]:", i);
+    DEBUG3("======================");
+    DEBUG3("ob_next   =     0x%04x", CW_TO_HW(owalk[i].ob_next));
+    DEBUG3("ob_head   =     0x%04x", CW_TO_HW(owalk[i].ob_head));
+    DEBUG3("ob_tail   =     0x%04x", CW_TO_HW(owalk[i].ob_tail));
+    DEBUG3("ob_type   =     0x%04x", CW_TO_HW(owalk[i].ob_type));
+    DEBUG3("ob_flags  =     0x%04x", CW_TO_HW(owalk[i].ob_flags));
+    DEBUG3("ob_state  =     0x%04x", CW_TO_HW(owalk[i].ob_state));
+    DEBUG3("ob_spec   = 0x%08x",     CL_TO_HL(owalk[i].ob_spec.index));
+    DEBUG3("ob_x      =     0x%04x", CW_TO_HW(owalk[i].ob_x));
+    DEBUG3("ob_y      =     0x%04x", CW_TO_HW(owalk[i].ob_y));
+    DEBUG3("ob_width  =     0x%04x", CW_TO_HW(owalk[i].ob_width));
+    DEBUG3("ob_height =     0x%04x", CW_TO_HW(owalk[i].ob_height));
+    DEBUG3("**********************");
 
     switch (CW_TO_HW(owalk[i].ob_type) & 0xff)
     {
