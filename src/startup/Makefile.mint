@@ -1,4 +1,4 @@
-INCLUDES = -I../common -I../launcher -I../server -I../..
+INCLUDES = -I../common -I../launcher -I../lib -I../server -I../..
 
 SERVER_CSRCS = \
 	boot.c is_of_type.c main.c

@@ -1,4 +1,4 @@
-INCLUDES = -I../common -I../launcher -I../server
+INCLUDES = -I../common -I../launcher -I../lib -I../server
 
 bin_PROGRAMS = oaesis
 
