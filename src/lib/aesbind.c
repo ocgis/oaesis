@@ -1,7 +1,7 @@
 /*
 ** aesbind.c
 **
-** Copyright 1998 - 2000 Christer Gustavsson <cg@nocrew.org>
+** Copyright 1998 - 2001 Christer Gustavsson <cg@nocrew.org>
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -760,7 +760,7 @@ int
 menu_text (OBJECT * tree,
            int      obj,
            char *   text) {
-  OPCODE = 4;
+  OPCODE = 34;
   NO_INTIN = 1;
   NO_ADDRIN = 2;
   NO_INTOUT = 1;
