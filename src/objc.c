@@ -211,64 +211,66 @@ static void	settextsize(WORD vid,WORD size) {
 	};
 }
 
-static void	drawtext(WORD vid,BYTE *text,RECT *size,WORD alignment,WORD color
-	,WORD textsize,WORD writemode,WORD state) {
-	WORD x;
-	WORD y;
-	WORD txteff = 0;
+static void drawtext(WORD vid,BYTE *text,RECT *size,WORD alignment,WORD color
+		     ,WORD textsize,WORD writemode,WORD state) {
+  WORD x;
+  WORD y;
+  WORD txteff = 0;
+  
+  settextsize(vid,textsize);
+  
+  y = size->y + (size->height >> 1) + textyoffs - 1;
+  
+  switch(alignment) {
+  case	0	:	/*left*/
+    x = size->x;
+    settxtalign(vid,0);
+    break;
+  case	1	:	/*right*/
+    x = size->x + size->width - 1;
+    settxtalign(vid,2);
+    break;
+  case	2	:	/*center*/
+    x = size->x + (size->width >> 1);
+    settxtalign(vid,1);
+    break;
+    
+  default:
+    x = size->x;   /* Just in case */
+  };
 	
-	settextsize(vid,textsize);
-
-	y = size->y + (size->height >> 1) + textyoffs - 1;
-
-	switch(alignment) {
-		case	0	:	/*left*/
-			x = size->x;
-			settxtalign(vid,0);
-			break;
-		case	1	:	/*right*/
-			x = size->x + size->width - 1;
-			settxtalign(vid,2);
-			break;
-		case	2	:	/*center*/
-			x = size->x + (size->width >> 1);
-			settxtalign(vid,1);
-			break;
-	};
-	
-	if(state & DISABLED) {
-		txteff |= LIGHT;
-	};
-	
-	Vdi_vst_effects(vid,txteff);
-	
-	if(state & SELECTED) {
-		set_write_mode(vid,writemode);
-		
-		Vdi_vst_color(vid,invertcolor(color));
-		Vdi_v_gtext(vid,x,y,text);
-		
-		if(writemode == SWRM_REPLACE)
-		{
-			set_write_mode(vid,SWRM_INVTRANS);
-			Vdi_vst_color(vid,BLACK);
-			Vdi_v_gtext(vid,x,y,text);
-		};
-	}
-	else {
-		set_write_mode(vid,writemode);
-		Vdi_vst_color(vid,color);
-		Vdi_v_gtext(vid,x,y,text);
-	};
+  if(state & DISABLED) {
+    txteff |= LIGHT;
+  };
+  
+  Vdi_vst_effects(vid,txteff);
+  
+  if(state & SELECTED) {
+    set_write_mode(vid,writemode);
+    
+    Vdi_vst_color(vid,invertcolor(color));
+    Vdi_v_gtext(vid,x,y,text);
+    
+    if(writemode == SWRM_REPLACE) {
+      set_write_mode(vid,SWRM_INVTRANS);
+      Vdi_vst_color(vid,BLACK);
+      Vdi_v_gtext(vid,x,y,text);
+    };
+  }
+  else {
+    set_write_mode(vid,writemode);
+    Vdi_vst_color(vid,color);
+    Vdi_v_gtext(vid,x,y,text);
+  };
 }
 
-static void	draw_text(WORD vid,OBJECT *ob,WORD par_x,WORD par_y,WORD is_top) {
+static void draw_text(WORD vid,OBJECT *ob,WORD par_x,WORD par_y,WORD is_top) {
 	WORD txteff = 0;
 	WORD type = ob->ob_type & 0xff;
 	BYTE ctext[100];
 	BYTE *text = NULL;
 	WORD temp;
-	WORD tx,ty;
+	WORD tx = par_x + ob->ob_x,ty = par_y + ob->ob_y;
 	WORD tcolour = BLACK,bcolour = WHITE;
 	WORD bfill = 0;
 	WORD writemode = SWRM_TRANS;
@@ -380,19 +382,21 @@ static void	draw_text(WORD vid,OBJECT *ob,WORD par_x,WORD par_y,WORD is_top) {
 						ty = par_y + ob->ob_y + ((ob->ob_height - globals.csheight) / 2);
 				}
 				
-				switch(textblk->te_just)			/*Set text alignment - why on earth did */
-				{									/* atari use a different horizontal alignment */
-				case 0:							/* code for GEM to the one the VDI uses? */
-					tx = par_x + ob->ob_x;
-					Vdi_vst_alignment(vid,0,5,&temp,&temp);
-					break;
+				switch(textblk->te_just) {
+				  /*Set text alignment - why on earth did */
+				  /* atari use a different horizontal alignment */
+				  /* code for GEM to the one the VDI uses? */
+				case 0:
+				  tx = par_x + ob->ob_x;
+				  Vdi_vst_alignment(vid,0,5,&temp,&temp);
+				  break;
 				case 1:
-					tx = par_x + ob->ob_x + ob->ob_width - 1;
-					Vdi_vst_alignment(vid,2,5,&temp,&temp);
-					break;
+				  tx = par_x + ob->ob_x + ob->ob_width - 1;
+				  Vdi_vst_alignment(vid,2,5,&temp,&temp);
+				  break;
 				case 2:
-					tx = par_x + ob->ob_x + (ob->ob_width >> 1);
-					Vdi_vst_alignment(vid,1,5,&temp,&temp);
+				  tx = par_x + ob->ob_x + (ob->ob_width >> 1);
+				  Vdi_vst_alignment(vid,1,5,&temp,&temp);
 				}
 				
 				tcolour = ob_spec.tedinfo->te_color.textc;
@@ -599,8 +603,8 @@ static void	draw_bg(WORD vid,OBJECT *ob,WORD par_x,WORD par_y) {
 	WORD      type = ob->ob_type & 0xff;
 	RECT      r;
 	WORD      draw = 1;
-	WORD      filltype;
-	WORD      fillcolour;
+	WORD      filltype = 0;
+	WORD      fillcolour = WHITE;
 	WORD      bcolour = WHITE;
 	WORD      mode3d;
 	WORD      invertcolour = 0;
@@ -790,7 +794,7 @@ static void	draw_frame(WORD vid,OBJECT *ob,WORD par_x,WORD par_y) {
 	WORD      type = ob->ob_type & 0xff;
 	RECT      r;
 	WORD      draw = 1;
-	WORD      framesize;
+	WORD      framesize = 0;
 	U_OB_SPEC ob_spec;
 	
 	if(ob->ob_flags & INDIRECT) {
@@ -1477,7 +1481,7 @@ RECT   *clip)     /* Clipping rectangle.                                    */
 /****************************************************************************/
 {
 	WORD current = object;
-	WORD next;
+	WORD next = -1;
 
 	WORD xy[2];
 	WORD xyxy[4];
