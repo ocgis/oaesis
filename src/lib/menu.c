@@ -181,7 +181,6 @@ Menu_do_bar (WORD     apid,
   
   PUT_C_ALL(MENU_BAR, &par);
 
-  par.tree = tree;
   par.mode = mode;
 
   CLIENT_SEND_RECV(&par,
@@ -193,7 +192,8 @@ Menu_do_bar (WORD     apid,
   ** FIXME
   ** Check retval that the operation went fine
   */
-  switch (mode) {
+  switch (mode)
+  {
   case MENU_REMOVE :
     globals->menu = NULL;
     break;
