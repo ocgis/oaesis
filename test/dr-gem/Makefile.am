@@ -12,8 +12,12 @@ noinst_PROGRAMS = \
 	example8.prg \
 	example9.prg \
 	example10.prg \
+	example11.prg \
 	example12.prg \
-	example11.prg
+	example13.prg \
+	example14.prg \
+	example15.prg \
+	example16.prg
 
 example_prg_SOURCES = example.c
 example1_prg_SOURCES = example1.c
@@ -28,6 +32,10 @@ example9_prg_SOURCES = example9.c
 example10_prg_SOURCES = exampl10.c
 example11_prg_SOURCES = exampl11.c exampl11.h exampl11.rsc treeaddr.h
 example12_prg_SOURCES = exampl12.c exampl12.h exampl12.rsc treeaddr.h
+example13_prg_SOURCES = exampl13.c exampl13.h exampl13.rsc treeaddr.h
+example14_prg_SOURCES = exampl14.c
+example15_prg_SOURCES = exampl15.c exampl15.h exampl15.rsc treeaddr.h
+example16_prg_SOURCES = exampl16.c exampl16.h exampl16.rsc treeaddr.h
 
 if MINT_TARGET
 example_prg_LDADD = ../../src/lib/liboaesis.a
@@ -43,6 +51,10 @@ example9_prg_LDADD = ../../src/lib/liboaesis.a
 example10_prg_LDADD = ../../src/lib/liboaesis.a
 example11_prg_LDADD = ../../src/lib/liboaesis.a
 example12_prg_LDADD = ../../src/lib/liboaesis.a
+example13_prg_LDADD = ../../src/lib/liboaesis.a
+example14_prg_LDADD = ../../src/lib/liboaesis.a
+example15_prg_LDADD = ../../src/lib/liboaesis.a
+example16_prg_LDADD = ../../src/lib/liboaesis.a
 else # MINT_TARGET
 example_prg_LDADD = ../../src/lib/liboaesis.la
 example1_prg_LDADD = ../../src/lib/liboaesis.la
@@ -57,5 +69,9 @@ example9_prg_LDADD = ../../src/lib/liboaesis.la
 example10_prg_LDADD = ../../src/lib/liboaesis.la
 example11_prg_LDADD = ../../src/lib/liboaesis.la
 example12_prg_LDADD = ../../src/lib/liboaesis.la
+example13_prg_LDADD = ../../src/lib/liboaesis.la
+example14_prg_LDADD = ../../src/lib/liboaesis.la
+example15_prg_LDADD = ../../src/lib/liboaesis.la
+example16_prg_LDADD = ../../src/lib/liboaesis.la
 endif # MINT_TARGET
 

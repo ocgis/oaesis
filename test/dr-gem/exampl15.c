@@ -11,31 +11,29 @@
 /*	Standard includes	*/
 /*------------------------------*/
 
-#include "portab.h"				/* portable coding macros */
-#include "machine.h"				/* machine dependencies   */
-#include "obdefs.h"				/* object definitions	  */
+#include <aesbind.h>
+#include <vdibind.h>				/* vdi binding structures */
+
 #include "treeaddr.h"				/* tree address macros    */
-#include "vdibind.h"				/* vdi binding structures */
-#include "gembind.h"				/* gem binding structures */
 #include "exampl15.h"				/* Resource file equates  */
 
-/*------------------------------*/
-/*	Global GEM arrays	*/
-/*------------------------------*/
-
-GLOBAL WORD	contrl[11];		/* control inputs		*/
-GLOBAL WORD	intin[80];		/* max string length		*/
-GLOBAL WORD	ptsin[256];		/* polygon fill points		*/
-GLOBAL WORD	intout[45];		/* open workstation output	*/
-GLOBAL WORD	ptsout[12];		/* points out array		*/
 
 /*------------------------------*/
 /*	Local defines		*/
 /*------------------------------*/
-
+#define TRUE  1
+#define FALSE 0
+#define LONG int
+#define BYTE char
+#define VOID void
+#define LLOWD(x) ((UWORD)((LONG)x))
+						/* return high word of	*/
+						/*   a long value	*/
+#define LHIWD(x) ((UWORD)((LONG)x >> 16))
+						/* return low byte of	*/
+						/*   a word value	*/
 #define	ARROW	0			/* Arrow cursor form for mouse	*/
 #define	HOUR	2			/* Hourglass cursor form	*/
-#define	DESK	0			/* DESK area identifier		*/
 #define	WBOX	21			/* Initial width for GROWBOX	*/
 #define	HBOX	21			/* Initial height for GROWBOX	*/
 
@@ -43,30 +41,35 @@ GLOBAL WORD	ptsout[12];		/* points out array		*/
 /*	Local variables		*/
 /*------------------------------*/
 
-WORD	gl_apid;			/* ID returned by appl_init 	*/
-WORD	gl_rmsg[8];			/* Message buffer		*/
-LONG	ad_rmsg;			/* Pointer to message buffer	*/
-LONG	main_menu;			/* Menu tree address		*/
-WORD	xfull;				/* Desk area X coordinate	*/
-WORD	yfull;				/* Desk area Y coordinate	*/
-WORD	wfull;				/* Desk area width		*/
-WORD	hfull;				/* Desk area height		*/
-WORD	xstart;				/* Screen centre X position	*/
-WORD	ystart;				/* Screen centre Y position	*/
-WORD	hwchar;				/* Width of system font cell	*/
-WORD	hhchar;				/* Height of system font cell	*/
-WORD	hwbox;				/* Width of system font box	*/
-WORD	hhbox;				/* Height of system font box	*/
-WORD	work_in[11];			/* Input to v_opnvwk		*/
-WORD	work_out[57];			/* Output from v_opnvwk		*/
-WORD	pxyarray[4];			/* Points array for rectangle	*/
-WORD	gem_handle;			/* Holds physical workstation	*/
-WORD	vdi_handle;			/* Holds virtual workstation	*/
-WORD	set_interior;			/* Interior fill style		*/
-WORD	set_style;			/* Interior fill index		*/
-WORD	w1handle;			/* Handle for window 1		*/
-BYTE	*wdw_title = "EXAMPLE15";
-BYTE	*wdw_info  = "GEM VDI calls show window rectangle list";	
+WORD	 gl_apid;			/* ID returned by appl_init 	*/
+WORD	 gl_rmsg[8];			/* Message buffer		*/
+WORD *	 ad_rmsg;			/* Pointer to message buffer	*/
+OBJECT * main_menu;			/* Menu tree address		*/
+int	 xfull;				/* Desk area X coordinate	*/
+int	 yfull;				/* Desk area Y coordinate	*/
+int	 wfull;				/* Desk area width		*/
+int	 hfull;				/* Desk area height		*/
+WORD	 xstart;			/* Screen centre X position	*/
+WORD	 ystart;			/* Screen centre Y position	*/
+int	 hwchar;			/* Width of system font cell	*/
+int	 hhchar;			/* Height of system font cell	*/
+int	 hwbox;				/* Width of system font box	*/
+int	 hhbox;				/* Height of system font box	*/
+int	 work_in[11];			/* Input to v_opnvwk		*/
+int	 work_out[57];			/* Output from v_opnvwk		*/
+int	 pxyarray[4];			/* Points array for rectangle	*/
+WORD	 gem_handle;			/* Holds physical workstation	*/
+int	 vdi_handle;			/* Holds virtual workstation	*/
+WORD	 set_interior;			/* Interior fill style		*/
+WORD	 set_style;			/* Interior fill index		*/
+WORD	 w1handle;			/* Handle for window 1		*/
+BYTE *   wdw_title = "EXAMPLE15";
+BYTE *   wdw_info  = "GEM VDI calls show window rectangle list";	
+
+
+static
+VOID
+do_vdidemo(void);
 
 /*------------------------------*/
 /*	Application code	*/
@@ -75,12 +78,16 @@ BYTE	*wdw_info  = "GEM VDI calls show window rectangle list";
 /*------------------------------*/
 /*	grect_to_array		*/
 /*------------------------------*/
-
-VOID	grect_to_array(sx, sy, sw, sh, tlx, tly, brx, bry)
-
-WORD	sx, sy, sw, sh;			/* Source rectangle XYWH	*/
-WORD	*tlx, *tly, *brx, *bry;		/* Top left XY & Bot. right XY	*/
-
+static
+VOID
+grect_to_array(WORD   sx,
+               WORD   sy,
+               WORD   sw,
+               WORD   sh,
+               WORD * tlx,
+               WORD * tly,
+               WORD * brx,
+               WORD * bry)
 {
 	*tlx = sx;			/* Set top left X coordinate	*/
 	*tly = sy;			/* Set top right Y coordinate	*/
@@ -91,13 +98,11 @@ WORD	*tlx, *tly, *brx, *bry;		/* Top left XY & Bot. right XY	*/
 /*------------------------------*/
 /*	close_window		*/
 /*------------------------------*/
-
-WORD	close_window(handle)
-
-WORD	handle;				/* Window handle		*/
-
+static
+void
+close_window(WORD handle)
 {
-	WORD	cx, cy, cw, ch;		/* Holds current XYWH position	*/
+	int	cx, cy, cw, ch;		/* Holds current XYWH position	*/
 	
 	graf_mouse(HOUR, 0L);		/* Show hourglass		*/
 
@@ -115,9 +120,9 @@ WORD	handle;				/* Window handle		*/
 /*------------------------------*/
 /*	hndl_window		*/
 /*------------------------------*/
-
-WORD	hndl_window()
-
+static
+WORD
+hndl_window(void)
 {
 
 	WORD	evnt_type;		/* Event type			*/
@@ -140,9 +145,9 @@ WORD	hndl_window()
 /*------------------------------*/
 /*	hndl_menu		*/
 /*------------------------------*/
-
-WORD	hndl_menu()
-
+static
+WORD
+hndl_menu(void)
 {
 	WORD	menu_title;		/* Holds menu title number	*/
 	WORD	menu_option;		/* Holds menu option number	*/
@@ -158,7 +163,7 @@ WORD	hndl_menu()
 			{
 				case	ABOUT:
 				{
-					form_alert(1, ADDR("[1][No help][OK]"));
+					form_alert(1, "[1][No help][OK]");
 					break;
 				}
 			}
@@ -189,13 +194,11 @@ WORD	hndl_menu()
 /*------------------------------*/
 /*	open_full		*/
 /*------------------------------*/
-
-WORD	open_full(attributes, title, info)
-
-WORD	attributes;			/* Window attributes		*/
-BYTE	*title;				/* Window title			*/
-BYTE	*info;				/* Window information line	*/
-
+static
+WORD
+open_full(WORD   attributes,
+          BYTE * title,
+          BYTE * info)
 {
 
 	WORD	handle;			/* Window handle		*/
@@ -215,7 +218,7 @@ BYTE	*info;				/* Window information line	*/
 	if (handle <= 0)
 	{
 	
-		form_alert(1, ADDR("[3][No windows left][ QUIT ]"));
+		form_alert(1, "[3][No windows left][ QUIT ]");
 		appl_exit();
 
 		return(handle);
@@ -224,18 +227,18 @@ BYTE	*info;				/* Window information line	*/
 
 	if (attributes & NAME)		/* Title present ?		*/
 	{
-	  	low_word  = (WORD) LLOWD(ADDR(title));
-		high_word = (WORD) LHIWD(ADDR(title));
+	  	low_word  = (WORD) LLOWD(title);
+		high_word = (WORD) LHIWD(title);
 	
-		wind_set(handle, WF_NAME, low_word, high_word);
+		wind_set(handle, WF_NAME, high_word, low_word, 0, 0);
 	}
 	
 	if (attributes & INFO)		/* Information line present ?	*/
 	{
-		low_word  = (WORD) LLOWD(ADDR(info));
-		high_word = (WORD) LHIWD(ADDR(info));
+		low_word  = (WORD) LLOWD(info);
+		high_word = (WORD) LHIWD(info);
 	
-		wind_set(handle, WF_INFO, low_word, high_word);
+		wind_set(handle, WF_INFO, high_word, low_word, 0, 0);
 	}
 	
 	graf_growbox(xstart, ystart, HBOX, WBOX, xfull, yfull, wfull, hfull);
@@ -250,11 +253,11 @@ BYTE	*info;				/* Window information line	*/
 /*------------------------------*/
 /*	do_vdidemo		*/
 /*------------------------------*/
-
-VOID do_vdidemo()
-
+static
+VOID
+do_vdidemo(void)
 {
-	WORD	wx, wy, ww, wh;		/* Window wrectangle area XYWH	*/
+	int	wx, wy, ww, wh;		/* Window wrectangle area XYWH	*/
 	WORD	tlx, tly, brx, bry;	/* Holds rectangle XY XY	*/ 
 	WORD	style;			/* Style index counter		*/
 	WORD	count;			/* Loop counter			*/
@@ -312,9 +315,9 @@ VOID do_vdidemo()
 /*------------------------------*/
 /*	init_vdi		*/
 /*------------------------------*/
-
-VOID	init_vdi()			/* Get VDI handle & initialise	*/
-
+static
+VOID
+init_vdi(void)			/* Get VDI handle & initialise	*/
 {
 	gem_handle = graf_handle(&hwchar, &hhchar, &hwbox, &hhbox);
 
@@ -354,12 +357,12 @@ WORD	hndl_events()
 /*------------------------------*/
 /*	initialise		*/
 /*------------------------------*/
-
-WORD	initialise()
-
+static
+WORD
+initialise(void)
 {
 
-	ad_rmsg = ADDR((BYTE *) &gl_rmsg[0]);
+	ad_rmsg = &gl_rmsg[0];
 	
 	gl_apid = appl_init();		/* return application ID	*/
 	
@@ -367,9 +370,9 @@ WORD	initialise()
 
 		return(FALSE);		/* unable to use AES		*/
 
-	if (!rsrc_load(ADDR("EXAMPL15.RSC")))
+	if (!rsrc_load("exampl15.rsc"))
 	{
-		form_alert(1, ADDR("[3][Unable to load resource][Abort]"));
+		form_alert(1, "[3][Unable to load resource][Abort]");
 
 		return(FALSE);		/* Unable to load resource	*/
 	}
@@ -383,13 +386,14 @@ WORD	initialise()
 /*------------------------------*/
 /*	GEMAIN			*/
 /*------------------------------*/
-
-GEMAIN()
+int
+main(void)
 {
 
 	if (!initialise())
-
-		return(FALSE);
+        {
+		return -1;
+        }
 
 	rsrc_gaddr(R_TREE, MAINMENU, &main_menu);
 	
@@ -408,4 +412,5 @@ GEMAIN()
 
 	appl_exit();			/* Exit AES tidily		*/
 	
+        return 0;
 }
