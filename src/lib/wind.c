@@ -127,6 +127,11 @@ static WORD widgetmap[] = {
         WLEFT,WRIGHT,WHSB,WHSLIDER,WSMALLER
 };
 
+static
+WINDOW_STRUCT *
+find_window_struct (WORD apid,
+                    WORD id);
+
 /*calcworksize calculates the worksize or the total size of
 a window. If dir == WC_WORK the worksize will be calculated and 
 otherwise the total size will be calculated.*/
@@ -200,85 +205,76 @@ calcworksize (WORD apid,
 ** 1998-10-11 CG
 ** 1998-12-25 CG
 ** 1999-01-01 CG
+** 1999-01-10 CG
 */
 static
 WORD
 Wind_set_size (WORD   apid,
                WORD   id,
                RECT * size) {
-  WORD  dx,dy,dw,dh;
-  GLOBAL_APPL * globals = get_globals (apid);
-  WINDOW_LIST * wl;
+  WORD            dx,dy,dw,dh;
+  WINDOW_STRUCT * ws = find_window_struct (apid, id);
 
-  wl = globals->windows;
-
-  /* Find the window structure for our window */
-  while (wl) {
-    if (wl->ws.id == id) {
-      break;
-    }
-  }
-
-  if (wl != NULL) {
-    wl->ws.lastsize = wl->ws.totsize;
+  if (ws != NULL) {
+    ws->lastsize = ws->totsize;
     
-    wl->ws.totsize = * size;
+    ws->totsize = *size;
     
-    dx = size->x - wl->ws.lastsize.x;
-    dy = size->y - wl->ws.lastsize.y;
-    dw = size->width - wl->ws.lastsize.width;
-    dh = size->height - wl->ws.lastsize.height;
+    dx = size->x - ws->lastsize.x;
+    dy = size->y - ws->lastsize.y;
+    dw = size->width - ws->lastsize.width;
+    dh = size->height - ws->lastsize.height;
     
-    wl->ws.worksize.x += dx;
-    wl->ws.worksize.y += dy;
-    wl->ws.worksize.width += dw;
-    wl->ws.worksize.height += dh;
+    ws->worksize.x += dx;
+    ws->worksize.y += dy;
+    ws->worksize.width += dw;
+    ws->worksize.height += dh;
     
-    if(wl->ws.tree) {
-      wl->ws.tree[0].ob_x = wl->ws.totsize.x;
-      wl->ws.tree[0].ob_y = wl->ws.totsize.y;
-      wl->ws.tree[0].ob_width = wl->ws.totsize.width;
-      wl->ws.tree[0].ob_height = wl->ws.totsize.height;
+    if(ws->tree) {
+      ws->tree[0].ob_x = ws->totsize.x;
+      ws->tree[0].ob_y = ws->totsize.y;
+      ws->tree[0].ob_width = ws->totsize.width;
+      ws->tree[0].ob_height = ws->totsize.height;
       
-      wl->ws.tree[WMOVER].ob_width += dw;
+      ws->tree[WMOVER].ob_width += dw;
       
-      wl->ws.tree[WFULLER].ob_x += dw;
+      ws->tree[WFULLER].ob_x += dw;
       
-      wl->ws.tree[WSMALLER].ob_x += dw;
+      ws->tree[WSMALLER].ob_x += dw;
       
-      wl->ws.tree[WDOWN].ob_x += dw;
-      wl->ws.tree[WDOWN].ob_y += dh;    
+      ws->tree[WDOWN].ob_x += dw;
+      ws->tree[WDOWN].ob_y += dh;    
       
-      wl->ws.tree[WSIZER].ob_x += dw;
-      wl->ws.tree[WSIZER].ob_y += dh;   
+      ws->tree[WSIZER].ob_x += dw;
+      ws->tree[WSIZER].ob_y += dh;   
       
-      wl->ws.tree[WRIGHT].ob_x += dw;
-      wl->ws.tree[WRIGHT].ob_y += dh;   
+      ws->tree[WRIGHT].ob_x += dw;
+      ws->tree[WRIGHT].ob_y += dh;   
       
-      wl->ws.tree[WLEFT].ob_y += dh;    
+      ws->tree[WLEFT].ob_y += dh;    
       
-      wl->ws.tree[WVSB].ob_x += dw;
-      wl->ws.tree[WVSB].ob_height += dh;        
+      ws->tree[WVSB].ob_x += dw;
+      ws->tree[WVSB].ob_height += dh;        
       
-      wl->ws.tree[WHSB].ob_y += dh;
-      wl->ws.tree[WHSB].ob_width += dw; 
+      ws->tree[WHSB].ob_y += dh;
+      ws->tree[WHSB].ob_width += dw; 
       
-      wl->ws.tree[WINFO].ob_width += dw;
+      ws->tree[WINFO].ob_width += dw;
       
-      wl->ws.tree[WUP].ob_x += dw;
+      ws->tree[WUP].ob_x += dw;
       
-      wl->ws.tree[TFILLOUT].ob_width += dw;
+      ws->tree[TFILLOUT].ob_width += dw;
       
-      wl->ws.tree[RFILLOUT].ob_height += dh;
-      wl->ws.tree[RFILLOUT].ob_x += dw;
+      ws->tree[RFILLOUT].ob_height += dh;
+      ws->tree[RFILLOUT].ob_x += dw;
       
-      wl->ws.tree[BFILLOUT].ob_width += dw;
-      wl->ws.tree[BFILLOUT].ob_y += dy;
+      ws->tree[BFILLOUT].ob_width += dw;
+      ws->tree[BFILLOUT].ob_y += dy;
       
-      wl->ws.tree[SFILLOUT].ob_x += dw;
-      wl->ws.tree[SFILLOUT].ob_y += dh;
+      ws->tree[SFILLOUT].ob_x += dw;
+      ws->tree[SFILLOUT].ob_y += dh;
       
-      wl->ws.tree[WAPP].ob_width = wl->ws.tree[WMOVER].ob_width;
+      ws->tree[WAPP].ob_width = ws->tree[WMOVER].ob_width;
       
       /*
       changeslider(win,0,HSLIDE | VSLIDE,-1,-1);
@@ -751,6 +747,7 @@ create_new_window_struct (WORD apid,
 ** 1998-10-11 CG
 ** 1999-01-10 CG
 */
+static
 WINDOW_STRUCT *
 find_window_struct (WORD apid,
                     WORD id)
@@ -1470,6 +1467,7 @@ AES_PB *apb)      /* AES parameter block.                                   */
 ** Exported
 **
 ** 1998-12-20 CG
+** 1999-01-10 CG
 */
 OBJECT *
 Wind_get_rsrc (WORD apid,
@@ -1484,6 +1482,8 @@ Wind_get_rsrc (WORD apid,
     if (wl->ws.id == id) {
       return wl->ws.tree;
     }
+
+    wl = wl->next;
   }
 
   return NULL;

@@ -119,14 +119,93 @@ evnt_multi (short         Type,
 
 
 short
+form_center (void *  tree,
+             short * cx,
+             short * cy,
+             short * cw,
+             short * ch) {
+  aespb.contrl[0] = 54;
+  aespb.contrl[1] = 0;
+  aespb.contrl[2] = 1;
+  aespb.contrl[3] = 5;
+  aespb.contrl[4] = 0;
+  
+  aespb.addrin[0] = tree;
+
+  aes_call (&aespb);
+  
+  *cx = aespb.intout[1];
+  *cy = aespb.intout[2];
+  *cw = aespb.intout[3];
+  *ch = aespb.intout[4];
+
+  return aespb.intout[0];
+}
+
+
+short
+form_dial (short flag,
+           short sx,
+           short sy,
+           short sw,
+           short sh,
+           short bx,
+           short by,
+           short bw,
+           short bh) {
+  aespb.contrl[0] = 51;
+  aespb.contrl[1] = 9;
+  aespb.contrl[2] = 0;
+  aespb.contrl[3] = 1;
+  aespb.contrl[4] = 0;
+  
+  aespb.intin[0] = flag;
+    
+  aespb.intin[1] = sx;
+  aespb.intin[2] = sy;
+  aespb.intin[3] = sw;
+  aespb.intin[4] = sh;
+
+  aespb.intin[5] = bx;
+  aespb.intin[6] = by;
+  aespb.intin[7] = bw;
+  aespb.intin[8] = bh;
+
+  aes_call (&aespb);
+  
+  return aespb.intout[0];
+}
+
+
+short
+form_do (void * tree,
+         short  startobj) {
+  aespb.contrl[0] = 50;
+  aespb.contrl[1] = 1;
+  aespb.contrl[2] = 1;
+  aespb.contrl[3] = 1;
+  aespb.contrl[4] = 0;
+  
+  aespb.intin[0] = startobj;
+    
+  aespb.addrin[0] = tree;
+
+  aes_call (&aespb);
+  
+  return aespb.intout[0];
+}
+
+
+short
 fsel_exinput (char *  Path,
               char *  File,
               short * ExitButton,
               char *  Prompt) {
   aespb.contrl[0] = 91;
   aespb.contrl[1] = 0;
-  aespb.contrl[2] = 2;
-  aespb.contrl[3] = 3;
+  aespb.contrl[2] = 3;
+  aespb.contrl[3] = 2;
+  aespb.contrl[4] = 0;
   
   aespb.addrin[0] = (long)Path;
   aespb.addrin[1] = (long)File;
@@ -190,6 +269,35 @@ menu_bar (void * tree,
 
   aespb.addrin[0] = (long)tree;
   aespb.intin[0] = mode;
+
+  aes_call (&aespb);
+
+  return aespb.intout[0];
+}
+
+
+short
+objc_draw (void * tree,
+           short  start,
+           short  depth,
+           short  cx,
+           short  cy,
+           short  cw,
+           short  ch) {
+  aespb.contrl[0] = 42;
+  aespb.contrl[1] = 6;
+  aespb.contrl[2] = 1;
+  aespb.contrl[3] = 1;
+  aespb.contrl[4] = 0;
+
+  aespb.intin[0] = start;
+  aespb.intin[1] = depth;
+  aespb.intin[2] = cx;
+  aespb.intin[3] = cy;
+  aespb.intin[4] = cw;
+  aespb.intin[5] = ch;
+
+  aespb.addrin[0] = tree;
 
   aes_call (&aespb);
 

@@ -776,11 +776,25 @@ int     evnt_timer (unsigned long Interval);
 int form_alert (int DefButton, char *Str);
 int form_button (void *Btree, int Bobject, int Bclicks,
                                   int *Bnxtobj);
-int form_center (void *Tree, int *Cx, int *Cy, int *Cw,
-                                  int *Ch);
-int form_dial (int Flag, int Sx, int Sy, int Sw, int Sh,
-                                int Bx, int By, int Bw, int Bh);
-int form_do (void *Tree, int StartObj);
+short
+form_center (void *  tree,
+             short * cx,
+             short * cy,
+             short * cw,
+             short * ch);
+short
+form_dial (short flag,
+           short sx,
+           short sy,
+           short sw,
+           short sh,
+           short bx,
+           short by,
+           short bw,
+           short bh);
+short
+form_do (void * tree,
+         short  startobj);
 int form_error (int ErrorCode);
 int form_keybd (void *Ktree, int Kobject, int Kobnext,
                                  int Kchar, int *Knxtobject, int *Knxtchar);
@@ -837,8 +851,14 @@ int     objc_change (void *Tree, int Object, int Res, int Cx,
                                      int Cy, int Cw, int Ch, int NewState,
                                      int Redraw);
 int     objc_delete (void *Tree, int Object);
-int     objc_draw (void *Tree, int Start, int Depth, int Cx,
-                                   int Cy, int Cw, int Ch);
+short
+objc_draw (void * tree,
+           short  start,
+           short  depth,
+           short  cx,
+           short  cy,
+           short  cw,
+           short  ch);
 int     objc_edit (void *Tree, int Object, int Char, int Index,
                                    int Kind, int *NewIndex); 
 int     objc_find (void *Tree, int Start, int Depth, int Mx,

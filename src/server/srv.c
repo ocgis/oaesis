@@ -1612,6 +1612,7 @@ get_desktop_owner_id (void) {
 ** Update all of the desk background
 **
 ** 1999-01-01 CG
+** 1999-01-10 CG
 */
 void
 update_desktop_background (void) {
@@ -1623,23 +1624,17 @@ update_desktop_background (void) {
   c_appl_write.msg.redraw.sid = 0;
  
   c_appl_write.msg.redraw.length = 0;
-  c_appl_write.msg.redraw.wid = 0;
+  c_appl_write.msg.redraw.wid = DESKTOP_WINDOW;
   
-  /* FIXME
-  ** Use globals instead
-  */
-  c_appl_write.msg.redraw.area.x = 0;
-  c_appl_write.msg.redraw.area.y = 0;
-  c_appl_write.msg.redraw.area.width = 1024;
-  c_appl_write.msg.redraw.area.height = 768;
+  c_appl_write.msg.redraw.area.x = globals.screen.x;
+  c_appl_write.msg.redraw.area.y = globals.screen.y;
+  c_appl_write.msg.redraw.area.width = globals.screen.width;
+  c_appl_write.msg.redraw.area.height = globals.screen.height;
   
   c_appl_write.addressee = get_desktop_owner_id ();
   c_appl_write.length = MSG_LENGTH;
   c_appl_write.is_reference = FALSE;
   srv_appl_write (&c_appl_write, &r_appl_write);
-
-  DB_printf ("srv.c: update_desktop_background: sent WM_REDRAW to appl %d",
-             c_appl_write.addressee);
 }
 
 
@@ -3129,7 +3124,7 @@ srv_wind_close (C_WIND_CLOSE * par,
 	C_APPL_WRITE c_appl_write;
         R_APPL_WRITE r_appl_write;
 
-	if(!(wp->win->status & (WIN_DESKTOP | WIN_MENU))) {
+	if(!(wp->win->status & WIN_MENU)) {
 	  m.type = WM_REDRAW;
 	  m.length = 0;
 	  m.wid = wp->win->id;

@@ -472,7 +472,7 @@ handle_mover_click (WORD apid,
                    &winsize.width,
                    &winsize.height,
                    TRUE);
-                
+
       Graf_do_dragbox (apid,
                        winsize.width,
                        winsize.height,
@@ -819,7 +819,7 @@ Evhd_handle_button (WORD apid,
                     WORD mouse_x,
                     WORD mouse_y) {
   EVNTREC     er;
-  
+
   if (mouse_button & LEFT_BUTTON) {
     WORD     win_id;
     WORD     owner;
@@ -905,8 +905,8 @@ Evhd_handle_button (WORD apid,
           er.ap_event = APPEVNT_BUTTON;
           er.ap_value = (LONG)mouse_button | (1L << 16);
           Srv_put_event(owner,&er,sizeof(EVNTREC));
-        };
-      };
+        }
+      }
     } else { /* Click on a window element */
       WORD     obj;
       OBJECT * tree;
