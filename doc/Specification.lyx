@@ -1,0 +1,94 @@
+#LyX 1.1 created this file. For more info see http://www.lyx.org/
+\lyxformat 2.15
+\textclass article
+\language default
+\inputencoding latin1
+\fontscheme times
+\graphics default
+\paperfontsize default
+\spacing single 
+\papersize Default
+\paperpackage a4
+\use_geometry 0
+\use_amsmath 0
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\quotes_times 2
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+
+\layout Title
+
+oAESis Specification
+\layout Author
+
+Christer Gustavsson
+\layout Abstract
+
+This document specifies the design and internal structure of oAESis.
+\layout Section
+\pagebreak_top 
+General
+\layout Subsection
+
+Introduction
+\layout Standard
+
+This document specifies the design of oAESis.
+\layout Subsection
+
+System Overview
+\layout Section
+
+Internal structure
+\layout Subsection
+
+Client library
+\layout Subsection
+
+Server
+\layout Subsection
+
+Launcher application
+\layout Subsection
+
+Startup sequence
+\layout Section
+
+Interfaces
+\layout Subsection
+
+Client API
+\layout Standard
+
+The client API honors Atari AES as described by The Atari Compendium.
+\layout Subsection
+
+Server / client library interface
+\layout Section
+
+References
+\layout Section
+
+Terminology
+\layout Enumerate
+
+AES
+\layout Enumerate
+
+API
+\layout Enumerate
+
+Client library
+\layout Enumerate
+
+Display
+\layout Enumerate
+
+Server
+\the_end
