@@ -1,5 +1,6 @@
 Makefile
 .deps
+.libs
 structtest
 *.prg
 *.ttp
