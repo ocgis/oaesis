@@ -47,6 +47,10 @@
 #include <mintbind.h>
 #endif
 
+#ifdef HAVE_MINT_DCNTL_H
+#include <mint/dcntl.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -96,7 +100,7 @@ static void CDECL startup(register BASEPAGE *b) {
   register WORD (*func)(LONG);
   register LONG arg;
 
-  set_stack((void *)(((LONG)b) + 256 + STKSIZE));
+  /*  set_stack((void *)(((LONG)b) + 256 + STKSIZE));*/
 
   func = (WORD (*)(LONG))b->p_dbase;
   arg = b->p_dlen;
@@ -112,19 +116,42 @@ void startup () {}
 #ifdef MINT_TARGET
 LONG
 srv_fork (WORD   (*func)(LONG),
-	   LONG   arg,
-	   BYTE * name) {
-  register BASEPAGE *b;
-  register LONG pid;
+          LONG   arg,
+          BYTE * name)
+{
+  BASEPAGE * bp_child;
+  BASEPAGE * bp_parent;
+  LONG       pid;
+  int        parent_handle;
 
-  b = (BASEPAGE *)Pexec(PE_CBASEPAGE, 0L, "", 0L);
-  (void)Mshrink(b, STKSIZE + 256);
-  b->p_tbase = (BYTE *)startup;
-  b->p_dbase = (BYTE *)func;
-  b->p_dlen = arg;
-  b->p_hitpa = ((BYTE *)b) + STKSIZE + 256;
+  /* Create a basepage for child process */
+  bp_child = (BASEPAGE *)Pexec(PE_CBASEPAGE, 0L, "", 0L);
+
+  /* Shrink to only include stack */
+  (void)Mshrink(bp_child, sizeof(BASEPAGE) + STKSIZE + 50);
+
+  /* Read parent basepage */
+  parent_handle = Fopen("U:\\PROC\\.-1", O_RDONLY);
+  Fcntl(parent_handle, &bp_parent, PBASEADDR);
+  Fclose(parent_handle);
+
+  /* Copy parent basepage */
+  memcpy(bp_child, bp_parent, sizeof(BASEPAGE));
+
+  /* Get correct parent */
+  bp_child->p_parent = bp_parent;
+
+  /* Allocate stack */
+  bp_child->p_bbase = (char *)(bp_child + 1);
+  bp_child->p_blen = STKSIZE;
+
+  /* Setup start parameters */
+  bp_child->p_tbase = (BYTE *)startup;
+  bp_child->p_dbase = (BYTE *)func;
+  bp_child->p_dlen = arg;
  
-  pid = Pexec(106,name,b,0L);
+  /* Start child process */
+  pid = Pexec(PE_ASYNC_GO_FREE, name, bp_child, 0L);
 
   return pid;
 }
