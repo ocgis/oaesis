@@ -33,8 +33,10 @@ typedef struct global_common {
 
   WORD    num_pens;   /* number of available vdi pens */
 
+  /*
   AP_LIST *applmenu;
   AP_LIST *accmenu;
+  */
 	
   WORD    mouse_x;
   WORD    mouse_y;

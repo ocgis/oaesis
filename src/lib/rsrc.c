@@ -363,7 +363,9 @@ void    Rsrc_load(AES_PB *apb)  /*0x006e*/ {
   apb->global->rshdr = (RSHDR *)rsc;
 
   if(rsc) {
+    /*
     apb->global->int_info->rshdr = rsc;
+    */
     apb->int_out[0] = 1;
   }
   else {
@@ -372,6 +374,7 @@ void    Rsrc_load(AES_PB *apb)  /*0x006e*/ {
 }
 
 void    Rsrc_free(AES_PB *apb)  /*0x006f*/ {
+  /*
   if(apb->global->int_info->rshdr) {
     Mfree(apb->global->int_info->rshdr);
     apb->global->int_info->rshdr = NULL;
@@ -381,6 +384,7 @@ void    Rsrc_free(AES_PB *apb)  /*0x006f*/ {
   else {
     apb->int_out[0] = 0;
   };
+  */
 }
 
 /****************************************************************************
@@ -408,9 +412,11 @@ OBJECT ** addr)   /* Object address.                                        */
 }
 
 void    Rsrc_gaddr(AES_PB *apb) /*0x0070*/ {
+  /*
   apb->int_out[0] = Rsrc_do_gaddr(apb->global->int_info->rshdr,
                                   apb->int_in[0],apb->int_in[1],
                                   (OBJECT **)&apb->addr_out[0]);
+  */
 }
 
 void    Rsrc_saddr(AES_PB *apb) /*0x0071*/ {
@@ -433,8 +439,7 @@ void    Rsrc_rcfix(AES_PB *apb) /*0x0073*/ {
                 rsc);
         
   apb->global->rscfile = (OBJECT **)((LONG)rsc->rsh_trindex + (LONG)rsc);
-  apb->global->rshdr = apb->global->int_info->rshdr = rsc;
-        
+  apb->global->rshdr = /*apb->global->int_info->rshdr =*/ rsc;
   apb->int_out[0] = 1;
 }
 

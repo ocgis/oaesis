@@ -1,7 +1,8 @@
 #ifndef	__GLOBAL__
 #define	__GLOBAL__
 
-#include	"types.h"
+#include "srv_appl_info.h"
+#include "types.h"
 
 #define	STKSIZE	4096
 
@@ -29,8 +30,8 @@ typedef struct globalvars {
 
   WORD    num_pens;   /* number of available vdi pens */
 
-  AP_LIST *applmenu;
-  AP_LIST *accmenu;
+  AP_LIST_REF applmenu;
+  AP_LIST_REF accmenu;
 	
   WORD    mouse_x;
   WORD    mouse_y;

@@ -531,36 +531,6 @@ struct dev_descr {
 
 #define MAX_MSG 100
 
-typedef struct ap_info {
-  WORD   id;             /*application id                                   */
-  WORD   pid;            /*process id of the head process of the application*/
-  WORD   vid;            /*VDI workstation id of application                */
-  BYTE   msgname[30];    /*name of message pipe of application              */
-  WORD   msgpipe;        /*handle of the message pipe                       */
-  BYTE   eventname[30];  /*name of event pipe                               */
-  WORD   eventpipe;      /*handle of event pipe                             */
-  RSHDR  *rshdr;         /*pointer to memory allocated for resources or 0L  */
-  OBJECT *deskbg;        /*pointer to object tree of desktop, or 0L         */
-  OBJECT *menu;          /*pointer to object tree of menu, or 0L            */
-  WORD   deskmenu;       /*index of desk menu box                           */
-  WORD   newmsg;         /*indicates which messages that are understood     */
-  WORD   killtries;      /*number of times someone has tried to kill the    */
-                         /*application.                                     */
-  WORD   type;           /*application type (acc or app etc)                */
-  struct ap_list  *ap_search_next; /* appl_search() pointer to next app */
-  
-  BYTE   name[21];   /* pretty name of process, init. filename          */
-  COMMSG messages[MAX_MSG];
-  WORD   next_message;
-  WORD   number_of_messages;
-}AP_INFO;
-
-typedef struct ap_list {
-  AP_INFO        *ai;
-  struct ap_list *next;
-  struct ap_list *mn_next; /* menu link */
-}AP_LIST;
-
 typedef struct global_array {
   WORD    version;
   WORD    numapps;
@@ -570,7 +540,7 @@ typedef struct global_array {
   RSHDR   *rshdr;
   WORD    resvd1;
   WORD    resvd2;
-  AP_INFO *int_info;
+  void *  int_info;
   WORD    maxchar;
   WORD    minchar;
 }GLOBAL_ARRAY;

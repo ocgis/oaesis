@@ -182,7 +182,7 @@ void	Evnt_keybd(AES_PB *apb) {
   EVNTREC	e;
   
   while(TRUE) {
-    Fread(apb->global->int_info->eventpipe,sizeof(EVNTREC),&e);
+    /*    Fread(apb->global->int_info->eventpipe,sizeof(EVNTREC),&e);*/
     
     if(e.ap_event == APPEVNT_KEYBOARD) {
       apb->int_out[0] = (WORD)(e.ap_value >> 16);
@@ -232,11 +232,11 @@ WORD *kstate)   /* Shift key state.                                         */
 }
 
 void	Evnt_button(AES_PB *apb) {
-	apb->int_out[0] = Evnt_do_button(apb->global->apid,
+  /*	apb->int_out[0] = Evnt_do_button(apb->global->apid,
 			apb->global->int_info->eventpipe,
 			apb->int_in[0],apb->int_in[1],apb->int_in[2]
 			,&apb->int_out[1],&apb->int_out[2],&apb->int_out[3]
-			,&apb->int_out[4]);
+			,&apb->int_out[4]);*/
 }
 
 /*0x0016 evnt_mouse*/

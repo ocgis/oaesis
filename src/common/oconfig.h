@@ -11,4 +11,7 @@
 /* Maximum simultaneous applications */
 #define MAX_NUM_APPS 32
 
+/* Size of the mouse event buffer */
+#define MOUSE_BUFFER_SIZE 100
+
 #endif

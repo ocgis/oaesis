@@ -42,6 +42,7 @@
 #include "lxgemdos.h"
 #include "mesagdef.h"
 #include "mintdefs.h"
+#include "srv_appl_info.h"
 #include "srv_event.h"
 #include "srv_global.h"
 #include "srv_misc.h"
@@ -97,7 +98,7 @@
 
 static WORD	next_ap = 0;
 
-static AP_INFO apps[MAX_NUM_APPS];
+extern AP_INFO apps[MAX_NUM_APPS];
 
 static AP_LIST *ap_resvd = NULL;
 
@@ -174,7 +175,7 @@ static WORD widgetmap[] = {
 static WORD svid;
 
 static BYTE **environ;
-static AP_LIST *ap_pri = NULL;
+extern AP_LIST_REF ap_pri;
 static WINLIST *win_vis = NULL;
 
 /* This has to be fixed */
@@ -250,61 +251,6 @@ WORD apid);       /* Id of application.                                     */
 /****************************************************************************/
 
 
-/****************************************************************************
- * internal_appl_info                                                       *
- *  Get internal information about application.                             *
- ****************************************************************************/
-static AP_INFO *    /* Application description or NULL.                     */
-internal_appl_info( /*                                                      */
-WORD apid)          /* Id of application.                                   */
-/****************************************************************************/
-{
-  switch(apid) {
-  case TOP_APPL:
-    if(ap_pri) {
-      return ap_pri->ai;
-    }
-    else {
-      return NULL;
-    };
-
-  case DESK_OWNER:
-  {
-    AP_LIST *al = ap_pri;
-			
-    while(al) {
-      if(al->ai->deskbg) {
-        return al->ai;
-      };
-				
-      al = al->next;
-    };
-  };			
-  return NULL;
-
-  case TOP_MENU_OWNER:
-  {
-    AP_LIST *al = ap_pri;
-			
-    while(al) {
-      if(al->ai->menu) {
-        return al->ai;
-      };
-				
-      al = al->next;
-    };
-  };		
-  return NULL;
-	
-  default:
-    if(apps[apid].id == apid) {
-      return &apps[apid];
-    };
-    return NULL;
-  };
-}
-
-
 /* 
  * Find MiNT-PID & return AP_LIST entry for that 
  */
@@ -361,8 +307,9 @@ WORD alloc_only)    /* Should the structure only be allocated?              */
   al->ai->rshdr = 0L;
 
   /* Message handling initialization */
-  al->ai->next_message = 0;
-  al->ai->number_of_messages = 0;
+  DB_printf ("srv_info_alloc: resetting message buffer for apid %d", al->ai->id);
+  al->ai->message_head = 0;
+  al->ai->message_size = 0;
   
   if(!alloc_only) {
     al->next = ap_pri;
@@ -972,7 +919,7 @@ srv_click_owner(void)   /*                                                  */
     if(status & WIN_DESKTOP) {
       AP_INFO *ai;
       
-      ai = internal_appl_info(DESK_OWNER);
+      ai = search_appl_info(DESK_OWNER);
       
       if(ai) {
 	return ai->id;
@@ -998,7 +945,7 @@ SRV_APPL_INFO *appl_info)  /* Returned info.                                */
   AP_INFO *ai;
   WORD    retval = 0;
 
-  ai = internal_appl_info(apid);			
+  ai = search_appl_info(apid);			
 
   if(ai) {
     appl_info->eventpipe = ai->eventpipe;
@@ -1078,7 +1025,7 @@ int                                     /*                                  */
 srv_get_top_menu(C_GET_TOP_MENU * msg)  /*                                  */
 /****************************************************************************/
 {
-  AP_INFO *ai = internal_appl_info(TOP_MENU_OWNER);
+  AP_INFO *ai = search_appl_info(TOP_MENU_OWNER);
   
   if(ai) {
     msg->retval = ai->menu;
@@ -1343,7 +1290,7 @@ C_APPL_CONTROL * msg) /*                                                    */
     
   case APC_KILL:
     {
-      AP_INFO *ai = internal_appl_info(msg->apid);
+      AP_INFO *ai = search_appl_info(msg->apid);
       
       if((ai->newmsg & 0x1) && (ai->killtries < 20)) {
 	COMMSG       m;
@@ -1360,7 +1307,7 @@ C_APPL_CONTROL * msg) /*                                                    */
 	m.msg2 = AP_TERM;
 	
 	c_appl_write.addressee = msg->apid;
-	c_appl_write.length = sizeof (COMMSG);
+	c_appl_write.length = MSG_LENGTH;
         c_appl_write.is_reference = TRUE;
 	c_appl_write.msg.ref = &m;
 	srv_appl_write (&c_appl_write, &r_appl_write);
@@ -1653,75 +1600,40 @@ void
 srv_appl_write (C_APPL_WRITE * msg,
                 R_APPL_WRITE * ret)
 {
-  if (msg->length != sizeof (COMMSG)) {
-    DB_printf ("srv.c: srv_appl_write: Sorry, only standard messages supported yet");
-    ret->common.retval = 1;
-  } else {
-    AP_INFO	*ai;
-   
-    ai = internal_appl_info (msg->addressee);
-    
-    if (ai != NULL) {
-      if (ai->number_of_messages < MAX_MSG) {
-        if (msg->is_reference) {
-          memcpy (&ai->messages[(ai->next_message + ai->number_of_messages)
-                               % MAX_MSG],
-                  msg->msg.ref,
-                  msg->length);
-        } else {
-          ai->messages[(ai->next_message + ai->number_of_messages) % MAX_MSG] =
-            msg->msg.event;
-        }
-        ai->number_of_messages++;
+  AP_INFO	*ai;
+  
+  ai = search_appl_info (msg->addressee);
+  
+  DB_printf ("srv.c: srv_appl_write");
 
-        ret->common.retval = 0;
+  if (ai != NULL) {
+    if (ai->message_size <= (MSG_BUFFER_SIZE - MSG_LENGTH)) {
+      if (msg->is_reference) {
+        memcpy (&ai->message_buffer[(ai->message_head +
+                                     ai->message_size)
+                                   % MSG_BUFFER_SIZE],
+                msg->msg.ref,
+                msg->length);
       } else {
-        ret->common.retval = 1;
+        memcpy (&ai->message_buffer[(ai->message_head +
+                                     ai->message_size)
+                                   % MSG_BUFFER_SIZE],
+                &msg->msg.event,
+                msg->length);
       }
+      
+      ai->message_size += msg->length;
+      DB_printf ("srv.c: srv_appl_write: message_size = %d  ai = 0x%x  apid = %d", ai->message_size, ai, ai->id);
+      
+      ret->common.retval = 0;
     } else {
       ret->common.retval = 1;
     }
-  }    
-}
-
-
-/*
-** Description
-** Server part of evnt_multi
-**
-** 1998-10-04 CG
-*/
-void
-srv_evnt_multi (
-C_EVNT_MULTI * par,
-R_EVNT_MULTI * ret)
-{
-  /* Reset event flag */
-  ret->eventout.events = 0;
-
-  if (par->eventin.events & MU_MESAG) {
-    /* Check for new messages */
-    AP_INFO * ai = internal_appl_info (par->common.apid);
-
-    if (ai != NULL) {
-      if (ai->number_of_messages > 0) {
-        DB_printf ("srv.c: srv_evnt_multi: New message");
-        ret->msg = ai->messages[ai->next_message];
-        ai->next_message = (ai->next_message + 1) % MAX_MSG;
-        ai->number_of_messages--;
-        ret->eventout.events |= MU_MESAG;
-      } else {
-        /*
-        DB_printf ("srv.c: srv_evnt_multi: No new messages");
-        */
-      }
-    }
+  } else {
+    DB_printf ("srv.c: srv_appl_write: couldn't find appl info");
+    ret->common.retval = 1;
   }
-
-  /* Cheat for now and always return MU_TIMER */
-  ret->eventout.events |= MU_TIMER;
 }
-
 
 
 /****************************************************************************
@@ -1749,7 +1661,7 @@ get_deskbg(void)  /*                                                        */
 	OBJECT  *retval = NULL;
 	AP_INFO *ai;
 		
-	ai = internal_appl_info(DESK_OWNER);
+	ai = search_appl_info(DESK_OWNER);
 		
 	if(ai) {
 		retval = ai->deskbg;
@@ -2528,7 +2440,7 @@ static WORD	changewinsize(WINSTRUCT *win,RECT *size,WORD vid,WORD drawall) {
 	  };
 	  
 	  c_appl_write.addressee = win->owner;
-	  c_appl_write.length = 16;
+	  c_appl_write.length = MSG_LENGTH;
           c_appl_write.is_reference = TRUE;
 	  c_appl_write.msg.ref = &m;
 	  srv_appl_write (&c_appl_write, &r_appl_write);
@@ -2622,7 +2534,7 @@ static WORD	changewinsize(WINSTRUCT *win,RECT *size,WORD vid,WORD drawall) {
 	    };
 	    
 	    c_appl_write.addressee = win->owner;
-	    c_appl_write.length = 16;
+	    c_appl_write.length = MSG_LENGTH;
             c_appl_write.is_reference = TRUE;
 	    c_appl_write.msg.ref = &m;
 	    srv_appl_write (&c_appl_write, &r_appl_write);
@@ -2684,7 +2596,7 @@ static WORD	changewinsize(WINSTRUCT *win,RECT *size,WORD vid,WORD drawall) {
 	    };
 	    
 	    c_appl_write.addressee = wlwalk->win->owner;
-	    c_appl_write.length = 16;
+	    c_appl_write.length = MSG_LENGTH;
             c_appl_write.is_reference = TRUE;
 	    c_appl_write.msg.ref = &m;
 	    srv_appl_write (&c_appl_write, &r_appl_write);
@@ -2810,7 +2722,7 @@ static WORD	changewinsize(WINSTRUCT *win,RECT *size,WORD vid,WORD drawall) {
 	  };
 
 	  c_appl_write.addressee = wl->win->owner;
-	  c_appl_write.length = 16;
+	  c_appl_write.length = MSG_LENGTH;
           c_appl_write.is_reference = TRUE;
 	  c_appl_write.msg.ref = &m;
 	  srv_appl_write (&c_appl_write, &r_appl_write);
@@ -2856,7 +2768,7 @@ static WORD	changewinsize(WINSTRUCT *win,RECT *size,WORD vid,WORD drawall) {
 	m.area.height = rl2->r.height;
 	
 	c_appl_write.addressee = win->owner;
-	c_appl_write.length = 16;
+	c_appl_write.length = MSG_LENGTH;
         c_appl_write.is_reference = TRUE;
 	c_appl_write.msg.ref = &m;
 	srv_appl_write (&c_appl_write, &r_appl_write);
@@ -2963,7 +2875,7 @@ static WORD	bottom_window(WORD winid) {
       };
 
       c_appl_write.addressee = (*wl)->win->owner;
-      c_appl_write.length = 16;
+      c_appl_write.length = MSG_LENGTH;
       c_appl_write.is_reference = TRUE;
       c_appl_write.msg.ref = &m;
       srv_appl_write (&c_appl_write, &r_appl_write);
@@ -3118,7 +3030,7 @@ static WORD top_window(WORD winid) {
       };
 
       c_appl_write.addressee = ourwl->win->owner;
-      c_appl_write.length = 16;
+      c_appl_write.length = MSG_LENGTH;
       c_appl_write.is_reference = TRUE;
       c_appl_write.msg.ref = &m;
       srv_appl_write (&c_appl_write, &r_appl_write);
@@ -3237,7 +3149,7 @@ C_WIND_CLOSE *msg)
 	  m.area.height = (*wl)->win->totsize.height;	
 
 	  c_appl_write.addressee = wp->win->owner;
-	  c_appl_write.length = 16;
+	  c_appl_write.length = MSG_LENGTH;
           c_appl_write.is_reference = TRUE;
 	  c_appl_write.msg.ref = &m;
 
@@ -3328,7 +3240,7 @@ R_WIND_CREATE * ret)
     set_win_elem(ws->tree,msg->elements);
     ws->elements = msg->elements;
 	
-    ai = internal_appl_info(msg->common.apid);
+    ai = search_appl_info(msg->common.apid);
 		
     if(ai) {
       ws->tree[WAPP].ob_spec.tedinfo->te_ptext =
@@ -4098,7 +4010,7 @@ C_PUT_EVENT *msg)
 	AP_INFO *ai;
 	WORD    retval = 0;
 
-	ai = internal_appl_info(apid);			
+	ai = search_appl_info(apid);			
 
 	if(ai) {
 		LONG fd = Fopen(ai->eventname,O_WRONLY);
@@ -4134,6 +4046,7 @@ C_PUT_EVENT *msg)
 **
 ** 1998-09-26 CG
 ** 1998-12-06 CG
+** 1998-12-13 CG
 */
 static
 WORD
@@ -4154,7 +4067,7 @@ server (LONG arg) {
   WORD          call;
   C_SRV         par;
   R_SRV         ret;
-  void *        handle;
+  COMM_HANDLE   handle;
 
   WORD          code;
 
@@ -4225,7 +4138,7 @@ server (LONG arg) {
                  &r_wind_open);
   
   /* Setup event vectors */
-  init_event_handler (svid);
+  srv_init_event_handler (svid);
 
   while(1) {
     
@@ -4239,7 +4152,7 @@ server (LONG arg) {
     /*DB_printf ("srv.c: Got message from client");*/
 
     if (handle == NULL) {
-      handle_events ();
+      srv_handle_events ();
     } else {
 #ifdef SRV_DEBUG
       DB_printf("Call: %d pid: %d",msg.cr.call,msg.pid);
@@ -4303,9 +4216,7 @@ server (LONG arg) {
         break;
         
       case SRV_EVNT_MULTI:
-        srv_evnt_multi (&par.evnt_multi, &ret.evnt_multi);
-        
-        Srv_reply (handle, &ret, sizeof (R_EVNT_MULTI));
+        srv_wait_for_event (handle, &par.evnt_multi);
         break;
         
       case SRV_GET_APPL_INFO:

@@ -3,6 +3,9 @@
 
 #include "types.h"
 
+typedef struct comm_handle_s * COMM_HANDLE;
+#define COMM_HANDLE_NIL ((COMM_HANDLE)NULL)
+
 /*
 ** Description
 ** Open the server connection
@@ -18,8 +21,9 @@ Srv_open (void);
 ** Wait for a message from a client
 **
 ** 1998-09-25 CG
+** 1998-12-13 CG
 */
-void *
+COMM_HANDLE
 Srv_get (void * in,
          int    max_bytes_in);
 
@@ -38,9 +42,10 @@ Srv_wake (void);
 ** Reply with a message to a client
 **
 ** 1998-09-25 CG
+** 1998-12-13 CG
 */
 void
-Srv_reply (void * handle,
-           void * out,
-           WORD   bytes_out);
+Srv_reply (COMM_HANDLE handle,
+           void *      out,
+           WORD        bytes_out);
 #endif

@@ -273,7 +273,6 @@ WORD apid)      /* Application id.                                          */
   C_APPL_EXIT   par;
   R_APPL_EXIT   ret;
   /*  SRV_APPL_INFO apinf;*/
-  WORD          code;
   int           count;
 
   /*

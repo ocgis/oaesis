@@ -14,6 +14,8 @@
 #ifndef _SRV_EVENT_H_
 #define _SRV_EVENT_H_
 
+#include "srv_get.h"
+#include "srv_interface.h"
 #include "types.h"
 
 /*
@@ -24,8 +26,20 @@
 ** 1998-12-07 CG
 */
 void
-init_event_handler (WORD vdi_workstation_id);
+srv_init_event_handler (WORD vdi_workstation_id);
 
+/*
+** Description
+** Handle client event queries. If an requested event is queued it will
+** be returned immediately. Otherwise the "client call" will be returned
+** later by handle_events () when an event is available.
+**
+** 1998-12-08 CG
+** 1998-12-13 CG
+*/
+void
+srv_wait_for_event (COMM_HANDLE    handle,
+                    C_EVNT_MULTI * par);
 
 /*
 ** Description
@@ -35,5 +49,6 @@ init_event_handler (WORD vdi_workstation_id);
 ** 1998-12-07 CG
 */
 void
-handle_events (void);
+srv_handle_events (void);
+
 #endif /* _SRV_EVENT_H_ */

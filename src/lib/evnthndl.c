@@ -1315,12 +1315,11 @@ static WORD handle_drop_down(WORD apid,
             nmenu[entry].ob_state &= ~SELECTED;
                 
             if(nmenu == 0 /*globals.pmenutad*/) {
+              /*
               AP_LIST *mr;
               WORD    walk = entry - PMENU_FIRST;
                         
-              /*
               mr = globals.applmenu;
-              */
                                 
               while(walk && mr) {
                 mr = mr->mn_next;
@@ -1329,9 +1328,7 @@ static WORD handle_drop_down(WORD apid,
                                                         
               if(walk) {
                 walk--;
-                /*
                 mr = globals.accmenu;
-                */
                 while(walk && mr) {
                   mr = mr->mn_next;
                   walk--;
@@ -1353,7 +1350,7 @@ static WORD handle_drop_down(WORD apid,
                     hm_buffer->action = HM_TOP_APPL;
                     hm_buffer->apid = mr->ai->id;
                   }
-                  else { /* Accessory */
+                  else {
                     hm_buffer->action = HM_OPEN_ACC;
                     hm_buffer->apid = mr->ai->id;
                   };
@@ -1364,7 +1361,8 @@ static WORD handle_drop_down(WORD apid,
                           "Couldn't find application to top!\r\n",
                           __FILE__,__LINE__);
               };
-            }
+              */
+              }
             else {
               hm_buffer->action = HM_MENU_MSG;
               hm_buffer->title = title;
@@ -1384,7 +1382,6 @@ static WORD handle_drop_down(WORD apid,
       };
     };  
   };
-        
   return 0;
 }
 

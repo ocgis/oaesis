@@ -278,9 +278,11 @@ init_global (WORD nocnf,
   DB_printf ("lib_global.c: init_global: calling vst_point");
   Vdi_vst_point(global_common.vid,global_common.fnt_regul_sz,&dum,&dum,&dum,&dum);
   
+  /*
   global_common.applmenu = NULL;
   global_common.accmenu = NULL;
-  
+  */
+
   global_common.mouse_x = 0;
   global_common.mouse_y = 0;
   global_common.mouse_button = 0;

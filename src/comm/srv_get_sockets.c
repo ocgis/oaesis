@@ -1,7 +1,9 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <netinet/in.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <unistd.h>
 
 #include "srv_get.h"
 #include "srv_sockets.h"
@@ -11,17 +13,17 @@
 /*
 ** Module type definitions
 */
-typedef struct appl_handle{
-  int    fd;
-  struct appl_handle * next;
-}APPL_HANDLE;
+typedef struct comm_handle_s {
+  int         fd;
+  COMM_HANDLE next;
+} COMM_HANDLE_S;
 
 /*
 ** Module global variables
 */
 static int sockfd;  /* Server socket descriptor */
 
-static APPL_HANDLE * handles = NULL;
+static COMM_HANDLE handles = COMM_HANDLE_NIL;
 
 /* This is used when trying to wake a Srv_get call */
 static int wake_fd [2];
@@ -69,14 +71,15 @@ Srv_open (void) {
 ** Wait for a message from a client
 **
 ** 1998-09-25 CG
+** 1998-12-13 CG
 */
-void *
+COMM_HANDLE
 Srv_get (void * in,
          int    max_bytes_in) {
   int                sin_size = sizeof (struct sockaddr_in);
   struct sockaddr_in their_addr; /* Client address information */
   fd_set             handle_set;
-  APPL_HANDLE *      handle_walk;
+  COMM_HANDLE        handle_walk;
   int                new_fd;
   int                highest_fd;
 
@@ -116,7 +119,7 @@ Srv_get (void * in,
     }
 
     /* Allocate a new handle and put it in the list */
-    handle_walk = (APPL_HANDLE *)malloc (sizeof (APPL_HANDLE));
+    handle_walk = (COMM_HANDLE)malloc (sizeof (COMM_HANDLE_S));
     handle_walk->fd = new_fd;
     handle_walk->next = handles;
     handles = handle_walk;
@@ -173,11 +176,12 @@ Srv_wake (void) {
 ** Reply with a message to a client
 **
 ** 1998-09-25 CG
+** 1998-12-13 CG
 */
 void
-Srv_reply (void * handle,
-           void * out,
-           WORD   bytes_out) {
+Srv_reply (COMM_HANDLE handle,
+           void *      out,
+           WORD        bytes_out) {
  /*
    DB_printf ("srv_get_sockets.c: Srv_reply: bytes_out=%d\n",
    bytes_out);
@@ -187,7 +191,7 @@ Srv_reply (void * handle,
   DB_printf ("srv_get_sockets.c: Sending reply through fd %d", ((APPL_HANDLE *)handle)->fd);
   */
 
-  if (send (((APPL_HANDLE *)handle)->fd, out, bytes_out, 0) == -1) {
+  if (send (handle->fd, out, bytes_out, 0) == -1) {
     perror ("oaesis: Srv_reply: send");
     return;
   }

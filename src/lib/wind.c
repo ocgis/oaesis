@@ -677,7 +677,9 @@ create_new_window_struct (WORD apid,
     ws->tree = 0L;
   } else {
     WORD    i;
+    /*
     AP_INFO *ai;
+    */
     
     ws->tree = allocate_window_elements ();
     set_win_elem (ws->tree, elements);
@@ -869,8 +871,10 @@ WORD   status)   /* Status of window.                                       */
     ws->worksize = ws->totsize;
   } else {
     WORD    i;
+    /*
     AP_INFO *ai;
-    
+    */
+
     DB_printf ("wind.c: Wind_do_create: will call allocate_window_elements");
     ws->tree = allocate_window_elements ();
     DB_printf ("wind.c: Wind_do_create: ws->tree=0x%x", ws->tree);
