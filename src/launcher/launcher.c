@@ -134,9 +134,7 @@ updatewait (int wid) {
 
           vs_clip(vid,1,xyxy);
 
-          /*
-          graf_mouse(M_OFF,NULL);
-          */
+          graf_mouse (M_OFF, NULL);
 
           vr_recfl(vid,xyxy);
           
@@ -146,9 +144,7 @@ updatewait (int wid) {
             v_pline(vid,2,&lines[i]);
           };
 
-          /*
-          graf_mouse(M_ON,NULL);
-          */
+          graf_mouse (M_ON, NULL);
 
           vs_clip(vid,0,xyxy);
         }
@@ -279,9 +275,7 @@ updatewait (int wid) {
 
         vs_clip(vid,1,xyxy);
 
-        /*
-        graf_mouse(M_OFF,NULL);
-        */
+        graf_mouse (M_OFF, NULL);
 
         vsl_color(vid,lastline % (num_colors - 1));
         v_pline(vid,2,&lines[lastline]);
@@ -291,9 +285,7 @@ updatewait (int wid) {
           v_pline(vid,2,&delete);
         }
 
-        /*
-        graf_mouse(M_ON,NULL);
-        */
+        graf_mouse (M_ON, NULL);
 
         vs_clip(vid,0,xyxy);
 
@@ -343,6 +335,7 @@ void testwin(void)
 **
 ** 1998-12-28 CG
 ** 1999-01-01 CG
+** 1999-01-03 CG
 */
 int
 main ()
@@ -395,9 +388,7 @@ main ()
 
   vsf_interior(vid,1);
 
-  #if 0
-  graf_mouse(ARROW,0L);
-  #endif
+  graf_mouse (ARROW, 0L);
 
   fsel_exinput (path, file, &exit_button, "Hulabopp");
 

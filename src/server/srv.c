@@ -4079,6 +4079,7 @@ C_PUT_EVENT *msg)
 ** 1998-12-22 CG
 ** 1998-12-23 CG
 ** 1998-12-25 CG
+** 1999-01-03 CG
 */
 static
 WORD
@@ -4108,9 +4109,7 @@ server (LONG arg) {
   NOT_USED(arg);
   
   /* Initialize message handling */
-  DB_printf ("srv.c: Initializing message handling");
   Srv_open ();
-  DB_printf ("srv.c: Initialized message handling");
 
   /* Initialize desktop background */
   ws = winalloc();
@@ -4167,7 +4166,10 @@ server (LONG arg) {
   /* Setup event vectors */
   srv_init_event_handler (svid);
 
-  while(1) {
+  /* Show mouse cursor */
+  Vdi_v_show_c (svid, 1);
+
+  while (TRUE) {
     
 #ifdef SRV_DEBUG
     DB_printf("///");
@@ -4270,6 +4272,12 @@ server (LONG arg) {
         srv_graf_mkstate (&par.graf_mkstate, &ret.graf_mkstate);
         
         Srv_reply (handle, &ret, sizeof (R_GRAF_MKSTATE));
+        break;
+
+      case SRV_GRAF_MOUSE :
+        srv_graf_mouse (svid, &par.graf_mouse, &ret.graf_mouse);
+        
+        Srv_reply (handle, &ret, sizeof (R_GRAF_MOUSE));
         break;
 
       case SRV_MENU_BAR:

@@ -14,6 +14,7 @@
 #include <stdlib.h>
 
 #include "debug.h"
+#include "gemdefs.h"
 #include "mesagdef.h"
 #include "oconfig.h"
 #include "srv_appl_info.h"
@@ -442,4 +443,25 @@ srv_graf_mkstate (C_GRAF_MKSTATE * par,
 
   /* Return OK */
   ret->common.retval = 1;
+}
+
+
+/*
+** Exported
+**
+** 1999-01-03 CG
+*/
+void
+srv_graf_mouse (WORD           vid,
+                C_GRAF_MOUSE * par,
+                R_GRAF_MOUSE * ret) {
+  switch (par->mode) {
+  case M_ON :
+    Vdi_v_show_c (vid, 0);
+    break;
+    
+  case M_OFF :
+    Vdi_v_hide_c (vid);
+    break;
+  }
 }

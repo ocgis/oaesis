@@ -161,6 +161,24 @@ graf_handle (short * Wchar,
 
 
 short
+graf_mouse (int    Form,
+            void * FormAddress) {
+  aespb.contrl[0] = 78;
+  aespb.contrl[1] = 1;
+  aespb.contrl[2] = 1;
+  aespb.contrl[3] = 1;
+
+  aespb.intin[0] = Form;
+  
+  aespb.addrin[0] = FormAddress;
+
+  aes_call (&aespb);
+
+  return aespb.intout[0];
+}
+
+
+short
 wind_close (short WindowHandle)
 {
   aespb.contrl[0] = 102;

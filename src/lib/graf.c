@@ -88,6 +88,13 @@ WORD   grafvid;
  * Local functions (use static!)                                            *
  ****************************************************************************/
 
+/*
+** Description
+** Convert icons to MFORMs that can be passed to vsc_form ()
+**
+** 1999-01-02
+*/
+static
 void
 icon2mform(MFORM  *  mf,
            OBJECT * icon) {
@@ -104,8 +111,9 @@ icon2mform(MFORM  *  mf,
   for(i = 0; i < 16; i++) {
     mf->mf_mask[i] = icon->ob_spec.iconblk->ib_pmask[i];
     mf->mf_data[i] = icon->ob_spec.iconblk->ib_pdata[i];
-  };
+  }
 }
+
 
 /****************************************************************************
  * Public functions                                                         *
@@ -124,14 +132,14 @@ void Graf_init_module(void) {
   Psemaphore(SEM_UNLOCK,GRAFSEM,-1);
 
   /*
-  icon2mform(&m_arrow,&globals->common->mouseformstad[MARROW]);
-  icon2mform(&m_text_crsr,&globals->common->mouseformstad[MTEXT_CRSR]);
-  icon2mform(&m_busy_bee,&globals->common->mouseformstad[MBUSY_BEE]);
-  icon2mform(&m_point_hand,&globals->common->mouseformstad[MPOINT_HAND]);
-  icon2mform(&m_flat_hand,&globals->common->mouseformstad[MFLAT_HAND]);
-  icon2mform(&m_thin_cross,&globals->common->mouseformstad[MTHIN_CROSS]);
-  icon2mform(&m_thick_cross,&globals->common->mouseformstad[MTHICK_CROSS]);
-  icon2mform(&m_outln_cross,&globals->common->mouseformstad[MOUTLN_CROSS]);
+  icon2mform (&m_arrow, &globals->common->mouseformstad[MARROW]);
+  icon2mform (&m_text_crsr, &globals->common->mouseformstad[MTEXT_CRSR]);
+  icon2mform (&m_busy_bee, &globals->common->mouseformstad[MBUSY_BEE]);
+  icon2mform (&m_point_hand, &globals->common->mouseformstad[MPOINT_HAND]);
+  icon2mform (&m_flat_hand, &globals->common->mouseformstad[MFLAT_HAND]);
+  icon2mform (&m_thin_cross, &globals->common->mouseformstad[MTHIN_CROSS]);
+  icon2mform (&m_thick_cross, &globals->common->mouseformstad[MTHICK_CROSS]);
+  icon2mform (&m_outln_cross, &globals->common->mouseformstad[MOUTLN_CROSS]);
   */
 
   current = m_arrow;
@@ -153,6 +161,7 @@ void Graf_exit_module(void) {
 ** 1998-12-20 CG
 ** 1998-12-25 CG
 ** 1998-12-26 CG
+** 1999-01-03 CG
 */
 WORD
 Graf_do_rubberbox (WORD   apid,
@@ -318,6 +327,7 @@ Graf_rubberbox (AES_PB *apb) {
 ** 1998-12-20 CG
 ** 1998-12-25 CG
 ** 1998-12-26 CG
+** 1999-01-03 CG
 */
 WORD
 Graf_do_dragbox (WORD   apid,
@@ -386,9 +396,9 @@ Graf_do_dragbox (WORD   apid,
   xyarray[8] = xyarray[0];
   xyarray[9] = xyarray[1];
          
-  Vdi_v_hide_c (globals->vid);
+  Graf_do_mouse (apid, M_OFF, NULL);
   Vdi_v_pline (globals->vid, 5, xyarray);
-  Vdi_v_show_c (globals->vid, 1);
+  Graf_do_mouse (apid, M_ON, NULL);
 
   ei.m1r.x = mx;
   ei.m1r.y = my;
@@ -413,7 +423,7 @@ Graf_do_dragbox (WORD   apid,
       }
       
       if ((lastx != newx) || (lasty != newy)) {
-        Vdi_v_hide_c (globals->vid);
+        Graf_do_mouse (apid, M_OFF, NULL);
         Vdi_v_pline (globals->vid, 5, xyarray);
 
         xyarray[0] = newx;
@@ -428,7 +438,7 @@ Graf_do_dragbox (WORD   apid,
         xyarray[9] = xyarray[1];
         
         Vdi_v_pline (globals->vid, 5, xyarray);
-        Vdi_v_show_c (globals->vid, 1);
+        Graf_do_mouse (apid, M_ON, NULL);
         
         lastx = newx;
         lasty = newy;
@@ -442,9 +452,9 @@ Graf_do_dragbox (WORD   apid,
     }
   }
 
-  Vdi_v_hide_c (globals->vid);
+  Graf_do_mouse (apid, M_OFF, NULL);
   Vdi_v_pline (globals->vid, 5, xyarray);
-  Vdi_v_show_c (globals->vid, 1);
+  Graf_do_mouse (apid, M_ON, NULL);
 
   *endx = lastx;
   *endy = lasty;
@@ -811,6 +821,21 @@ Graf_do_mouse (WORD    apid,
   WORD retval = 1;
   MFORM tmp;
   GLOBAL_APPL * globals = get_globals (apid);
+
+  C_GRAF_MOUSE par;
+  R_GRAF_MOUSE ret;
+
+  par.common.call = SRV_GRAF_MOUSE;
+  par.common.apid = apid;
+  par.common.pid = getpid ();
+  par.mode = mode;
+	
+  Client_send_recv (&par,
+                    sizeof (C_GRAF_MOUSE),
+                    &ret,
+                    sizeof (R_GRAF_MOUSE));
+
+  return ret.common.retval;
 
   switch (mode) {
   case ARROW: /*0x000*/

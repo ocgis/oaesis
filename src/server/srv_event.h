@@ -60,4 +60,16 @@ srv_handle_events (void);
 void
 srv_graf_mkstate (C_GRAF_MKSTATE * par,
                   R_GRAF_MKSTATE * ret);
+
+/*
+** Description
+** Server part of graf_mouse ()
+**
+** 1999-01-03 CG
+*/
+void
+srv_graf_mouse (WORD           vid,
+                C_GRAF_MOUSE * par,
+                R_GRAF_MOUSE * ret);
+
 #endif /* _SRV_EVENT_H_ */

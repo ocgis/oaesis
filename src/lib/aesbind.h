@@ -801,7 +801,9 @@ extern short graf_handle (short * Wchar,
                           short * Hbox);
 int graf_mkstate (int *Mx, int *My, int *ButtonState,
                                    int *KeyState); 
-int graf_mouse (int Form, void *FormAddress);
+short
+graf_mouse (int    Form,
+            void * FormAddress);
 int graf_movebox (int Sw, int Sh, int Sx, int Sy, int Dx,
                                    int Dy);
 int graf_rubberbox (int Ix, int Iy, int Iw, int Ih,
