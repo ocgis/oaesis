@@ -51,6 +51,7 @@
 #include <unistd.h>
 #include <vdibind.h>
 
+#include "aesbind.h"
 #include "debug.h"
 #include "gemdefs.h"
 #include "lib_global.h"

@@ -30,6 +30,7 @@
 
 #include	<stdio.h>
 
+#include "aesbind.h"
 #include "appl.h"
 #include "debug.h"
 #include "evnt.h"
@@ -459,37 +460,41 @@ static AESCB aescalls[] = {
  * Public functions                                                         *
  ****************************************************************************/
 
-void aes_call(AES_PB *apb) {
+/*
+** Exported
+**
+** 1999-05-30 CG
+*/
+void
+aes_call(AESPB * apb) {
   /*
-  if(globals.aes_trace) {
+    if(globals.aes_trace) {
     if((apb->global->apid != 0) && (apb->control[0] != 25)) {
-      DB_printf("Aes call %d (0x%x) %s\r\n",apb->control[0],apb->control[0],
-		aescalls[apb->control[0]].name);
+    DB_printf("Aes call %d (0x%x) %s\r\n",apb->control[0],apb->control[0],
+    aescalls[apb->control[0]].name);
     }
-  }
+    }
   */
   
-  if(aescalls[apb->control[0]].func) {
-    aescalls[apb->control[0]].func(apb);
+  if(aescalls[apb->contrl[0]].func) {
+    aescalls[apb->contrl[0]].func (apb);
+  } else {
+    if(aescalls[apb->contrl[0]].name) {
+      DB_printf("%s: Line %d:\r\n"
+                "Unimplemented AES call %d %s",
+                __FILE__,__LINE__,apb->contrl[0],
+                aescalls[apb->contrl[0]].name);
+    } else {
+      DB_printf( "%s: Line %d:\r\n"
+                 "Illegal AES call %d",
+                 __FILE__,__LINE__,apb->contrl[0]);
+    }
   }
-  else {
-		if(aescalls[apb->control[0]].name) {
-			DB_printf("%s: Line %d:\r\n"
-						    "Unimplemented AES call %d %s",
-						    __FILE__,__LINE__,apb->control[0],
-						    aescalls[apb->control[0]].name);
-		}
-		else {
-			DB_printf( "%s: Line %d:\r\n"
-						           "Illegal AES call %d",
-						           __FILE__,__LINE__,apb->control[0]);
-		};
-	};
-
+  
 #ifdef DCDEBUG
-	if((apb->global->apid != 0) && (apb->control[0] != 25)) {
-		DB_printf("/Aes call %d\r\n",apb->control[0]);
-	};
+  if((apb->global->apid != 0) && (apb->contrl[0] != 25)) {
+    DB_printf("/Aes call %d\r\n",apb->contrl[0]);
+  }
 #endif
 }
 

@@ -55,6 +55,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "aesbind.h"
 #include "appl.h"
 /*#include "boot.h"*/
 #include "debug.h"

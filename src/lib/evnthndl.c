@@ -71,6 +71,7 @@ v   Fixed mover grabbing bug; if the mouse was moved during click on
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "aesbind.h"
 #include "appl.h"
 #include "debug.h"
 #include "evnt.h"

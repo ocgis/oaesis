@@ -68,8 +68,8 @@
 
                 /* struct used by appl_trecord and appl_tplay */
 typedef struct pEvntrec {
-   long ap_event;
-   long ap_value;
+  long ap_event;
+  long ap_value;
 }EVNTREC;
                 
 
@@ -535,110 +535,110 @@ typedef struct objc_colorword {
 } __attribute__ ((packed)) OBJC_COLORWORD;
 
 typedef struct text_edinfo
-        {
-        char *te_ptext;      /* ptr to text */
-        char *te_ptmplt;     /* ptr to template */
-        char *te_pvalid;     /* ptr to validation chrs. */
-        short   te_font;       /* font */
-        short   te_fontid;     /* font id */
-        short   te_just;       /* justification */
-        short   te_color;      /* color information word */
-        short   te_fontsize;   /* font size */
-        short   te_thickness;  /* border thickness */
-        short   te_txtlen;     /* length of text string */
-        short   te_tmplen;     /* length of template string */
-        } TEDINFO;
+{
+  char *         te_ptext;      /* ptr to text */
+  char *         te_ptmplt;     /* ptr to template */
+  char *         te_pvalid;     /* ptr to validation chrs. */
+  short          te_font;       /* font */
+  short          te_fontid;     /* font id */
+  short          te_just;       /* justification */
+  OBJC_COLORWORD te_color;      /* color information word */
+  short          te_fontsize;   /* font size */
+  short          te_thickness;  /* border thickness */
+  short          te_txtlen;     /* length of text string */
+  short          te_tmplen;     /* length of template string */
+} TEDINFO;
 
 typedef struct icon_block {
-        short   *ib_pmask;
-        short   *ib_pdata;
-        char    *ib_ptext;
-        short   ib_char;
-        short   ib_xchar;
-        short   ib_ychar;
-        short   ib_xicon;
-        short   ib_yicon;
-        short   ib_wicon;
-        short   ib_hicon;
-        short   ib_xtext;
-        short   ib_ytext;
-        short   ib_wtext;
-        short   ib_htext;
+  short * ib_pmask;
+  short * ib_pdata;
+  char  * ib_ptext;
+  short   ib_char;
+  short   ib_xchar;
+  short   ib_ychar;
+  short   ib_xicon;
+  short   ib_yicon;
+  short   ib_wicon;
+  short   ib_hicon;
+  short   ib_xtext;
+  short   ib_ytext;
+  short   ib_wtext;
+  short   ib_htext;
 } __attribute__ ((packed)) ICONBLK;
 
 typedef struct bit_block {
-        char    *bi_pdata;  /* ptr to bit forms data  */
-        short   bi_wb;      /* width of form in bytes */
-        short   bi_hl;      /* height in lines */
-        short   bi_x;       /* source x in bit form */
-        short   bi_y;       /* source y in bit form */
-        short   bi_color;   /* fg color of blt */
+  char  * bi_pdata;  /* ptr to bit forms data  */
+  short   bi_wb;      /* width of form in bytes */
+  short   bi_hl;      /* height in lines */
+  short   bi_x;       /* source x in bit form */
+  short   bi_y;       /* source y in bit form */
+  short   bi_color;   /* fg color of blt */
 } __attribute__ ((packed)) BITBLK;
 
 typedef struct cicon_data {
-        short               num_planes;
-        short               *col_data;
-        short               *col_mask;
-        short               *sel_data;
-        short               *sel_mask;
-        struct cicon_data       *next_res;
+  short               num_planes;
+  short *             col_data;
+  short *             col_mask;
+  short *             sel_data;
+  short *             sel_mask;
+  struct cicon_data * next_res;
 } __attribute__ ((packed)) CICON;
         
 typedef struct cicon_blk {
-        ICONBLK monoblk;
-        CICON   *mainlist;
+  ICONBLK monoblk;
+  CICON * mainlist;
 } __attribute__ ((packed)) CICONBLK;
 
 
 typedef struct {
-    unsigned int character   :  8;
-    signed   int framesize   :  8;
-    unsigned int framecol    :  4;
-    unsigned int textcol     :  4;
-    unsigned int textmode    :  1;
-    unsigned int fillpattern :  3;
-    unsigned int interiorcol :  4;
+  unsigned int character   :  8;
+  signed   int framesize   :  8;
+  unsigned int framecol    :  4;
+  unsigned int textcol     :  4;
+  unsigned int textmode    :  1;
+  unsigned int fillpattern :  3;
+  unsigned int interiorcol :  4;
 } bfobspec;
 
 struct user_block;      /* forward declaration */
 
 typedef union __u_ob_spec {
-        TEDINFO           *tedinfo;
-        long              index;
-        char              *free_string;
-   union __u_ob_spec *indirect;
-        bfobspec          obspec;
-        BITBLK            *bitblk;
-        ICONBLK           *iconblk;
-        CICONBLK          *ciconblk;
-        struct user_block *userblk;
-/*      APPLBLK           *applblk;
-        char              *string;      */
+  TEDINFO *           tedinfo;
+  long                index;
+  char *              free_string;
+  union __u_ob_spec * indirect;
+  bfobspec            obspec;
+  BITBLK *            bitblk;
+  ICONBLK *           iconblk;
+  CICONBLK *          ciconblk;  
+  struct user_block * userblk;
+  /*      APPLBLK           *applblk;
+          char              *string;      */
 } U_OB_SPEC;
 
 typedef struct object
 {
-  short ob_next;        /* -> object's next sibling               */
-  short ob_head;        /* -> head of object's children           */
-  short ob_tail;        /* -> tail of object's children           */
-  unsigned short ob_type;       /* type of object                         */
-  unsigned short ob_flags;/* flags                                */
-  unsigned short ob_state;/* state                                */
-  U_OB_SPEC      ob_spec;       /* object-specific data                   */
-  short ob_x;           /* upper left corner of object            */
-  short ob_y;           /* upper left corner of object            */
-  short ob_width;       /* width of obj                           */
-  short ob_height;      /* height of obj                          */
+  short          ob_next;   /* -> object's next sibling               */
+  short          ob_head;   /* -> head of object's children           */
+  short          ob_tail;   /* -> tail of object's children           */
+  unsigned short ob_type;   /* type of object                         */
+  unsigned short ob_flags;  /* flags                                  */
+  unsigned short ob_state;  /* state                                  */
+  U_OB_SPEC      ob_spec;   /* object-specific data                   */
+  short          ob_x;      /* upper left corner of object            */
+  short          ob_y;      /* upper left corner of object            */
+  short          ob_width;  /* width of obj                           */
+  short          ob_height; /* height of obj                          */
 } OBJECT;
 
 typedef struct parm_block {
-   OBJECT *pb_tree;
-   short  pb_obj;
-   short  pb_prevstate;
-   short  pb_currstate;
-   short  pb_x, pb_y, pb_w, pb_h;
-   short  pb_xc, pb_yc, pb_wc, pb_hc;
-   long   pb_parm;
+   OBJECT * pb_tree;
+   short    pb_obj;
+   short    pb_prevstate;
+   short    pb_currstate;
+   short    pb_x, pb_y, pb_w, pb_h;
+   short    pb_xc, pb_yc, pb_wc, pb_hc;
+   long     pb_parm;
 }PARMBLK;
 
 typedef struct user_block {
@@ -657,24 +657,24 @@ typedef struct appl_blk {
                                                 /* used in RSCREATE.C   */
 typedef struct rshdr
 {
-        short           rsh_vrsn;
-        unsigned short  rsh_object;
-        unsigned short  rsh_tedinfo;
-        unsigned short  rsh_iconblk;    /* list of ICONBLKS             */
-        unsigned short  rsh_bitblk;
-        unsigned short  rsh_frstr;      
-        unsigned short  rsh_string;
-        unsigned short  rsh_imdata;     /* image data                   */
-        unsigned short  rsh_frimg;      
-        unsigned short  rsh_trindex;
-        short           rsh_nobs;       /* counts of various structs    */
-        short           rsh_ntree;
-        short           rsh_nted;
-        short           rsh_nib;
-        short           rsh_nbb;
-        short           rsh_nstring;
-        short           rsh_nimages;
-        unsigned short  rsh_rssize;     /* total bytes in resource      */
+  short           rsh_vrsn;
+  unsigned short  rsh_object;
+  unsigned short  rsh_tedinfo;
+  unsigned short  rsh_iconblk;    /* list of ICONBLKS             */
+  unsigned short  rsh_bitblk;
+  unsigned short  rsh_frstr;      
+  unsigned short  rsh_string;
+  unsigned short  rsh_imdata;     /* image data                   */
+  unsigned short  rsh_frimg;      
+  unsigned short  rsh_trindex;
+  short           rsh_nobs;       /* counts of various structs    */
+  short           rsh_ntree;
+  short           rsh_nted;
+  short           rsh_nib;
+  short           rsh_nbb;
+  short           rsh_nstring;
+  short           rsh_nimages;
+  unsigned short  rsh_rssize;     /* total bytes in resource      */
 } RSHDR;
 
 
@@ -714,11 +714,11 @@ typedef MENU_T MENU;
 
 typedef struct
 {
-        int     m_out;
-        int     m_x;
-        int     m_y;
-        int     m_w;
-        int     m_h;
+  int     m_out;
+  int     m_x;
+  int     m_y;
+  int     m_w;
+  int     m_h;
 } MOBLK;
 
 typedef struct {
@@ -731,11 +731,11 @@ typedef struct {
 }AESPB;
 
 typedef struct _shelw {
-        char *newcmd;
-        long psetlimit;
-        long prenice;
-        char *defdir;
-        char *env;
+  char * newcmd;
+  long   psetlimit;
+  long   prenice;
+  char * defdir;
+  char * env;
 }SHELW;
 
 extern short _global[];

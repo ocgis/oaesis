@@ -11,8 +11,11 @@
 ** Read the file COPYING for more information.
 */
 
+#define DEBUGLEVEL 3
+
 #include <stdlib.h>
 
+#include "debug.h"
 #include "srv_queue.h"
 
 typedef struct element_s * ELEMENT;
@@ -39,6 +42,7 @@ QUEUE
 allocate_queue (void) {
   QUEUE q;
 
+  DEBUG3 ("srv_queue.c: allocate_queue: allocating memory");
   q = (QUEUE)malloc (sizeof (QUEUE_S));
 
   q->first = ELEMENT_NIL;
@@ -78,6 +82,7 @@ inline
 ELEMENT
 ealloc (QUEUE q) {
   if (q->free == ELEMENT_NIL) {
+    DEBUG3 ("srv_queue.c: ealloc: allocating memory");
     return (ELEMENT)malloc (sizeof (ELEMENT_S));
   } else {
     ELEMENT e;

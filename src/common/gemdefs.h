@@ -39,8 +39,6 @@ extern "C" {
  *
  *************************************************************************/
 
-#define NIL             0
-
 /* appl_control modes */
 #define APC_HIDE    10
 #define APC_SHOW    11
@@ -146,7 +144,6 @@ extern "C" {
 #define RESCH_COMPLETED  61
 #define AP_DRAGDROP      63
 #define SH_WDRAW         72
-#define CH_EXIT          90   /* should this be 90 like in the compendium?*/
 
 		/* evnt_mouse modes */
 #define MO_ENTER 0
@@ -469,7 +466,6 @@ extern "C" {
 #define DISABLED   0x0008
 #define OUTLINED   0x0010
 #define SHADOWED   0x0020
-#define WHITEBAK   0x0080
 
 /* Object colors - default pall. */
 #define WHITE    0

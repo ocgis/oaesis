@@ -44,6 +44,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "aesbind.h"
 #include "debug.h"
 #include "gemdefs.h"
 /*#include "lxgemdos.h"*/

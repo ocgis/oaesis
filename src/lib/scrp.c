@@ -35,6 +35,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "aesbind.h"
 #include "scrp.h"
 #include "types.h"
 

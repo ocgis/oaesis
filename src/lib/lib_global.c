@@ -50,6 +50,7 @@
 #include <unistd.h>
 #include <vdibind.h>
 
+#include "aesbind.h"
 /*#include "boot.h"*/
 #include "debug.h"
 #include "gemdefs.h"

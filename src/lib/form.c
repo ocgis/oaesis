@@ -39,6 +39,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "aesbind.h"
 #include "debug.h"
 #include "evnt.h"
 #include "evnthndl.h"

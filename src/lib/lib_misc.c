@@ -48,6 +48,7 @@
 #include <unistd.h>
 #include <vdibind.h>
 
+#include "aesbind.h"
 #include "gemdefs.h"
 #include "lib_global.h"
 /*#include "lxgemdos.h"*/

@@ -65,6 +65,7 @@
 
 #include <unistd.h>
 
+#include "aesbind.h"
 #include "debug.h"
 #include "evnthndl.h"
 #include "gemdefs.h"

@@ -4,6 +4,8 @@
 #include <fcntl.h>
 #include <sys/types.h>
 
+#include "aesbind.h" /* FIXME */
+
 /* Use POSIX types */
 #ifndef BYTE
 #define BYTE  int8_t
@@ -17,23 +19,6 @@
 #define LONG  int32_t
 #define ULONG u_int32_t
 #endif /* LONG */
-
-#if 0
-#define BYTE  signed char
-#define UBYTE unsigned char
-#ifdef PUREC
-#define WORD  signed int
-#define UWORD unsigned int
-#define LONG  signed long
-#define ULONG unsigned long
-#else
-#define WORD  signed short
-#define UWORD unsigned short
-#define LONG  signed int
-#define ULONG unsigned int
-#endif
-#endif /* 0 */
-
 
 #ifdef  PUREC
 #define CDECL cdecl
@@ -60,19 +45,6 @@ typedef struct {
   LONG cookie;
   LONG value;
 }COOKIE;
-
-/* menu_settings uses a new structure for setting and inquiring the submenu
- * delay values and the menu scroll height.  The delay values are measured in
- * milliseconds and the height is based upon the number of menu items.
- */
-
-typedef struct _mn_set {
-  LONG display;   /*  the submenu display delay     */
-  LONG drag;      /*  the submenu drag delay        */
-  LONG delay;     /*  the single-click scroll delay */
-  LONG speed;     /*  the continuous scroll delay   */
-  WORD height;    /*  the menu scroll height        */
-}MN_SET;
 
 /* VDI Memory Form Definition Block */
 
@@ -132,196 +104,6 @@ typedef struct orect {
   int     o_h;
 } ORECT;
 
-typedef struct objc_colorword {
-  unsigned borderc : 4;
-  unsigned textc   : 4;
-  unsigned opaque  : 1;
-  unsigned pattern : 3;
-  unsigned fillc   : 4;
-} __attribute__ ((packed)) OBJC_COLORWORD;
-
-typedef struct text_edinfo {
-  BYTE         * te_ptext;     /* ptr to text */
-  BYTE         * te_ptmplt;    /* ptr to template */
-  BYTE         * te_pvalid;    /* ptr to validation chrs. */
-  WORD           te_font;       /* font */
-  WORD           te_fontid;     /* font id */
-  WORD           te_just;       /* justification */
-  OBJC_COLORWORD te_color;      /* color information word */
-  WORD           te_fontsize;   /* font size */
-  WORD           te_thickness;  /* border thickness */
-  WORD           te_txtlen;     /* length of text string */
-  WORD           te_tmplen;     /* length of template string */
-} TEDINFO;
-
-typedef struct icon_block {
-  WORD  * ib_pmask;
-  WORD  * ib_pdata;
-  BYTE  * ib_ptext;
-  WORD    ib_char;
-  WORD    ib_xchar;
-  WORD    ib_ychar;
-  WORD    ib_xicon;
-  WORD    ib_yicon;
-  WORD    ib_wicon;
-  WORD    ib_hicon;
-  WORD    ib_xtext;
-  WORD    ib_ytext;
-  WORD    ib_wtext;
-  WORD    ib_htext;
-} __attribute__ ((packed)) ICONBLK;
-
-typedef struct bit_block {
-  BYTE * bi_pdata;  /* ptr to bit forms data  */
-  WORD   bi_wb;     /* width of form in bytes */
-  WORD   bi_hl;     /* height in lines */
-  WORD   bi_x;      /* source x in bit form */
-  WORD   bi_y;      /* source y in bit form */
-  WORD   bi_color;  /* fg color of blt */
-} __attribute__ ((packed)) BITBLK;
-
-typedef struct cicon_data {
-  WORD                num_planes;
-  WORD              * col_data;
-  WORD              * col_mask;
-  WORD              * sel_data;
-  WORD              * sel_mask;
-  struct cicon_data * next_res;
-} __attribute__ ((packed)) CICON;
-        
-typedef struct cicon_blk {
-  ICONBLK monoblk;
-  CICON   *mainlist;
-} __attribute__ ((packed)) CICONBLK;
-
-typedef struct {
-  unsigned character   :  8;
-  signed   framesize   :  8;
-  unsigned framecol    :  4;
-  unsigned textcol     :  4;
-  unsigned textmode    :  1;
-  unsigned fillpattern :  3;
-  unsigned interiorcol :  4;
-} bfobspec;
-
-struct user_block;      /* forward declaration */
-
-typedef union __u_ob_spec {
-  TEDINFO           *tedinfo;
-  LONG              index;
-  BYTE              *free_string;
-  union __u_ob_spec *indirect;
-  bfobspec          obspec;
-  BITBLK            *bitblk;
-  ICONBLK           *iconblk;
-  CICONBLK          *ciconblk;
-  struct user_block *userblk;
-} U_OB_SPEC;
-
-typedef struct object {
-  WORD         ob_next;   /* -> object's next sibling               */
-  WORD         ob_head;   /* -> head of object's children           */
-  WORD         ob_tail;   /* -> tail of object's children           */
-  UWORD      ob_type;     /* type of object                         */
-  UWORD      ob_flags;/* flags                              */
-  UWORD      ob_state;/* state                              */
-  U_OB_SPEC  ob_spec;     /* object-specific data                   */
-  WORD         ob_x;              /* upper left corner of object            */
-  WORD         ob_y;              /* upper left corner of object            */
-  WORD         ob_width;  /* width of obj                           */
-  WORD         ob_height; /* height of obj                          */
-} OBJECT;
-
-typedef struct parm_block {
-  OBJECT *pb_tree;
-  WORD   pb_obj;
-  WORD   pb_prevstate;
-  WORD   pb_currstate;
-  WORD   pb_x, pb_y, pb_w, pb_h;
-  WORD   pb_xc, pb_yc, pb_wc, pb_hc;
-  LONG   pb_parm;
-}PARMBLK;
-
-typedef struct user_block {
-  int CDECL (*ub_code)(PARMBLK *parmblock);
-  LONG        ub_parm;
-}USERBLK;
-
-                                                /* used in RSCREATE.C   */
-typedef struct rshdr {
-  WORD  rsh_vrsn;
-  UWORD rsh_object;
-  UWORD   rsh_tedinfo;
-  UWORD   rsh_iconblk;    /* list of ICONBLKS             */
-  UWORD   rsh_bitblk;
-  UWORD   rsh_frstr;      
-  UWORD   rsh_string;
-  UWORD   rsh_imdata;     /* image data                   */
-  UWORD   rsh_frimg;      
-  UWORD   rsh_trindex;
-  WORD  rsh_nobs; /* counts of various structs    */
-  WORD  rsh_ntree;
-  WORD  rsh_nted;
-  WORD  rsh_nib;
-  WORD  rsh_nbb;
-  WORD  rsh_nstring;
-  WORD  rsh_nimages;
-  UWORD   rsh_rssize;     /* total bytes in resource      */
-} RSHDR;
-
-/* falcon aes menu_popup and menu_attach structure for passing and receiving
- * submenu data.
- */
-
-typedef struct _menu
-{
-  OBJECT *mn_tree;    /* the object tree of the menu */
-  WORD    mn_menu;    /* the parent object of the menu items */
-  WORD    mn_item;    /* the starting menu item */
-  WORD    mn_scroll;  /* the scroll field status of the menu 
-                         0  - The menu will not scroll
-                         !0 - The menu will scroll if the number of menu
-                         items exceed the menu scroll height. The 
-                         non-zero value is the object at which 
-                         scrolling will begin.  This will allow one
-                         to have a menu in which the scrollable region
-                         is only a part of the whole menu.  The value
-                         must be a menu item in the menu.
-                                
-                         menu_settings can be used to change the menu
-                         scroll height. 
-
-                         NOTE: If the scroll field status is !0, the menu
-                         items must consist entirely of G_STRINGS. */
-  WORD    mn_keystate; /* The CTRL, ALT, SHIFT Key state at the time the
-                          mouse button was pressed. */
-}MENU_T;
-
-typedef MENU_T MENU;
-
-
-typedef struct
-{
-  int     m_out;
-  int     m_x;
-  int     m_y;
-  int     m_w;
-  int     m_h;
-} MOBLK;
-
-typedef struct _shelw {
-  BYTE *newcmd;
-  LONG psetlimit;
-  LONG prenice;
-  BYTE *defdir;
-  BYTE *env;
-}SHELW;
-
-                /* struct used by appl_trecord and appl_tplay */
-typedef struct pEvntrec {
-  LONG ap_event;
-  LONG ap_value;
-}EVNTREC;
 
 typedef struct {
   LONG    msg1;
@@ -338,7 +120,7 @@ typedef struct {
 
 typedef enum {
   FALSE = 0,
-  TRUE    =       1
+  TRUE  = 1
 }BOOLEAN;
 
 typedef struct  {

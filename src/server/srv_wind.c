@@ -11,10 +11,11 @@
 ** Read the file COPYING for more information.
 */
 
-#define DEBUGLEVEL 0
+#define DEBUGLEVEL 3
 
 #include <stdlib.h>
 
+#include "aesbind.h"
 #include "debug.h"
 #include "gemdefs.h"
 #include "srv_global.h"
@@ -52,6 +53,7 @@ lialloc (COMM_HANDLE handle,
   LOCK_INFO li;
 
   if (free_lock_info == LOCK_INFO_NIL) {
+    DEBUG3 ("srv_wind.c: lialloc: allocating new structure!");
     li = (LOCK_INFO)malloc (sizeof (LOCK_INFO_S));
   } else {
     li = free_lock_info;

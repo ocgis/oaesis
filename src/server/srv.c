@@ -36,6 +36,7 @@
 #include <string.h>
 #include <vdibind.h>
 
+#include "aesbind.h"
 #include "oconfig.h"
 #include "debug.h"
 #include "gemdefs.h"

@@ -45,6 +45,7 @@
 #include <signal.h>
 #include <string.h>
 
+#include "aesbind.h"
 #include "oconfig.h"
 #include "debug.h"
 #include "gemdefs.h"

@@ -60,6 +60,7 @@
 
 #include <unistd.h>
 
+#include "aesbind.h"
 #include "debug.h"
 #include "evnt.h"
 #include "evnthndl.h"
@@ -613,6 +614,7 @@ Evnt_do_multi (WORD       apid,
 
   /* Loop until a user event has been found */
   while (events_out == 0) {
+    DEBUG3 ("evnt.c: timeout = %d %d", par.eventin.hicount, par.eventin.locount);
     Client_send_recv (&par,
                       sizeof (C_EVNT_MULTI),
                       &ret,
