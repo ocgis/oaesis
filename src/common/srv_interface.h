@@ -241,6 +241,12 @@ typedef struct
 #define MU_MESAG        0x0010
 #define MU_TIMER        0x0020
 
+/*
+** Messages internal to oaesis
+*/
+#define WM_AREDRAW 0x0101 /* Redraw everything but window elements */
+#define WM_EREDRAW 0x0102 /* Redraw only window elements           */
+
 typedef struct
 {
   C_ALL   common;
