@@ -55,6 +55,9 @@
 #define TOSAPP 0
 #define GEMAPP 1
 
+#ifdef MINT_TARGET
+extern void accstart(); /* In gcc.s or purec.s FIXME: make .h-file */
+#endif
 
 WORD Shel_do_read(BYTE *name,BYTE *tail) {
 	BYTE pname[30];
@@ -106,8 +109,6 @@ void	Shel_read(AES_PB *apb) {
 /*
 ** Description
 ** Implementation of shel_write ()
-**
-** 1999-06-13 CG
 */
 WORD
 Shel_do_write (WORD   apid,
@@ -263,16 +264,19 @@ Shel_do_write (WORD   apid,
       }
     }
     
+    /* Load accessory into memory but don't start it */
     b = (BASEPAGE *)Pexec(3, tmp, tail, envir);
     
     if(((LONG)b) > 0) {
       Mshrink(b,256 + b->p_tlen + b->p_dlen + b->p_blen);
-      
+
+#ifdef MINT_TARGET      
       b->p_dbase = b->p_tbase;
-      /* FIXME
       b->p_tbase = (BYTE *)accstart;
-      */
+
+      /* Start accessory */
       r = (WORD)Pexec(104,tmp,b,NULL);
+#endif
       
       if(r < 0) {
 	r = 0;

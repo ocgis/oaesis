@@ -1191,7 +1191,8 @@ update_appl_list (WORD   apid,
     {
       APPL_LIST * insert_menu;
 
-      if (type & APP_APPLICATION) {
+      if(type & APP_APPLICATION)
+      {
         insert_menu = &globals->appl_menu;
 
         /* For now the first application is the topped application */
@@ -1199,7 +1200,9 @@ update_appl_list (WORD   apid,
         {
           *topped_application = ap_id;
         }
-      } else { /* Must be APP_ACCESSORY */
+      }
+      else
+      { /* Must be APP_ACCESSORY */
         insert_menu = &globals->acc_menu;
       }
 
@@ -1210,7 +1213,7 @@ update_appl_list (WORD   apid,
                                  sizeof (APPL_ENTRY) * insert_menu->size);
       }
 
-      strcpy (insert_menu->entries[insert_menu->count].name, name);
+      strcpy(insert_menu->entries[insert_menu->count].name, name);
       insert_menu->entries[insert_menu->count].type = type;
       insert_menu->entries[insert_menu->count].ap_id = ap_id;
       insert_menu->count++;

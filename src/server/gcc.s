@@ -105,13 +105,13 @@ _vdicall:
 	rts
 	
 _accstart:
-	movel sp@(4),a0
-	movel a0@(16),a1
-	movel a1,a0@(8)
-	addl  a0@(12),a1
-	movel a1,a0@(16)
-	movel a0@(8),a1
-	jmp a1@
+	movel sp@(4),a0   | Get pointer to basepage
+	movel a0@(16),a1  | Get data segment base
+	movel a1,a0@(8)   | Put data segment base in text base segment
+	addl  a0@(12),a1  | Add text length to data segment base
+	movel a1,a0@(16)  | Make result data segment base
+	movel a0@(8),a1   | Get text segment base
+	jmp a1@           | Jump to start of accessory
 
 _VsetScreen:
 	link  a6,#0

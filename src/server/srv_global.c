@@ -27,6 +27,8 @@
  
  ****************************************************************************/
 
+#define DEBUGLEVEL 0
+
 /****************************************************************************
  * Used interfaces                                                          *
  ****************************************************************************/
@@ -181,20 +183,15 @@ handle_signal (int s) {
 
 /*
 ** Exported
-**
-** 1999-01-09 CG
-** 1999-01-16 CG
-** 1999-03-28 CG
-** 1999-05-22 CG
-** 1999-08-08 CG
-** 1999-08-25 CG
 */
 void
-srv_init_global (WORD no_configuration_file) {
+srv_init_global (WORD no_configuration_file)
+{
   int work_in[] = {1,1,1,1,1,1,1,1,1,1,2};
   int work_out[57];
   int dum;
 
+  DEBUG3("In srv_init_global");
   /* Install segmentation fault handler */
   signal (SIGSEGV, handle_signal);
   signal (SIGILL, handle_signal);
@@ -209,12 +206,15 @@ srv_init_global (WORD no_configuration_file) {
   signal (SIGQUIT, handle_signal);
   signal (SIGTERM, handle_signal);
 
+  DEBUG3("In srv_init_global: 2");
   v_opnwk (work_in, &globals.vid, work_out);
 
+  DEBUG3("In srv_init_global: 3");
 #ifdef MINT_TARGET
   init_global (globals.vid);
 #endif
 
+  DEBUG3("In srv_init_global: 4");
   vq_extnd(globals.vid,0,work_out);
   
   globals.screen.x = 0;

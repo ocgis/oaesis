@@ -1,4 +1,7 @@
-Compatibility list for oAESis.
+This list has not been updated since 0.76. Please report bugs and non working
+applications to nocrew-oaesis@nocrew.org
+---
+Compatibility list for oAESis
 
 The following programs have shown to work more or less well with
 oAESis:
@@ -38,3 +41,4 @@ Xcontrol
 Xedit
 Yukon
 zControl
+
