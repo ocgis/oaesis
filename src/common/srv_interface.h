@@ -5,6 +5,7 @@
 #include <config.h>
 #endif
 
+#include <netinet/in.h>
 #include <vdibind.h>
 
 #include "mesagdef.h"
@@ -390,7 +391,7 @@ typedef union {
 { \
   int    i; \
   void * walk = parameters; \
-  int    words = parameters->common.words; \
+  int    words = (parameters)->common.words; \
 \
   for(i = 0; i < words; i++) \
   { \
