@@ -1,7 +1,7 @@
 /*
 ** fsel.c
 **
-** Copyright 1996 - 2000 Christer Gustavsson <cg@nocrew.org>
+** Copyright 1996 - 2001 Christer Gustavsson <cg@nocrew.org>
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -348,39 +348,52 @@ reset_dirdesc (DIRDESC *dd)
 }
 
 
-static void get_files(OBJECT *t,DIRDESC *dd) {
-	WORD i = dd->pos;
-	DIRENTRY *dwalk = dd->dent;
+static
+void
+get_files(OBJECT *  t,
+          DIRDESC * dd)
+{
+  WORD i = dd->pos;
+  DIRENTRY *dwalk = dd->dent;
+  
+  while((i--) && dwalk)
+  {
+    dwalk = dwalk->next;
+  }
+  
+  i = FISEL_FIRST;
+  
+  while(i <= FISEL_LAST)
+  {
+    if(dwalk)
+    {
+      TE_PTEXT_PUT(OB_SPEC(&t[i]), dwalk->name);
+      dwalk = dwalk->next;
+    }
+    else
+    {
+      TE_PTEXT_PUT(OB_SPEC(&t[i]), nullstr);
+    }
+    
+    i++;
+  }
 	
-	while((i--) && dwalk) {
-		dwalk = dwalk->next;
-	};
-	
-	i = FISEL_FIRST;
-	
-	while(i <= FISEL_LAST) {
-		if(dwalk) {
-			t[i].ob_spec.tedinfo->te_ptext = dwalk->name;
-			dwalk = dwalk->next;
-		}
-		else {
-			t[i].ob_spec.tedinfo->te_ptext = nullstr;
-		}
-		
-		i++;
-	};
-	
-	if(dd->num_files <= (FISEL_LAST - FISEL_FIRST + 1)) {
-		t[FISEL_SLIDER].ob_y = 0;
-		t[FISEL_SLIDER].ob_height = t[FISEL_SB].ob_height;
-	}
-	else {
-		t[FISEL_SLIDER].ob_height =
-			(WORD)(((LONG)t[FISEL_SB].ob_height * (LONG)(FISEL_LAST - FISEL_FIRST + 1)) / (LONG)dd->num_files);
-		t[FISEL_SLIDER].ob_y =
-			(WORD)((((LONG)t[FISEL_SB].ob_height - (LONG)t[FISEL_SLIDER].ob_height)
-				* (LONG)dd->pos) / ((LONG)dd->num_files - FISEL_LAST + FISEL_FIRST - 1));
-	};
+  if(dd->num_files <= (FISEL_LAST - FISEL_FIRST + 1))
+  {
+    OB_Y_PUT(&t[FISEL_SLIDER], 0);
+    OB_HEIGHT_PUT(&t[FISEL_SLIDER], OB_HEIGHT(&t[FISEL_SB]));
+  }
+  else
+  {
+    OB_HEIGHT_PUT(&t[FISEL_SLIDER],
+                  (WORD)(((LONG)OB_HEIGHT(&t[FISEL_SB]) *
+                          (LONG)(FISEL_LAST - FISEL_FIRST + 1)) /
+                         (LONG)dd->num_files));
+    OB_Y_PUT(&t[FISEL_SLIDER],
+             (WORD)((((LONG)OB_HEIGHT(&t[FISEL_SB]) -
+                      (LONG)OB_HEIGHT(&t[FISEL_SLIDER])) * (LONG)dd->pos) /
+                    ((LONG)dd->num_files - FISEL_LAST + FISEL_FIRST - 1)));
+  }
 }
 
 static DIRENTRY *find_entry(DIRDESC *dd,WORD pos) {
@@ -398,28 +411,22 @@ static DIRENTRY *find_entry(DIRDESC *dd,WORD pos) {
 /*
 ** Description
 ** Handle file list slider
-**
-** 1998-12-19 CG
-** 1999-01-01 CG
-** 1999-01-09 CG
-** 1999-01-11 CG
-** 1999-01-30 CG
-** 1999-05-24 CG
 */
 static
 void
 slider_handle (WORD      apid,
                OBJECT  * tree,
                RECT    * clip,
-               DIRDESC * dd) {
-  if(tree[FISEL_SLIDER].ob_height != tree[FISEL_SB].ob_height) {
-
-    WORD newpos,
-      oldpos = dd->pos,
-      slidpos,
-      oldslidpos = tree[FISEL_SLIDER].ob_y,
-      slidmax = tree[FISEL_SB].ob_height
-      - tree[FISEL_SLIDER].ob_height, buffer[16];
+               DIRDESC * dd)
+{
+  if(OB_HEIGHT(&tree[FISEL_SLIDER]) != OB_HEIGHT(&tree[FISEL_SB]))
+  {
+    WORD newpos;
+    WORD oldpos = dd->pos;
+    WORD slidpos;
+    WORD oldslidpos = OB_Y(&tree[FISEL_SLIDER]);
+    WORD slidmax = OB_HEIGHT(&tree[FISEL_SB]) - OB_HEIGHT(&tree[FISEL_SLIDER]);
+    WORD buffer[16];
 
     EVENTIN ei = { MU_BUTTON | MU_M1,
                    2,           /* bclicks */
@@ -549,21 +556,20 @@ Fsel_do_exinput (WORD   apid,
 
   get_files(tree,&dd);
 
-  tree[FISEL_DESCR].ob_spec.tedinfo->te_ptext = description;
-  tree[FISEL_DIRECTORY].ob_spec.tedinfo->te_ptext = path;
-  tree[FISEL_SELECTION].ob_spec.tedinfo->te_ptext = file;
+  TE_PTEXT_PUT(OB_SPEC(&tree[FISEL_DESCR]), description);
+  TE_PTEXT_PUT(OB_SPEC(&tree[FISEL_DIRECTORY]), path);
+  TE_PTEXT_PUT(OB_SPEC(&tree[FISEL_SELECTION]), file);
 
   strcpy(oldpath,path);
 
   Form_do_center (apid, tree, &clip);
 
   Objc_do_offset(tree,FISEL_FIRST,(WORD *)&dst);
-  dst.width = tree[FISEL_FIRST].ob_width;
-  dst.height = tree[FISEL_FIRST].ob_height *
-    (FISEL_LAST - FISEL_FIRST);
+  dst.width = OB_WIDTH(&tree[FISEL_FIRST]);
+  dst.height = OB_HEIGHT(&tree[FISEL_FIRST]) * (FISEL_LAST - FISEL_FIRST);
 
   src = dst;
-  src.y = dst.y + tree[FISEL_FIRST].ob_height;
+  src.y = dst.y + OB_HEIGHT(&tree[FISEL_FIRST]);
 
   Form_do_dial (apid, FMD_START, &clip, &clip);
 
