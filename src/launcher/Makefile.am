@@ -4,7 +4,7 @@ INCLUDES = -I../lib
 bin_PROGRAMS = launcher.prg
 
 launcher_prg_SOURCES = \
-        launcher.c launch.c
+        launch.c launcher.c
 
 launcher_prg_LDFLAGS = ../lib/liboaesis.la
 
