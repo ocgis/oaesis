@@ -64,4 +64,4 @@ dnl Set CFLAGS
 CFLAGS="$CFLAGS -Wall"
 
 dnl Specify which files that should be created
-AC_OUTPUT(Makefile src/Makefile)
+AC_OUTPUT(Makefile src/Makefile test/Makefile)
