@@ -62,27 +62,28 @@
  ****************************************************************************/
 
 WORD Misc_get_cookie(LONG code,LONG *value) {
-	register COOKIE *cookie;
-	void            *stack;
-
-	stack = (void*)Super(0L);
-	cookie = *(COOKIE **)_p_cookies;
-	Super(stack);
-	
-	while(cookie->cookie) {
-		if(cookie->cookie == code) {
-			*value = cookie->value;		
-
-			return TRUE;
-		};
-		
-		cookie++;
-	};
-	
-	return FALSE;
+  register COOKIE *cookie;
+  void            *stack;
+  
+  stack = (void*)Super(0L);
+  cookie = *(COOKIE **)_p_cookies;
+  Super(stack);
+  
+  while(cookie->cookie) {
+    if(cookie->cookie == code) {
+      *value = cookie->value;		
+      
+      return TRUE;
+    };
+    
+    cookie++;
+  };
+  
+  return FALSE;
 }
 
 
+#ifdef MINT_TARGET
 static void CDECL startup(register BASEPAGE *b) {
   register WORD (*func)(LONG);
   register LONG arg;
@@ -94,6 +95,9 @@ static void CDECL startup(register BASEPAGE *b) {
   
   Pterm((*func)(arg));
 }
+#else
+void startup () {}
+#endif /* MINT_TARGET */
 
 
 LONG Misc_fork(WORD (*func)(LONG),LONG arg,BYTE *name) {

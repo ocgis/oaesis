@@ -51,6 +51,12 @@ typedef struct {
 
 #define INTS2LONG(a,b) (((((LONG)a) << 16) & 0xffff0000L) | (((LONG)b) & 0xffff))
 
+/* This has to be fixed */
+#ifndef MINT_TARGET
+void vdicall (void * contrl) {}
+
+#endif /* MINT_TARGET */
+
 /****************************************************************************
  * Public functions                                                         *
  ****************************************************************************/

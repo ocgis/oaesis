@@ -69,15 +69,20 @@ WORD global[15];
  * Module global variables                                                  *
  ****************************************************************************/
 
+#ifdef MINT_TARGET
 static WORD open_physical_ws; /* set in own_appl_init. jps */
-static BYTE versionstring[50];
 
 static WORD oldmode,oldmodecode;
+#endif /* MINT_TARGET */
+
+static BYTE versionstring[50];
 
 /****************************************************************************
  * Module local functions                                                   *
  ****************************************************************************/
 
+/* These few functions can only be used if we run TOS/MiNT */
+#ifdef MINT_TARGET
 WORD own_appl_init(void) {
   LONG addr_in[3],
   addr_out[1];
@@ -143,6 +148,8 @@ WORD own_graf_handle(void) {
   
   return(int_out[0]);
 }
+#endif /* MINT_TARGET */
+
 
 /****************************************************************************
  * Public functions                                                         *
@@ -154,6 +161,8 @@ void init_global(WORD nocnf) {
   WORD dum;
   
 
+  /* Only mess with videomodes if running under MiNT */
+#ifdef MINT_TARGET
   fprintf(stderr,"init_global\r\n");
 
   if(globals.video == 0x00030000L) {
@@ -165,6 +174,7 @@ void init_global(WORD nocnf) {
   else {
     oldmode = globals.vmode = Getrez();
   };
+#endif /* MINT_TARGET */
   
   globals.mouse_owner = -1;
   globals.realmove = 0;
@@ -187,6 +197,7 @@ void init_global(WORD nocnf) {
     fprintf(stderr,"/Boot_parse_cnf()\r\n");
   };
 
+#ifdef MINT_TARGET
   fprintf(stderr,"appl_init()\r\n");
   own_appl_init();
   fprintf(stderr,"/appl_init()\r\n");
@@ -208,7 +219,11 @@ void init_global(WORD nocnf) {
     globals.vid = own_graf_handle();
     Vdi_v_clrwk(globals.vid);
   }
-  
+#else  /* ! MINT_TARGET */
+  work_in[0] = 5;
+  Vdi_v_opnwk(work_in,&globals.vid,work_out);
+#endif /* MINT_TARGET */
+
   Vdi_vq_extnd(globals.vid,0,work_out);
   
   globals.screen.x = 0;
@@ -290,6 +305,7 @@ void init_global(WORD nocnf) {
 }
 
 void	exit_global(void) {
+#ifdef MINT_TARGET
   if(open_physical_ws) {
     if(globals.video == 0x00030000L) {
       VsetScreen(NULL, NULL, oldmode, oldmodecode);
@@ -301,4 +317,5 @@ void	exit_global(void) {
     Vdi_v_clswk(globals.vid);
     own_appl_exit();
   };
+#endif
 }

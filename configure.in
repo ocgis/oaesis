@@ -21,6 +21,7 @@ AC_PROG_MAKE_SET
 AC_PROG_RANLIB
 
 dnl Check for libraries
+AC_CHECK_LIB(mint,main)
 
 dnl Check for header files
 AC_HEADER_STDC
@@ -39,6 +40,11 @@ AC_SUBST(PACKAGE)
 AC_SUBST(VERSION)
 AC_SUBST(target_cpu)
 AC_SUBST(target_os)
+
+case "${target}" in
+    *mint*)    CFLAGS="$CFLAGS -DMINT_TARGET" ;;
+    *)   ;;
+esac
 
 dnl Set CFLAGS
 CFLAGS="$CFLAGS -Wall"

@@ -29,3 +29,6 @@
 
 /* Define if you have the <sysvars.h> header file.  */
 #undef HAVE_SYSVARS_H
+
+/* Define if you have the mint library (-lmint).  */
+#undef HAVE_LIBMINT

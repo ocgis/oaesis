@@ -49,9 +49,11 @@ void init_aes(WORD nocnf) {
   fprintf(stderr,"Server\r\n");
   Srv_init_module();
   
+#ifdef MINT_TARGET
   fprintf(stderr,"AES trap vector\r\n");
   Supexec(link_in);
-  
+#endif /* MINT_TARGET */
+
   fprintf(stderr,"Object calls\r\n");
   Objc_init_module();
   
@@ -60,10 +62,12 @@ void init_aes(WORD nocnf) {
   
   fprintf(stderr,"Graf calls\r\n");
   Graf_init_module();
-  
+
+#ifdef MINT_TARGET  
   fprintf(stderr,"Mouse device\r\n");
   Moudev_init_module();
-  
+#endif /* MINT_TARGET */
+
   fprintf(stderr,"Event handler\r\n");
   Evhd_init_module();
   
@@ -81,6 +85,7 @@ void exit_aes(void) {
 
   Menu_exit_module();
   
+#ifdef MINT_TARGET
   fprintf(stderr,"Mouse device\r\n");
   
   Moudev_exit_module();
@@ -88,6 +93,7 @@ void exit_aes(void) {
   fprintf(stderr,"Aes trap vector\r\n");
   
   Supexec(link_remove);
+#endif /* MINT_TARGET */
   
   fprintf(stderr,"Object calls\r\n");
   

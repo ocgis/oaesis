@@ -135,7 +135,7 @@ BYTE *buf)        /* Buffer where the filename is given and full path       */
 		return 1;
 	}
 
-	strlwr(buf);
+	/*	strlwr(buf);  <-- Add equivalent */
 
 	if(Fxattr(0,buf,&xa) == 0)  {
 	/* check if we were passed an absolute path (rather simplistic)

@@ -1742,6 +1742,11 @@ done
 
 
 
+case "${target}" in
+    *mint*)    CFLAGS="$CFLAGS -DMINT_TARGET" ;;
+    *)   ;;
+esac
+
 CFLAGS="$CFLAGS -Wall"
 
 trap '' 1 2 15

@@ -403,6 +403,9 @@ static WINLIST *win_vis = NULL;
  * Local functions (use static!)                                            *
  ****************************************************************************/
 
+/* This has to be fixed */
+void accstart (void) {}
+
 /****************************************************************************
  * srv_appl_exit                                                            *
  *  Implementation of appl_exit().                                          *
