@@ -112,8 +112,6 @@ static BYTE progpath[500],progfile[70];
 
 static GLOBAL_ARRAY global_array;
 
-SRV_APPL_INFO appl_info;
-
 /****************************************************************************
  * Public functions                                                         *
  ****************************************************************************/
@@ -145,16 +143,15 @@ Menu_exit_module(void) /*                                                   */
 }
 
 
-/****************************************************************************
- *  Menu_handler                                                            *
- *   Handle main menu events.                                               *
- ****************************************************************************/
-void                   /*                                                   */
-Menu_handler(          /*                                                   */
-WORD   apid,
-BYTE * envp[])         /* Environment string.                               */
-/****************************************************************************/
-{
+/*
+** Description
+** Handle main menu events.
+**
+** 1998-12-19 CG
+*/
+void
+Menu_handler (WORD   apid,
+              BYTE * envp[]) {
   RECT    f;
   MENUMSG msg;
   WORD    quit = FALSE;
@@ -164,8 +161,6 @@ BYTE * envp[])         /* Environment string.                               */
   fprintf (stderr, "oaesis: menu.c: Entering Menu_handler\n");
 
   mglob.menu_handl_apid = Appl_do_init (&global_array);
-  
-  Srv_get_appl_info(mglob.menu_handl_apid,&appl_info);
   
   while(envp[i]) {
     Srv_shel_write(global_array.apid,SWM_ENVIRON,ENVIRON_CHANGE,0,envp[i],
@@ -200,9 +195,10 @@ BYTE * envp[])         /* Environment string.                               */
     ei.events = MU_MESAG | MU_KEYBD;
     
     Evnt_do_multi(mglob.menu_handl_apid,
-		  appl_info.eventpipe,
-		  appl_info.msgpipe,
-		  &ei,(COMMSG *)&msg,&eo,0);
+		  &ei,
+                  (COMMSG *)&msg,
+                  &eo,
+                  0);
     
     if(MU_MESAG & eo.events) {
       switch(msg.type) {
@@ -223,8 +219,7 @@ BYTE * envp[])         /* Environment string.                               */
 	      
 	      
 	      Fsel_do_exinput(mglob.menu_handl_apid,
-			      appl_info.vid,
-			      appl_info.eventpipe,
+			      globals->vid,
 			      &button,
 			      "Select program to start",progpath,progfile);
 	      
@@ -253,9 +248,8 @@ BYTE * envp[])         /* Environment string.                               */
 		Misc_setpath(oldpath);
 		
 		if(err < 0) {
-		  Form_do_error(mglob.menu_handl_apid,
-				appl_info.eventpipe,
-				(WORD) -err - 31);
+		  Form_do_error (mglob.menu_handl_apid,
+                                 (WORD) -err - 31);
 		};
 	      };
 	    };
@@ -270,9 +264,9 @@ BYTE * envp[])         /* Environment string.                               */
 	    Form_do_dial(mglob.menu_handl_apid,
 			 FMD_START,&f,&f);
 	    Objc_do_draw (apid, globals->common->informtad,0,9,&f);
-	    Form_do_do(mglob.menu_handl_apid,
-		       appl_info.eventpipe,
-		       globals->common->informtad,0);
+	    Form_do_do (mglob.menu_handl_apid,
+                        globals->common->informtad,
+                        0);
 	    globals->common->informtad[INFOOK].ob_state &= ~SELECTED;
 	    Form_do_dial(mglob.menu_handl_apid,
 			 FMD_FINISH,&f,&f);

@@ -1,20 +1,19 @@
 #ifndef	__FSEL__
 #define	__FSEL__
 
-/****************************************************************************
- * Fsel_do_exinput                                                          *
- *  Implementation of fsel_exinput()                                        *
- ****************************************************************************/
-WORD                /* 1 if OK, 0 if CANCEL.                                */
-Fsel_do_exinput(    /*                                                      */
-WORD apid,          /* Application id.                                      */
-WORD vid,           /* VDI workstation id.                                  */
-WORD eventpipe,     /* Event message pipe.                                  */
-WORD *button,       /* Pressed button.                                      */
-BYTE *description,  /* Description.                                         */
-BYTE *path,         /* Path buffer.                                         */
-BYTE *file);        /* File name buffer.                                    */
-/****************************************************************************/
+/*
+** Description
+** Implementation of fsel_exinput()                                        *
+**
+** 1998-12-20 CG
+*/
+WORD
+Fsel_do_exinput (WORD   apid,
+                 WORD   vid,
+                 WORD * button,
+                 BYTE * description,
+                 BYTE * path,
+                 BYTE * file);
 
 /****************************************************************************
  * Fsel_input                                                               *

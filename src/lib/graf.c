@@ -142,34 +142,30 @@ void Graf_exit_module(void) {
   Vdi_v_clsvwk(grafvid);
 }
 
-/* 0x0046 graf_rubberbox() */
 
-/****************************************************************************
- * Graf_do_rubberbox                                                        *
- *  Implementation of graf_rubberbox().                                     *
- ****************************************************************************/
-WORD                /* 1 if ok or 0.                                        */
-Graf_do_rubberbox(  /*                                                      */
-WORD   eventpipe,   /* Event message pipe handle.                           */
-WORD   bx,          /* Top left corner x.                                   */
-WORD   by,          /* Top left corner y.                                   */
-WORD   minw,        /* Minimum width.                                       */
-WORD   minh,        /* Minimum height.                                      */
-WORD   *endw,       /* Final width.                                         */
-WORD   *endh)       /* Final height.                                        */
-/****************************************************************************/
-{
+/*
+** Exported
+**
+** 1998-12-20 CG
+*/
+WORD
+Graf_do_rubberbox (WORD   bx,
+                   WORD   by,
+                   WORD   minw,
+                   WORD   minh,
+                   WORD * endw,
+                   WORD * endh) {
+  /* FIXME
+  ** Rewrite with evnt_multi ()
   EVNTREC er;
   WORD    xyarray[10];
-  WORD    lastw = 0 /*globals->common->mouse_x*/ - bx;
-  WORD    lasth = 0 /*globals->common->mouse_y*/ - by;
+  WORD    lastw = globals->common->mouse_x - bx;
+  WORD    lasth = globals->common->mouse_y - by;
   WORD    neww,newh;
 
-  if(!(/*globals->common->mouse_button &*/ LEFT_BUTTON)) {     
-    /*
+  if(!(globals->common->mouse_button & LEFT_BUTTON)) {     
     *endw = globals->common->mouse_x - bx;
     *endh = globals->common->mouse_y - by;
-    */
     if(*endw < minw) {
       *endw = minw;
     };
@@ -252,29 +248,29 @@ WORD   *endh)       /* Final height.                                        */
   *endh = lasth;
         
   Psemaphore(SEM_UNLOCK,GRAFSEM,-1);
+  */
+
+  DB_printf ("!!Implement Graf_do_rubberbox in graf.c");
 
   return 1;
 }
 
-/****************************************************************************
- * Graf_rubberbox                                                           *
- *  0x0046 graf_rubberbox().                                                *
- ****************************************************************************/
-void              /*                                                        */
-Graf_rubberbox(   /*                                                        */
-AES_PB *apb)      /* AES parameter block.                                   */
-/****************************************************************************/
-{
-  SRV_APPL_INFO appl_info;
-  
-  Srv_get_appl_info(apb->global->apid,&appl_info);
-  
+
+/*
+** Exported
+**
+** 1998-12-20 CG
+*/
+void
+Graf_rubberbox (AES_PB *apb) {
   Evhd_wind_update(apb->global->apid,BEG_MCTRL | SRV_COMPLETE_MCTRL);
   
-  apb->int_out[0] = Graf_do_rubberbox(appl_info.eventpipe,apb->int_in[0],
-                                      apb->int_in[1],apb->int_in[2],
-                                      apb->int_in[3],
-                                      &apb->int_out[1],&apb->int_out[2]);
+  apb->int_out[0] = Graf_do_rubberbox (apb->int_in[0],
+                                       apb->int_in[1],
+                                       apb->int_in[2],
+                                       apb->int_in[3],
+                                       &apb->int_out[1],
+                                       &apb->int_out[2]);
 
   Evhd_wind_update(apb->global->apid,END_MCTRL);
 }
@@ -282,30 +278,29 @@ AES_PB *apb)      /* AES parameter block.                                   */
 
 /* 0x0071 graf_dragbox() */
 
-/****************************************************************************
- * Graf_do_dragbox                                                          *
- *  Implementation of graf_dragbox().                                       *
- ****************************************************************************/
-WORD              /* 1 if ok or 0.                                          */
-Graf_do_dragbox(  /*                                                        */
-WORD   eventpipe, /* Event message pipe handle.                             */
-WORD   w,         /* Width of box.                                          */
-WORD   h,         /* Height of box.                                         */
-WORD   sx,        /* Starting x.                                            */
-WORD   sy,        /* Starting y.                                            */
-RECT   *bound,    /* Bounding rectangle.                                    */
-WORD   *endx,     /* Ending x.                                              */
-WORD   *endy)     /* Ending y.                                              */
-/****************************************************************************/
-{
+/*
+** Exported
+**
+** 1998-12-20 CG
+*/
+WORD
+Graf_do_dragbox (WORD   w,
+                 WORD   h,
+                 WORD   sx,
+                 WORD   sy,
+                 RECT * bound,
+                 WORD * endx,
+                 WORD * endy) {
+  /* FIXME
+  ** Rewrite with evnt_multi
   EVNTREC er;
-  WORD    relx = sx /*- globals->common->mouse_x*/;
-  WORD    rely = sy /*- globals->common->mouse_y*/;
+  WORD    relx = sx - globals->common->mouse_x;
+  WORD    rely = sy - globals->common->mouse_y;
   WORD    xyarray[10];
   WORD    lastx = sx,lasty = sy;
   WORD    newx,newy;
   
-  if(!(/*globals->common->mouse_button & */LEFT_BUTTON)) {   
+  if(!(globals->common->mouse_button & LEFT_BUTTON)) {   
     *endx = sx;
     *endy = sy;
     
@@ -389,32 +384,31 @@ WORD   *endy)     /* Ending y.                                              */
   *endy = lasty;
   
   Psemaphore(SEM_UNLOCK,GRAFSEM,-1);
+  */
+  DB_printf ("!!Implement Graf_do_dragbox in graf.c");
 
   return 1;
 }
 
-/****************************************************************************
- * Graf_dragbox                                                             *
- *  0x0047 graf_dragbox().                                                  *
- ****************************************************************************/
-void              /*                                                        */
-Graf_dragbox(     /*                                                        */
-AES_PB *apb)      /* AES parameter block.                                   */
-/****************************************************************************/
-{
-  SRV_APPL_INFO appl_info;
-  
-  Srv_get_appl_info(apb->global->apid,&appl_info);
-  
-  Evhd_wind_update(apb->global->apid,BEG_MCTRL | SRV_COMPLETE_MCTRL);
-  
-  apb->int_out[0] = Graf_do_dragbox(appl_info.eventpipe,apb->int_in[0],
-                                    apb->int_in[1],apb->int_in[2],
-                                    apb->int_in[3],
-                                    (RECT *)&apb->int_in[4],&apb->int_out[1],
-                                    &apb->int_out[2]);
 
-  Evhd_wind_update(apb->global->apid,END_MCTRL);
+/*
+** Exported
+**
+** 1998-12-20 CG
+*/
+void
+Graf_dragbox (AES_PB *apb) {
+  Evhd_wind_update (apb->global->apid, BEG_MCTRL | SRV_COMPLETE_MCTRL);
+  
+  apb->int_out[0] = Graf_do_dragbox (apb->int_in[0],
+                                     apb->int_in[1],
+                                     apb->int_in[2],
+                                     apb->int_in[3],
+                                     (RECT *)&apb->int_in[4],
+                                     &apb->int_out[1],
+                                     &apb->int_out[2]);
+  
+  Evhd_wind_update (apb->global->apid, END_MCTRL);
 }
 
 
@@ -562,19 +556,17 @@ AES_PB *apb)      /* AES parameter block.                                   */
   }
 }
 
-/****************************************************************************
- * Graf_do_watchbox                                                         *
- *  Implementation of graf_watchbox().                                      *
- ****************************************************************************/
-WORD              /* 1 if inside object when button was released or 0.      */
-Graf_do_watchbox( /*                                                        */
-WORD   apid,      /* Application id.                                        */
-WORD   eventpipe, /* Event message pipe.                                    */
-OBJECT *tree,     /* Resource tree.                                         */
-WORD   obj,       /* Object to watch.                                       */
-WORD   instate,   /* State when inside object.                              */
-WORD   outstate)  /* State when outside object.                             */
-/****************************************************************************/
+/*
+** Exported
+**
+** 1998-12-19 CG
+*/
+WORD
+Graf_do_watchbox (WORD     apid,
+                  OBJECT * tree,
+                  WORD     obj,
+                  WORD     instate,
+                  WORD     outstate)
 {
   GLOBAL_APPL * globals = get_globals (apid);
 
@@ -614,7 +606,7 @@ WORD   outstate)  /* State when outside object.                             */
   Evhd_wind_update(apid,BEG_MCTRL);
   
   while(1) {
-    Evnt_do_multi(apid,eventpipe,-1,&ei,&buffer,&eo,0);
+    Evnt_do_multi (apid, &ei, &buffer, &eo, 0);
     
     if(eo.events & MU_BUTTON) {
       break;
@@ -641,40 +633,33 @@ WORD   outstate)  /* State when outside object.                             */
   return 0;
 }
 
-/****************************************************************************
- * Graf_watchbox                                                            *
- *  0x004b graf_watchbox().                                                 *
- ****************************************************************************/
-void              /*                                                        */
-Graf_watchbox(    /*                                                        */
-AES_PB *apb)      /* AES parameter block.                                   */
-/****************************************************************************/
-{
-  SRV_APPL_INFO appl_info;
-        
-  Srv_get_appl_info(apb->global->apid,&appl_info);
-        
+
+/*
+** Exported
+**
+** 1998-12-20 CG
+*/
+void
+Graf_watchbox (AES_PB *apb) {
   apb->int_out[0] = Graf_do_watchbox(apb->global->apid,
-                                     appl_info.eventpipe,
                                      (OBJECT *)apb->addr_in[0],
-                                     apb->int_in[1],apb->int_in[2],
+                                     apb->int_in[1],
+                                     apb->int_in[2],
                                      apb->int_in[3]);
 }
 
-/****************************************************************************
- * Graf_do_slidebox                                                         *
- *  Implementation of graf_slidebox().                                      *
- ****************************************************************************/
-WORD              /* Relative offset.                                       */
-Graf_do_slidebox( /*                                                        */
-WORD   apid,      /* Application id.                                        */
-WORD   eventpipe, /* Event message pipe.                                    */
-OBJECT *tree,     /* Resource tree.                                         */
-WORD   parent,    /* Parent object.                                         */
-WORD   obj,       /* Slider object.                                         */
-WORD   orient)    /* Orientation. 0 => horizontal, 1 => vertical.           */
-/****************************************************************************/
-{
+
+/*
+** Exported
+**
+** 1998-12-20 CG
+*/
+WORD
+Graf_do_slidebox (WORD     apid,
+                  OBJECT * tree,
+                  WORD     parent,
+                  WORD     obj,
+                  WORD     orient) {
   RECT bound;
   RECT slid;
   WORD x,y;
@@ -688,9 +673,12 @@ WORD   orient)    /* Orientation. 0 => horizontal, 1 => vertical.           */
         
   Evhd_wind_update(apid,BEG_MCTRL | SRV_COMPLETE_MCTRL);
                 
-  Graf_do_dragbox(eventpipe,
-                  slid.width,slid.height,
-                  slid.x,slid.y,&bound,&x,&y);
+  Graf_do_dragbox (slid.width,
+                   slid.height,
+                   slid.x,slid.y,
+                   &bound,
+                   &x,
+                   &y);
                                                                         
   Evhd_wind_update(apid,END_MCTRL);
         
@@ -710,23 +698,18 @@ WORD   orient)    /* Orientation. 0 => horizontal, 1 => vertical.           */
   return 0;
 }
 
-/****************************************************************************
- * Graf_slidebox                                                            *
- *  0x004c graf_slidebox().                                                 *
- ****************************************************************************/
-void              /*                                                        */
-Graf_slidebox(    /*                                                        */
-AES_PB *apb)      /* AES parameter block.                                   */
-/****************************************************************************/
-{
-  SRV_APPL_INFO appl_info;
-        
-  Srv_get_appl_info(apb->global->apid,&appl_info);
-  
+
+/*
+** Exported
+**
+** 1998-12-20 CG
+*/
+void
+Graf_slidebox (AES_PB *apb) {
   apb->int_out[0] = Graf_do_slidebox(apb->global->apid,
-                                     appl_info.eventpipe,
                                      (OBJECT *)apb->addr_in[0],
-                                     apb->int_in[0],apb->int_in[1],
+                                     apb->int_in[0],
+                                     apb->int_in[1],
                                      apb->int_in[2]);
 }
 

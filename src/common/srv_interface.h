@@ -14,7 +14,6 @@ enum {
   SRV_APPL_WRITE,
   SRV_CLICK_OWNER,
   SRV_EVNT_MULTI,
-  SRV_GET_APPL_INFO,
   SRV_GET_TOP_MENU,
   SRV_GET_WM_INFO,
   SRV_GET_VDI_ID,
@@ -132,11 +131,6 @@ typedef struct {
   COMMSG   msg;
   EVENTOUT eventout;
 }R_EVNT_MULTI;
-
-typedef struct {
-  /*  SRV_APPL_INFO *appl_info;*/
-  WORD      retval;
-}C_GET_APPL_INFO;
 
 typedef struct {
   void *retval;
@@ -302,7 +296,6 @@ typedef union {
   C_APPL_WRITE    appl_write;
   C_CLICK_OWNER   click_owner;
   C_EVNT_MULTI    evnt_multi;
-  C_GET_APPL_INFO get_appl_info;
   C_GET_TOP_MENU  get_top_menu;
   C_GET_VDI_ID    get_vdi_id;
   C_GET_WM_INFO   get_wm_info;

@@ -4047,6 +4047,7 @@ C_PUT_EVENT *msg)
 ** 1998-09-26 CG
 ** 1998-12-06 CG
 ** 1998-12-13 CG
+** 1998-12-20 CG
 */
 static
 WORD
@@ -4217,13 +4218,6 @@ server (LONG arg) {
         
       case SRV_EVNT_MULTI:
         srv_wait_for_event (handle, &par.evnt_multi);
-        break;
-        
-      case SRV_GET_APPL_INFO:
-        code = 
-          srv_get_appl_info (apid, &par.get_appl_info);
-        
-        Srv_reply (handle, &par, code);
         break;
         
       case SRV_GET_TOP_MENU:

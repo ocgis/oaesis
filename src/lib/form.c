@@ -63,18 +63,15 @@
 
 /*form_do 0x0032*/
 
-/****************************************************************************
- * Form_do_do                                                               *
- *  Implementation of form_do.                                              *
- ****************************************************************************/
-WORD           /* Object that was selected.                                 */
-Form_do_do(    /*                                                           */
-WORD apid,     /* Application id.                                           */
-WORD eventpipe,/* Event message pipe.                                       */
-OBJECT *tree,  /* Resource tree.                                            */
-WORD editobj)  /* Position of edit cursor.                                  */
-/****************************************************************************/
-{
+/*
+** Exported
+**
+** 1998-12-19 CG
+*/
+WORD
+Form_do_do(WORD     apid,
+           OBJECT * tree,
+           WORD editobj) {
   WORD buffer[16];
   WORD object,newobj,keyout;
   WORD idx;
@@ -101,13 +98,13 @@ WORD editobj)  /* Position of edit cursor.                                  */
   Evhd_wind_update(apid,BEG_MCTRL);
 	
   while(1) {
-    Evnt_do_multi(apid,eventpipe,-1,&ei,(COMMSG *)buffer,&eo,0);
+    Evnt_do_multi (apid, &ei, (COMMSG *)buffer, &eo, 0);
 
     if(eo.events & MU_BUTTON) {
       object = Objc_do_find(tree,0,9,eo.mx,eo.my,0);
 
       if(object >= 0) {
-        if(!Form_do_button(apid,eventpipe,tree,object,eo.mc,&newobj)) {
+        if(!Form_do_button(apid, tree, object, eo.mc, &newobj)) {
           if(editobj != 0) {
             Objc_do_edit (apid, tree,editobj,0,&idx,ED_END);
           };
@@ -158,15 +155,17 @@ WORD editobj)  /* Position of edit cursor.                                  */
   };
 }
 
-void	Form_do(AES_PB *apb) {
-  SRV_APPL_INFO appl_info;
-  
-  Srv_get_appl_info(apb->global->apid,&appl_info);
-  
-  apb->int_out[0] = Form_do_do(apb->global->apid,
-			       appl_info.eventpipe,
-			       (OBJECT *)apb->addr_in[0],
-			       apb->int_in[0]);		
+
+/*
+** Exported
+**
+** 1998-12-20 CG
+*/
+void
+Form_do (AES_PB *apb) {
+  apb->int_out[0] = Form_do_do (apb->global->apid,
+                                (OBJECT *)apb->addr_in[0],
+                                apb->int_in[0]);		
 }
 
 /*form_dial 0x0033*/
@@ -289,9 +288,17 @@ void	Form_dial(AES_PB *apb) {
 				 (RECT *)&apb->int_in[5]);
 };
 
-/*form_alert 0x0034*/
-
-WORD	do_form_alert(WORD apid,WORD eventpipe,WORD def,BYTE *alertstring) {
+/*
+** Description
+** Implementation of form_alert ()
+**
+** 1998-12-19 CG
+*/
+static
+WORD
+Form_do_alert (WORD   apid,
+               WORD   def,
+               BYTE * alertstring) {
   BYTE	*s = (BYTE *)Mxalloc(strlen(alertstring) + 1,PRIVATEMEM);
 	
   WORD	i = 0;
@@ -486,7 +493,7 @@ WORD	do_form_alert(WORD apid,WORD eventpipe,WORD def,BYTE *alertstring) {
 
   Objc_do_draw (apid, tree,0,9,&clip);
 
-  but_chosen = Form_do_do(apid,eventpipe,tree,0) & 0x7fff;
+  but_chosen = Form_do_do (apid, tree, 0) & 0x7fff;
 	
   Form_do_dial(apid,FMD_FINISH,&clip,&clip);
 
@@ -497,30 +504,28 @@ WORD	do_form_alert(WORD apid,WORD eventpipe,WORD def,BYTE *alertstring) {
   return but_chosen - no_rows;
 }
 
-void	Form_alert(AES_PB *apb) {
-  SRV_APPL_INFO appl_info;
-  
-  Srv_get_appl_info(apb->global->apid,&appl_info);
-  
-  apb->int_out[0] = do_form_alert(apb->global->apid,
-				  appl_info.eventpipe,
-				  apb->int_in[0],
-				  (BYTE *)apb->addr_in[0]);
+
+/*
+** Exported
+**
+** 1998-12-20 CG
+*/
+void
+Form_alert (AES_PB *apb) {
+  apb->int_out[0] = Form_do_alert (apb->global->apid,
+                                   apb->int_in[0],
+                                   (BYTE *)apb->addr_in[0]);
 }
 
-/*form_error 0x0035*/
 
-/****************************************************************************
- *  Form_do_error                                                           *
- *   Display pre-defined error alert box.                                   *
- ****************************************************************************/
-WORD              /* Exit button.                                           */
-Form_do_error(    /*                                                        */
-WORD   apid,      /* Application id number.                                 */
-WORD   eventpipe, /* Event message pipe.                                    */
-WORD   error)     /* Error code.                                            */
-/****************************************************************************/
-{
+/*
+** Exported
+**
+** 1998-12-19 CG
+*/
+WORD
+Form_do_error (WORD apid,
+               WORD error) {
   BYTE	s[100];
   BYTE	*sp = s;
   GLOBAL_APPL * globals = get_globals (apid);
@@ -553,16 +558,18 @@ WORD   error)     /* Error code.                                            */
     sprintf(s,globals->common->fr_string[ERROR_GENERAL],error);
   };
 	
-  return do_form_alert(apid,eventpipe,1,sp);
+  return Form_do_alert (apid, 1, sp);
 }
 
-void	Form_error(AES_PB *apb) {
-  SRV_APPL_INFO appl_info;
-	
-  Srv_get_appl_info(apb->global->apid,&appl_info);
-  
+
+/*
+** Exported
+**
+** 1998-12-19 CG
+*/
+void
+Form_error (AES_PB * apb) {
   apb->int_out[0] = Form_do_error(apb->global->apid,
-				  appl_info.eventpipe,
 				  apb->int_in[0]);
 }
 
@@ -706,22 +713,17 @@ AES_PB *apb)      /* AES parameter block.                                   */
 }
 
 
-/*form_button 0x0038*/
-
-/****************************************************************************
- * Form_do_button                                                           *
- *  Implementation of form_button.                                          *
- ****************************************************************************/
-WORD            /* 0 if exit object was found or 1.                         */
-Form_do_button( /*                                                          */
-WORD apid,      /* Application id.                                          */
-WORD eventpipe, /* Event message pipe.                                      */
-OBJECT *tree,   /* Resource tree.                                           */
-WORD obj,       /* Object to try the clicks on.                             */
-WORD clicks,    /* Number of clicks.                                        */
-WORD *newobj)   /* Next object to gain edit focus, or 0.                    */
-/****************************************************************************/
-{
+/*
+** Exported
+**
+** 1998-12-19 CG
+*/
+WORD
+Form_do_button (WORD     apid,
+                OBJECT * tree,
+                WORD     obj,
+                WORD     clicks,
+                WORD *newobj) {
   WORD	dummy;
 
   *newobj = 0;
@@ -757,7 +759,14 @@ WORD *newobj)   /* Next object to gain edit focus, or 0.                    */
                        tree[i].ob_state |= SELECTED,REDRAW);
       };
 			
-      Evnt_do_button(apid,eventpipe,0,LEFT_BUTTON,0,&dummy,&dummy,&dummy,&dummy);
+      Evnt_do_button (apid,
+                      0,
+                      LEFT_BUTTON,
+                      0,
+                      &dummy,
+                      &dummy,
+                      &dummy,
+                      &dummy);
 			
       if(tree[obj].ob_flags & (TOUCHEXIT | EXIT)) {
         *newobj = obj;
@@ -780,7 +789,7 @@ WORD *newobj)   /* Next object to gain edit focus, or 0.                    */
         instate ^= SELECTED;
       };
 	
-      if((Graf_do_watchbox(apid,eventpipe,tree,obj,instate,outstate) == 1) &&
+      if ((Graf_do_watchbox (apid, tree, obj, instate, outstate) == 1) &&
          (tree[obj].ob_flags & (EXIT | TOUCHEXIT))) {
 	
         *newobj = obj;
@@ -814,14 +823,17 @@ WORD *newobj)   /* Next object to gain edit focus, or 0.                    */
   return 1;
 }
 
-void	Form_button(AES_PB *apb) {
-  SRV_APPL_INFO appl_info;
-  
-  Srv_get_appl_info(apb->global->apid,&appl_info);
-  
-  apb->int_out[0] = Form_do_button(apb->global->apid,
-				   appl_info.eventpipe,
-				   (OBJECT *)apb->addr_in[0],
-				   apb->int_in[0],apb->int_in[1],
-				   &apb->int_out[1]);
+
+/*
+** Exported
+**
+** 1998-12-19 CG
+*/
+void
+Form_button (AES_PB *apb) {
+  apb->int_out[0] = Form_do_button (apb->global->apid,
+                                    (OBJECT *)apb->addr_in[0],
+                                    apb->int_in[0],
+                                    apb->int_in[1],
+                                    &apb->int_out[1]);
 }

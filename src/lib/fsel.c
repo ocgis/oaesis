@@ -318,14 +318,22 @@ static DIRENTRY *find_entry(DIRDESC *dd,WORD pos) {
 	return walk;
 }
 
-static void slider_handle (WORD      apid,
-                           WORD      vid,
-                           WORD      eventpipe,
-                           OBJECT  * tree,
-                           RECT    * clip,
-                           DIRDESC * dd,
-                           WORD      global_x,
-                           WORD      global_y) {
+
+/*
+** Description
+** Handle file list slider
+**
+** 1998-12-19 CG
+*/
+static
+void
+slider_handle (WORD      apid,
+               WORD      vid,
+               OBJECT  * tree,
+               RECT    * clip,
+               DIRDESC * dd,
+               WORD      global_x,
+               WORD      global_y) {
 
   if(tree[FISEL_SLIDER].ob_height != tree[FISEL_SB].ob_height) {
 
@@ -357,7 +365,7 @@ static void slider_handle (WORD      apid,
     Objc_do_change (apid, tree, FISEL_SLIDER, clip, SELECTED, REDRAW);
 
     while(1) {
-      Evnt_do_multi(apid, eventpipe, -1, &ei, (COMMSG *)buffer, &eo, 0);
+      Evnt_do_multi (apid, &ei, (COMMSG *)buffer, &eo, 0);
 
       if(eo.events & MU_BUTTON) {
 
@@ -373,15 +381,14 @@ static void slider_handle (WORD      apid,
           if(eo.mb & LEFT_BUTTON) {
             WORD dummy;
 
-            Evnt_do_button(apid,
-                           eventpipe,
-                           1,
-                           LEFT_BUTTON,
-                           0,
-                           &dummy,
-                           &dummy,
-                           &dummy,
-                           &dummy);
+            Evnt_do_button (apid,
+                            1,
+                            LEFT_BUTTON,
+                            0,
+                            &dummy,
+                            &dummy,
+                            &dummy,
+                            &dummy);
           }
         }
         break;
@@ -413,21 +420,18 @@ static void slider_handle (WORD      apid,
  * Public functions                                                         *
  ****************************************************************************/
 
-/****************************************************************************
- * Fsel_do_exinput                                                          *
- *  Implementation of fsel_exinput()                                        *
- ****************************************************************************/
-WORD                /* 1 if OK, 0 if CANCEL.                                */
-Fsel_do_exinput(    /*                                                      */
-WORD apid,          /* Application id.                                      */
-WORD vid,           /* VDI workstation id.                                  */
-WORD eventpipe,     /* Event message pipe.                                  */
-WORD *button,       /* Pressed button.                                      */
-BYTE *description,  /* Description.                                         */
-BYTE *path,         /* Path buffer.                                         */
-BYTE *file)         /* File name buffer.                                    */
-/****************************************************************************/
-{
+/*
+** Exported
+**
+** 1998-12-19 CG
+*/
+WORD
+Fsel_do_exinput (WORD   apid,
+                 WORD   vid,
+                 WORD * button,
+                 BYTE * description,
+                 BYTE * path,
+                 BYTE * file) {
   WORD cwidth,cheight,width,height;
   WORD selected = -1;
   BYTE oldpath[128];
@@ -475,7 +479,7 @@ BYTE *file)         /* File name buffer.                                    */
   Graf_do_mouse(ARROW, NULL);
 
   while(1) {
-    but_chosen = Form_do_do(apid,eventpipe,tree,FISEL_DIRECTORY);
+    but_chosen = Form_do_do (apid, tree, FISEL_DIRECTORY);
 	
     switch(but_chosen & 0x7fff) {
     case FISEL_OK:
@@ -627,7 +631,6 @@ BYTE *file)         /* File name buffer.                                    */
     case FISEL_SLIDER:
       slider_handle(apid,
                     vid,
-                    eventpipe,
                     tree,
                     &clip,
                     &dd,
@@ -767,40 +770,38 @@ BYTE *file)         /* File name buffer.                                    */
   };
 }
 
-/****************************************************************************
- * Fsel_input                                                               *
- *  0x005a fsel_input()                                                     *
- ****************************************************************************/
-void              /*                                                        */
-Fsel_input(       /*                                                        */
-AES_PB *apb)      /* AES parameter block.                                   */
-/****************************************************************************/
-{
-	SRV_APPL_INFO appl_info;
-	
-	Srv_get_appl_info(apb->global->apid,&appl_info);
-	
-	apb->int_out[0] = Fsel_do_exinput(apb->global->apid,
-		appl_info.vid,appl_info.eventpipe,
-		&apb->int_out[1],
-		"Select a file",(BYTE *)apb->addr_in[0],(BYTE *)apb->addr_in[1]);
+
+/*
+** Exported
+**
+** 1998-12-20 CG
+*/
+void
+Fsel_input (AES_PB *apb) {
+  GLOBAL_APPL * globals = get_globals (apb->global->apid);
+  
+  apb->int_out[0] = Fsel_do_exinput (apb->global->apid,
+                                     globals->vid,
+                                     &apb->int_out[1],
+                                     "Select a file",
+                                     (BYTE *)apb->addr_in[0],
+                                     (BYTE *)apb->addr_in[1]);
 }
 
-/****************************************************************************
- * Fsel_exinput                                                             *
- *  0x005b fsel_exinput()                                                   *
- ****************************************************************************/
-void              /*                                                        */
-Fsel_exinput(     /*                                                        */
-AES_PB *apb)      /* AES parameter block.                                   */
-/****************************************************************************/
-{
-	SRV_APPL_INFO appl_info;
-	
-	Srv_get_appl_info(apb->global->apid,&appl_info);
-	
-	apb->int_out[0] = Fsel_do_exinput(apb->global->apid,
-		appl_info.vid,appl_info.eventpipe,
-		&apb->int_out[1],
-		(BYTE *)apb->addr_in[2],(BYTE *)apb->addr_in[0],(BYTE *)apb->addr_in[1]);
+
+/*
+** Exported
+**
+** 1998-12-20 CG
+*/
+void
+Fsel_exinput (AES_PB *apb) {
+  GLOBAL_APPL * globals = get_globals (apb->global->apid);
+
+  apb->int_out[0] = Fsel_do_exinput(apb->global->apid,
+                                    globals->vid,
+                                    &apb->int_out[1],
+                                    (BYTE *)apb->addr_in[2],
+                                    (BYTE *)apb->addr_in[0],
+                                    (BYTE *)apb->addr_in[1]);
 }

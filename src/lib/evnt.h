@@ -16,38 +16,34 @@ WORD clicks,     /* Maximum number of clicks.                               */
 WORD laststate); /* Previous mouse button state.                            */
 /****************************************************************************/
 
-/****************************************************************************
- * Evnt_do_button                                                           *
- *  Implementation of evnt_button.                                          *
- ****************************************************************************/
-WORD            /* Number of mouse clicks.                                  */
-Evnt_do_button( /*                                                          */
-WORD apid,      /* Application id.                                          */
-WORD eventpipe, /* Event message pipe.                                      */
-WORD clicks,    /* Mouse clicks to wait for.                                */
-WORD mask,      /* Mouse buttons to wait for.                               */
-WORD state,     /* Button state to wait for.                                */
-WORD *mx,       /* X position of mouse pointer.                             */
-WORD *my,       /* Y position of mouse pointer.                             */
-WORD *button,   /* Mouse button state.                                      */
-WORD *kstate);  /* Shift key state.                                         */
-/****************************************************************************/
+/* Description
+** Implementation of evnt_button.                                          *
+**
+** 1998-12-19 CG
+*/
+WORD
+Evnt_do_button(WORD   apid,
+               WORD   clicks,
+               WORD   mask,
+               WORD   state,
+               WORD * mx,
+               WORD * my,
+               WORD * button,
+               WORD * kstate);
 
-/****************************************************************************
- * Evnt_do_multi                                                            *
- *  Implementation of evnt_multi.                                           *
- ****************************************************************************/
-void                 /*                                                     */
-Evnt_do_multi(       /*                                                     */
-WORD     apid,       /* Application id.                                     */
-WORD     eventpipe,  /* Event message pipe.                                 */
-WORD     msgpipe,    /* AES message pipe.                                   */
-EVENTIN  *ei,        /* Input parameters.                                   */
-COMMSG   *buf,       /* Message buffer.                                     */
-EVENTOUT *eo,        /* Output parameters.                                  */
-WORD     level);     /* Number of times the function has been called by     */
-                     /* itself.                                             */
-/****************************************************************************/
+/*
+** Description
+** Implementation of evnt_multi.                                           *
+**
+** 1998-12-19 CG
+*/
+void
+Evnt_do_multi(WORD       apid,
+              EVENTIN  * ei,
+              COMMSG   * buf,
+              EVENTOUT * eo,
+              WORD       level);
+
 
 void	Evnt_keybd(AES_PB *apb);	/*0x0014*/
 void	Evnt_button(AES_PB *apb);	/*0x0015*/

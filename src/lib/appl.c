@@ -83,13 +83,14 @@
 ** Implementation of appl_read ()
 **
 ** 1998-10-04 CG
+** 1998-12-19 CG
 */
 static
 WORD
 Appl_do_read (WORD   apid,
-              WORD   msgpipe,
               WORD   length,
               void * m) {
+  /* FIXME do call to server instead
   if((apid == APR_NOWAIT) && (Finstat(msgpipe) < length)) {
     return 0;
   };
@@ -99,6 +100,11 @@ Appl_do_read (WORD   apid,
   };
 		
   return 1;
+  */
+
+  DB_printf ("!!Implement Appl_do_read in appl.c");
+
+  return 0;
 }
 
 /****************************************************************************
@@ -205,15 +211,15 @@ Appl_init (AES_PB *apb) {
   apb->int_out[0] = Appl_do_init(apb->global);
 }
 
-/* 0x000b appl_read */
 
-void Appl_read(AES_PB *apb) {
-  SRV_APPL_INFO appl_info;
-	
-  Srv_get_appl_info(apb->global->apid,&appl_info);
-
+/*
+** Exported
+**
+** 1998-12-19 CG
+*/
+void
+Appl_read (AES_PB *apb) {
   apb->int_out[0] = Appl_do_read(apb->int_in[0],
-                                 appl_info.msgpipe,
                                  apb->int_in[1],
                                  (void *)apb->addr_in[0]);
 }

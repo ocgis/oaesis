@@ -304,7 +304,17 @@ static void handle_arrow_click (WORD apid, WORD win_id,WORD object,WORD msg) {
   Evhd_wind_update(EVHD_APID,END_MCTRL);
 }
 
-static void handle_mover_click(WORD apid, WORD win_id) {
+
+/*
+** Description
+** Handle a click on a mover
+**
+** 1998-12-20 CG
+*/
+static
+void
+handle_mover_click (WORD apid,
+                    WORD win_id) {
   WORD      dummy;
   WORD      owner;
   WORD      top;
@@ -452,11 +462,13 @@ static void handle_mover_click(WORD apid, WORD win_id) {
       globals.mouse_button = mouse_button;
       */
 
-      Graf_do_dragbox(evntglbl.mousefd,
-                      winsize.width,winsize.height,
-                      winsize.x,winsize.y,
-                      &bound,
-                      &mesag.msg1,&mesag.msg2);
+      Graf_do_dragbox (winsize.width,
+                       winsize.height,
+                       winsize.x,
+                       winsize.y,
+                       &bound,
+                       &mesag.msg1,
+                       &mesag.msg2);
       
       /*
       Vdi_vq_mouse(globals.vid,&mouse_button,&mouse_x,&mouse_y);
@@ -675,7 +687,16 @@ static void handle_slider_click(WORD win_id, WORD elem,WORD owner,
 }
 
 
-static void handle_button (WORD apid, WORD newbutton) {
+/*
+** Description
+** Handle button click
+**
+** 1998-12-20 CG
+*/
+static
+void 
+handle_button (WORD apid,
+               WORD newbutton) {
   EVNTREC er;
   WORD    changed = newbutton ^ 0 /*globals.mouse_button*/;
   
@@ -951,9 +972,12 @@ static void handle_button (WORD apid, WORD newbutton) {
                   globals.mouse_button = mouse_button;
                   */
                 
-                Graf_do_rubberbox(evntglbl.mousefd,
-                                  totsize.x,totsize.y,100,100,
-                                  &mesag.msg3,&mesag.msg4);
+                Graf_do_rubberbox (totsize.x,
+                                   totsize.y,
+                                   100,
+                                   100,
+                                   &mesag.msg3,
+                                   &mesag.msg4);
                 
                 /*
                 Vdi_vq_mouse(globals.vid,&mouse_button,&mouse_x,&mouse_y);

@@ -206,37 +206,6 @@ Srv_click_owner(void)   /*                                                  */
 
 
 /****************************************************************************
- * Srv_get_appl_info                                                        *
- ****************************************************************************/
-WORD                       /* 0 if ok or -1.                                */
-Srv_get_appl_info(         /*                                               */
-WORD apid                 /* Application id.                               */
-/*SRV_APPL_INFO *appl_info*/)  /* Returned information.                         */
-/****************************************************************************/
-{
-  /*  appl_info->msgpipe = apps[apid].msgpipe;
-  appl_info->eventpipe = apps[apid].eventpipe;
-  appl_info->vid = apps[apid].vid;*/
-
-  return 0;
-/*
-	C_GET_APPL_INFO par;
-	PMSG            msg;
-	
-	par.appl_info = appl_info;
-	
-	msg.cr.call = SRV_GET_APPL_INFO;
-	msg.apid = apid;
-	msg.spec = &par;
-
-	Srvc_operation(MSG_READWRITE,&msg);
-
-	return msg.cr.retval;
-*/
-}
-
-
-/****************************************************************************
  * Srv_get_top_menu                                                         *
  *  Get the resource tree of the menu of an application                     *
  ****************************************************************************/

@@ -3,19 +3,18 @@
 
 #include	"types.h"
 
-/****************************************************************************
- * Form_do_button                                                           *
- *  Implementation of form_button.                                          *
- ****************************************************************************/
-WORD            /* 0 if exit object was found or 1.                         */
-Form_do_button( /*                                                          */
-WORD apid,      /* Application id.                                          */
-WORD eventpipe, /* Event message pipe.                                      */
-OBJECT *tree,   /* Resource tree.                                           */
-WORD obj,       /* Object to try the clicks on.                             */
-WORD clicks,    /* Number of clicks.                                        */
-WORD *newobj);  /* Next object to gain edit focus, or 0.                    */
-/****************************************************************************/
+/*
+** Description
+** Implementation of form_button.
+**
+** 1998-12-19 CG
+*/
+WORD
+Form_do_button (WORD     apid,
+                OBJECT * tree,
+                WORD     obj,
+                WORD     clicks,
+                WORD *   newobj);
 
 void
 Form_do_center (WORD     apid,
@@ -24,28 +23,26 @@ Form_do_center (WORD     apid,
 
 WORD	Form_do_dial(WORD apid,WORD mode,RECT *r1,RECT *r2);
 
-/****************************************************************************
- * Form_do_do                                                               *
- *  Implementation of form_do.                                              *
- ****************************************************************************/
-WORD           /* Object that was selected.                                 */
-Form_do_do(    /*                                                           */
-WORD apid,     /* Application id.                                           */
-WORD eventpipe,/* Event message pipe.                                       */
-OBJECT *tree,  /* Resource tree.                                            */
-WORD editobj); /* Position of edit cursor.                                  */
-/****************************************************************************/
+/*
+** Description
+** Implementation of form_do.
+**
+** 1998-12-19 CG
+*/
+WORD
+Form_do_do (WORD     apid,
+            OBJECT * tree,
+            WORD editobj);
 
-/****************************************************************************
- *  Form_do_error                                                           *
- *   Display pre-defined error alert box.                                   *
- ****************************************************************************/
-WORD              /* Exit button.                                           */
-Form_do_error(    /*                                                        */
-WORD   apid,      /* Application id number.                                 */
-WORD   eventpipe, /* Event message pipe.                                    */
-WORD   error);    /* Error code.                                            */
-/****************************************************************************/
+/*
+** Description
+** Display pre-defined error alert box.
+**
+** 1998-12-19 CG
+*/
+WORD
+Form_do_error (WORD   apid,
+               WORD   error);
 
 /****************************************************************************
  *  Form_do_keybd                                                           *

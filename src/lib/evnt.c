@@ -193,23 +193,20 @@ void	Evnt_keybd(AES_PB *apb) {
 
 /*0x0015 evnt_button*/
 
-/****************************************************************************
- * Evnt_do_button                                                           *
- *  Implementation of evnt_button.                                          *
- ****************************************************************************/
-WORD            /* Number of mouse clicks.                                  */
-Evnt_do_button( /*                                                          */
-WORD apid,      /* Application id.                                          */
-WORD eventpipe, /* Event message pipe.                                      */
-WORD clicks,    /* Mouse clicks to wait for.                                */
-WORD mask,      /* Mouse buttons to wait for.                               */
-WORD state,     /* Button state to wait for.                                */
-WORD *mx,       /* X position of mouse pointer.                             */
-WORD *my,       /* Y position of mouse pointer.                             */
-WORD *button,   /* Mouse button state.                                      */
-WORD *kstate)   /* Shift key state.                                         */
-/****************************************************************************/
-{
+/*
+** Exported
+**
+** 1998-12-19 CG
+*/
+WORD
+Evnt_do_button (WORD   apid,
+                WORD   clicks,
+                WORD   mask,
+                WORD   state,
+                WORD * mx,
+                WORD * my,
+                WORD * button,
+                WORD * kstate) {
 	EVENTIN	ei;
 
 	EVENTOUT	eo;
@@ -221,7 +218,7 @@ WORD *kstate)   /* Shift key state.                                         */
 	ei.bmask   = mask;
 	ei.bstate  = state;
 
-	Evnt_do_multi(apid,eventpipe,-1,&ei,&buf,&eo,0);
+	Evnt_do_multi (apid, &ei, &buf, &eo, 0);
 	
 	*mx = eo.mx;
 	*my = eo.my;
@@ -230,6 +227,7 @@ WORD *kstate)   /* Shift key state.                                         */
 	
 	return eo.mc;
 }
+
 
 void	Evnt_button(AES_PB *apb) {
   /*	apb->int_out[0] = Evnt_do_button(apb->global->apid,
@@ -246,11 +244,20 @@ void	Evnt_mouse(AES_PB *apb) {
 	apb->int_out[0] = 1;
 }
 
-/*0x0017 evnt_mesag*/
 
-void	Evnt_mesag(AES_PB *apb) {
+/*
+** Exported
+**
+** 1998-12-19 CG
+*/
+void
+Evnt_mesag (AES_PB *apb) {
   COMMSG    e;
   WORD      i;
+
+  /*
+  ** FIXME
+  ** Call evnt_multi instead
   SRV_APPL_INFO appl_info;
 	
   Srv_get_appl_info(apb->global->apid,&appl_info);
@@ -276,6 +283,9 @@ void	Evnt_mesag(AES_PB *apb) {
     ((WORD *)apb->addr_in)[4] += totsize.x;
     ((WORD *)apb->addr_in)[5] += totsize.y;
   };			
+  */
+
+  DB_printf ("!!Implement Evnt_mesag in evnt.c");
 
   apb->int_out[0] = 1;
 }
@@ -558,19 +568,16 @@ WORD     level)      /* Number of times the function has been called by     */
 }
 
 
-static WORD m1toggle = MO_ENTER;
 /*
-** Description
-** Implementation of evnt_multi
+** Exported
 **
 ** 1998-10-04 CG
 ** 1998-10-11 CG
 ** 1998-12-13 CG
+** 1998-12-19 CG
 */
 void
 Evnt_do_multi (WORD       apid,
-               WORD       eventpipe,
-               WORD       msgpipe,
                EVENTIN  * eventin,
                COMMSG   * msg,
                EVENTOUT * eventout,
@@ -605,6 +612,8 @@ Evnt_do_multi (WORD       apid,
 
       Wind_redraw_elements (apid, ret.msg.msg0, (RECT *)&ret.msg.msg1, 0);
     }
+  } else if (ret.eventout.events & MU_BUTTON) {
+    DB_printf ("click click");
   }
 
   /*
@@ -624,22 +633,21 @@ Evnt_do_multi (WORD       apid,
 }
 
 
+/*
+** Exported
+**
+** 1998-12-19 CG
+*/
 void
-Evnt_multi (AES_PB *apb)
-{
-  SRV_APPL_INFO appl_info;
-  
-  Srv_get_appl_info(apb->global->apid,&appl_info);
-  
+Evnt_multi (AES_PB *apb) {
   Evnt_do_multi(apb->global->apid,
-                appl_info.eventpipe,
-                appl_info.msgpipe,
-                (EVENTIN *)apb->int_in,(COMMSG *)apb->addr_in[0],
+                (EVENTIN *)apb->int_in,
+                (COMMSG *)apb->addr_in[0],
                 (EVENTOUT *)apb->int_out,0);	
 }
 
-/*0x001a evnt_dclick*/
 
+/*0x001a evnt_dclick*/
 void	Evnt_dclick(AES_PB *apb) {
 	if(apb->int_in[1] == EDC_SET) {
 		clicktime = 320 - 60 * apb->int_in[0];

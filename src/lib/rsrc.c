@@ -348,15 +348,18 @@ RSHDR  * rsc)     /* Resource structure to fix.                             */
 }
 
 
-void    Rsrc_load(AES_PB *apb)  /*0x006e*/ {
-  RSHDR   *rsc;
-
-  SRV_APPL_INFO appl_info;
-        
-  Srv_get_appl_info(apb->global->apid,&appl_info);
+/*
+** Exported
+**
+** 1998-12-20 CG
+*/
+void
+Rsrc_load (AES_PB *apb)  /*0x006e*/ {
+  RSHDR *       rsc;
+  GLOBAL_APPL * globals = get_globals (apb->global->apid);
         
   rsc = loadrsc (apb->global->apid,
-                 appl_info.vid,
+                 globals->vid,
                  (BYTE *)apb->addr_in[0]);
 
   apb->global->rscfile = (OBJECT **)((LONG)rsc->rsh_trindex + (LONG)rsc);
@@ -372,6 +375,7 @@ void    Rsrc_load(AES_PB *apb)  /*0x006e*/ {
     apb->int_out[0] = 0;
   };
 }
+
 
 void    Rsrc_free(AES_PB *apb)  /*0x006f*/ {
   /*
@@ -428,14 +432,18 @@ void    Rsrc_obfix(AES_PB *apb) /*0x0072*/ {
     fix_object_coordinates (&((OBJECT *)apb->addr_in[0])[apb->int_in[0]]);
 };
 
-void    Rsrc_rcfix(AES_PB *apb) /*0x0073*/ {
-  RSHDR   *rsc = (RSHDR *)apb->addr_in[0];
-        
-  SRV_APPL_INFO appl_info;
-        
-  Srv_get_appl_info(apb->global->apid,&appl_info);
-        
-  Rsrc_do_rcfix(appl_info.vid,
+
+/*
+** Exported
+**
+** 1998-12-20 CG
+*/
+void
+Rsrc_rcfix (AES_PB *apb) /*0x0073*/ {
+  RSHDR *       rsc = (RSHDR *)apb->addr_in[0];
+  GLOBAL_APPL * globals = get_globals (apb->global->apid);
+  
+  Rsrc_do_rcfix(globals->vid,
                 rsc);
         
   apb->global->rscfile = (OBJECT **)((LONG)rsc->rsh_trindex + (LONG)rsc);

@@ -23,12 +23,6 @@
 #define	WIN_MENU       0x0020
 #define WIN_ICONIFIED  0x0040
 
-typedef struct {
-	WORD eventpipe;
-	WORD msgpipe;
-	WORD vid;
-}SRV_APPL_INFO;
-
 /****************************************************************************
  * Server_init_module                                                       *
  *  Initialize server module.                                               *
@@ -95,15 +89,6 @@ void *m);       /* Pointer to message structure.                            */
  ****************************************************************************/
 WORD                    /* Application to receive clicks.                   */
 Srv_click_owner(void);  /*                                                  */
-/****************************************************************************/
-
-/****************************************************************************
- * Srv_get_appl_info                                                        *
- ****************************************************************************/
-WORD                       /* 0 if ok or -1.                                */
-Srv_get_appl_info(         /*                                               */
-WORD apid,                 /* Application id.                               */
-SRV_APPL_INFO *appl_info); /* Returned information.                         */
 /****************************************************************************/
 
 /****************************************************************************
