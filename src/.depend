@@ -37,7 +37,10 @@ rsrc.o: rsrc.c debug.h types.h gemdefs.h global.h mintdefs.h rsrc.h \
 scrp.o: scrp.c scrp.h types.h
 shel.o: shel.c debug.h types.h gemdefs.h lxgemdos.h misc.h srv.h
 srv.o: srv.c config.h debug.h types.h gemdefs.h global.h lxgemdos.h \
- mesagdef.h mintdefs.h misc.h objc.h resource.h rlist.h srv.h vdi.h
+ mesagdef.h mintdefs.h misc.h objc.h resource.h rlist.h srv.h \
+ srv_call.h vdi.h
+srv_call.o: srv_call.c mintdefs.h srv_call.h types.h
 vdi.o: vdi.c debug.h types.h lxgemdos.h vdi.h
-wind.o: wind.c debug.h types.h gemdefs.h global.h mintdefs.h \
- mesagdef.h misc.h objc.h resource.h srv.h vdi.h wind.h rlist.h
+wind.o: wind.c debug.h types.h evnthndl.h gemdefs.h global.h \
+ mintdefs.h mesagdef.h misc.h objc.h resource.h srv.h vdi.h wind.h \
+ rlist.h

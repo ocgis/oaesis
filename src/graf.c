@@ -251,14 +251,14 @@ AES_PB *apb)      /* AES parameter block.                                   */
   
   Srv_get_appl_info(apb->global->apid,&appl_info);
   
-  Srv_wind_update(apb->global->apid,BEG_MCTRL | SRV_COMPLETE_MCTRL);
+  Evhd_wind_update(apb->global->apid,BEG_MCTRL | SRV_COMPLETE_MCTRL);
   
   apb->int_out[0] = Graf_do_rubberbox(appl_info.eventpipe,apb->int_in[0],
 				      apb->int_in[1],apb->int_in[2],
 				      apb->int_in[3],
 				      &apb->int_out[1],&apb->int_out[2]);
 
-  Srv_wind_update(apb->global->apid,END_MCTRL);
+  Evhd_wind_update(apb->global->apid,END_MCTRL);
 }
 
 
@@ -388,7 +388,7 @@ AES_PB *apb)      /* AES parameter block.                                   */
   
   Srv_get_appl_info(apb->global->apid,&appl_info);
   
-  Srv_wind_update(apb->global->apid,BEG_MCTRL | SRV_COMPLETE_MCTRL);
+  Evhd_wind_update(apb->global->apid,BEG_MCTRL | SRV_COMPLETE_MCTRL);
   
   apb->int_out[0] = Graf_do_dragbox(appl_info.eventpipe,apb->int_in[0],
 				    apb->int_in[1],apb->int_in[2],
@@ -396,7 +396,7 @@ AES_PB *apb)      /* AES parameter block.                                   */
 				    (RECT *)&apb->int_in[4],&apb->int_out[1],
 				    &apb->int_out[2]);
 
-  Srv_wind_update(apb->global->apid,END_MCTRL);
+  Evhd_wind_update(apb->global->apid,END_MCTRL);
 }
 
 
@@ -486,11 +486,11 @@ AES_PB *apb)      /* AES parameter block.                                   */
     r2.width = apb->int_in[0];
     r2.height = apb->int_in[1];
     
-    Srv_wind_update(Pgetpid(),BEG_UPDATE);
+    Evhd_wind_update(Pgetpid(),BEG_UPDATE);
     
     apb->int_out[0] = Graf_do_grmobox(&r1,&r2);
     
-    Srv_wind_update(Pgetpid(),END_UPDATE);
+    Evhd_wind_update(Pgetpid(),END_UPDATE);
   }
   else {
     apb->int_out[0] = 1;
@@ -507,12 +507,12 @@ AES_PB *apb)      /* AES parameter block.                                   */
 /****************************************************************************/
 {
   if(globals.graf_growbox) {
-    Srv_wind_update(Pgetpid(),BEG_UPDATE);
+    Evhd_wind_update(Pgetpid(),BEG_UPDATE);
     
     apb->int_out[0] = Graf_do_grmobox((RECT *)&apb->int_in[0],
 				      (RECT *)&apb->int_in[4]);
     
-    Srv_wind_update(Pgetpid(),END_UPDATE);
+    Evhd_wind_update(Pgetpid(),END_UPDATE);
   }
   else {
     apb->int_out[0] = 1;
@@ -529,10 +529,10 @@ AES_PB *apb)      /* AES parameter block.                                   */
 /****************************************************************************/
 {
   if(globals.graf_shrinkbox) {
-    Srv_wind_update(Pgetpid(),BEG_UPDATE);
+    Evhd_wind_update(Pgetpid(),BEG_UPDATE);
     apb->int_out[0] = Graf_do_grmobox((RECT *)&apb->int_in[4], 
 				      (RECT *)&apb->int_in[0]);
-    Srv_wind_update(Pgetpid(),END_UPDATE);
+    Evhd_wind_update(Pgetpid(),END_UPDATE);
   }
   else {
     apb->int_out[0] = 1;
@@ -586,7 +586,7 @@ WORD   outstate)  /* State when outside object.                             */
     Objc_do_change(tree,obj,&clip,outstate,REDRAW);
   };
   
-  Srv_wind_update(apid,BEG_MCTRL);
+  Evhd_wind_update(apid,BEG_MCTRL);
   
   while(1) {
     Evnt_do_multi(apid,eventpipe,-1,&ei,&buffer,&eo,0);
@@ -607,7 +607,7 @@ WORD   outstate)  /* State when outside object.                             */
     };
   };
   
-  Srv_wind_update(apid,END_MCTRL);
+  Evhd_wind_update(apid,END_MCTRL);
   
   if(ei.m1flag == MO_LEAVE) {
     return 1;
@@ -661,13 +661,13 @@ WORD   orient)    /* Orientation. 0 => horizontal, 1 => vertical.           */
 	Objc_area_needed(tree,obj,&slid);
 	Objc_area_needed(tree,parent,&bound);
 	
-	Srv_wind_update(apid,BEG_MCTRL | SRV_COMPLETE_MCTRL);
+	Evhd_wind_update(apid,BEG_MCTRL | SRV_COMPLETE_MCTRL);
 		
 	Graf_do_dragbox(eventpipe,
 			slid.width,slid.height,
 			slid.x,slid.y,&bound,&x,&y);
 									
-	Srv_wind_update(apid,END_MCTRL);
+	Evhd_wind_update(apid,END_MCTRL);
 	
 	if(orient == 0) {
 	  if(tree[obj].ob_width != tree[parent].ob_width) {

@@ -25,7 +25,7 @@
 */
 
 /****************************************************************************
- * Used interfaces                                                          *
+vvvv * Used interfaces                                                          *
  ****************************************************************************/
 
 #include <basepage.h>
@@ -35,26 +35,26 @@
 #include <signal.h>
 #include <string.h>
 
-#include "../config.h"
-#include "../debug.h"
-#include "../gemdefs.h"
-#include "../global.h"
-#include "../lxgemdos.h"
-#include "../mesagdef.h"
-#include "../mintdefs.h"
-#include "../misc.h"
-#include "../objc.h"
-#include "../resource.h"
-#include "../rlist.h"
+#include "config.h"
+#include "debug.h"
+#include "gemdefs.h"
+#include "global.h"
+#include "lxgemdos.h"
+#include "mesagdef.h"
+#include "mintdefs.h"
+#include "misc.h"
+#include "objc.h"
+#include "resource.h"
+#include "rlist.h"
 #include "srv.h"
-#include "../types.h"
-#include "../vdi.h"
+#include "srv_call.h"
+#include "types.h"
+#include "vdi.h"
 
 /****************************************************************************
  * Macros                                                                   *
  ****************************************************************************/
 
-#define SRVBOX 0x6f535256l /*'oSRV'*/
 
 #define SRV_QUE_SIZE 32
 
@@ -110,7 +110,7 @@ enum {
 
 #define D3DSIZE       2
 
-#define INTS2LONG(a,b) (((((LONG)a) << 16) & 0xffff0000L) | (((LONG)b) & 0xffff))
+#define INTS2LONG(a,b) (((((LONG)a)<<16)&0xffff0000L)|(((LONG)b)&0xffff))
 
 
 /****************************************************************************
@@ -302,13 +302,6 @@ typedef union {
 	void            *par;
 }C_SRV;
 
-typedef struct {
-	WORD  call;
-	WORD  apid;
-	C_SRV spec;
-	WORD  pid;
-}PMSG;
-
 /****************************************************************************
  * Module global variables                                                  *
  ****************************************************************************/
@@ -453,7 +446,7 @@ srv_wind_new(  /*                                                           */
 WORD apid);    /* Application whose windows should be erased.               */
 /****************************************************************************/
 
-WORD srv_wind_set(WORD apid, WORD handle, WORD mode, WORD parm1, WORD parm2, WORD parm3, WORD parm4);
+WORD srv_wind_set(WORD apid, C_WIND_SET *msg);
 
 /****************************************************************************
  * draw_wind_elements                                                       *
@@ -658,7 +651,7 @@ WORD apid)        /* Application id of the searched application.            */
 	return al;	
 }
 
-/****************************************************************************
+/*********************************************************************8‡`***
  * get_top_appl                                                             *
  *  Get currently topped application.                                       *
  ****************************************************************************/
@@ -1420,8 +1413,7 @@ WORD apid)        /* Application whose menu is to be removed.               */
 static WORD       /*                                                        */
 srv_menu_bar(     /*                                                        */
 WORD   apid,      /* Application id.                                        */
-OBJECT *tree,     /* Menu object tree.                                      */
-WORD   mode)      /* Mode.                                                  */
+PMSG *msg)
 /****************************************************************************/
 {
 	switch(mode) {
@@ -1559,11 +1551,12 @@ srv_appl_exit(  /*                                                          */
 WORD apid)      /* Application id.                                          */
 /****************************************************************************/
 {
+  C_WIND_SET cws = {0,WF_NEWDESK,0,0,0,0};
   /*clean up*/
 
   srv_menu_bar(apid,NULL,MENU_REMOVE);
   unregister_menu(apid);
-  srv_wind_set(apid,0,WF_NEWDESK,0,0,0,0);
+  srv_wind_set(apid,&cws);
   srv_wind_new(apid);
   apinfofree(apid);
   
@@ -1731,10 +1724,7 @@ static void srv_appl_init(WORD pid,C_APPL_INIT *par) {
 WORD              /* 0 if no more applications exist, or 1.                 */
 srv_appl_search(  /*                                                        */
 WORD apid,        /* pid of caller..                                        */
-WORD mode,        /* Search mode.                                           */
-BYTE *name,       /* Pretty name of found application.                      */
-WORD *type,       /* Type of found application.                             */
-WORD *ap_id)      /* Application id fo found application.                   */
+PMSG *msg)
 /****************************************************************************/
 {
 	AP_LIST *this,*p;
@@ -3186,23 +3176,21 @@ static WORD top_window(WORD winid) {
  ****************************************************************************/
 static WORD        /* 1 if ok, 0 if error.                                 */
 srv_wind_change(   /*                                                       */
-WORD id,           /* Window handle.                                        */
-WORD object,       /* Widget to change state for.                           */
-WORD newstate)     /* New state of widget.                                  */
+C_WIND_CHANGE *msg)
 /****************************************************************************/
 {
-	WINSTRUCT *win = find_wind_description(id);
+  WINSTRUCT *win = find_wind_description(msg->id);
 	
-	if(win) {
-		if(newstate != win->tree[widgetmap[object]].ob_state) {
-			win->tree[widgetmap[object]].ob_state = newstate;
-			draw_wind_elements(win,&globals.screen,widgetmap[object]);
-		};
-		
-		return 1;
-	};
-
-	return 0;
+  if(win) {
+    if(newstate != win->tree[widgetmap[msg->object]].ob_state) {
+      win->tree[widgetmap[msg->object]].ob_state = msg->newstate;
+      draw_wind_elements(win,&globals.screen,widgetmap[msg->object]);
+    };
+    
+    return 1;
+  };
+  
+  return 0;
 }
 
 /****************************************************************************
@@ -3211,100 +3199,100 @@ WORD newstate)     /* New state of widget.                                  */
  ****************************************************************************/
 WORD            /* 0 if error or 1 if ok.                                   */
 srv_wind_close( /*                                                          */
-WORD wid)       /* Identification number of window to close.                */
+C_WIND_CLOSE *msg)
 /****************************************************************************/
 {
-	WINLIST	  **wl = &win_vis;
-	WINSTRUCT *newtop = NULL;
+  WINLIST   **wl = &win_vis;
+  WINSTRUCT *newtop = NULL;
 	
-	while(*wl) {
-		if((*wl)->win->id == wid)
-			break;
-			
-		wl = &(*wl)->next;
+  while(*wl) {
+    if((*wl)->win->id == msg->wid)
+      break;
+    
+    wl = &(*wl)->next;
+  };
+  
+  if(*wl) {
+    WINLIST      *wp = (*wl)->next;
+    REDRAWSTRUCT m;
+    
+    if(((*wl)->win->status & WIN_TOPPED) && wp) {
+      (*wl)->win->status &= ~WIN_TOPPED;
+      wp->win->status |= WIN_TOPPED;
+      newtop = wp->win;
+    };
+    
+    while(wp) {			
+      RLIST	*rl = NULL;
+      RLIST	*tl;
+      
+      Rlist_rectinter(&rl,&wp->win->totsize,&(*wl)->win->rlist);
+      
+      /* Redraw "new" rectangles of windows below */
+      
+      if(rl) {
+	if(!(wp->win->status & (WIN_DESKTOP | WIN_MENU))) {
+	  m.type = WM_REDRAW;
+	  m.length = 0;
+	  m.wid = wp->win->id;
+	  
+	  if(globals.realmove) {
+	    m.sid = -1;
+	    m.area.x = (*wl)->win->totsize.x - wp->win->totsize.x;
+	    m.area.y = (*wl)->win->totsize.y - wp->win->totsize.y;
+	  }
+	  else {
+	    m.sid = 0;
+	    m.area.x = (*wl)->win->totsize.x;
+	    m.area.y = (*wl)->win->totsize.y;
+	  };
+	  
+	  m.area.width = (*wl)->win->totsize.width;
+	  m.area.height = (*wl)->win->totsize.height;	
+	  
+	  srv_appl_write(wp->win->owner,16,&m);
 	};
 	
-	if(*wl) {
-		WINLIST      *wp = (*wl)->next;
-		REDRAWSTRUCT m;
-		
-		if(((*wl)->win->status & WIN_TOPPED) && wp) {
-			(*wl)->win->status &= ~WIN_TOPPED;
-			wp->win->status |= WIN_TOPPED;
-			newtop = wp->win;
-		};
-		
-		while(wp) {			
-			RLIST	*rl = NULL;
-			RLIST	*tl;
-			
-			Rlist_rectinter(&rl,&wp->win->totsize,&(*wl)->win->rlist);
-			
-			/* Redraw "new" rectangles of windows below */
-			
-			if(rl) {
-				if(!(wp->win->status & (WIN_DESKTOP | WIN_MENU))) {
-					m.type = WM_REDRAW;
-					m.length = 0;
-					m.wid = wp->win->id;
-					
-					if(globals.realmove) {
-						m.sid = -1;
-						m.area.x = (*wl)->win->totsize.x - wp->win->totsize.x;
-						m.area.y = (*wl)->win->totsize.y - wp->win->totsize.y;
-					}
-					else {
-						m.sid = 0;
-						m.area.x = (*wl)->win->totsize.x;
-						m.area.y = (*wl)->win->totsize.y;
-					};
-					
-					m.area.width = (*wl)->win->totsize.width;
-					m.area.height = (*wl)->win->totsize.height;	
+	if(wp->win != newtop) {
+	  tl = rl;
+	  
+	  while(tl) {				
+	    draw_wind_elemfast(wp->win,&tl->r,0);
+	    
+	    tl = tl->next;
+	  };
+	};
 	
-					srv_appl_write(wp->win->owner,16,&m);
-				};
-				
-				if(wp->win != newtop) {
-					tl = rl;
-				
-					while(tl) {				
-						draw_wind_elemfast(wp->win,&tl->r,0);
-	
-						tl = tl->next;
-					};
-				};
-						
-				Rlist_insert(&wp->win->rlist,&rl);
-				wp->win->rpos = wp->win->rlist;
-			};		
-
-			wp = wp->next;
-		}		
-		
-		wp = *wl;
-		
-		*wl = (*wl)->next;
-
-		wp->win->status &= ~WIN_OPEN;
-		Mfree(wp);
-		
-		if(newtop) {
-			WORD i;
-				
-			for(i = 0; i <= W_SMALLER; i++) {
-				set_widget_colour(newtop,i,&newtop->untop_colour[i],&newtop->top_colour[i]);
-			};
-
-			draw_wind_elements(newtop,&newtop->totsize,0);
-		};
-
-		return 1;
-	}
-	else
-	{
-		return 0;
-	}
+	Rlist_insert(&wp->win->rlist,&rl);
+	wp->win->rpos = wp->win->rlist;
+      };		
+      
+      wp = wp->next;
+    }		
+    
+    wp = *wl;
+    
+    *wl = (*wl)->next;
+    
+    wp->win->status &= ~WIN_OPEN;
+    Mfree(wp);
+    
+    if(newtop) {
+      WORD i;
+      
+      for(i = 0; i <= W_SMALLER; i++) {
+	set_widget_colour(newtop,i,&newtop->untop_colour[i],
+			  &newtop->top_colour[i]);
+      };
+      
+      draw_wind_elements(newtop,&newtop->totsize,0);
+    };
+    
+    return 1;
+  }
+  else {
+    return 0;
+  }
 }
 
 /****************************************************************************
@@ -3313,70 +3301,67 @@ WORD wid)       /* Identification number of window to close.                */
  ****************************************************************************/
 WORD             /* 0 if error or 1 if ok.                                  */
 srv_wind_create( /*                                                         */
-WORD owner,      /* Owner of window.                                        */
-WORD elems,      /* Elements of window.                                     */
-RECT *maxsize,   /* Maximum size allowed.                                   */
-WORD status)     /* Status of window.                                       */
+C_WIND_CREATE *msg)
 /****************************************************************************/
 {
-	WINSTRUCT	*ws;
+  WINSTRUCT	*ws;
+  
+  ws = winalloc();
+  
+  ws->status = msg->status;
+  ws->owner = msg->owner; 
 	
-	ws = winalloc();
-	
-	ws->status = status;
-	ws->owner = owner; 
-	
-	ws->maxsize = *maxsize;
+  ws->maxsize = msg->maxsize;
 
-	ws->rlist = NULL;
-	ws->rpos = NULL;
-
-	ws->vslidepos = 1;
-	ws->vslidesize = 1000;
-	ws->hslidepos = 1;
-	ws->hslidesize = 1000;
+  ws->rlist = NULL;
+  ws->rpos = NULL;
+  
+  ws->vslidepos = 1;
+  ws->vslidesize = 1000;
+  ws->hslidepos = 1;
+  ws->hslidesize = 1000;
+  
+  if((ws->status & WIN_DIALOG) || (ws->status & WIN_MENU)) {
+    ws->tree = 0L;
+    ws->totsize = *maxsize;
+    ws->worksize = ws->totsize;
+  }
+  else {
+    WORD    i;
+    AP_INFO *ai;
+    
+    ws->tree = alloc_win_elem();
+    set_win_elem(ws->tree,msg->elems);
+    ws->elements = msg->elems;
 	
-	if((ws->status & WIN_DIALOG) || (ws->status & WIN_MENU)) {
-		ws->tree = 0L;
-		ws->totsize = *maxsize;
-		ws->worksize = ws->totsize;
-	}
-	else {
-		WORD    i;
-		AP_INFO *ai;
+    ai = internal_appl_info(msg->owner);
 		
-		ws->tree = alloc_win_elem();
-		set_win_elem(ws->tree,elems);
-		ws->elements = elems;
-	
-		ai = internal_appl_info(owner);
+    if(ai) {
+      ws->tree[WAPP].ob_spec.tedinfo->te_ptext =
+	(char *)Mxalloc(strlen(&ai->name[2]) + 1,GLOBALMEM);
+      strcpy(ws->tree[WAPP].ob_spec.tedinfo->te_ptext,&ai->name[2]);
+      
+      if(globals.wind_appl == 0) {
+	ws->tree[WAPP].ob_spec.tedinfo->te_ptext[0] = 0;
+      };
+    };
+    
+    ws->totsize.x = ws->tree[0].ob_x;
+    ws->totsize.y = ws->tree[0].ob_y;
+    ws->totsize.width = ws->tree[0].ob_width;
+    ws->totsize.height = ws->tree[0].ob_height;
+    
+    calcworksize(msg->elems,&ws->totsize,&ws->worksize,WC_WORK);
 		
-		if(ai) {
-			ws->tree[WAPP].ob_spec.tedinfo->te_ptext =
-				(char *)Mxalloc(strlen(&ai->name[2]) + 1,GLOBALMEM);
-			strcpy(ws->tree[WAPP].ob_spec.tedinfo->te_ptext,&ai->name[2]);
-			
-			if(globals.wind_appl == 0) {
-				ws->tree[WAPP].ob_spec.tedinfo->te_ptext[0] = 0;
-			};
-		};
-		
-		ws->totsize.x = ws->tree[0].ob_x;
-		ws->totsize.y = ws->tree[0].ob_y;
-		ws->totsize.width = ws->tree[0].ob_width;
-		ws->totsize.height = ws->tree[0].ob_height;
-	
-		calcworksize(elems,&ws->totsize,&ws->worksize,WC_WORK);
-		
-		for(i = 0; i <= W_SMALLER; i++) {
-			ws->top_colour[i] = top_colour[i];
-			ws->untop_colour[i] = untop_colour[i];
-		}
-		
-		ws->own_colour = 0;
-	};
-
-	return ws->id;
+    for(i = 0; i <= W_SMALLER; i++) {
+      ws->top_colour[i] = top_colour[i];
+      ws->untop_colour[i] = untop_colour[i];
+    }
+    
+    ws->own_colour = 0;
+  };
+  
+  return ws->id;
 }
 
 /****************************************************************************
@@ -3385,94 +3370,89 @@ WORD status)     /* Status of window.                                       */
  ****************************************************************************/
 WORD             /* 0 if error or 1 if ok.                                  */
 srv_wind_delete( /*                                                         */
-WORD id)         /* Identification number of window to delete.              */
+C_WIND_DELETE *msg)
 /****************************************************************************/
 {
-	WINLIST	**wl;
-		
-	wl = &win_list;
+  WINLIST	**wl;
+  
+  wl = &win_list;
+  
+  while(*wl) {		
+    if((*wl)->win->id == msg->id)
+      break;
+    
+    wl = &(*wl)->next;
+  };
+  
+  if(!(*wl)) {
+    /*no such window found! return*/
+    return 0;
+  };
+  
+  if((*wl)->win->status & WIN_OPEN) {
+    srv_wind_close(msg->id);
+  };
+  
+  delwinelem((*wl)->win->tree);
+  
+  if(msg->id == (win_next - 1)) {
+    WORD	found;
+    WINLIST	*wt = *wl;
+    
+    *wl = (*wl)->next;
+    
+    Mfree(wt->win);
+    Mfree(wt);
+    win_next--;
+    
+    do {
+      WINLIST 	**wlwalk = &win_list;
+      
+      found = 0;
+      
+      while(*wlwalk) {
+	if((*wlwalk)->win->id == (win_next - 1))
+	  {
+	    found = 1;
+	    break;
+	  };
 	
-	while(*wl) {		
-		if((*wl)->win->id == id)
-			break;
+	wlwalk = &(*wlwalk)->next;
+      };
+      
+      if(!found) {
+	wlwalk = &win_free;
 	
-		wl = &(*wl)->next;
+	while(*wlwalk) {
+	  if((*wlwalk)->win->id == (win_next - 1)) {
+	    WINLIST	*wltemp = *wlwalk;
+	    
+	    *wlwalk = (*wlwalk)->next;
+	    
+	    Mfree(wltemp->win);
+	    Mfree(wltemp);
+	    
+	    win_next--;
+	    
+	    break;
+	  };
+	  
+	  wlwalk = &(*wlwalk)->next;
 	};
-	
-	if(!(*wl)) {
-		/*no such window found! return*/
-		return 0;
-	};
-	
-	if((*wl)->win->status & WIN_OPEN) {
-		srv_wind_close(id);
-	};
-	
-	delwinelem((*wl)->win->tree);
-	
-	if(id == (win_next - 1)) {
-		WORD	found;
-		WINLIST	*wt = *wl;
-		
-		*wl = (*wl)->next;
-		
-		Mfree(wt->win);
-		Mfree(wt);
-		win_next--;
-		
-		do {
-			WINLIST 	**wlwalk = &win_list;
-			
-			found = 0;
-			
-			while(*wlwalk) {
-				if((*wlwalk)->win->id == (win_next - 1))
-				{
-					found = 1;
-					break;
-				};
-				
-				wlwalk = &(*wlwalk)->next;
-			};
-			
-			if(!found)
-			{
-				wlwalk = &win_free;
-				
-				while(*wlwalk)
-				{
-					if((*wlwalk)->win->id == (win_next - 1))
-					{
-						WINLIST	*wltemp = *wlwalk;
-						
-						*wlwalk = (*wlwalk)->next;
-						
-						Mfree(wltemp->win);
-						Mfree(wltemp);
-						
-						win_next--;
-						
-						break;
-					};
-					
-					wlwalk = &(*wlwalk)->next;
-				};
-			};
-			
-		}while(!found && win_next);
-
-	}
-	else
-	{
-		WINLIST	*wt = *wl;
-		
-		*wl = (*wl)->next;
-		
-		wt->next = win_free;
-		win_free = wt;
-	};
-	
-	return 1;
+      };
+      
+    }while(!found && win_next);
+  }
+  else {
+    WINLIST	*wt = *wl;
+    
+    *wl = (*wl)->next;
+    
+    wt->next = win_free;
+    win_free = wt;
+  };
+  
+  return 1;
 }
 
 /****************************************************************************
@@ -3481,19 +3461,18 @@ WORD id)         /* Identification number of window to delete.              */
  ****************************************************************************/
 static WORD      /* 0 if an error occured, or >0                            */
 srv_wind_draw(   /*                                                         */
-WORD handle,     /* Handle of window.                                       */
-WORD object)     /* Object to be drawn (see WF_COLOR modes).                */
+C_WIND_DRAW *msg)
 /****************************************************************************/
 {
-	WINSTRUCT *win = find_wind_description(handle);
+  WINSTRUCT *win = find_wind_description(msg->handle);
 	
-	if(win) {
-		draw_wind_elements(win,&globals.screen,widgetmap[object]);
-		
-		return 1;
-	};
-
-	return 0;
+  if(win) {
+    draw_wind_elements(win,&globals.screen,widgetmap[msg->object]);
+    
+    return 1;
+  };
+  
+  return 0;
 }
 
 /****************************************************************************
@@ -3502,14 +3481,13 @@ WORD object)     /* Object to be drawn (see WF_COLOR modes).                */
  ****************************************************************************/
 WORD           /* Window handle.                                            */
 srv_wind_find( /*                                                           */
-WORD x,        /* X coordinate.                                             */
-WORD y)        /* Y coordinate.                                             */
+C_WIND_FIND *msg)
 /****************************************************************************/
 {
   WINLIST *l = win_vis;
   
   while(l) {
-    if(Misc_inside(&l->win->totsize,x,y)) {
+    if(Misc_inside(&l->win->totsize,msg->x,msg->y)) {
       return l->win->id;
     };
     
@@ -3525,227 +3503,222 @@ WORD y)        /* Y coordinate.                                             */
  ****************************************************************************/
 static WORD    /* 0 if error or 1 if ok.                                    */
 srv_wind_get(  /*                                                           */
-WORD handle,   /* Identification number of window.                          */
-WORD mode,     /* Tells what to return.                                     */
-WORD *parm1,   /* Parameter 1.                                              */
-WORD *parm2,   /* Parameter 2.                                              */
-WORD *parm3,   /* Parameter 3.                                              */
-WORD *parm4)   /* Parameter 4.                                              */
+C_WIND_GET *msg)
 /****************************************************************************/
 {
-	WINSTRUCT	*win;
-	WORD      ret;
-
-	win = find_wind_description(handle);
-
-	if(win) {
-		switch(mode) {	
-			case WF_KIND: /* 0x0001 */
-				ret = 1;
-				*parm1 = win->elements;
+  WINSTRUCT	*win;
+  WORD      ret;
+  
+  win = find_wind_description(msg->handle);
+  
+  if(win) {
+    switch(msg->mode) {	
+    case WF_KIND: /* 0x0001 */
+      ret = 1;
+      *parm1 = win->elements;
+      break;
+      
+    case WF_WORKXYWH	:	/*0x0004*/
+      ret = 1;
+      *parm1 = win->worksize.x;
+      *parm2 = win->worksize.y;
+      *parm3 = win->worksize.width;
+      *parm4 = win->worksize.height;
+      break;
+      
+    case	WF_CURRXYWH	:	/*0x0005*/
+      ret = 1;
+      *parm1 = win->totsize.x;
+      *parm2 = win->totsize.y;
+      *parm3 = win->totsize.width;
+      *parm4 = win->totsize.height;
 				break;
-				
-			case WF_WORKXYWH	:	/*0x0004*/
-				ret = 1;
-				*parm1 = win->worksize.x;
-				*parm2 = win->worksize.y;
-				*parm3 = win->worksize.width;
-				*parm4 = win->worksize.height;
-				break;
-			
-			case	WF_CURRXYWH	:	/*0x0005*/
-				ret = 1;
-				*parm1 = win->totsize.x;
-				*parm2 = win->totsize.y;
-				*parm3 = win->totsize.width;
-				*parm4 = win->totsize.height;
-				break;
-
-			case	WF_PREVXYWH	:	/*0x0006*/
-				ret = 1;
-				*parm1 = win->lastsize.x;
-				*parm2 = win->lastsize.y;
-				*parm3 = win->lastsize.width;
-				*parm4 = win->lastsize.height;
-				break;
-			
-			case	WF_FULLXYWH	:	/*0x0007*/
-				ret = 1;
-				*parm1 = win->maxsize.x;
-				*parm2 = win->maxsize.y;
-				*parm3 = win->maxsize.width;
-				*parm4 = win->maxsize.height;
-				break;
-				
-			case WF_HSLIDE: /*0x08*/
-				ret = 1;
-				*parm1 = win->hslidepos;
-				break;
-
-			case WF_VSLIDE: /*0x09*/
-				ret = 1;
-				*parm1 = win->vslidepos;
-				break;
-
-			case WF_TOP: /*0x000a*/
-				if(win_vis) {
-					*parm1 = win_vis->win->id;
-					*parm2 = win_vis->win->owner;
-					
-					if(win_vis && win_vis->next) {
-						*parm3 = win_vis->next->win->id;
-					}
-					else {
-						*parm3 = -1;
-					};
-					
-					ret = 1;
-				}
-				else {
-					ret = 0;
-				};
-				break;
-
-			case	WF_FIRSTXYWH:	/*0x000b*/
-				win->rpos = win->rlist;
-			case	WF_NEXTXYWH:	/*0x000c*/
-				{
-					RECT r;
-					
-					ret = 1;
-					
-					while(win->rpos) {
-						if(Misc_intersect(&win->rpos->r,&win->worksize,&r)) {
-							break;
-						};
-						
-						win->rpos = win->rpos->next;
-					};					
-					
-					if(!win->rpos) {
-						*parm1 = 0;
-						*parm2 = 0;
-						*parm3 = 0;
-						*parm4 = 0;
-					}
-					else {
-						win->rpos = win->rpos->next;
-
-						*parm1 = r.x;
-						*parm2 = r.y;
-						*parm3 = r.width;
-						*parm4 = r.height;
-					};
-				};
-				break;
-
-			case WF_HSLSIZE: /*0x0f*/
-				ret = 1;
-				*parm1 = win->hslidesize;
-				break;				
-
-			case WF_VSLSIZE: /*0x10*/
-				ret = 1;
-				*parm1 = win->vslidesize;
-				break;				
-
-			case WF_SCREEN: /*0x11*/
-				ret = 1;
-				*parm1 = 0;
-				*parm2 = 0;
-				*parm3 = 0;
-				*parm4 = 0;
-				break;
-				
-			case WF_OWNER: /*0x14*/
-				if(win) {
-					ret = 1;
-					*parm1 = win->owner;
-					*parm2 = win->status;
-					
-					if(win->status & WIN_OPEN) {
-						WINLIST *wl = win_vis;
-						
-
-						if(wl->win == win) {
-							*parm3 = -1;
-						}
-						else if(wl) {
-							while(wl->next) {
-								if(wl->next->win == win) {
-									*parm3 = wl->win->id;
-									break;
-								};
-								
-								wl = wl->next;
-							};
-							
-							wl = wl->next;
-						};
-						
-						if(wl) {
-							wl = wl->next;
-						
-							if(wl) {
-								*parm4 = wl->win->id;
-							}
-							else {
-								*parm4 = -1;
-							};
-						}
-						else {
-							*parm4 = -1;
-						};							
-					}
-					else {
-						*parm3 = -1;
-						*parm4 = -1;
-					};
-				}
-				else {
-					ret = 0;
-				};
-				break;
-
-			case WF_ICONIFY: /* 0x1a */
-				if(win->status & WIN_ICONIFIED) {
-					*parm1 = 1;
-				}
-				else {
-					*parm1 = 0;
-				};
-
-				*parm2 = globals.icon_width;
-				*parm3 = globals.icon_height;
-
-				ret = 1;
-				break;
-
-			case WF_UNICONIFY: /* 0x1b */
-				ret = 1;
-				*parm1 = win->origsize.x;
-				*parm2 = win->origsize.y;
-				*parm3 = win->origsize.width;
-				*parm4 = win->origsize.height;
-				break;
-				
-			case WF_WINX:
-			case WF_WINXCFG:
-				ret = 0;
-				break;
-
-			default:
-				DB_printf("%s: Line %d: srv_wind_get:\r\n"
-								"Unknown mode %d  (0x%x) wind_get(%d,%d,...)",
-								__FILE__,__LINE__,mode,mode,
-								handle,mode);
-				ret = 0;
-		};
+      
+    case	WF_PREVXYWH	:	/*0x0006*/
+      ret = 1;
+      *parm1 = win->lastsize.x;
+      *parm2 = win->lastsize.y;
+      *parm3 = win->lastsize.width;
+      *parm4 = win->lastsize.height;
+      break;
+      
+    case	WF_FULLXYWH	:	/*0x0007*/
+      ret = 1;
+      *parm1 = win->maxsize.x;
+      *parm2 = win->maxsize.y;
+      *parm3 = win->maxsize.width;
+      *parm4 = win->maxsize.height;
+      break;
+      
+    case WF_HSLIDE: /*0x08*/
+      ret = 1;
+      *parm1 = win->hslidepos;
+      break;
+      
+    case WF_VSLIDE: /*0x09*/
+      ret = 1;
+      *parm1 = win->vslidepos;
+      break;
+      
+    case WF_TOP: /*0x000a*/
+      if(win_vis) {
+	*parm1 = win_vis->win->id;
+	*parm2 = win_vis->win->owner;
+	
+	if(win_vis && win_vis->next) {
+	  *parm3 = win_vis->next->win->id;
 	}
-	else
-		ret = 0;
-
-	return ret;
+	else {
+	  *parm3 = -1;
+	};
+	
+	ret = 1;
+      }
+      else {
+	ret = 0;
+      };
+      break;
+      
+    case	WF_FIRSTXYWH:	/*0x000b*/
+      win->rpos = win->rlist;
+    case	WF_NEXTXYWH:	/*0x000c*/
+      {
+	RECT r;
+	
+	ret = 1;
+	
+	while(win->rpos) {
+	  if(Misc_intersect(&win->rpos->r,&win->worksize,&r)) {
+	    break;
+	  };
+	  
+	  win->rpos = win->rpos->next;
+	};					
+	
+	if(!win->rpos) {
+	  *parm1 = 0;
+	  *parm2 = 0;
+	  *parm3 = 0;
+	  *parm4 = 0;
+	}
+	else {
+	  win->rpos = win->rpos->next;
+	  
+	  *parm1 = r.x;
+	  *parm2 = r.y;
+	  *parm3 = r.width;
+	  *parm4 = r.height;
+	};
+      };
+      break;
+      
+    case WF_HSLSIZE: /*0x0f*/
+      ret = 1;
+      *parm1 = win->hslidesize;
+      break;				
+      
+    case WF_VSLSIZE: /*0x10*/
+      ret = 1;
+      *parm1 = win->vslidesize;
+      break;				
+      
+    case WF_SCREEN: /*0x11*/
+      ret = 1;
+      *parm1 = 0;
+      *parm2 = 0;
+				*parm3 = 0;
+      *parm4 = 0;
+      break;
+      
+    case WF_OWNER: /*0x14*/
+      if(win) {
+	ret = 1;
+	*parm1 = win->owner;
+	*parm2 = win->status;
+	
+	if(win->status & WIN_OPEN) {
+	  WINLIST *wl = win_vis;
+	  
+	  
+	  if(wl->win == win) {
+	    *parm3 = -1;
+	  }
+	  else if(wl) {
+	    while(wl->next) {
+	      if(wl->next->win == win) {
+		*parm3 = wl->win->id;
+		break;
+	      };
+	      
+	      wl = wl->next;
+	    };
+	    
+	    wl = wl->next;
+	  };
+	  
+	  if(wl) {
+	    wl = wl->next;
+	    
+	    if(wl) {
+	      *parm4 = wl->win->id;
+	    }
+	    else {
+	      *parm4 = -1;
+	    };
+						}
+	  else {
+	    *parm4 = -1;
+	  };							
+	}
+	else {
+	  *parm3 = -1;
+	  *parm4 = -1;
+	};
+      }
+      else {
+	ret = 0;
+      };
+      break;
+      
+    case WF_ICONIFY: /* 0x1a */
+      if(win->status & WIN_ICONIFIED) {
+	*parm1 = 1;
+      }
+      else {
+	*parm1 = 0;
+      };
+      
+      *parm2 = globals.icon_width;
+      *parm3 = globals.icon_height;
+      
+      ret = 1;
+      break;
+      
+    case WF_UNICONIFY: /* 0x1b */
+      ret = 1;
+      *parm1 = win->origsize.x;
+      *parm2 = win->origsize.y;
+      *parm3 = win->origsize.width;
+      *parm4 = win->origsize.height;
+      break;
+      
+    case WF_WINX:
+    case WF_WINXCFG:
+      ret = 0;
+      break;
+      
+    default:
+      DB_printf("%s: Line %d: srv_wind_get:\r\n"
+		"Unknown mode %d  (0x%x) wind_get(%d,%d,...)",
+		__FILE__,__LINE__,msg->mode,msg->mode,
+		msg->handle,msg->mode);
+      ret = 0;
+    };
+  }
+  else
+    ret = 0;
+  
+  return ret;
 }
 
 /****************************************************************************
@@ -3873,145 +3846,118 @@ RECT *size)    /* Initial size of window.                                   */
 }
 
 /*wind_set 0x0069*/
-WORD srv_wind_set(WORD apid, WORD handle, WORD mode, WORD parm1, WORD parm2, WORD parm3, WORD parm4) {
-	WINSTRUCT	*win;
-
-	win = find_wind_description(handle);
-
-	if(win) {
-		switch(mode) {	
-			case	WF_NAME	:	/*0x0002*/
-			case	WF_INFO	:	/*0x0003*/
-			{
-				WORD object = (mode == WF_NAME) ? WMOVER : WINFO;
-				BYTE *str = (BYTE *)INTS2LONG(parm1,parm2);
-
-				if(win->tree) {
-					Mfree(win->tree[object].ob_spec.tedinfo->te_ptext);
-				
-					win->tree[object].ob_spec.tedinfo->te_ptext =
-						(BYTE *)Mxalloc(strlen(str) + 1,GLOBALMEM);
-
-					strcpy(win->tree[object].ob_spec.tedinfo->te_ptext,str);
-
-					draw_wind_elements(win,&win->totsize,object);
-
-					return 1;
-				}
-				else {
-					return 0;
-				};
-			};
-				
-			case	WF_CURRXYWH	:	/*0x0005*/
-			{
-				RECT size;
-				
-				size.x = parm1;
-				size.y = parm2;
-				size.width = parm3;
-				size.height = parm4;
-				
-				return changewinsize(win,&size,svid,0);
-			};
-			
-			case	WF_HSLIDE: /*0x08*/
-				return changeslider(win,1,HSLIDE,parm1,-1);
-
-			case	WF_VSLIDE: /*0x09*/
-				return changeslider(win,1,VSLIDE,parm1,-1);
-
-			case	WF_TOP	:	/*0x000a*/
-				return top_window(handle);
-
-			case WF_NEWDESK: /*0x000e*/
-			{
-				OBJECT *tree = (OBJECT *)INTS2LONG(parm1,parm2);
-			
-				if(tree) {	
-					if(tree->ob_y + tree->ob_height < globals.screen.height) {
-						tree->ob_y =
-						globals.screen.height - tree->ob_height;
-					};
-				};
-			
-				if(set_deskbg(apid,tree) == 0) {
-					return 1;
-				}
-				else {
-					return 0;
-				};
-			};
-
-			case	WF_HSLSIZE: /*0x0f*/
-				return changeslider(win,1,HSLIDE,-1,parm1);
-
-			case	WF_VSLSIZE: /*0x10*/
-				return changeslider(win,1,VSLIDE,-1,parm1);
-
-			case WF_COLOR:  /*0x12*/
-				DB_printf("srv_wind_set WF_COLOR not implemented");
-				return 0;
-				
-			case WF_DCOLOR: /*0x13*/
-				top_colour[parm1] = *(OBJC_COLORWORD *)&parm2;
-				untop_colour[parm1] = *(OBJC_COLORWORD *)&parm3;
-
-				return 0;
-				
-			case WF_BEVENT: /*0x18*/
-				if(parm1 & 1) {
-					win->status |= WIN_UNTOPPABLE;
-				}
-				else {
-					win->status &= ~WIN_UNTOPPABLE;
-				};
-				
-				return 1;
-
-			case WF_BOTTOM: /*0x0019*/
-				return bottom_window(handle);
-
-			case WF_ICONIFY: /*0x1a*/
-			{
-				RECT size;
-				
-				size.x = parm1;
-				size.y = parm2;
-				size.width = parm3;
-				size.height = parm4;
-
-				win->origsize = win->totsize;
-				set_win_elem(win->tree,IMOVER);
-				win->status |= WIN_ICONIFIED;
-				calcworksize(IMOVER,&win->totsize,&win->worksize,WC_WORK);
-				return changewinsize(win,&size,svid,1);
-			};
-
-			case WF_UNICONIFY: /*0x1b*/
-			{
-				RECT size;
-				
-				size.x = parm1;
-				size.y = parm2;
-				size.width = parm3;
-				size.height = parm4;
-
-				set_win_elem(win->tree,win->elements);
-				win->status &= ~WIN_ICONIFIED;
-				calcworksize(win->elements,&win->totsize,&win->worksize,WC_WORK);
-				return changewinsize(win,&size,svid,1);
-			};
-
-			default:
-				DB_printf("%s: Line %d: srv_wind_set:\r\n"
-								"Unknown mode %d",__FILE__,__LINE__,mode);
-				return 0;
-		};
+WORD srv_wind_set(WORD apid, C_WIND_SET *msg) {
+  WINSTRUCT	*win;
+  
+  win = find_wind_description(msg->handle);
+  
+  if(win) {
+    switch(mode) {	
+    case	WF_NAME	:	/*0x0002*/
+    case	WF_INFO	:	/*0x0003*/
+      {
+	WORD object = (mode == WF_NAME) ? WMOVER : WINFO;
+	BYTE *str = (BYTE *)INTS2LONG(msg->parm1,msg->parm2);
+	
+	if(win->tree) {
+	  Mfree(win->tree[object].ob_spec.tedinfo->te_ptext);
+	  
+	  win->tree[object].ob_spec.tedinfo->te_ptext =
+	    (BYTE *)Mxalloc(strlen(str) + 1,GLOBALMEM);
+	  
+	  strcpy(win->tree[object].ob_spec.tedinfo->te_ptext,str);
+	  
+	  draw_wind_elements(win,&win->totsize,object);
+	  
+	  return 1;
 	}
 	else {
-		return 0;	
+	  return 0;
 	};
+      };
+      
+    case	WF_CURRXYWH	:	/*0x0005*/
+      return changewinsize(win,(RECT *)&msg->parm1,svid,0);
+            
+    case	WF_HSLIDE: /*0x08*/
+      return changeslider(win,1,HSLIDE,msg->parm1,-1);
+      
+    case	WF_VSLIDE: /*0x09*/
+      return changeslider(win,1,VSLIDE,msg->parm1,-1);
+      
+    case	WF_TOP	:	/*0x000a*/
+      return top_window(msg->handle);
+      
+    case WF_NEWDESK: /*0x000e*/
+      {
+	OBJECT *tree = (OBJECT *)INTS2LONG(parm1,parm2);
+	
+	if(tree) {	
+	  if(tree->ob_y + tree->ob_height < globals.screen.height) {
+	    tree->ob_y =
+	      globals.screen.height - tree->ob_height;
+	  };
+	};
+	
+	if(set_deskbg(apid,tree) == 0) {
+	  return 1;
+	}
+	else {
+	  return 0;
+	};
+      };
+      
+    case	WF_HSLSIZE: /*0x0f*/
+      return changeslider(win,1,HSLIDE,-1,msg->parm1);
+      
+    case	WF_VSLSIZE: /*0x10*/
+      return changeslider(win,1,VSLIDE,-1,msg->parm1);
+      
+    case WF_COLOR:  /*0x12*/
+      DB_printf("srv_wind_set WF_COLOR not implemented");
+      return 0;
+      
+    case WF_DCOLOR: /*0x13*/
+      top_colour[msg->parm1] = *(OBJC_COLORWORD *)&msg->parm2;
+      untop_colour[msg->parm1] = *(OBJC_COLORWORD *)&msg->parm3;
+      
+      return 0;
+      
+    case WF_BEVENT: /*0x18*/
+      if(msg->parm1 & 1) {
+	win->status |= WIN_UNTOPPABLE;
+      }
+      else {
+	win->status &= ~WIN_UNTOPPABLE;
+      };
+      
+      return 1;
+      
+    case WF_BOTTOM: /*0x0019*/
+      return bottom_window(msg->handle);
+      
+    case WF_ICONIFY: /*0x1a*/
+      win->origsize = win->totsize;
+      set_win_elem(win->tree,IMOVER);
+      win->status |= WIN_ICONIFIED;
+      calcworksize(IMOVER,&win->totsize,&win->worksize,WC_WORK);
+      return changewinsize(win,(RECT *)&msg->parm1,svid,1);
+
+    case WF_UNICONIFY: /*0x1b*/
+      set_win_elem(win->tree,win->elements);
+      win->status &= ~WIN_ICONIFIED;
+      calcworksize(win->elements,&win->totsize,&win->worksize,WC_WORK);
+      return changewinsize(win,(RECT *)&msg->parm1,svid,1);
+      
+    default:
+      DB_printf("%s: Line %d: srv_wind_set:\r\n"
+		"Unknown mode %d",__FILE__,__LINE__,msg->mode);
+      return 0;
+    };
+  }
+  else {
+    return 0;	
+  };
 }
 
 /****************************************************************************
@@ -4061,8 +4007,7 @@ WORD apid)     /* Application whose windows should be erased.               */
 WORD              /*  0 if ok or -1                                         */
 srv_put_event(    /*                                                        */
 WORD    apid,     /* Id of application that is to receive a message.        */
-EVNTREC *m,       /* Message to be sent.                                    */
-WORD    length)   /* Length of message.                                     */
+C_PUT_EVENT *msg)
 /****************************************************************************/
 {
 	AP_INFO *ai;
@@ -4099,265 +4044,228 @@ WORD    length)   /* Length of message.                                     */
 
 
 static WORD server(LONG arg) {
-	PMSG msg;
-	WORD work_in[] = {1,7,1,1,1,1,1,1,1,1,2};
-	WORD work_out[57];
-	RECT r;
-	
-	NOT_USED(arg);
-
-	svid = globals.vid;
-	Vdi_v_opnvwk(work_in,&svid,work_out);
-
-	srv_wind_get(0,WF_FULLXYWH, &r.x, &r.y, &r.width, &r.height);
-	
-	r.height = r.y;
-	r.y = 0;
-
-	mglob.winbar = srv_wind_create(0,0,&r,WIN_MENU);
-
-	srv_wind_open(mglob.winbar,&r);
-
-	while(1) {
-
+  PMSG msg;
+  WORD work_in[] = {1,7,1,1,1,1,1,1,1,1,2};
+  WORD work_out[57];
+  RECT r;
+  
+  NOT_USED(arg);
+  
+  svid = globals.vid;
+  Vdi_v_opnvwk(work_in,&svid,work_out);
+  
+  srv_wind_get(0,WF_FULLXYWH, &r.x, &r.y, &r.width, &r.height);
+  
+  r.height = r.y;
+  r.y = 0;
+  
+  mglob.winbar = srv_wind_create(0,0,&r,WIN_MENU);
+  
+  srv_wind_open(mglob.winbar,&r);
+  
+  while(1) {
+    
 #ifdef SRV_DEBUG
-		DB_printf("///");
+    DB_printf("///");
 #endif
-
-		Pmsg(MSG_READ,SRVBOX,&msg);
-
+    
+    Srvc_operation(MSG_READ,&msg);
+    
 #ifdef SRV_DEBUG
-		DB_printf("Call: %d pid: %d",msg.call,msg.pid);
+    DB_printf("Call: %d pid: %d",msg.cr.call,msg.pid);
 #endif		
-		
-		switch(msg.call) {
-		case SRV_SHAKE:
-		  DB_printf("I'm fine process %d!",msg.pid);
-		  DB_printf("How are you doing yourself?");
-		  Pmsg(MSG_WRITE,0xffff0000L | msg.pid,&msg);
-		  break;
-		  
-		case SRV_SHUTDOWN:
-		  DB_printf("OK! Nice chatting with you! Bye!");
-
-		  Pmsg(MSG_WRITE,0xffff0000L | msg.pid,&msg);
-		  Vdi_v_clsvwk(svid);
-		  return 0;
-		  
-		case SRV_APPL_CONTROL:
-		  msg.spec.appl_control->retval = 
-		    srv_appl_control(msg.spec.appl_control->apid,
-				     msg.spec.appl_control->mode);
-		  
-		  Pmsg(MSG_WRITE,0xffff0000L | msg.pid,&msg);
-		  break;
-		  
-		case SRV_APPL_EXIT:
-		  msg.spec.appl_exit->retval = srv_appl_exit(msg.apid);
-		  
-		  Pmsg(MSG_WRITE,0xffff0000L | msg.pid,&msg);
-		  break;
-		  
-		case SRV_APPL_FIND:
-		  msg.spec.appl_find->retval = srv_appl_find(msg.spec.appl_find->fname);
-		  
-		  Pmsg(MSG_WRITE,0xffff0000L | msg.pid,&msg);
-		  break;
-		  
-		case SRV_APPL_INIT:
-		  srv_appl_init(msg.pid,msg.spec.appl_init);
-		  
-		  Pmsg(MSG_WRITE,0xffff0000L | msg.pid,&msg);
-		  break;
-		  
-		case SRV_APPL_SEARCH:
-		  msg.spec.appl_search->retval =
-		    srv_appl_search(msg.apid,
-				    msg.spec.appl_search->mode,
-				    msg.spec.appl_search->name,
-				    &msg.spec.appl_search->type,
-				    &msg.spec.appl_search->ap_id);
-		  
-		  Pmsg(MSG_WRITE,0xffff0000L | msg.pid,&msg);
-		  break;
-			
-		case SRV_APPL_WRITE:
-			msg.spec.appl_write->retval = srv_appl_write(
-																			msg.spec.appl_write->apid,
-																			msg.spec.appl_write->length,
-																			msg.spec.appl_write->msg);
-
-			Pmsg(MSG_WRITE,0xffff0000L | msg.pid,&msg);
-			break;
-			
-		case SRV_CLICK_OWNER:
-			msg.spec.click_owner->retval = 
-				srv_click_owner();
-
-			Pmsg(MSG_WRITE,0xffff0000L | msg.pid,&msg);
-			break;
-			
-		case SRV_GET_APPL_INFO:
-			msg.spec.get_appl_info->retval = 
-				srv_get_appl_info(msg.apid,msg.spec.get_appl_info->appl_info);
-
-			Pmsg(MSG_WRITE,0xffff0000L | msg.pid,&msg);
-			break;
-			
-		case SRV_GET_TOP_MENU:
-			msg.spec.get_top_menu->retval = 
-				srv_get_top_menu();
-
-			Pmsg(MSG_WRITE,0xffff0000L | msg.pid,&msg);
-			break;
-			
-		case SRV_GET_WM_INFO:
-			msg.spec.get_wm_info->retval = 
-				srv_get_wm_info(msg.spec.get_wm_info->id);
-
-			Pmsg(MSG_WRITE,0xffff0000L | msg.pid,&msg);
-			break;
-			
-		case SRV_MENU_BAR:
-			msg.spec.menu_bar->retval = 
-				srv_menu_bar(msg.apid,msg.spec.menu_bar->tree,
-						msg.spec.menu_bar->mode);
-
-			Pmsg(MSG_WRITE,0xffff0000L | msg.pid,&msg);
-			break;
-			
-		case SRV_MENU_REGISTER:
-			msg.spec.menu_register->retval = 
-				srv_menu_register(msg.apid,msg.spec.menu_register->title);
-
-			Pmsg(MSG_WRITE,0xffff0000L | msg.pid,&msg);
-			break;
-			
-		case SRV_PUT_EVENT:
-			msg.spec.put_event->retval = 
-				srv_put_event(msg.spec.put_event->apid,
-											msg.spec.put_event->er,
-											msg.spec.put_event->length);
-
-			Pmsg(MSG_WRITE,0xffff0000L | msg.pid,&msg);
-			break;
-		
+    
+    switch(msg.cr.call) {
+    case SRV_SHAKE:
+      DB_printf("I'm fine process %d!",msg.pid);
+      DB_printf("How are you doing yourself?");
+      Srvc_operation(MSG_WRITE,&msg);
+      break;
+      
+    case SRV_SHUTDOWN:
+      DB_printf("OK! Nice chatting with you! Bye!");
+      
+      Pms(MSG_WRITE,&msg);
+      Vdi_v_clsvwk(svid);
+      return 0;
+      
+    case SRV_APPL_CONTROL:
+      msg.cr.retval = 
+	srv_appl_control(msg.spec);
+      
+      Srvc_operation(MSG_WRITE,&msg);
+      break;
+      
+    case SRV_APPL_EXIT:
+      msg.cr.retval = srv_appl_exit(msg.apid);
+      
+      Srvc_operation(MSG_WRITE,&msg);
+      break;
+      
+    case SRV_APPL_FIND:
+      msg.cr.retval = srv_appl_find(msg.spec);
+      
+      Srvc_operation(MSG_WRITE,&msg);
+      break;
+      
+    case SRV_APPL_INIT:
+      srv_appl_init(msg.pid,msg.spec.appl_init);
+      
+      Srvc_operation(MSG_WRITE,&msg);
+      break;
+      
+    case SRV_APPL_SEARCH:
+      msg.cr.retval =
+	srv_appl_search(msg.apid,msg.spec);
+      
+      Srvc_operation(MSG_WRITE,&msg);
+      break;
+      
+    case SRV_APPL_WRITE:
+      msg.cr.retval = srv_appl_write(msg.spec);
+      
+      Srvc_operation(MSG_WRITE,&msg);
+      break;
+      
+    case SRV_CLICK_OWNER:
+      msg.cr.retval = 
+	srv_click_owner();
+      
+      Srvc_operation(MSG_WRITE,&msg);
+      break;
+      
+    case SRV_GET_APPL_INFO:
+      msg.cr.retval = 
+	srv_get_appl_info(msg.apid,msg.spec);
+      
+      Srvc_operation(MSG_WRITE,&msg);
+      break;
+      
+    case SRV_GET_TOP_MENU:
+      msg.cr.retval = 
+	srv_get_top_menu();
+      
+      Srvc_operation(MSG_WRITE,&msg);
+      break;
+      
+    case SRV_GET_WM_INFO:
+      msg.cr.retval = 
+	srv_get_wm_info(msg.spec);
+      
+      Srvc_operation(MSG_WRITE,&msg);
+      break;
+      
+    case SRV_MENU_BAR:
+      msg.cr.retval = 
+	srv_menu_bar(msg.apid,msg.spec);
+      
+      Srvc_operation(MSG_WRITE,&msg);
+      break;
+      
+    case SRV_MENU_REGISTER:
+      msg.cr.retval = 
+	srv_menu_register(msg.apid,msg.spec);
+      
+      Srvc_operation(MSG_WRITE,&msg);
+      break;
+      
+    case SRV_PUT_EVENT:
+      msg.cr.retval = 
+	srv_put_event(msg.spec);
+      
+      Srvc_operation(MSG_WRITE,&msg);
+      break;
+      
 		case SRV_SHEL_ENVRN:
-			msg.spec.shel_envrn->retval = 
-				srv_shel_envrn(msg.spec.shel_envrn->value,
-											msg.spec.shel_envrn->name);
-
-			Pmsg(MSG_WRITE,0xffff0000L | msg.pid,&msg);
-			break;
-		
-		case SRV_SHEL_WRITE:
-			msg.spec.shel_write->retval = 
-				srv_shel_write(msg.apid,
-												msg.spec.shel_write->mode,
-												msg.spec.shel_write->wisgr,
-												msg.spec.shel_write->wiscr,
-												msg.spec.shel_write->cmd,
-												msg.spec.shel_write->tail);
-
-			Pmsg(MSG_WRITE,0xffff0000L | msg.pid,&msg);
-			break;
-			
-		case SRV_WIND_CHANGE:
-			msg.spec.wind_change->retval = 
-				srv_wind_change(msg.spec.wind_change->id,
-												msg.spec.wind_change->object,
-												msg.spec.wind_change->newstate);
-
-			Pmsg(MSG_WRITE,0xffff0000L | msg.pid,&msg);
-			break;
-			
-		case SRV_WIND_CLOSE:
-			msg.spec.wind_close->retval = 
-				srv_wind_close(msg.spec.wind_close->id);
-
-			Pmsg(MSG_WRITE,0xffff0000L | msg.pid,&msg);
-			break;
-			
-		case SRV_WIND_CREATE:
-			msg.spec.wind_create->retval = 
-				srv_wind_create(msg.spec.wind_create->owner,
-					msg.spec.wind_create->elements,
-					msg.spec.wind_create->maxsize,
-					msg.spec.wind_create->status);
-
-			Pmsg(MSG_WRITE,0xffff0000L | msg.pid,&msg);
-			break;
-			
-		case SRV_WIND_DELETE:
-			msg.spec.wind_delete->retval = 
-				srv_wind_delete(msg.spec.wind_delete->id);
-
-			Pmsg(MSG_WRITE,0xffff0000L | msg.pid,&msg);
-			break;
-			
-		case SRV_WIND_DRAW:
-			msg.spec.wind_draw->retval = 
-				srv_wind_draw(msg.spec.wind_draw->handle,
-											msg.spec.wind_draw->object);
-
-			Pmsg(MSG_WRITE,0xffff0000L | msg.pid,&msg);
-			break;
-			
-		case SRV_WIND_FIND:
-			msg.spec.wind_find->retval = 
-				srv_wind_find(msg.spec.wind_find->x,
-											msg.spec.wind_find->y);
-
-			Pmsg(MSG_WRITE,0xffff0000L | msg.pid,&msg);
-			break;
-			
-		case SRV_WIND_GET:
-			msg.spec.wind_get->retval = 
-				srv_wind_get(msg.spec.wind_get->handle,
-					msg.spec.wind_get->mode,
-					&msg.spec.wind_get->parm1,
-					&msg.spec.wind_get->parm2,
-					&msg.spec.wind_get->parm3,
-					&msg.spec.wind_get->parm4);
-
-			Pmsg(MSG_WRITE,0xffff0000L | msg.pid,&msg);
-			break;
-			
-		case SRV_WIND_NEW:
-			msg.spec.wind_new->retval = 
-				srv_wind_new(msg.apid);
-
-			Pmsg(MSG_WRITE,0xffff0000L | msg.pid,&msg);
-			break;
-			
-		case SRV_WIND_OPEN:
-			msg.spec.wind_open->retval = 
-				srv_wind_open(msg.spec.wind_open->id,
-					msg.spec.wind_open->size);
-
-			Pmsg(MSG_WRITE,0xffff0000L | msg.pid,&msg);
-			break;
-			
-		case SRV_WIND_SET:
-			msg.spec.wind_set->retval = 
-				srv_wind_set(msg.apid,
-					msg.spec.wind_set->handle,
-					msg.spec.wind_set->mode,
-					msg.spec.wind_set->parm1,
-					msg.spec.wind_set->parm2,
-					msg.spec.wind_set->parm3,
-					msg.spec.wind_set->parm4);
-
-			Pmsg(MSG_WRITE,0xffff0000L | msg.pid,&msg);
-			break;
-			
-		default:
-			DB_printf("%s: Line %d:\r\n"
-								"Unknown call %d to server!",
-								__FILE__,__LINE__,msg.call);
-			Pmsg(MSG_WRITE,0xffff0000L | msg.pid,&msg);
-		};
-	};
+      msg.cr.retval = 
+	srv_shel_envrn(msg.spec);
+      
+      Srvc_operation(MSG_WRITE,&msg);
+      break;
+      
+    case SRV_SHEL_WRITE:
+      msg.cr.retval = srv_shel_write(msg.apid,msg.spec);
+      
+      Srvc_operation(MSG_WRITE,&msg);
+      break;
+      
+    case SRV_WIND_CHANGE:
+      msg.cr.retval = 
+	srv_wind_change(msg.spec);
+      
+      Srvc_operation(MSG_WRITE,&msg);
+      break;
+      
+    case SRV_WIND_CLOSE:
+      msg.cr.retval = 
+	srv_wind_close(msg.spec);
+      
+      Srvc_operation(MSG_WRITE,&msg);
+      break;
+      
+    case SRV_WIND_CREATE:
+      msg.cr.retval = 
+	srv_wind_create(msg.spec);
+      
+      Srvc_operation(MSG_WRITE,&msg);
+      break;
+      
+    case SRV_WIND_DELETE:
+      msg.cr.retval = 
+	srv_wind_delete(msg.spec);
+      
+      Srvc_operation(MSG_WRITE,&msg);
+      break;
+      
+    case SRV_WIND_DRAW:
+      msg.cr.retval = 
+	srv_wind_draw(msg.spec);
+      
+      Srvc_operation(MSG_WRITE,&msg);
+      break;
+      
+    case SRV_WIND_FIND:
+      msg.cr.retval = 
+	srv_wind_find(msg.spec);
+      
+      Srvc_operation(MSG_WRITE,&msg);
+      break;
+      
+    case SRV_WIND_GET:
+      msg.cr.retval = 
+	srv_wind_get(msg.spec);
+      
+      Srvc_operation(MSG_WRITE,&msg);
+      break;
+      
+    case SRV_WIND_NEW:
+      msg.cr.retval = 
+	srv_wind_new(msg.apid);
+      
+      Srvc_operation(MSG_WRITE,&msg);
+      break;
+      
+    case SRV_WIND_OPEN:
+      msg.cr.retval = 
+	srv_wind_open(msg.spec);
+      
+      Srvc_operation(MSG_WRITE,&msg);
+      break;
+      
+    case SRV_WIND_SET:
+      msg.cr.retval = 
+	srv_wind_set(msg.apid,msg.spec);
+      
+      Srvc_operation(MSG_WRITE,&msg);
+      break;
+      
+    default:
+      DB_printf("%s: Line %d:\r\n"
+		"Unknown call %d to server!",
+		__FILE__,__LINE__,msg.cr.call);
+      Srvc_operation(MSG_WRITE,&msg);
+    };
+  };
 }
 
 /****************************************************************************
@@ -4450,8 +4358,8 @@ Srv_exit_module(void)  /*                                                   */
 
   DB_printf("Server we have to quit now! Bye!");
   
-  msg.call = SRV_SHUTDOWN;
-  Pmsg(MSG_READWRITE,SRVBOX,&msg);
+  msg.cr.call = SRV_SHUTDOWN;
+  Srvc_operation(MSG_READWRITE,&msg);
 }
 
 void Srv_shake(void) {
@@ -4459,8 +4367,8 @@ void Srv_shake(void) {
 
 	DB_printf("How are you doing server?");
 	
-	msg.call = SRV_SHAKE;
-	Pmsg(MSG_READWRITE,SRVBOX,&msg);
+	msg.cr.call = SRV_SHAKE;
+	Srvc_operation(MSG_READWRITE,&msg);
 	
 	DB_printf("I'm fine too process %d!",msg.pid);
 }
@@ -4479,12 +4387,12 @@ WORD mode)          /* What to do.                                          */
 	
 	par.apid = apid;
 	par.mode = mode;
-	msg.call = SRV_APPL_CONTROL;
-	msg.spec.appl_control = &par;
+	msg.cr.call = SRV_APPL_CONTROL;
+	msg.spec = &par;
 
-	Pmsg(MSG_READWRITE,SRVBOX,&msg);
+	Srvc_operation(MSG_READWRITE,&msg);
 
-	return par.retval;
+	return msg.cr.retval;
 }
 
 /****************************************************************************
@@ -4504,16 +4412,16 @@ WORD apid)      /* Application id.                                          */
 
 	msg.apid = apid;
 	
-	msg.call = SRV_APPL_EXIT;
-	msg.spec.appl_exit = &par;
+	msg.cr.call = SRV_APPL_EXIT;
+	msg.spec = &par;
 
-	Pmsg(MSG_READWRITE,SRVBOX,&msg);
+	Srvc_operation(MSG_READWRITE,&msg);
 
 	Fclose(apinf.msgpipe);
 	Fclose(apinf.eventpipe);
 	Vdi_v_clsvwk(apinf.vid);
 
-	return par.retval;
+	return msg.cr.retval;
 }
 
 /****************************************************************************
@@ -4530,12 +4438,12 @@ BYTE *fname)      /* File name of application to seek.                      */
 	
 	par.fname = fname;
 	
-	msg.call = SRV_APPL_FIND;
-	msg.spec.appl_find = &par;
+	msg.cr.call = SRV_APPL_FIND;
+	msg.spec = &par;
 
-	Pmsg(MSG_READWRITE,SRVBOX,&msg);
+	Srvc_operation(MSG_READWRITE,&msg);
 
-	return par.retval;
+	return msg.cr.retval;
 }
 
 /****************************************************************************
@@ -4585,11 +4493,11 @@ GLOBAL_ARRAY *global)  /* Global array.                                     */
 	par.vid = globals.vid;
 	Vdi_v_opnvwk(work_in,&par.vid,work_out);
 
-	msg.call = SRV_APPL_INIT;
+	msg.cr.call = SRV_APPL_INIT;
 	msg.apid = -1;
-	msg.spec.appl_init = &par;
+	msg.spec = &par;
 
-	Pmsg(MSG_READWRITE,SRVBOX,&msg);
+	Srvc_operation(MSG_READWRITE,&msg);
 		
 	if(global->apid >= 0) {
 		return global->apid;
@@ -4622,15 +4530,15 @@ WORD *ap_id)      /* Application id of found application.                   */
 	par.name = name;
 
 	msg.apid = apid;
-	msg.call = SRV_APPL_SEARCH;
-	msg.spec.appl_search = &par;
+	msg.cr.call = SRV_APPL_SEARCH;
+	msg.spec = &par;
 
-	Pmsg(MSG_READWRITE,SRVBOX,&msg);
+	Srvc_operation(MSG_READWRITE,&msg);
 
 	*type = par.type;
 	*ap_id = par.ap_id;
 
-	return par.retval;
+	return msg.cr.retval;
 }
 
 /****************************************************************************
@@ -4651,12 +4559,12 @@ void *m)        /* Pointer to message structure.                            */
 	par.length = length;
 	par.msg = m;
 	
-	msg.call = SRV_APPL_WRITE;
-	msg.spec.appl_write = &par;
+	msg.cr.call = SRV_APPL_WRITE;
+	msg.spec = &par;
 
-	Pmsg(MSG_READWRITE,SRVBOX,&msg);
+	Srvc_operation(MSG_READWRITE,&msg);
 
-	return par.retval;
+	return msg.cr.retval;
 }
 
 /****************************************************************************
@@ -4670,12 +4578,12 @@ Srv_click_owner(void)   /*                                                  */
 	C_CLICK_OWNER par;
 	PMSG          msg;
 	
-	msg.call = SRV_CLICK_OWNER;
-	msg.spec.click_owner = &par;
+	msg.cr.call = SRV_CLICK_OWNER;
+	msg.spec = &par;
 
-	Pmsg(MSG_READWRITE,SRVBOX,&msg);
+	Srvc_operation(MSG_READWRITE,&msg);
 
-	return par.retval;
+	return msg.cr.retval;
 }
 
 /****************************************************************************
@@ -4698,13 +4606,13 @@ SRV_APPL_INFO *appl_info)  /* Returned information.                         */
 	
 	par.appl_info = appl_info;
 	
-	msg.call = SRV_GET_APPL_INFO;
+	msg.cr.call = SRV_GET_APPL_INFO;
 	msg.apid = apid;
-	msg.spec.get_appl_info = &par;
+	msg.spec = &par;
 
-	Pmsg(MSG_READWRITE,SRVBOX,&msg);
+	Srvc_operation(MSG_READWRITE,&msg);
 
-	return par.retval;
+	return msg.cr.retval;
 */
 }
 
@@ -4720,10 +4628,10 @@ Srv_get_top_menu(void)  /*                                                  */
 	C_GET_TOP_MENU par;
 	PMSG           msg;
 	
-	msg.call = SRV_GET_TOP_MENU;
-	msg.spec.get_top_menu = &par;
+	msg.cr.call = SRV_GET_TOP_MENU;
+	msg.spec = &par;
 
-	Pmsg(MSG_READWRITE,SRVBOX,&msg);
+	Srvc_operation(MSG_READWRITE,&msg);
 
 	return par.retval;
 }
@@ -4742,10 +4650,10 @@ WORD id)          /* Window handle.                                         */
 	
 	par.id = id;
 	
-	msg.call = SRV_GET_WM_INFO;
-	msg.spec.get_wm_info = &par;
+	msg.cr.call = SRV_GET_WM_INFO;
+	msg.spec = &par;
 
-	Pmsg(MSG_READWRITE,SRVBOX,&msg);
+	Srvc_operation(MSG_READWRITE,&msg);
 
 	return par.retval;
 }
@@ -4768,13 +4676,13 @@ WORD   mode)      /* Mode.                                                  */
 	par.tree = tree;
 	par.mode = mode;
 	
-	msg.call = SRV_MENU_BAR;
+	msg.cr.call = SRV_MENU_BAR;
 	msg.apid = apid;
-	msg.spec.menu_bar = &par;
+	msg.spec = &par;
 
-	Pmsg(MSG_READWRITE,SRVBOX,&msg);
+	Srvc_operation(MSG_READWRITE,&msg);
 
-	return par.retval;
+	return msg.cr.retval;
 }
 
 /****************************************************************************
@@ -4792,13 +4700,13 @@ BYTE *title)       /* Title to register application under.                  */
 	
 	par.title = title;
 	
-	msg.call = SRV_MENU_REGISTER;
+	msg.cr.call = SRV_MENU_REGISTER;
 	msg.apid = apid;
-	msg.spec.menu_register = &par;
+	msg.spec = &par;
 
-	Pmsg(MSG_READWRITE,SRVBOX,&msg);
+	Srvc_operation(MSG_READWRITE,&msg);
 
-	return par.retval;
+	return msg.cr.retval;
 }
 
 /****************************************************************************
@@ -4817,12 +4725,12 @@ BYTE *name)      /* Name of variable to find.                               */
 	par.value = value;
 	par.name = name;
 
-	msg.call = SRV_SHEL_ENVRN;
-	msg.spec.shel_envrn = &par;
+	msg.cr.call = SRV_SHEL_ENVRN;
+	msg.spec = &par;
 
-	Pmsg(MSG_READWRITE,SRVBOX,&msg);
+	Srvc_operation(MSG_READWRITE,&msg);
 
-	return par.retval;
+	return msg.cr.retval;
 }
 
 
@@ -4850,12 +4758,12 @@ BYTE *tail)      /* Command tail.                                           */
 	par.tail = tail;
 
 	msg.apid = apid;	
-	msg.call = SRV_SHEL_WRITE;
-	msg.spec.shel_write = &par;
+	msg.cr.call = SRV_SHEL_WRITE;
+	msg.spec = &par;
 
-	Pmsg(MSG_READWRITE,SRVBOX,&msg);
+	Srvc_operation(MSG_READWRITE,&msg);
 	
-	return par.retval;
+	return msg.cr.retval;
 }
 
 /****************************************************************************
@@ -4876,12 +4784,12 @@ WORD newstate)     /* New state of widget.                                  */
 	par.object = object;
 	par.newstate = newstate;
 	
-	msg.call = SRV_WIND_CHANGE;
-	msg.spec.wind_change = &par;
+	msg.cr.call = SRV_WIND_CHANGE;
+	msg.spec = &par;
 
-	Pmsg(MSG_READWRITE,SRVBOX,&msg);
+	Srvc_operation(MSG_READWRITE,&msg);
 	
-	return par.retval;
+	return msg.cr.retval;
 }
 
 /****************************************************************************
@@ -4898,13 +4806,13 @@ WORD wid)       /* Identification number of window to close.                */
 	
 	par.id = wid;
 	
-	msg.call = SRV_WIND_CLOSE;
+	msg.cr.call = SRV_WIND_CLOSE;
 /*	msg.apid = apid; */
-	msg.spec.wind_close = &par;
+	msg.spec = &par;
 
-	Pmsg(MSG_READWRITE,SRVBOX,&msg);
+	Srvc_operation(MSG_READWRITE,&msg);
 	
-	return par.retval;
+	return msg.cr.retval;
 }
 
 /****************************************************************************
@@ -4927,13 +4835,13 @@ WORD status)     /* Status of window.                                       */
 	par.maxsize = maxsize;
 	par.status = status;
 	
-	msg.call = SRV_WIND_CREATE;
+	msg.cr.call = SRV_WIND_CREATE;
 /*	msg.apid = apid; */
-	msg.spec.wind_create = &par;
+	msg.spec = &par;
 
-	Pmsg(MSG_READWRITE,SRVBOX,&msg);
+	Srvc_operation(MSG_READWRITE,&msg);
 	
-	return par.retval;
+	return msg.cr.retval;
 }
 
 /****************************************************************************
@@ -4950,13 +4858,13 @@ WORD wid)        /* Identification number of window to close.               */
 	
 	par.id = wid;
 	
-	msg.call = SRV_WIND_DELETE;
+	msg.cr.call = SRV_WIND_DELETE;
 /*	msg.apid = apid; */
-	msg.spec.wind_delete = &par;
+	msg.spec = &par;
 
-	Pmsg(MSG_READWRITE,SRVBOX,&msg);
+	Srvc_operation(MSG_READWRITE,&msg);
 	
-	return par.retval;
+	return msg.cr.retval;
 }
 
 /****************************************************************************
@@ -4975,12 +4883,12 @@ WORD object)     /* Object to be drawn (see WF_COLOR modes).                */
 	par.handle = handle;
 	par.object = object;
 	
-	msg.call = SRV_WIND_DRAW;
-	msg.spec.wind_draw = &par;
+	msg.cr.call = SRV_WIND_DRAW;
+	msg.spec = &par;
 
-	Pmsg(MSG_READWRITE,SRVBOX,&msg);
+	Srvc_operation(MSG_READWRITE,&msg);
 
-	return par.retval;
+	return msg.cr.retval;
 }
 
 /****************************************************************************
@@ -4999,12 +4907,12 @@ WORD y)        /* Y coordinate.                                             */
 	par.x = x;
 	par.y = y;
 	
-	msg.call = SRV_WIND_FIND;
-	msg.spec.wind_find = &par;
+	msg.cr.call = SRV_WIND_FIND;
+	msg.spec = &par;
 
-	Pmsg(MSG_READWRITE,SRVBOX,&msg);
+	Srvc_operation(MSG_READWRITE,&msg);
 
-	return par.retval;
+	return msg.cr.retval;
 }
 
 /****************************************************************************
@@ -5027,18 +4935,18 @@ WORD *parm4)   /* Parameter 4.                                              */
 	par.handle = handle;
 	par.mode = mode;
 	
-	msg.call = SRV_WIND_GET;
+	msg.cr.call = SRV_WIND_GET;
 /*	msg.apid = apid; */
-	msg.spec.wind_get = &par;
+	msg.spec = &par;
 
-	Pmsg(MSG_READWRITE,SRVBOX,&msg);
+	Srvc_operation(MSG_READWRITE,&msg);
 
 	*parm1 = par.parm1;
 	*parm2 = par.parm2;
 	*parm3 = par.parm3;
 	*parm4 = par.parm4;
 	
-	return par.retval;
+	return msg.cr.retval;
 }
 
 /****************************************************************************
@@ -5053,13 +4961,13 @@ WORD apid)     /* Application whose windows should be erased.               */
 	C_WIND_NEW par;
 	PMSG       msg;
 	
-	msg.call = SRV_WIND_NEW;
+	msg.cr.call = SRV_WIND_NEW;
 	msg.apid = apid;
-	msg.spec.wind_new = &par;
+	msg.spec = &par;
 
-	Pmsg(MSG_READWRITE,SRVBOX,&msg);
+	Srvc_operation(MSG_READWRITE,&msg);
 	
-	return par.retval;
+	return msg.cr.retval;
 }
 
 /****************************************************************************
@@ -5078,12 +4986,12 @@ RECT *size)    /* Initial size of window.                                   */
 	par.id = id;
 	par.size = size;
 	
-	msg.call = SRV_WIND_OPEN;
-	msg.spec.wind_open = &par;
+	msg.cr.call = SRV_WIND_OPEN;
+	msg.spec = &par;
 
-	Pmsg(MSG_READWRITE,SRVBOX,&msg);
+	Srvc_operation(MSG_READWRITE,&msg);
 	
-	return par.retval;
+	return msg.cr.retval;
 }
 
 /****************************************************************************
@@ -5111,13 +5019,13 @@ WORD parm4)    /* Parameter 4.                                              */
 	par.parm3 = parm3;
 	par.parm4 = parm4;
 
-	msg.call = SRV_WIND_SET;
+	msg.cr.call = SRV_WIND_SET;
 	msg.apid = apid;
-	msg.spec.wind_set = &par;
+	msg.spec = &par;
 
-	Pmsg(MSG_READWRITE,SRVBOX,&msg);
+	Srvc_operation(MSG_READWRITE,&msg);
 	
-	return par.retval;
+	return msg.cr.retval;
 }
 
 /****************************************************************************
@@ -5138,12 +5046,12 @@ WORD    length)   /* Length of message.                                     */
 	par.er = m;
 	par.length = length;
 	
-	msg.call = SRV_PUT_EVENT;
+	msg.cr.call = SRV_PUT_EVENT;
 /*	msg.apid = apid; */
-	msg.spec.put_event = &par;
+	msg.spec = &par;
 
-	Pmsg(MSG_READWRITE,SRVBOX,&msg);
+	Srvc_operation(MSG_READWRITE,&msg);
 	
-	return par.retval;
+	return msg.cr.retval;
 }
 

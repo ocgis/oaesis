@@ -7,7 +7,7 @@
   Window routines used in oAESis.
   
  Author(s)
- 	cg     (Christer Gustavsson <d2cg@dtek.chalmers.se>)
+  cg     (Christer Gustavsson <d2cg@dtek.chalmers.se>)
 
  Revision history
  
@@ -42,6 +42,7 @@
 #include	<support.h>
 
 #include "debug.h"
+#include "evnthndl.h"
 #include "gemdefs.h"
 #include "global.h"
 #include "mintdefs.h"
@@ -181,7 +182,7 @@ void	Wind_find(AES_PB *apb) {
 
 /*wind_update 0x006b*/
 void Wind_update(AES_PB *apb) {
-  Srv_wind_update(apb->global->apid,apb->int_in[0]);
+  Evhd_wind_update(apb->global->apid,apb->int_in[0]);
 }
 
 

@@ -90,7 +90,7 @@ WORD editobj)  /* Position of edit cursor.                                  */
 		Objc_do_edit(tree,editobj,0,&idx,ED_INIT);
 	};
 
-	Srv_wind_update(apid,BEG_MCTRL);
+	Evhd_wind_update(apid,BEG_MCTRL);
 	
 	while(1) {
 		Evnt_do_multi(apid,eventpipe,-1,&ei,(COMMSG *)buffer,&eo,0);
@@ -104,7 +104,7 @@ WORD editobj)  /* Position of edit cursor.                                  */
 						Objc_do_edit(tree,editobj,0,&idx,ED_END);
 					};
 
-					Srv_wind_update(apid,END_MCTRL);
+					Evhd_wind_update(apid,END_MCTRL);
 					return newobj;
 				}
 				else {
@@ -127,7 +127,7 @@ WORD editobj)  /* Position of edit cursor.                                  */
 					Objc_do_edit(tree,editobj,0,&idx,ED_END);
 				};
 
-				Srv_wind_update(apid,END_MCTRL);
+				Evhd_wind_update(apid,END_MCTRL);
 				return newobj;
 			}
 			else if(newobj != editobj) {
@@ -167,9 +167,9 @@ WORD	Form_do_dial(WORD apid,WORD mode,RECT *r1,RECT *r2) {
 	switch(mode) {
 		case	FMD_GROW		:	/*0x0001*/
 			if(globals.graf_growbox) {
-			Srv_wind_update(Pgetpid(),BEG_UPDATE);
+			Evhd_wind_update(Pgetpid(),BEG_UPDATE);
 			Graf_do_grmobox(r1,r2);
-			Srv_wind_update(Pgetpid(),END_UPDATE);
+			Evhd_wind_update(Pgetpid(),END_UPDATE);
 			};
 			return 1;
 					
@@ -205,9 +205,9 @@ WORD	Form_do_dial(WORD apid,WORD mode,RECT *r1,RECT *r2) {
 
 		case	FMD_SHRINK	:	/*0x0002*/
 			if(globals.graf_shrinkbox) {
-			Srv_wind_update(Pgetpid(),BEG_UPDATE);
+			Evhd_wind_update(Pgetpid(),BEG_UPDATE);
 			Graf_do_grmobox(r2,r1);
-			Srv_wind_update(Pgetpid(),END_UPDATE);
+			Evhd_wind_update(Pgetpid(),END_UPDATE);
 			};
 
 		case	FMD_FINISH	:	/*0x0003*/

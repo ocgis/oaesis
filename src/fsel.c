@@ -334,7 +334,7 @@ static void slider_handle (WORD apid, WORD vid, WORD eventpipe, OBJECT *tree,
 	  ei.m1r.x = globals.mouse_x;
 	  ei.m1r.y = globals.mouse_y;
 
-    Srv_wind_update(apid, BEG_MCTRL);
+    Evhd_wind_update(apid, BEG_MCTRL);
     Graf_do_mouse(FLAT_HAND, NULL);
     Objc_do_change(tree, FISEL_SLIDER, clip, SELECTED, REDRAW);
 
@@ -387,7 +387,7 @@ static void slider_handle (WORD apid, WORD vid, WORD eventpipe, OBJECT *tree,
         ei.m1r.y = eo.my;
       }
     }
-    Srv_wind_update(apid, END_MCTRL);
+    Evhd_wind_update(apid, END_MCTRL);
   }
 }
 

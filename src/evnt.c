@@ -61,43 +61,43 @@ static WORD	clicktime = 200;
  ****************************************************************************/
 
 static LONG waitforinput(LONG timeout,LONG *rhnd) {
-	LONG l = timeout >> 15;
-	LONG t = timeout & 0x7fffL;
-	LONG fs;
-	LONG rlhnd;
-	
-	while(l) {
-		rlhnd = *rhnd;
-	
-		fs = Fselect(0x7fff,&rlhnd,NULL,0L);
-		
-		if(fs) {
-			*rhnd = rlhnd;
-			return fs;
-		};
-		
-		l--;
-	};
-	
-	rlhnd = *rhnd;
-	
-	fs = Fselect((WORD)t,&rlhnd,NULL,0L);
-	*rhnd = rlhnd;
-	return fs;
+  LONG l = timeout >> 15;
+  LONG t = timeout & 0x7fffL;
+  LONG fs;
+  LONG rlhnd;
+  
+  while(l) {
+    rlhnd = *rhnd;
+    
+    fs = Fselect(0x7fff,&rlhnd,NULL,0L);
+    
+    if(fs) {
+      *rhnd = rlhnd;
+      return fs;
+    };
+    
+    l--;
+  };
+  
+  rlhnd = *rhnd;
+  
+  fs = Fselect((WORD)t,&rlhnd,NULL,0L);
+  *rhnd = rlhnd;
+  return fs;
 }
 
 LONG eventselect(WORD events,LONG time,LONG *fhl) {
-	if(events & MU_TIMER) {
-		if(time <= 0) {
-			return Fselect(1,fhl,0L,0L);
-		}
-		else {	
-			return waitforinput(time,fhl);
-		};
-	}
-	else {
-		return Fselect(0,fhl,0L,0L);
-	};			
+  if(events & MU_TIMER) {
+    if(time <= 0) {
+      return Fselect(1,fhl,0L,0L);
+    }
+    else {	
+      return waitforinput(time,fhl);
+    };
+  }
+  else {
+    return Fselect(0,fhl,0L,0L);
+  };			
 }
 
 /****************************************************************************
@@ -117,52 +117,52 @@ WORD clicks,     /* Maximum number of clicks.                               */
 WORD laststate)  /* Previous mouse button state.                            */
 /****************************************************************************/
 {
-	WORD    clickcount = 0;
-	EVNTREC er;
-	WORD    extrawait = 1;
-	
-	while(clicks) {
-		LONG fhl = (1L << eventpipe);
-		
-		if((extrawait = Fselect(clicktime,&fhl,0L,0L)) > 0) {
-			Fread(eventpipe,sizeof(EVNTREC),&er);
-			
-			if(er.ap_event == APPEVNT_BUTTON) {
-				if(((er.ap_value ^ laststate) & bmask) &&
-						((bmask & er.ap_value) == bstate)) {
-					clicks--;
-					clickcount++;
-				};
-				
-				laststate = (WORD)er.ap_value;
-			};
-		}
-		else {
-			break;
-		};
+  WORD    clickcount = 0;
+  EVNTREC er;
+  WORD    extrawait = 1;
+  
+  while(clicks) {
+    LONG fhl = (1L << eventpipe);
+    
+    if((extrawait = Fselect(clicktime,&fhl,0L,0L)) > 0) {
+      Fread(eventpipe,sizeof(EVNTREC),&er);
+      
+      if(er.ap_event == APPEVNT_BUTTON) {
+	if(((er.ap_value ^ laststate) & bmask) &&
+	   ((bmask & er.ap_value) == bstate)) {
+	  clicks--;
+	  clickcount++;
 	};
 	
-	if((clicks == 0) || extrawait) {
-		(void)Fselect(clicktime,0L,0L,0L);
+	laststate = (WORD)er.ap_value;
+      };
+    }
+    else {
+      break;
+    };
 	};
-	
-	return clickcount;
+  
+  if((clicks == 0) || extrawait) {
+    (void)Fselect(clicktime,0L,0L,0L);
+  };
+  
+  return clickcount;
 }
 
 
 /*0x0014 evnt_keybd*/
 
 void	Evnt_keybd(AES_PB *apb) {
-	EVNTREC	e;
-
-	while(TRUE) {
-		Fread(apb->global->int_info->eventpipe,sizeof(EVNTREC),&e);
-	
-		if(e.ap_event == APPEVNT_KEYBOARD) {
-			apb->int_out[0] = (WORD)(e.ap_value >> 16);
-			break;
-		};
-	};
+  EVNTREC	e;
+  
+  while(TRUE) {
+    Fread(apb->global->int_info->eventpipe,sizeof(EVNTREC),&e);
+    
+    if(e.ap_event == APPEVNT_KEYBOARD) {
+      apb->int_out[0] = (WORD)(e.ap_value >> 16);
+      break;
+    };
+  };
 }
 
 /*0x0015 evnt_button*/
