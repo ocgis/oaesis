@@ -230,7 +230,7 @@ typedef struct _mn_set {
     long  speed;     /*  the continuous scroll delay   */
     short height;    /*  the menu scroll height        */
 #endif
-}MN_SET;
+} PACKED MN_SET;
 
 /* shel_get modes */
 #define SHEL_BUFSIZE (-1)
@@ -610,7 +610,7 @@ typedef struct {
   unsigned int textmode    :  1;
   unsigned int fillpattern :  3;
   unsigned int interiorcol :  4;
-} bfobspec;
+} PACKED bfobspec;
 
 struct user_block;      /* forward declaration */
 
