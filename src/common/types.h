@@ -2,7 +2,23 @@
 #define __TYPES__
 
 #include <fcntl.h>
+#include <sys/types.h>
 
+/* Use POSIX types */
+#ifndef BYTE
+#define BYTE  int8_t
+#define UBYTE u_int8_t
+#endif /* BYTE */
+#ifndef WORD
+#define WORD  int16_t
+#define UWORD u_int16_t
+#endif /* WORD */
+#ifndef LONG
+#define LONG  int32_t
+#define ULONG u_int32_t
+#endif /* LONG */
+
+#if 0
 #define BYTE  signed char
 #define UBYTE unsigned char
 #ifdef PUREC
@@ -16,7 +32,7 @@
 #define LONG  signed int
 #define ULONG unsigned int
 #endif
-
+#endif /* 0 */
 
 
 #ifdef  PUREC
