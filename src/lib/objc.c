@@ -380,12 +380,12 @@ draw_text (WORD     vid,
     break;
 
   case G_BOXCHAR:
-    ctext[0] = ob_spec.obspec.character;
+    ctext[0] = GET_OBSPEC_CHARACTER(ob_spec.index);
     ctext[1] = 0;
     text = ctext;
 
-    bfill = ob_spec.obspec.fillpattern;
-    bfill = ob_spec.obspec.interiorcol;
+    bfill = GET_OBSPEC_FILLPATTERN(ob_spec.index);
+    bfill = GET_OBSPEC_INTERIORCOL(ob_spec.index);
   }
 
   /* set font, alignment, color and writemode */
@@ -478,12 +478,12 @@ draw_text (WORD     vid,
       tx = par_x + ob->ob_x + (ob->ob_width >> 1);
       vst_alignment(vid,1,5,&temp,&temp);
 
-      tcolour = ob_spec.obspec.textcol;
+      tcolour = GET_OBSPEC_TEXTCOL(ob_spec.index);
 				
       if (draw3d) {
         writemode = SWRM_TRANS;
       } else {
-        writemode = ob_spec.obspec.textmode;
+        writemode = GET_OBSPEC_TEXTMODE(ob_spec.index);
       }
       break;			
 				
@@ -645,7 +645,6 @@ static void	draw_filled_rect(WORD vid,RECT *r) {
 	size[1] = r->y;
 	size[2] = r->width + size[0] - 1;
 	size[3] = r->height + size[1] - 1;
-
 	vr_recfl(vid,size);
 }
 
@@ -682,8 +681,8 @@ draw_bg (WORD vid,
     r.width = ob->ob_width;
     r.height = ob->ob_height;
 						
-    fillcolour = ob_spec.obspec.interiorcol;
-    filltype = ob_spec.obspec.fillpattern;
+    fillcolour = GET_OBSPEC_INTERIORCOL(ob_spec.index);
+    filltype = GET_OBSPEC_FILLPATTERN(ob_spec.index);
     break;
 		
   case G_BOXTEXT:
@@ -809,7 +808,6 @@ draw_bg (WORD vid,
     if(filltype != 0) {		
       set_write_mode(vid,SWRM_TRANS);
       vsf_color(vid,fillcolour);
-
       setfilltype(vid,filltype);
       draw_filled_rect(vid,&r);
     };
@@ -864,7 +862,7 @@ draw_frame (WORD     vid,
   WORD      type = ob->ob_type & 0xff;
   RECT      r;
   WORD      draw = 1;
-  WORD      framesize = 0;
+  BYTE      framesize = 0;
   U_OB_SPEC ob_spec;
 
   if(OB_FLAGS(ob) & INDIRECT) {
@@ -885,11 +883,11 @@ draw_frame (WORD     vid,
     r.width = ob->ob_width;
     r.height = ob->ob_height;
 			
-    framesize = ob_spec.obspec.framesize;
+    framesize = GET_OBSPEC_FRAMESIZE(ob_spec.index);
     DEBUG3("objc.c: draw_frame: framesize = %d obspec = 0x%x",
            framesize, ob_spec.index);
 
-    vsl_color(vid,ob_spec.obspec.framecol);
+    vsl_color(vid,GET_OBSPEC_FRAMECOL(ob_spec.index));
   }
   break;
 
@@ -2132,8 +2130,9 @@ Objc_area_needed(OBJECT * tree,
                  WORD     object,
                  RECT   * rect)
 {
-  WORD mode3d = OB_FLAGS(&tree[object]) & FLD3DANY;
+  WORD      mode3d = OB_FLAGS(&tree[object]) & FLD3DANY;
   U_OB_SPEC ob_spec;
+  WORD      framesize;
   
   if(OB_FLAGS(&tree[object]) & INDIRECT)
   {
@@ -2154,12 +2153,14 @@ Objc_area_needed(OBJECT * tree,
   case	G_BOX:
   case	G_IBOX:
   case	G_BOXCHAR:
-    if(ob_spec.obspec.framesize < 0)
+    framesize = (BYTE)GET_OBSPEC_FRAMESIZE(ob_spec.index);
+
+    if(framesize < 0)
     {
-      rect->x += ob_spec.obspec.framesize;
-      rect->y += ob_spec.obspec.framesize;
-      rect->width -= (ob_spec.obspec.framesize << 1);
-      rect->height -= (ob_spec.obspec.framesize << 1);
+      rect->x += framesize;
+      rect->y += framesize;
+      rect->width -= (framesize << 1);
+      rect->height -= (framesize << 1);
     }
     break;
   case	G_BUTTON:
