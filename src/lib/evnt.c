@@ -64,6 +64,7 @@
 #include "debug.h"
 #include "evnt.h"
 #include "evnthndl.h"
+#include "graf.h"
 #include "lib_comm.h"
 #include "lib_global.h"
 #include "mintdefs.h"
@@ -378,7 +379,8 @@ Evnt_do_multi (WORD       apid,
 					par.eventin.bclicks,
                                         par.eventin.bmask,
                                         par.eventin.bstate,
-					&ret.eventout.mc);
+					&ret.eventout.mc,
+                                        !handle_menu_bar);
     }
 
     if (ret.eventout.events & (MU_KEYBD | MU_M1 | MU_M2 | MU_TIMER)) {

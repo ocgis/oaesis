@@ -975,14 +975,6 @@ handle_window_element_click (WORD   apid,
 
 /*
 ** Exported
-**
-** 1998-12-20 CG
-** 1998-12-25 CG
-** 1999-04-09 CG
-** 1999-05-16 CG
-** 1999-05-24 CG
-** 1999-08-17 CG
-** 1999-08-20 CG
 */
 WORD
 Evhd_handle_button (WORD   apid,
@@ -992,10 +984,14 @@ Evhd_handle_button (WORD   apid,
 		    WORD   bclicks,
                     WORD   bmask,
                     WORD   bstate,
-		    WORD * mc) {
+		    WORD * mc,
+                    WORD   handle_user_click_only)
+{
   EVNTREC     er;
 
-  if (mouse_button & LEFT_BUTTON) {
+  if(!handle_user_click_only &&
+     (mouse_button & LEFT_BUTTON))
+  {
     WORD     win_id;
     WORD     owner;
     WORD     top;

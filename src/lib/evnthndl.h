@@ -6,11 +6,6 @@
 /*
 ** Description
 ** Handle button click
-**
-** 1998-12-20 CG
-** 1999-05-24 CG
-** 1999-08-17 CG
-** 1999-08-20 CG
 */
 WORD
 Evhd_handle_button (WORD   apid,
@@ -20,7 +15,8 @@ Evhd_handle_button (WORD   apid,
 		    WORD   bclicks,
                     WORD   bmask,
                     WORD   bstate,
-		    WORD * mc);
+		    WORD * mc,
+                    WORD   handle_user_click_only);
 
 
 /*
