@@ -12,12 +12,13 @@ TRAP_OBJS = gcc.o
 OBJS = $(SERVER_OBJS) $(TRAP_OBJS)
 CSRCS = $(SERVER_CSRCS)
 
+EXTRA_LIBS = ../launcher/liblauncher.a ../lib/liboaesis.a \
+	     ../lib/liboaesis_client.a
+
 all: oaesis
 
-oaesis: $(SERVER_OBJS) $(TRAP_OBJS)
-	$(LD) -o $@  $(SERVER_OBJS) $(TRAP_OBJS)\
-	  ../launcher/liblauncher.a ../lib/liboaesis.a \
-	  ../lib/liboaesis_client.a \
+oaesis: $(SERVER_OBJS) $(TRAP_OBJS) $(EXTRA_LIBS)
+	$(LD) -o $@  $(SERVER_OBJS) $(TRAP_OBJS) $(EXTRA_LIBS) \
 	  -lovdisis
 
 srv_get.c:
