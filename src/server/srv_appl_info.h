@@ -85,11 +85,33 @@ next_appl_list_element (AP_LIST_REF element);
 
 /*
 ** Description
+** Find MiNT-PID & return AP_LIST entry for that 
+*/
+AP_LIST_REF
+search_mpid(WORD pid);
+
+/*
+** Description
 ** Get internal information about application.
 **
 ** 1998-12-08 CG
 */
 AP_INFO_REF
 search_appl_info (WORD apid);
+
+
+/*
+** Description
+** Free AP_INFO structure of apid
+*/
+void
+apinfofree(WORD id);
+
+/*
+** Description
+** Get currently topped application
+*/
+WORD
+get_top_appl(void);
 
 #endif /* _SRV_EVENT_H_ */

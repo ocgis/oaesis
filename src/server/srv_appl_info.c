@@ -42,6 +42,27 @@ next_appl_list_element (AP_LIST_REF element) {
 
 
 /*
+** Description
+** Find MiNT-PID & return AP_LIST entry for that 
+*/
+AP_LIST_REF
+search_mpid(WORD pid)
+{
+  AP_LIST_REF al;
+  
+  al = ap_pri;
+  
+  while(al) 
+  {
+    if( al->ai->pid == pid) 
+			break;
+    al = al->next;
+  }
+  return al;	
+}
+
+
+/*
 ** Exported
 **
 ** 1998-12-08 CG
@@ -89,5 +110,61 @@ search_appl_info(WORD apid) {
       return &apps[apid];
     }
     return NULL;
+  }
+}
+
+
+/*
+** Description
+** Free AP_INFO structure of apid
+*/
+void
+apinfofree(WORD id)
+{
+  AP_LIST_REF * al;
+  
+  al = &ap_pri;
+  
+  while(*al)
+  {
+    if((*al)->ai->id == id)
+    {
+      AP_LIST	*altemp = *al;
+      
+      *al = (*al)->next;
+      
+      altemp->ai->vid = -1;
+      altemp->ai->msgpipe = -1;
+      altemp->ai->eventpipe = -1;
+      
+      if(altemp->ai->rshdr)
+      {
+        Mfree(altemp->ai->rshdr);	/*free resource memory*/
+      }
+      
+      altemp->ai->id = -1;
+      /* FIXME Mfree(altemp);*/
+      
+      break;
+    }
+    al = &(*al)->next;
+  }
+}
+
+
+/*
+** Description
+** Get currently topped application
+*/
+WORD
+get_top_appl(void)
+{
+  if(ap_pri)
+  {
+    return ap_pri->ai->id;
+  }
+  else
+  {
+    return -1;
   }
 }

@@ -3,11 +3,6 @@
 
 #define SRV_COMPLETE_MCTRL 0x1000
 
-/* Internal appl_control() modes */
-
-#define APC_TOPNEXT 0
-#define APC_KILL    1
-
 
 #define TOP_APPL       (-1)
 #define DESK_OWNER     (-2)
