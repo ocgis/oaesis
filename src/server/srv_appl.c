@@ -23,7 +23,9 @@
 #include "srv_event.h"
 #include "srv_global.h"
 #include "srv_interface.h"
+#include "srv_malloc.h"
 #include "srv_menu.h"
+#include "srv_trace.h"
 #include "srv_wind.h"
 
 
@@ -299,14 +301,14 @@ srv_info_alloc(WORD pid,
                WORD alloc_only)
 {
   AP_LIST	*al;
-   
+  
   DEBUG2 ("srv.c: srv_info_alloc: Allocating memory");
-  al = (AP_LIST *)malloc(sizeof(AP_LIST));
+  al = (AP_LIST *)MALLOC(sizeof(AP_LIST));
   
   if(!al)
   {
-    DB_printf("%s: Line %d: srv_info_alloc:\r\n"
-	      "out of memory!\r\n",__FILE__,__LINE__);
+    DEBUG1("%s: Line %d: srv_info_alloc:\r\n"
+           "out of memory!\r\n",__FILE__,__LINE__);
     return NULL;
   }
   
@@ -339,7 +341,7 @@ srv_info_alloc(WORD pid,
     al->next = ap_resvd;
     ap_resvd = al;
   }
-  
+
   return al->ai;
 }
 
@@ -383,7 +385,7 @@ srv_appl_init(C_APPL_INIT * par,
   AP_INFO *  ai;
   AP_LIST *  al;
   AP_LIST ** awalk = &ap_resvd;
-  
+
   DEBUG2 ("oaesis: srv.c: srv_appl_init: Beginning");
 
   /* Has an info structure already been reserved? */

@@ -20,6 +20,7 @@
 #include <stdlib.h>
 
 #include "debug.h"
+#include "srv_malloc.h"
 #include "srv_queue.h"
 
 typedef struct element_s * ELEMENT;
@@ -47,7 +48,7 @@ allocate_queue (void) {
   QUEUE q;
 
   DEBUG3 ("srv_queue.c: allocate_queue: allocating memory");
-  q = (QUEUE)malloc (sizeof (QUEUE_S));
+  q = (QUEUE)MALLOC(sizeof (QUEUE_S));
 
   q->first = ELEMENT_NIL;
   q->last = ELEMENT_NIL;
@@ -69,10 +70,10 @@ free_queue (QUEUE q) {
     
     e = q->free;
     q->free = e->next;
-    free (e);
+    FREE(e);
   }
 
-  free (q);
+  FREE(q);
 }
 
 
@@ -86,7 +87,7 @@ ELEMENT
 ealloc (QUEUE q) {
   if (q->free == ELEMENT_NIL) {
     DEBUG3 ("srv_queue.c: ealloc: allocating memory");
-    return (ELEMENT)malloc (sizeof (ELEMENT_S));
+    return (ELEMENT)MALLOC(sizeof (ELEMENT_S));
   } else {
     ELEMENT e;
 

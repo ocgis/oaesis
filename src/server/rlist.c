@@ -33,6 +33,7 @@
 #endif
 
 #include "mintdefs.h"
+#include "srv_malloc.h"
 #include "srv_misc.h"
 #include "rlist.h"
 #include "types.h"
@@ -47,21 +48,28 @@ static RLIST *free_rlist = 0L;
  * Local functions (use static!)                                            *
  ****************************************************************************/
 
-static RLIST *alloc(void) {
+static
+RLIST *
+rlist_alloc(void)
+{
   RLIST *blk = free_rlist;
   
-  if(blk) {
+  if(blk)
+  {
     free_rlist = free_rlist->next;
     
     return blk;
-  };
+  }
   
-  return (RLIST *)Mxalloc(sizeof(RLIST),GLOBALMEM);
+  return (RLIST *)MALLOC(sizeof(RLIST));
 }
 
-static void free(RLIST *blk) {
-	blk->next = free_rlist;
-	free_rlist = blk;
+static
+void
+rlist_free(RLIST *blk)
+{
+  blk->next = free_rlist;
+  free_rlist = blk;
 }
 
 static WORD	tryinsert(RLIST **dst,RLIST **src) {				
@@ -134,7 +142,7 @@ static WORD	tryinsert(RLIST **dst,RLIST **src) {
 			RLIST	*c = *dst;
 			
 			*dst = (*dst)->next;
-			free(c);
+			rlist_free(c);
 			(*src)->r.x = (WORD)xnew;
 			(*src)->r.y = (WORD)ynew;
 			(*src)->r.width = (WORD)wnew;
@@ -191,7 +199,7 @@ static WORD	tryinsert(RLIST **dst,RLIST **src) {
 			c->r.width = wdn;
 			c->r.height = hdn;
 			
-			c = alloc();
+			c = rlist_alloc();
 			
 			c->next = *src;
 			*src = c;
@@ -270,7 +278,7 @@ static WORD	tryinsert(RLIST **dst,RLIST **src) {
 			RLIST	*c = *dst;
 			
 			*dst = (*dst)->next;
-			free(c);
+			rlist_free(c);
 			(*src)->r.x = (WORD)xnew;
 			(*src)->r.y = (WORD)ynew;
 			(*src)->r.width = (WORD)wnew;
@@ -327,7 +335,7 @@ static WORD	tryinsert(RLIST **dst,RLIST **src) {
 			c->r.width = wrt;
 			c->r.height = hrt;
 			
-			c = alloc();
+			c = rlist_alloc();
 			
 			c->next = *src;
 			*src = c;
@@ -409,7 +417,7 @@ RLIST **src)      /* Rectangle list to erase.                               */
 		
 		rlwalk = rlwalk->next;
 		
-		free(rl);
+		rlist_free(rl);
 	};
 }
 
@@ -430,7 +438,7 @@ RLIST *src)       /* Rectangle list to duplicate.                           */
 	if(!src)
 		return 0;
 	
-	rl = alloc();
+	rl = rlist_alloc();
 	rl->r.x = src->r.x;
 	rl->r.y = src->r.y;
 	rl->r.width = src->r.width;
@@ -442,7 +450,7 @@ RLIST *src)       /* Rectangle list to duplicate.                           */
 	
 	while(src)
 	{
-		rlwalk->next = alloc();
+		rlwalk->next = rlist_alloc();
 		rlwalk = rlwalk->next;
 		rlwalk->r.x = src->r.x;
 		rlwalk->r.y = src->r.y;
@@ -609,7 +617,7 @@ RLIST **src)      /* Source rectangle list.                                 */
       
       if((*dst)->r.x < r.x)
       {
-	RLIST *rl = alloc();
+	RLIST *rl = rlist_alloc();
 	
 	rl->next = shead;
 	shead = rl;
@@ -624,7 +632,7 @@ RLIST **src)      /* Source rectangle list.                                 */
       if(((*dst)->r.x + (*dst)->r.width)
 	 > (r.x + r.width))
       {
-	RLIST *rl = alloc();
+	RLIST *rl = rlist_alloc();
 	
 	rl->next = shead;
 	shead = rl;
@@ -638,7 +646,7 @@ RLIST **src)      /* Source rectangle list.                                 */
       
       if((*dst)->r.y < r.y)
       {
-	RLIST *rl = alloc();
+	RLIST *rl = rlist_alloc();
 	
 	rl->next = shead;
 	shead = rl;
@@ -651,7 +659,7 @@ RLIST **src)      /* Source rectangle list.                                 */
       
       if(((*dst)->r.y + (*dst)->r.height) > (r.y + r.height))
       {
-	RLIST *rl = alloc();
+	RLIST *rl = rlist_alloc();
 	
 	rl->next = shead;
 	shead = rl;
