@@ -1,7 +1,7 @@
 /*
 ** wind.c
 **
-** Copyright 1996 - 2000 Christer Gustavsson <cg@nocrew.org>
+** Copyright 1996 - 2001 Christer Gustavsson <cg@nocrew.org>
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -142,40 +142,50 @@ set_widget_colour(WINDOW_STRUCT * win,
                   WORD            top,
                   WORD            untop)
 {
-  U_OB_SPEC * ob_spec;
+  U_OB_SPEC * obspec;
   WORD        object = 0;
-  WORD *      colour;
+  WORD        new_colour;
 
   if(win->tree)
   {
     object = widgetmap[widget];
     
-    if(win->tree[object].ob_flags & INDIRECT)
+    if(OB_FLAGS(&win->tree[object]) & INDIRECT)
     {
-      ob_spec = (U_OB_SPEC *)win->tree[object].ob_spec.indirect;
+      obspec = ((U_OB_SPEC *)OB_SPEC(&win->tree[object]));
     }
     else
     {
-      ob_spec = (U_OB_SPEC *)&win->tree[object].ob_spec;
+      obspec = &win->tree[object].ob_spec;
     }
     
-    switch(win->tree[object].ob_type & 0xff)
+    if(win->status & WIN_TOPPED)
+    {
+      new_colour = top;
+    }
+    else
+    {
+      new_colour = untop;
+    }
+
+    switch(OB_TYPE(&win->tree[object]) & 0xff)
     {
     case G_BOX:
     case G_IBOX:
     case G_BOXCHAR:
-      colour = &((WORD *)ob_spec)[1];
+      obspec->index = HL_TO_CL((CL_TO_HL(obspec->index) && 0xffff0000) |
+                               new_colour);
       break;
       
     case G_TEXT:
     case G_BOXTEXT:
     case G_FTEXT:
     case G_FBOXTEXT:
-      colour = (WORD *)&ob_spec->tedinfo->te_color;
+      TE_COLOR_PUT(obspec->tedinfo, new_colour);
       break;
       
     case G_IMAGE:
-      colour = (WORD *)&ob_spec->bitblk->bi_color;
+      BI_COLOR_PUT(obspec->bitblk, new_colour);
       break;
       
     case G_BUTTON:
@@ -186,17 +196,8 @@ set_widget_colour(WINDOW_STRUCT * win,
       
     default:
       DEBUG1("Unsupported type %d in set_widget_colour, widget %d",
-             win->tree[object].ob_type, widget);
+             OB_TYPE(&win->tree[object]), widget);
       return;
-    }
-    
-    if(win->status & WIN_TOPPED)
-    {
-      *colour = top;
-    }
-    else
-    {
-      *colour = untop;
     }
   }
 }
@@ -212,7 +213,8 @@ calcworksize (WORD apid,
               WORD elem,
               RECT *orig,
               RECT *new,
-              WORD dir) {
+              WORD dir)
+{
   WORD  bottomsize = 1;
   WORD  headsize = 1;
   WORD  leftsize = 1;
@@ -222,38 +224,46 @@ calcworksize (WORD apid,
         
   DEBUG3 ("wind.c: calcworksize: %d %d %d %d",
           orig->x, orig->y, orig->width, orig->height);
-  if((HSLIDE | LFARROW | RTARROW) & elem) {
-    bottomsize = globals_common->windowtad[WLEFT].ob_height + (D3DSIZE << 1);
-  };
-        
-  if((CLOSER | MOVER | FULLER | NAME) & elem) {
-    topsize = globals_common->windowtad[WMOVER].ob_height + (D3DSIZE << 1);
+  if((HSLIDE | LFARROW | RTARROW) & elem)
+  {
+    bottomsize = OB_HEIGHT(&globals_common->windowtad[WLEFT]) + (D3DSIZE << 1);
   }
-  else if(IMOVER & elem) {
+        
+  if((CLOSER | MOVER | FULLER | NAME) & elem)
+  {
+    topsize = OB_HEIGHT(&globals_common->windowtad[WMOVER]) + (D3DSIZE << 1);
+  }
+  else if(IMOVER & elem)
+  {
     topsize = globals_common->csheight + 2 + D3DSIZE * 2;
   }
-  else {
+  else
+  {
     topsize = 0;
-  };
-        
-  if(INFO & elem) {
-    headsize = topsize + globals_common->windowtad[WINFO].ob_height + 2 * D3DSIZE;
   }
-  else {
+        
+  if(INFO & elem)
+  {
+    headsize =
+      topsize + OB_HEIGHT(&globals_common->windowtad[WINFO]) + 2 * D3DSIZE;
+  }
+  else
+  {
     if(topsize)
       headsize = topsize;
     else
       headsize = 1;
-  };
+  }
         
-  if((LFARROW | HSLIDE | RTARROW) & elem) {
-    bottomsize = globals_common->windowtad[WLEFT].ob_height + (D3DSIZE << 1);
-  };
-        
-  if(((bottomsize < globals_common->windowtad[WLEFT].ob_height) && (SIZER & elem))
-     || ((VSLIDE | UPARROW | DNARROW) & elem))
+  if((LFARROW | HSLIDE | RTARROW) & elem)
   {
-    rightsize = globals_common->windowtad[WSIZER].ob_width + (D3DSIZE << 1);
+    bottomsize = OB_HEIGHT(&globals_common->windowtad[WLEFT]) + (D3DSIZE << 1);
+  }
+        
+  if(((bottomsize < OB_HEIGHT(&globals_common->windowtad[WLEFT])) &&
+      (SIZER & elem)) || ((VSLIDE | UPARROW | DNARROW) & elem))
+  {
+    rightsize = OB_WIDTH(&globals_common->windowtad[WSIZER]) + (D3DSIZE << 1);
   }
 
   if(dir == WC_WORK) {
@@ -317,15 +327,16 @@ Wind_set_slider (WORD        apid,
     }
 
     newy = (WORD)(((LONG)win->vslidepos *
-                   (LONG)(win->tree[WVSB].ob_height -
-                          win->tree[WVSLIDER].ob_height)) / 1000L);
+                   (LONG)(OB_HEIGHT(&win->tree[WVSB]) -
+                          OB_HEIGHT(&win->tree[WVSLIDER]))) / 1000L);
     newheight = (WORD)(((LONG)win->vslidesize *
-                        (LONG)win->tree[WVSB].ob_height) / 1000L);
+                        (LONG)OB_HEIGHT(&win->tree[WVSB])) / 1000L);
     
-    if((win->tree[WVSLIDER].ob_y != newy) ||
-       (win->tree[WVSLIDER].ob_height != newheight)) {
-      win->tree[WVSLIDER].ob_y = newy;
-      win->tree[WVSLIDER].ob_height = newheight;
+    if((OB_Y(&win->tree[WVSLIDER]) != newy) ||
+       (OB_HEIGHT(&win->tree[WVSLIDER]) != newheight))
+    {
+      OB_Y_PUT(&win->tree[WVSLIDER], newy);
+      OB_HEIGHT_PUT(&win->tree[WVSLIDER], newheight);
       
       redraw2 = 1;
     }
@@ -355,15 +366,16 @@ Wind_set_slider (WORD        apid,
     }
     
     newx = (WORD)(((LONG)win->hslidepos *
-                   (LONG)(win->tree[WHSB].ob_width -
-                          win->tree[WHSLIDER].ob_width)) / 1000L);
+                   (LONG)(OB_WIDTH(&win->tree[WHSB]) -
+                          OB_WIDTH(&win->tree[WHSLIDER]))) / 1000L);
     newwidth = (WORD)(((LONG)win->hslidesize *
-                       (LONG)win->tree[WHSB].ob_width) / 1000L);
+                       (LONG)OB_WIDTH(&win->tree[WHSB])) / 1000L);
     
-    if((win->tree[WHSLIDER].ob_x != newx) ||
-       (win->tree[WHSLIDER].ob_width != newwidth)) {
-      win->tree[WHSLIDER].ob_x = newx;
-      win->tree[WHSLIDER].ob_width = newwidth;
+    if((OB_X(&win->tree[WHSLIDER]) != newx) ||
+       (OB_WIDTH(&win->tree[WHSLIDER]) != newwidth))
+    {
+      OB_X_PUT(&win->tree[WHSLIDER], newx);
+      OB_WIDTH_PUT(&win->tree[WHSLIDER], newwidth);
       
       redraw2 = 1;
     }
@@ -387,6 +399,11 @@ Wind_set_slider (WORD        apid,
   return 1;
 }
 
+
+#define ADD_OB_X(ob, val)      OB_X_PUT(ob, OB_X(ob) + val)
+#define ADD_OB_Y(ob, val)      OB_Y_PUT(ob, OB_Y(ob) + val)
+#define ADD_OB_WIDTH(ob, val)  OB_WIDTH_PUT(ob, OB_WIDTH(ob) + val)
+#define ADD_OB_HEIGHT(ob, val) OB_HEIGHT_PUT(ob, OB_HEIGHT(ob) + val)
 
 /*
 ** Description
@@ -419,50 +436,50 @@ Wind_set_size (int    apid,
     
     if(ws->tree)
     {
-      ws->tree[0].ob_x = ws->totsize.x;
-      ws->tree[0].ob_y = ws->totsize.y;
-      ws->tree[0].ob_width = ws->totsize.width;
-      ws->tree[0].ob_height = ws->totsize.height;
+      ADD_OB_X(&ws->tree[0], ws->totsize.x);
+      ADD_OB_Y(&ws->tree[0], ws->totsize.x);
+      ADD_OB_WIDTH(&ws->tree[0], ws->totsize.width);
+      ADD_OB_HEIGHT(&ws->tree[0], ws->totsize.height);
       
-      ws->tree[WMOVER].ob_width += dw;
+      ADD_OB_WIDTH(&ws->tree[WMOVER], dw);
       
-      ws->tree[WFULLER].ob_x += dw;
+      ADD_OB_X(&ws->tree[WFULLER], dw);
       
-      ws->tree[WSMALLER].ob_x += dw;
+      ADD_OB_X(&ws->tree[WSMALLER], dw);
       
-      ws->tree[WDOWN].ob_x += dw;
-      ws->tree[WDOWN].ob_y += dh;    
+      ADD_OB_X(&ws->tree[WDOWN], dw);
+      ADD_OB_Y(&ws->tree[WDOWN], dh);
       
-      ws->tree[WSIZER].ob_x += dw;
-      ws->tree[WSIZER].ob_y += dh;   
+      ADD_OB_X(&ws->tree[WSIZER], dw);
+      ADD_OB_Y(&ws->tree[WSIZER], dh);
       
-      ws->tree[WRIGHT].ob_x += dw;
-      ws->tree[WRIGHT].ob_y += dh;   
+      ADD_OB_X(&ws->tree[WRIGHT], dw);
+      ADD_OB_Y(&ws->tree[WRIGHT], dh);
       
-      ws->tree[WLEFT].ob_y += dh;    
+      ADD_OB_Y(&ws->tree[WLEFT], dh);
       
-      ws->tree[WVSB].ob_x += dw;
-      ws->tree[WVSB].ob_height += dh;        
+      ADD_OB_X(&ws->tree[WVSB], dw);
+      ADD_OB_HEIGHT(&ws->tree[WVSB], dh);
       
-      ws->tree[WHSB].ob_y += dh;
-      ws->tree[WHSB].ob_width += dw; 
+      ADD_OB_Y(&ws->tree[WHSB], dh);
+      ADD_OB_WIDTH(&ws->tree[WHSB], dw);
       
-      ws->tree[WINFO].ob_width += dw;
+      ADD_OB_WIDTH(&ws->tree[WINFO], dw);
       
-      ws->tree[WUP].ob_x += dw;
+      ADD_OB_X(&ws->tree[WUP], dw);
       
-      ws->tree[TFILLOUT].ob_width += dw;
+      ADD_OB_WIDTH(&ws->tree[TFILLOUT], dw);
       
-      ws->tree[RFILLOUT].ob_height += dh;
-      ws->tree[RFILLOUT].ob_x += dw;
+      ADD_OB_HEIGHT(&ws->tree[RFILLOUT], dh);
+      ADD_OB_X(&ws->tree[RFILLOUT], dw);
       
-      ws->tree[BFILLOUT].ob_width += dw;
-      ws->tree[BFILLOUT].ob_y += dy;
+      ADD_OB_WIDTH(&ws->tree[BFILLOUT], dw);
+      ADD_OB_Y(&ws->tree[BFILLOUT], dy);
       
-      ws->tree[SFILLOUT].ob_x += dw;
-      ws->tree[SFILLOUT].ob_y += dh;
+      ADD_OB_X(&ws->tree[SFILLOUT], dw);
+      ADD_OB_Y(&ws->tree[SFILLOUT], dh);
       
-      ws->tree[WAPP].ob_width = ws->tree[WMOVER].ob_width;
+      OB_WIDTH_PUT(&ws->tree[WAPP], OB_WIDTH(&ws->tree[WMOVER]));
       
       Wind_set_slider (apid,
                        id,
@@ -520,7 +537,8 @@ allocate_window_elements (void) {
   GLOBAL_COMMON * globals = get_global_common ();
 
   while(elemnumber == -1) {
-    switch (globals->windowtad[i].ob_type) {
+    switch(OB_TYPE(&globals->windowtad[i]))
+    {
     case        G_TEXT          :
     case        G_BOXTEXT       :
     case        G_FTEXT         :
@@ -550,13 +568,14 @@ allocate_window_elements (void) {
     memcpy(t,globals->windowtad,sizeof(OBJECT) * elemnumber);
                 
     for(i = 0; i < elemnumber; i++) {
-      switch(globals->windowtad[i].ob_type) {
+      switch(OB_TYPE(&globals->windowtad[i]))
+      {
       case      G_TEXT          :
       case      G_BOXTEXT       :
       case      G_FTEXT         :
       case      G_FBOXTEXT      :
-        t[i].ob_spec.tedinfo = ti;
-        memcpy(ti, globals->windowtad[i].ob_spec.tedinfo, sizeof(TEDINFO));
+        OB_SPEC_PUT(&t[i], ti);
+        memcpy(ti, (void *)OB_SPEC(&globals->windowtad[i]), sizeof(TEDINFO));
         ti++;
       }
     }
@@ -569,8 +588,6 @@ allocate_window_elements (void) {
 /*
 ** Description
 ** Pack window elements
-**
-** 1998-09-30 CG
 */
 static
 void
@@ -579,71 +596,106 @@ packelem (OBJECT * tree,
           WORD     left,
           WORD     right,
           WORD     top,
-          WORD     bottom) {
-    if((left != -1) && (right != -1)) {
-    if(left == 0) {
-      tree[object].ob_x = D3DSIZE;
+          WORD     bottom)
+{
+  if((left != -1) && (right != -1))
+  {
+    if(left == 0)
+    {
+      OB_X_PUT(&tree[object], D3DSIZE);
     }
-    else {
-      tree[object].ob_x = tree[left].ob_x + tree[left].ob_width + D3DSIZE * 2;
-    };
+    else
+    {
+      OB_X_PUT(&tree[object],
+               OB_X(&tree[left]) + OB_WIDTH(&tree[left]) + D3DSIZE * 2);
+    }
                 
-    if(right == 0) {
-      tree[object].ob_width = tree[0].ob_width - tree[object].ob_x - D3DSIZE;
+    if(right == 0)
+    {
+      OB_WIDTH_PUT(&tree[object],
+                   OB_WIDTH(&tree[0]) - OB_X(&tree[object]) - D3DSIZE);
     }
-    else {
-      tree[object].ob_width = tree[right].ob_x - tree[object].ob_x - D3DSIZE * 2;
+    else
+    {
+      OB_WIDTH_PUT(&tree[object],
+                   OB_X(&tree[right]) - OB_X(&tree[object]) - D3DSIZE * 2);
     }
   }
-  else if(left != -1) {
-    if(left == 0) {
-      tree[object].ob_x = D3DSIZE;
+  else if(left != -1)
+  {
+    if(left == 0)
+    {
+      OB_X_PUT(&tree[object], D3DSIZE);
     }
-    else {
-      tree[object].ob_x = tree[left].ob_x + tree[left].ob_width + D3DSIZE * 2;
-    };          
+    else
+    {
+      OB_X_PUT(&tree[object],
+               OB_X(&tree[left]) + OB_WIDTH(&tree[left]) + D3DSIZE * 2);
+    }
   }
-  else if(right != -1) {
-    if(right == 0) {
-      tree[object].ob_x = tree[0].ob_width - tree[object].ob_width - D3DSIZE;
+  else if(right != -1)
+  {
+    if(right == 0)
+    {
+      OB_X_PUT(&tree[object],
+               OB_WIDTH(&tree[0]) - OB_WIDTH(&tree[object]) - D3DSIZE);
     }
-    else {
-      tree[object].ob_x = tree[right].ob_x - tree[object].ob_width - D3DSIZE * 2;
-    };
-  };
+    else
+    {
+      OB_X_PUT(&tree[object],
+               OB_X(&tree[right]) - OB_WIDTH(&tree[object]) - D3DSIZE * 2);
+    }
+  }
         
         
-  if((top != -1) && (bottom != -1)) {
-    if(top == 0) {
-      tree[object].ob_y = D3DSIZE;
+  if((top != -1) && (bottom != -1))
+  {
+    if(top == 0)
+    {
+      OB_Y_PUT(&tree[object], D3DSIZE);
     }
-    else {
-      tree[object].ob_y = tree[top].ob_y + tree[top].ob_height + D3DSIZE * 2;
-    };
+    else
+    {
+      OB_Y_PUT(&tree[object],
+               OB_Y(&tree[top]) + OB_HEIGHT(&tree[top]) + D3DSIZE * 2);
+    }
                 
-    if(bottom == 0) {
-      tree[object].ob_height = tree[0].ob_height - tree[object].ob_y - D3DSIZE;
+    if(bottom == 0)
+    {
+      OB_HEIGHT_PUT(&tree[object],
+                    OB_HEIGHT(&tree[0]) - OB_Y(&tree[object]) - D3DSIZE);
     }
-    else {
-      tree[object].ob_height = tree[bottom].ob_y - tree[object].ob_y - D3DSIZE * 2;
+    else
+    {
+      OB_HEIGHT_PUT(&tree[object],
+                    OB_Y(&tree[bottom]) - OB_Y(&tree[object]) - D3DSIZE * 2);
     }
   }
-  else if(top != -1) {
-    if(top == 0) {
-      tree[object].ob_y = D3DSIZE;
+  else if(top != -1)
+  {
+    if(top == 0)
+    {
+      OB_Y_PUT(&tree[object], D3DSIZE);
     }
-    else {
-      tree[object].ob_y = tree[top].ob_y + tree[top].ob_height + D3DSIZE * 2;
-    };          
+    else
+    {
+      OB_Y_PUT(&tree[object],
+               OB_Y(&tree[top]) + OB_HEIGHT(&tree[top]) + D3DSIZE * 2);
+    }
   }
-  else if(bottom != -1) {
-    if(bottom == 0) {
-      tree[object].ob_y = tree[0].ob_height - tree[object].ob_height - D3DSIZE;
+  else if(bottom != -1)
+  {
+    if(bottom == 0)
+    {
+      OB_Y_PUT(&tree[object],
+               OB_HEIGHT(&tree[0]) - OB_HEIGHT(&tree[object]) - D3DSIZE);
     }
-    else {
-      tree[object].ob_y = tree[bottom].ob_y - tree[object].ob_height - D3DSIZE * 2;
-    };
-  };    
+    else
+    {
+      OB_Y_PUT(&tree[object],
+               OB_Y(&tree[bottom]) - OB_HEIGHT(&tree[object]) - D3DSIZE * 2);
+    }
+  }
 }
 
 
@@ -661,21 +713,24 @@ set_win_elem (OBJECT * tree,
   WORD left = 0,right = 0,top = 0,bottom = 0;
 
   DEBUG3("wind.c: set_win_elem: tree = %p", tree);
-  if((HSLIDE | LFARROW | RTARROW) & elem) {
-    bottomsize = tree[WLEFT].ob_height + (D3DSIZE << 1);
+  if((HSLIDE | LFARROW | RTARROW) & elem)
+  {
+    bottomsize = OB_HEIGHT(&tree[WLEFT]) + (D3DSIZE << 1);
   }
         
   DEBUG3("wind.c: set_win_elem: 2");
-  if((LFARROW | HSLIDE | RTARROW) & elem) {
-    bottomsize = tree[WLEFT].ob_height + (D3DSIZE << 1);
+  if((LFARROW | HSLIDE | RTARROW) & elem)
+  {
+    bottomsize = OB_HEIGHT(&tree[WLEFT]) + (D3DSIZE << 1);
   }
         
   DEBUG3("wind.c: set_win_elem: 3");
   if(((bottomsize == 0) && (SIZER & elem))
-     || ((VSLIDE | UPARROW | DNARROW) & elem)) {
+     || ((VSLIDE | UPARROW | DNARROW) & elem))
+  {
     DEBUG3("wind.c: set_win_elem: 3.1: tree[WSIZER]@%p",&tree[WSIZER]);
-    DEBUG3("wind.c: tree[WSIZER].ob_width = %d", tree[WSIZER].ob_width);
-    rightsize = tree[WSIZER].ob_width + (D3DSIZE << 1);
+    DEBUG3("wind.c: tree[WSIZER].OB_WIDTH = %d", OB_WIDTH(&tree[WSIZER]));
+    rightsize = OB_WIDTH(&tree[WSIZER]) + (D3DSIZE << 1);
   }
         
   DEBUG3("wind.c: set_win_elem: 4");
@@ -723,10 +778,10 @@ set_win_elem (OBJECT * tree,
     OB_FLAGS_CLEAR(&tree[WMOVER], HIDETREE);
     OB_FLAGS_SET(&tree[TFILLOUT], HIDETREE);
                 
-    tree[WMOVER].ob_height = tree[WCLOSER].ob_height;
-    tree[WMOVER].ob_spec.tedinfo->te_font = IBM;
+    OB_HEIGHT_PUT(&tree[WMOVER], OB_HEIGHT(&tree[WCLOSER]));
+    TE_FONT_PUT(OB_SPEC(&tree[WMOVER]), IBM);
 
-    packelem(tree,WMOVER,left,right,0,-1);
+    packelem(tree, WMOVER, left, right, 0, -1);
     top = WMOVER;
   }
   else
@@ -894,8 +949,8 @@ set_win_elem (OBJECT * tree,
     GLOBAL_COMMON * globals_common = get_global_common();
 
     OB_FLAGS_CLEAR(&tree[WMOVER], HIDETREE);
-    tree[WMOVER].ob_height = globals_common->csheight + 2;
-    tree[WMOVER].ob_spec.tedinfo->te_font = SMALL;
+    OB_HEIGHT_PUT(&tree[WMOVER], globals_common->csheight + 2);
+    TE_FONT_PUT(OB_SPEC(&tree[WMOVER]), SMALL);
     packelem(tree,WMOVER,0,0,0,-1);
 
     OB_FLAGS_SET(&tree[WAPP], HIDETREE);
@@ -1155,19 +1210,19 @@ Wind_do_create (WORD   apid,
     ws->elements = elements;
     set_win_elem (ws->tree, ws->elements);
 
-    ws->tree[WAPP].ob_spec.tedinfo->te_ptext = globals->application_name;
+    TE_PTEXT_PUT(OB_SPEC(&ws->tree[WAPP]), globals->application_name);
 
     DEBUG3("application_name = %s", globals->application_name);
     /* FIXME : What was this used for?
     if(globals.wind_appl == 0) {
-      ws->tree[WAPP].ob_spec.tedinfo->te_ptext[0] = 0;
+      TE_PTEXT(OB_SPEC(&ws->tree[WAPP]))[0] = 0;
     }
     */
 
-    ws->totsize.x = ws->tree[0].ob_x;
-    ws->totsize.y = ws->tree[0].ob_y;
-    ws->totsize.width = ws->tree[0].ob_width;
-    ws->totsize.height = ws->tree[0].ob_height;
+    ws->totsize.x      = OB_X(&ws->tree[0]);
+    ws->totsize.y      = OB_Y(&ws->tree[0]);
+    ws->totsize.width  = OB_WIDTH(&ws->tree[0]);
+    ws->totsize.height = OB_HEIGHT(&ws->tree[0]);
     
     calcworksize (apid, ws->elements, &ws->totsize, &ws->worksize, WC_WORK);
 
@@ -1560,12 +1615,14 @@ Wind_set_name_or_info (WORD   apid,
   WORD object = (mode == WF_NAME) ? WMOVER : WINFO;
   WINDOW_STRUCT * win = find_window_struct (apid, id);
 
-  if (win != NULL) {
-    if (win->tree != NULL) {
-      win->tree[object].ob_spec.tedinfo->te_ptext =
-        (BYTE *)malloc (strlen (str));
+  if(win != NULL)
+  {
+    if(win->tree != NULL)
+    {
+      TE_PTEXT_PUT(OB_SPEC(&win->tree[object]),
+                   (BYTE *)malloc(strlen (str)));
       
-      strcpy (win->tree[object].ob_spec.tedinfo->te_ptext, str);
+      strcpy(TE_PTEXT(OB_SPEC(&win->tree[object])), str);
       
       Wind_redraw_elements (apid, id, &win->totsize, widgetmap [object]);
 
@@ -1580,29 +1637,33 @@ Wind_set_name_or_info (WORD   apid,
 /*
 ** Description
 ** Set desktop background
-**
-** 1999-01-01 CG
-** 1999-01-06 CG
-** 1999-01-09 CG
 */
 static
 WORD
 Wind_set_desktop_background (WORD     apid,
-                             OBJECT * tree) {
+                             OBJECT * tree)
+{
   GLOBAL_APPL * globals = get_globals (apid);
+  WORD          x, y, w, h;
 
   globals->desktop_background = tree;
 
   /* Adjust the size of the resource to the size of the desktop */
-  if (tree != NULL) {
+  if (tree != NULL)
+  {
     Wind_do_get (apid,
                  0,
                  WF_WORKXYWH,
-                 &tree->ob_x,
-                 &tree->ob_y,
-                 &tree->ob_width,
-                 &tree->ob_height,
+                 &x,
+                 &y,
+                 &w,
+                 &h,
                  FALSE);
+
+    OB_X_PUT(tree, x);
+    OB_Y_PUT(tree, y);
+    OB_WIDTH_PUT(tree, w);
+    OB_HEIGHT_PUT(tree, h);
   }
 
   /* Return OK */

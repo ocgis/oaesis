@@ -74,12 +74,16 @@
 
 /* Tedinfo handling macros */
 #define TE_PTEXT(ti)           ((char *)CL_TO_HL(((TEDINFO *)ti)->te_ptext))
+#define TE_PTEXT_PUT(ti,val)   ((TEDINFO *)ti)->te_ptext = \
+                                                        (char *)HL_TO_CL(val)
 #define TE_PTMPLT(ti)          ((char *)CL_TO_HL(((TEDINFO *)ti)->te_ptmplt))
 #define TE_PVALID(ti)          ((char *)CL_TO_HL(((TEDINFO *)ti)->te_pvalid))
 #define TE_FONT(ti)            (CW_TO_HW(((TEDINFO *)ti)->te_font))
+#define TE_FONT_PUT(ti,val)    ((TEDINFO *)ti)->te_font = HW_TO_CW(val)
 #define TE_FONTID(ti)          (CW_TO_HW(((TEDINFO *)ti)->te_fontid))
 #define TE_JUST(ti)            (CW_TO_HW(((TEDINFO *)ti)->te_just))
 #define TE_COLOR(ti)           (CW_TO_HW(((TEDINFO *)ti)->te_color))
+#define TE_COLOR_PUT(ti,val)   ((TEDINFO *)ti)->te_color = HW_TO_CW(val)
 #define TE_FONTSIZE(ti)        (CW_TO_HW(((TEDINFO *)ti)->te_fontsize))
 #define TE_THICKNESS(ti)       (CW_TO_HW(((TEDINFO *)ti)->te_thickness))
 #define TE_TXTLEN(ti)          (CW_TO_HW(((TEDINFO *)ti)->te_txtlen))
@@ -92,6 +96,7 @@
 #define BI_X(bi)               (CW_TO_HW(((BITBLK *)bi)->bi_x))
 #define BI_Y(bi)               (CW_TO_HW(((BITBLK *)bi)->bi_y))
 #define BI_COLOR(bi)           (CW_TO_HW(((BITBLK *)bi)->bi_color))
+#define BI_COLOR_PUT(bi,val)   ((BITBLK *)bi)->bi_color = HW_TO_CW(val)
 
 /* Iconblk handling macros */
 #define IB_PMASK(ib)           ((char *)CL_TO_HL(((ICONBLK *)ib)->ib_pmask))
