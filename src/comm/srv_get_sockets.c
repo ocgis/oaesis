@@ -49,9 +49,6 @@ static COMM_HANDLE selectable_handles  = COMM_HANDLE_NIL;
 static COMM_HANDLE first_queued_handle = COMM_HANDLE_NIL;
 static COMM_HANDLE last_queued_handle  = COMM_HANDLE_NIL;
 
-/* This is used when trying to wake a Srv_get call */
-static int wake_fd [2];
-
 
 #define QUEUE_EMPTY (first_queued_handle == COMM_HANDLE_NIL)
 
@@ -139,10 +136,6 @@ Srv_open (void) {
     DEBUG1 ("oaesis: Srv_open: listen: %s", strerror (errno));
     return;
   }
-
-  if (pipe (wake_fd) == -1) {
-    DEBUG1 ("oaesis: Srv_open: pipe: %s", strerror (errno));
-  }
 }
 
 
@@ -184,8 +177,7 @@ Srv_get (void * in,
 
   /* Specify which handles to wait for */
   FD_SET (sockfd, &handle_set);
-  FD_SET (wake_fd [0], &handle_set);
-  highest_fd = wake_fd[0];
+  highest_fd = sockfd;
 
   handle_walk = selectable_handles;
   while (handle_walk) {
@@ -212,14 +204,6 @@ Srv_get (void * in,
 
   /* We got a timeout */
   if (QUEUE_EMPTY && (err == 0)) {
-    return NULL;
-  }
-
-  if (FD_ISSET (wake_fd [0], &handle_set)) {
-    char dum;
-    
-    read (wake_fd [0], &dum, 1);
-    
     return NULL;
   }
 
@@ -269,27 +253,14 @@ Srv_get (void * in,
     DEBUG1 ("oaesis: Srv_get: recv: %s", strerror (errno));
     return NULL;
   }
-  /*  DB_printf ("srv_get_sockets.c: length = %d %d", err, count++);*/
+  
+  DEBUG3("srv_get_sockets.c: length = %d", err);
 
   /* The handle should be selected the next call */
   handle_walk->next = selectable_handles;
   selectable_handles = handle_walk;
 
   return handle_walk;
-}
-
-
-/*
-** Description
-** Wake a waiting Srv_get
-**
-** 1998-12-06 CG
-*/
-void
-Srv_wake (void) {
-  if (write (wake_fd [1], "o", 1) == -1) {
-    perror ("oaesis: Srv_wake: write");
-  }
 }
 
 
