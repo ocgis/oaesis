@@ -180,28 +180,28 @@ int check_apid(int apid);
 extern OAESIS_ENDIAN oaesis_client_endian;
 
 #define CW_TO_HW(word) \
-        ((is_internal || (oaesis_client_endian == OAESIS_ENDIAN_HOST)) ? \
+        ((oaesis_client_endian == OAESIS_ENDIAN_HOST) ? \
           word : \
           (oaesis_client_endian == OAESIS_ENDIAN_BIG) ? \
             ntohs((WORD)word) : \
             word)
 
 #define HW_TO_CW(word) \
-        ((is_internal || (oaesis_client_endian == OAESIS_ENDIAN_HOST)) ? \
+        ((oaesis_client_endian == OAESIS_ENDIAN_HOST) ? \
           word : \
           (oaesis_client_endian == OAESIS_ENDIAN_BIG) ? \
             htons((WORD)word) : \
             word)
 
 #define CL_TO_HL(cl) \
-        ((is_internal || (oaesis_client_endian == OAESIS_ENDIAN_HOST)) ? \
+        ((oaesis_client_endian == OAESIS_ENDIAN_HOST) ? \
           (LONG)cl : \
           (oaesis_client_endian == OAESIS_ENDIAN_BIG) ? \
             ntohl((LONG)cl) : \
             (LONG)cl)
 
 #define HL_TO_CL(hl) \
-        ((is_internal || (oaesis_client_endian == OAESIS_ENDIAN_HOST)) ? \
+        ((oaesis_client_endian == OAESIS_ENDIAN_HOST) ? \
           (LONG)hl : \
           (oaesis_client_endian == OAESIS_ENDIAN_BIG) ? \
             htonl((LONG)hl) : \
