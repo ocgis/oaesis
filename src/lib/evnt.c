@@ -295,6 +295,7 @@ Evnt_do_multi (WORD       apid,
       DEBUG2 ("evnt.c: Evnt_do_multi: apid = %d bclicks = 0x%x bstate = 0x%x",
               apid, par.eventin.bclicks, par.eventin.bstate);
       events_out |= Evhd_handle_button (apid,
+                                        par.eventin.events,
                                         ret.eventout.mb,
                                         ret.eventout.mx,
                                         ret.eventout.my,
@@ -303,6 +304,7 @@ Evnt_do_multi (WORD       apid,
                                         par.eventin.bstate,
 					&ret.eventout.mc,
                                         !handle_menu_bar);
+
     }
 
     if (ret.eventout.events & (MU_KEYBD | MU_M1 | MU_M2 | MU_TIMER)) {

@@ -796,38 +796,43 @@ count_clicks (WORD apid,
 ** Check user click against pattern
 **
 ** FIXME: Count number of clicks and return them
-**
-** 1999-05-24 CG
-** 1999-08-17 CG
-** 1999-08-20 CG
 */
 static
 WORD
-handle_user_click (WORD   apid,
-		   WORD   mouse_button,
-		   WORD   bclicks,
-                   WORD   bmask,
-                   WORD   bstate,
-		   WORD * mc) {
-  if (bclicks & 0x100) {
-    if (mouse_button & bmask) {
-      *mc = *mc + count_clicks (apid,
-				(bclicks & 0xff) - *mc,
-				bmask & mouse_button,
-				mouse_button);
-      return MU_BUTTON;
-    } else {
-      return 0;
+handle_user_click(WORD   apid,
+                  WORD   events,
+                  WORD   mouse_button,
+                  WORD   bclicks,
+                  WORD   bmask,
+                  WORD   bstate,
+                  WORD * mc)
+{
+  WORD retval = 0;
+
+  if(events & MU_BUTTON)
+  {
+    if(bclicks & 0x100)
+    {
+      if(mouse_button & bmask)
+      {
+        *mc = *mc + count_clicks(apid,
+                                 (bclicks & 0xff) - *mc,
+                                 bmask & mouse_button,
+                                 mouse_button);
+        retval = MU_BUTTON;
+      }
     }
-  } else if ((mouse_button & bmask) == bstate) {
-    *mc = *mc + count_clicks (apid,
-			      bclicks - *mc,
-			      bmask,
-			      bstate);
-    return MU_BUTTON;
-  } else {
-    return 0;
+    else if((mouse_button & bmask) == bstate)
+    {
+      *mc = *mc + count_clicks(apid,
+                               bclicks - *mc,
+                               bmask,
+                               bstate);
+      retval = MU_BUTTON;
+    }
   }
+
+  return retval;
 }
 
 
@@ -842,6 +847,7 @@ handle_window_element_click(WORD   apid,
 			    WORD   win_id,
 			    WORD   owner,
 			    WORD   top,
+                            WORD   events,
 			    WORD   mouse_button,
 			    WORD   mouse_x,
 			    WORD   mouse_y,
@@ -976,12 +982,13 @@ handle_window_element_click(WORD   apid,
     }
   }
   
-  return handle_user_click (apid,
-			    mouse_button,
-			    bclicks,
-			    bmask,
-			    bstate,
-			    mc);
+  return handle_user_click(apid,
+                           events,
+                           mouse_button,
+                           bclicks,
+                           bmask,
+                           bstate,
+                           mc);
 }
 
 
@@ -990,6 +997,7 @@ handle_window_element_click(WORD   apid,
 */
 WORD
 Evhd_handle_button (WORD   apid,
+                    WORD   events,
                     WORD   mouse_button,
                     WORD   mouse_x,
                     WORD   mouse_y,
@@ -1033,21 +1041,23 @@ Evhd_handle_button (WORD   apid,
 
     if (status & (WIN_DESKTOP | WIN_DIALOG)) {
       /* Return the click to the user */
-      return handle_user_click (apid,
-				mouse_button,
-				bclicks,
-                                bmask,
-                                bstate,
-				mc);
+      return handle_user_click(apid,
+                               events,
+                               mouse_button,
+                               bclicks,
+                               bmask,
+                               bstate,
+                               mc);
     } else if (Misc_inside (&worksize, mouse_x, mouse_y)) {
       if((status & (WIN_UNTOPPABLE | WIN_ICONIFIED)) == WIN_UNTOPPABLE) {
         /* Return the click to the user */
-        return handle_user_click (apid,
-				  mouse_button,
-				  bclicks,
-                                  bmask,
-                                  bstate,
-				  mc);
+        return handle_user_click(apid,
+                                 events,
+                                 mouse_button,
+                                 bclicks,
+                                 bmask,
+                                 bstate,
+                                 mc);
       } else {
         COMMSG      m;
         
@@ -1100,34 +1110,37 @@ Evhd_handle_button (WORD   apid,
           Appl_do_write (apid, owner,16,&m);
           return 0;
         } else {
-          return handle_user_click (apid,
-				    mouse_button,
-				    bclicks,
-                                    bmask,
-                                    bstate,
-				    mc);
+          return handle_user_click(apid,
+                                   events,
+                                   mouse_button,
+                                   bclicks,
+                                   bmask,
+                                   bstate,
+                                   mc);
         }
       }
     } else { /* Click on a window element */
-      return handle_window_element_click (apid,
-                                          win_id,
-                                          owner,
-                                          top,
-                                          mouse_button,
-                                          mouse_x,
-                                          mouse_y,
-					  bclicks,
-					  bmask,
-					  bstate,
-					  mc);
+      return handle_window_element_click(apid,
+                                         win_id,
+                                         owner,
+                                         top,
+                                         events,
+                                         mouse_button,
+                                         mouse_x,
+                                         mouse_y,
+                                         bclicks,
+                                         bmask,
+                                         bstate,
+                                         mc);
     }
   } else { /* not handle & LEFT_BUTTON */
-    return handle_user_click (apid,
-			      mouse_button,
-			      bclicks,
-                              bmask,
-                              bstate,
-			      mc);
+    return handle_user_click(apid,
+                             events,
+                             mouse_button,
+                             bclicks,
+                             bmask,
+                             bstate,
+                             mc);
   }
 }
 
