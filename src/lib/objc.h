@@ -99,8 +99,8 @@
 #define BI_COLOR_PUT(bi,val)   ((BITBLK *)bi)->bi_color = HW_TO_CW(val)
 
 /* Iconblk handling macros */
-#define IB_PMASK(ib)           ((char *)CL_TO_HL(((ICONBLK *)ib)->ib_pmask))
-#define IB_PDATA(ib)           ((char *)CL_TO_HL(((ICONBLK *)ib)->ib_pdata))
+#define IB_PMASK(ib)           ((WORD *)CL_TO_HL(((ICONBLK *)ib)->ib_pmask))
+#define IB_PDATA(ib)           ((WORD *)CL_TO_HL(((ICONBLK *)ib)->ib_pdata))
 #define IB_PTEXT(ib)           ((char *)CL_TO_HL(((ICONBLK *)ib)->ib_ptext))
 #define IB_CHAR(ib)            (CW_TO_HW(((ICONBLK *)ib)->ib_char))
 #define IB_XCHAR(ib)           (CW_TO_HW(((ICONBLK *)ib)->ib_xchar))

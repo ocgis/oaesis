@@ -1,7 +1,7 @@
 /*
 ** graf.c
 **
-** Copyright 1996 - 2000 Christer Gustavsson <cg@nocrew.org>
+** Copyright 1996 - 2001 Christer Gustavsson <cg@nocrew.org>
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -52,15 +52,16 @@ static MFORM m_arrow,m_text_crsr,m_busy_bee,m_point_hand,m_flat_hand,
 /*
 ** Description
 ** Convert icons to MFORMs that can be passed to vsc_form ()
-**
-** 1999-01-02
 */
 static
 void
 icon2mform(MFORM  *  mf,
            OBJECT * icon) {
-  WORD  i;
-  
+  WORD   i;
+  WORD * pmask;
+  WORD * pdata;
+
+  DEBUG0("i2m: 1");
   /*convert resource icons to MFORM's*/
   
   mf->mf_xhot = 0;
@@ -69,14 +70,17 @@ icon2mform(MFORM  *  mf,
   mf->mf_fg = 1;
   mf->mf_bg = 0;
   
+  pmask = IB_PMASK(OB_SPEC(icon));
+  pdata = IB_PDATA(OB_SPEC(icon));
+
   for(i = 0; i < 16; i++)
   {
     /*
     ** I'm not sure that this is the right place to convert the byte order
     ** or if it should be converted at all
     */
-    mf->mf_mask[i] = ntohs(icon->ob_spec.iconblk->ib_pmask[i]);
-    mf->mf_data[i] = ntohs(icon->ob_spec.iconblk->ib_pdata[i]);
+    mf->mf_mask[i] = ntohs(pmask[i]);
+    mf->mf_data[i] = ntohs(pdata[i]);
   }
 }
 
@@ -641,8 +645,8 @@ Graf_do_watchbox (WORD     apid,
 
   Objc_calc_clip (tree, obj, &clip);
   Objc_do_offset (tree, obj, (WORD *)&ei.m1r);
-  ei.m1r.width = tree[obj].ob_width;
-  ei.m1r.height = tree[obj].ob_height;
+  ei.m1r.width = OB_WIDTH(&tree[obj]);
+  ei.m1r.height = OB_HEIGHT(&tree[obj]);
   
   /* Get the current coordinates */
   Graf_do_mkstate (apid, &mx, &my, &mb, &ks);
@@ -739,15 +743,21 @@ Graf_do_slidebox (WORD     apid,
                                                                         
   Wind_do_update (apid, END_MCTRL);
         
-  if(orient == 0) {
-    if(tree[obj].ob_width != tree[parent].ob_width) {
+  if(orient == 0)
+  {
+    if(OB_WIDTH(&tree[obj]) != OB_WIDTH(&tree[parent]))
+    {
       return (WORD)((((LONG)x - (LONG)bound.x) * 1000L) /
-                    ((LONG)(tree[parent].ob_width - tree[obj].ob_width)));
+                    ((LONG)(OB_WIDTH(&tree[parent]) - OB_WIDTH(&tree[obj]))));
     }
-  } else {
-    if(tree[obj].ob_height != tree[parent].ob_height) {
-      return (WORD)((((LONG)y - (LONG)bound.y) * 1000L) /
-                    ((LONG)(tree[parent].ob_height - tree[obj].ob_height)));
+  }
+  else
+  {
+    if(OB_HEIGHT(&tree[obj]) != OB_HEIGHT(&tree[parent]))
+    {
+      return
+        (WORD) ((((LONG)y - (LONG)bound.y) * 1000L) /
+                ((LONG)(OB_HEIGHT(&tree[parent]) - OB_HEIGHT(&tree[obj]))));
     }
   }
                                                                         
