@@ -105,6 +105,44 @@ Start of TOS programs with u:\pipe\tosrun implemented.
 Control + mouseclick in the application menu killsa acc or app.
 Added start desktop option in the file menu.
 
+Jan Paul Schmidt:
+This weekend I finally sat down and tried once again since a long time
+to compile oAESis with gcc. For what is the library "iio" needed? Compiling
+with it crashes, without it works fine. I think, compiling with it worked
+on earlier source releases. To that, I needed another fix for
+the "makefile". When changing "GLOBALVARS" in "global.h" and recompiling
+oAESis, it crashes or doesn't work proper, so I added "global.h" everywhere.
+Now to the other changes I made. I added several variables for "oaesis.cnf"
+(not to mention the code for all that :). They are:
+
+AE_ACC_PATH       - guess what :)
+AE_FSEL_SORTED    - internal fileselector shows directory sorted
+AE_FSEL_EXTERN    - oAESis ignores fsel calls and pass it to the old handler.
+                    External fileselectors can be used, but only with keys.
+                    I don't know till now why none of them reacts to mouse
+                    clicks. Maybe I have enough time next weekend for that.
+AE_GRAF_MBOX      - oAESis ignores the "graf_mbox" call.
+AE_GRAF_GROWBOX   - oAESis ignores the "graf_growbox" call.
+AE_GRAF_SHRINKBOX - oAESis ignores the "graf_shrinkbox" call.
+(to be honest, it's not just that GUI-thing, like feedback's stealing time. I
+ was to lazy to redo the code to avoid crashes with huge form dialogs when
+ nvdi is not installed ;)
+AE_TRACE          - traces AES calls. (your trace code in "docalls.c")
+                    Usefull to avoid recompiling. Also non- or lazy programmes
+                    could send a bug report, if they redirect AE_DEBUG to
+                    a file.
+
+Hope I didn't forget something important.
+
+Unfortunatly I don't have "Interface" or any other RCS, which can read
+the new rsc format, so the fileselector will stay this way for now.
+
+I hope there is some need for this changes.
+
+Next time, same channel.
+
+jps
+
 
 Installation.
 
