@@ -1,7 +1,7 @@
 /*
 ** form.c
 **
-** Copyright 1996 - 2000 Christer Gustavsson <cg@nocrew.org>
+** Copyright 1996 - 2001 Christer Gustavsson <cg@nocrew.org>
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -374,8 +374,8 @@ Form_do_alert(WORD   apid,
 	
   memcpy(&tree[0],&globals->common->alerttad[0],sizeof(OBJECT));
 	
-  tree[0].ob_head = -1;
-  tree[0].ob_tail = -1;
+  OB_HEAD_PUT(&tree[0], -1);
+  OB_TAIL_PUT(&tree[0], -1);
 	
   for(i = 0; i < no_rows; i ++)
   {
@@ -383,19 +383,19 @@ Form_do_alert(WORD   apid,
            &globals->common->alerttad[AL_TEXT],
            sizeof(OBJECT));
     memcpy(&ti[i],
-           globals->common->alerttad[AL_TEXT].ob_spec.tedinfo,
+           (TEDINFO *)OB_SPEC(&globals->common->alerttad[AL_TEXT]),
            sizeof(TEDINFO));
-    tree[i + 1].ob_width = (WORD)(strlen(text) * cwidth);
-    tree[i + 1].ob_height = globals->common->clheight;
-    tree[i + 1].ob_spec.tedinfo = &ti[i];
+    OB_WIDTH_PUT(&tree[i + 1], (WORD)(strlen(text) * cwidth));
+    OB_HEIGHT_PUT(&tree[i + 1], globals->common->clheight);
+    OB_SPEC_PUT(&tree[i + 1], &ti[i]);
 	
-    tree[i + 1].ob_spec.tedinfo->te_ptext = text;
+    TE_PTEXT_PUT(OB_SPEC(&tree[i + 1]), text);
 	
     OB_FLAGS_CLEAR(&tree[i + 1], LASTOB);
 
-    if(tree[i + 1].ob_width > textwidth)
+    if(OB_WIDTH(&tree[i + 1]) > textwidth)
     {
-      textwidth = tree[i + 1].ob_width;
+      textwidth = OB_WIDTH(&tree[i + 1]);
     }
 
     while(*text)
@@ -414,11 +414,10 @@ Form_do_alert(WORD   apid,
            &globals->common->alerttad[AL_BUTTON],
            sizeof(OBJECT));
 	
-    tree[i + 1 + no_rows].ob_y = no_rows * globals->common->clheight + 20;
-
-    tree[i + 1 + no_rows].ob_height = globals->common->clheight;
+    OB_Y_PUT(&tree[i + 1 + no_rows], no_rows * globals->common->clheight + 20);
+    OB_HEIGHT_PUT(&tree[i + 1 + no_rows], globals->common->clheight);
 	
-    tree[i + 1 + no_rows].ob_spec.free_string = buttons;
+    OB_SPEC_PUT(&tree[i + 1 + no_rows], buttons);
 
     OB_FLAGS_CLEAR(&tree[i + 1 + no_rows], LASTOB);
 
@@ -444,28 +443,28 @@ Form_do_alert(WORD   apid,
   switch(*icon)
   {
   case '1':
-    tree[1 + no_butts + no_rows].ob_spec.index =
-      globals->common->aiconstad[AIC_EXCLAMATION].ob_spec.index;
+    OB_SPEC_PUT(&tree[1 + no_butts + no_rows],
+                OB_SPEC(&globals->common->aiconstad[AIC_EXCLAMATION]));
     break;
 
   case '2':
-    tree[1 + no_butts + no_rows].ob_spec.index =
-      globals->common->aiconstad[AIC_QUESTION].ob_spec.index;
+    OB_SPEC_PUT(&tree[1 + no_butts + no_rows],
+                OB_SPEC(&globals->common->aiconstad[AIC_QUESTION]));
     break;
 
   case '3':
-    tree[1 + no_butts + no_rows].ob_spec.index =
-      globals->common->aiconstad[AIC_STOP].ob_spec.index;
+    OB_SPEC_PUT(&tree[1 + no_butts + no_rows],
+                OB_SPEC(&globals->common->aiconstad[AIC_STOP]));
     break;
 
   case '4':
-    tree[1 + no_butts + no_rows].ob_spec.index =
-      globals->common->aiconstad[AIC_INFO].ob_spec.index;
+    OB_SPEC_PUT(&tree[1 + no_butts + no_rows],
+                OB_SPEC(&globals->common->aiconstad[AIC_INFO]));
     break;
 
   case '5':
-    tree[1 + no_butts + no_rows].ob_spec.index =
-      globals->common->aiconstad[AIC_DISK].ob_spec.index;
+    OB_SPEC_PUT(&tree[1 + no_butts + no_rows],
+                OB_SPEC(&globals->common->aiconstad[AIC_DISK]));
     break;
 
   default:
@@ -481,30 +480,32 @@ Form_do_alert(WORD   apid,
 	
   OB_FLAGS_SET(&tree[no_rows + no_butts + 1], LASTOB);
 
-  tree[0].ob_width = (buttonwidth + 10) * no_butts + 10;
+  OB_WIDTH_PUT(&tree[0], (buttonwidth + 10) * no_butts + 10);
 	
-  if((textwidth + 28 + tree[1 + no_butts + no_rows].ob_width) >
-     tree[0].ob_width)
+  if((textwidth + 28 + OB_WIDTH(&tree[1 + no_butts + no_rows])) >
+     OB_WIDTH(&tree[0]))
   {
-    tree[0].ob_width = textwidth + 28 +
-      tree[1 + no_butts + no_rows].ob_width;
+    OB_WIDTH_PUT(&tree[0], textwidth + 28 +
+                 OB_WIDTH(&tree[1 + no_butts + no_rows]));
   }
 	
-  tree[0].ob_height = globals->common->clheight * no_rows + 45;
+  OB_HEIGHT_PUT(&tree[0], globals->common->clheight * no_rows + 45);
 	
   for(i = 0; i < no_rows; i++)
   {
-    tree[i + 1].ob_x = 
-      (tree[0].ob_width - textwidth - tree[1 + no_butts + no_rows].ob_width) /
-      2 + tree[1 + no_butts + no_rows].ob_width + 8;
-    tree[i + 1].ob_y = i * globals->common->clheight + 10;
+    OB_X_PUT(&tree[i + 1],
+             (OB_WIDTH(&tree[0]) - textwidth -
+              OB_WIDTH(&tree[1 + no_butts + no_rows])) / 2 +
+             OB_WIDTH(&tree[1 + no_butts + no_rows]) + 8);
+    OB_Y_PUT(&tree[i + 1], i * globals->common->clheight + 10);
   }
 	
   for(i = 0; i < no_butts; i++)
   {
-    tree[i + no_rows + 1].ob_x = (buttonwidth + 10) * i +
-      ((tree[0].ob_width - (buttonwidth + 10) * no_butts + 10) >> 1);
-    tree[i + 1 + no_rows].ob_width = buttonwidth;
+    OB_X_PUT(&tree[i + no_rows + 1],
+             (buttonwidth + 10) * i +
+             ((OB_WIDTH(&tree[0]) - (buttonwidth + 10) * no_butts + 10) >> 1));
+    OB_WIDTH_PUT(&tree[i + 1 + no_rows], buttonwidth);
   }
 	
   Form_do_center (apid,tree,&clip);
@@ -600,8 +601,6 @@ Form_error (AES_PB * apb)
 
 /*
 ** Exported
-**
-** 1999-01-02 CG
 */
 void
 Form_do_center (WORD     apid,
@@ -617,8 +616,8 @@ Form_do_center (WORD     apid,
                &pw3,
                &pw4,
                TRUE);
-  tree[0].ob_x = pw1 + ((pw3 - tree[0].ob_width) >> 1);
-  tree[0].ob_y = pw2 + ((pw4 - tree[0].ob_height) >> 1);
+  OB_X_PUT(&tree[0], pw1 + ((pw3 - OB_WIDTH(&tree[0])) >> 1));
+  OB_Y_PUT(&tree[0], pw2 + ((pw4 - OB_HEIGHT(&tree[0])) >> 1));
 
   Objc_area_needed (tree, 0, clip);
 }
@@ -772,8 +771,6 @@ AES_PB *apb)      /* AES parameter block.                                   */
 
 /*
 ** Exported
-**
-** 1998-12-19 CG
 */
 WORD
 Form_do_button (WORD     apid,
@@ -795,17 +792,21 @@ Form_do_button (WORD     apid,
       {
         WORD i = obj;
 				
-        while(1) {
-          if(tree[tree[i].ob_next].ob_tail == i) {
-            i = tree[tree[i].ob_next].ob_head;
+        while(1)
+        {
+          if(OB_TAIL(&tree[OB_NEXT(&tree[i])]) == i)
+          {
+            i = OB_HEAD(&tree[OB_NEXT(&tree[i])]);
           }
-          else {
-            i = tree[i].ob_next;
-          };
+          else
+          {
+            i = OB_NEXT(&tree[i]);
+          }
 					
-          if(i == obj) {
+          if(i == obj)
+          {
             break;
-          };
+          }
 					
           if(OB_STATE(&tree[i]) & SELECTED)
           {
@@ -862,7 +863,7 @@ Form_do_button (WORD     apid,
       if(OB_FLAGS(&tree[obj]) & SELECTABLE)
       {
         instate ^= SELECTED;
-      };
+      }
 	
       if ((Graf_do_watchbox (apid, tree, obj, instate, outstate) == 1) &&
          (OB_FLAGS(&tree[obj]) & (EXIT | TOUCHEXIT)))
@@ -888,7 +889,7 @@ Form_do_button (WORD     apid,
 		
     if(clicks >= 2) {
       *newobj |= 0x8000;
-    };
+    }
 	
     return 0;
   }
@@ -897,7 +898,7 @@ Form_do_button (WORD     apid,
     *newobj = obj;
 		
     return 1;
-  };
+  }
 		
   return 1;
 }
