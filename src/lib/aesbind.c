@@ -149,7 +149,7 @@ evnt_keybd(void)
 {
   OPCODE = 20;
   NO_INTIN = 0;
-  NO_ADRIN = 0;
+  NO_ADDRIN = 0;
   NO_INTOUT = 1;
   NO_ADDROUT = 0;
 
