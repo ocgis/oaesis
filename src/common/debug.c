@@ -60,7 +60,7 @@ DB_printf (char * fmt, ...)
 #ifdef MINT_TARGET
   DEBUG(s);
 #else
-  fprintf (stderr, "oaesis: %s\n", s);
+  fprintf (stderr, "oaesis: %s\r\n", s);
 #endif
 }
 
