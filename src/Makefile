@@ -12,7 +12,7 @@ LDLIBS = -lmint16 -liio16 -lgem16
 DEFS = -D__MINT__ 
 
 
-CFLAGS = -Wall -fomit-frame-pointer $(MODEL) $(DEFS) -bm68k-mint
+CFLAGS = -Wall -fomit-frame-pointer $(MODEL) $(DEFS) -bm68k-atari-mint
 ASFLAGS = $(MODEL)
 
 CFILES = appl.c boot.c debug.c docalls.c evnt.c evnthndl.c form.c fsel.c \
@@ -34,7 +34,8 @@ all: oaesis.prg
 
 oaesis.prg: $(OBJS)
 	$(LINK.c) -o $@ $(OBJS) $(LDLIBS)
-	strip $@
+	-fixstk 64000 $@
+	-strip $@
 
 gcc.o: lxgemdos.h
 
