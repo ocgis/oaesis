@@ -812,9 +812,8 @@ srv_appl_init(C_APPL_INIT * par,
               R_APPL_INIT * ret) {
   AP_INFO * ai;
   AP_LIST * al;
-  WORD      retval = 0;
   
-  DEBUG2 ("oaesis: srv.c: srv_appl_init: Beginning\n");
+  DEBUG2 ("oaesis: srv.c: srv_appl_init: Beginning");
 
   al = search_mpid(par->common.pid);
   
@@ -849,7 +848,7 @@ srv_appl_init(C_APPL_INIT * par,
   if(ai) {
     ret->apid = ai->id;
 
-    DEBUG2 ("oaesis: srv.c: srv_appl_init: apid=%d\n",
+    DEBUG2 ("oaesis: srv.c: srv_appl_init: apid=%d",
 	    (int)ret->apid);
   } else {
     ret->apid = -1;
@@ -868,7 +867,7 @@ srv_appl_init(C_APPL_INIT * par,
     srv_menu_register (&c_menu_register, &r_menu_register);
   }
 
-  PUT_R_ALL(APPL_INIT,ret);
+  PUT_R_ALL(APPL_INIT, ret, 0);
 }
 
 
@@ -2346,7 +2345,7 @@ R_WIND_CREATE * ret)
   };
   */
 
-  ret->common.retval = ws->id;
+  PUT_R_ALL(WIND_CREATE, ret, ws->id);
 }
 
 /*
@@ -2802,22 +2801,23 @@ srv_vdi_call (COMM_HANDLE  handle,
   MFDB             mfdb_dst;
   int              i;
   int              j;
+  int              retval = 0;
 
   /* Copy contrl array */
   for (i = 0; i < 15; i++) {
-    vpb.contrl[i] = ntohs (par->contrl[i]);
+    vpb.contrl[i] = par->contrl[i];
   }
   
-  DEBUG2 ("srv_vdi_call: Call no %d", vpb.contrl[0]);
+  DEBUG2 ("srv_vdi_call: Call no %d (0x%x)", vpb.contrl[0], vpb.contrl[0]);
 
   /* Copy ptsin array */
   for (i = 0, j = 0; i < (vpb.contrl[1] * 2); i++, j++) {
-    vpb.ptsin[i] = ntohs (par->inpar[j]);
+    vpb.ptsin[i] = par->inpar[j];
   }
   
   /* Copy intin array */
   for (i = 0; i < vpb.contrl[3]; i++, j++) {
-    vpb.intin[i] = ntohs (par->inpar[j]);
+    vpb.intin[i] = par->inpar[j];
   }
 
   /* Copy MFDBs when available */
@@ -2837,19 +2837,20 @@ srv_vdi_call (COMM_HANDLE  handle,
   
   /* Copy contrl array */
   for (i = 0; i < 15; i++) {
-    ret.contrl[i] = htons (vpb.contrl[i]);
+    ret.contrl[i] = vpb.contrl[i];
   }
   
   /* Copy ptsout array */
   for (i = 0, j = 0; i < (vpb.contrl[2] * 2); i++, j++) {
-    ret.outpar[j] = htons (vpb.ptsout[i]);
+    ret.outpar[j] = vpb.ptsout[i];
   }
   
   /* Copy intout array */
   for (i = 0; i < vpb.contrl[4]; i++, j++) {
-    ret.outpar[j] = htons (vpb.intout[i]);
+    ret.outpar[j] = vpb.intout[i];
   }
-  
+
+  PUT_R_ALL_W(VDI_CALL,&ret,R_ALL_WORDS + 15 + j);
   SRV_REPLY(handle,
             &ret,
             sizeof (R_ALL) +
@@ -2960,7 +2961,7 @@ server (LONG arg) {
     if (handle != NULL) {
       NTOH(&par);
 
-      DEBUG3 ("srv.c: Call no %d", par.common.call);
+      DEBUG2 ("srv.c: Call no %d 0x%x", par.common.call, par.common.call);
       switch (par.common.call) {
       case SRV_APPL_CONTROL:
         srv_appl_control (&par.appl_control, &ret.appl_control);

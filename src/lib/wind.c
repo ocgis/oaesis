@@ -69,6 +69,7 @@
 #include "appl.h"
 #include "debug.h"
 #include "evnthndl.h"
+#include "lib_comm.h"
 #include "lib_global.h"
 #include "mintdefs.h"
 #include "mesagdef.h"
@@ -521,8 +522,6 @@ winalloc (WORD apid) {
 /*
 ** Description
 ** Allocate a resource for a new window
-**
-** 1998-09-30 CG
 */
 static
 OBJECT *
@@ -550,10 +549,13 @@ allocate_window_elements (void) {
                 
     i++;
   }
+
+  DEBUG3("wind.c: allocate_window_elements: elemnumber = %d",
+         elemnumber);
         
   size = sizeof(OBJECT) * elemnumber + sizeof(TEDINFO) * tednumber;
         
-  t = (OBJECT *)Mxalloc(size,GLOBALMEM);
+  t = (OBJECT *)malloc(size);
         
   if(t != NULL) {
     ti = (TEDINFO *)&t[elemnumber];
@@ -569,9 +571,9 @@ allocate_window_elements (void) {
         t[i].ob_spec.tedinfo = ti;
         memcpy(ti, globals->windowtad[i].ob_spec.tedinfo, sizeof(TEDINFO));
         ti++;
-      };
-    };
-  };
+      }
+    }
+  }
 
   return t;
 }
@@ -661,30 +663,34 @@ packelem (OBJECT * tree,
 /*
 ** Description
 ** Set the elements to use for a window (in the resource tree).
-**
-** 1998-09-30 CG
 */
 static
 void
-set_win_elem (OBJECT *tree,
-              WORD elem) {
+set_win_elem (OBJECT * tree,
+              WORD     elem) {
   WORD bottomsize = 0;
   WORD rightsize = 0;
   WORD left = 0,right = 0,top = 0,bottom = 0;
 
+  DEBUG3("wind.c: set_win_elem: tree = %p", tree);
   if((HSLIDE | LFARROW | RTARROW) & elem) {
     bottomsize = tree[WLEFT].ob_height + (D3DSIZE << 1);
-  };
+  }
         
+  DEBUG3("wind.c: set_win_elem: 2");
   if((LFARROW | HSLIDE | RTARROW) & elem) {
     bottomsize = tree[WLEFT].ob_height + (D3DSIZE << 1);
-  };
+  }
         
+  DEBUG3("wind.c: set_win_elem: 3");
   if(((bottomsize == 0) && (SIZER & elem))
      || ((VSLIDE | UPARROW | DNARROW) & elem)) {
+    DEBUG3("wind.c: set_win_elem: 3.1: tree[WSIZER]@%p",&tree[WSIZER]);
+    DEBUG3("wind.c: tree[WSIZER].ob_width = %d", tree[WSIZER].ob_width);
     rightsize = tree[WSIZER].ob_width + (D3DSIZE << 1);
-  };
+  }
         
+  DEBUG3("wind.c: set_win_elem: 4");
   if(CLOSER & elem) {
     tree[WCLOSER].ob_flags &= ~HIDETREE;        
                 
@@ -695,6 +701,7 @@ set_win_elem (OBJECT *tree,
     tree[WCLOSER].ob_flags |= HIDETREE;
   }
         
+  DEBUG3("wind.c: set_win_elem: 5");
   if(FULLER & elem) {
     tree[WFULLER].ob_flags &= ~HIDETREE;        
                 
@@ -705,6 +712,7 @@ set_win_elem (OBJECT *tree,
     tree[WFULLER].ob_flags |= HIDETREE;
   }
                 
+  DEBUG3("wind.c: set_win_elem: 6");
   if(SMALLER & elem) {
     tree[WSMALLER].ob_flags &= ~HIDETREE;       
                 
@@ -715,6 +723,7 @@ set_win_elem (OBJECT *tree,
     tree[WSMALLER].ob_flags |= HIDETREE;
   }
                 
+  DEBUG3("wind.c: set_win_elem: 7");
   if(MOVER & elem) {
     tree[WMOVER].ob_flags &= ~HIDETREE;
     tree[TFILLOUT].ob_flags |= HIDETREE;
@@ -736,9 +745,10 @@ set_win_elem (OBJECT *tree,
     }
     else {
       tree[TFILLOUT].ob_flags |= HIDETREE;
-    };
-  };
+    }
+  }
         
+  DEBUG3("wind.c: set_win_elem: 8");
   if(INFO & elem) {
     tree[WINFO].ob_flags &= ~HIDETREE;
 
@@ -747,11 +757,12 @@ set_win_elem (OBJECT *tree,
   }
   else {
     tree[WINFO].ob_flags |= HIDETREE;
-  };
+  }
 
   right = 0;
   left = 0;
 
+  DEBUG3("wind.c: set_win_elem: 9");
   if(elem & UPARROW) {
     tree[WUP].ob_flags &= ~HIDETREE;
                 
@@ -760,8 +771,9 @@ set_win_elem (OBJECT *tree,
   }
   else {
     tree[WUP].ob_flags |= HIDETREE;
-  };
+  }
 
+  DEBUG3("wind.c: set_win_elem: 10");
   if(SIZER & elem) {
     tree[WSIZER].ob_flags &= ~HIDETREE;
     tree[SFILLOUT].ob_flags |= HIDETREE;        
@@ -783,6 +795,7 @@ set_win_elem (OBJECT *tree,
     }
   }
         
+  DEBUG3("wind.c: set_win_elem: 11");
   if(elem & DNARROW) {
     tree[WDOWN].ob_flags &= ~HIDETREE;
 
@@ -791,8 +804,9 @@ set_win_elem (OBJECT *tree,
   }
   else {
     tree[WDOWN].ob_flags |= HIDETREE;
-  };
+  }
         
+  DEBUG3("wind.c: set_win_elem: 12");
   if(elem & VSLIDE) {
     tree[WVSB].ob_flags &= ~HIDETREE;
 
@@ -803,6 +817,7 @@ set_win_elem (OBJECT *tree,
     tree[WVSB].ob_flags |= HIDETREE;
   }
         
+  DEBUG3("wind.c: set_win_elem: 13");
   if(!(VSLIDE & elem) && (rightsize > 0))
   {
     tree[RFILLOUT].ob_flags &= ~HIDETREE;
@@ -813,6 +828,7 @@ set_win_elem (OBJECT *tree,
     tree[RFILLOUT].ob_flags |= HIDETREE;
   }
         
+  DEBUG3("wind.c: set_win_elem: 14");
   if(LFARROW & elem) {
     tree[WLEFT].ob_flags &= ~HIDETREE;
                 
@@ -823,6 +839,7 @@ set_win_elem (OBJECT *tree,
     tree[WLEFT].ob_flags |= HIDETREE;
   }
         
+  DEBUG3("wind.c: set_win_elem: 15");
   if(RTARROW & elem) {
     tree[WRIGHT].ob_flags &= ~HIDETREE;
                 
@@ -831,8 +848,9 @@ set_win_elem (OBJECT *tree,
   }
   else {
     tree[WRIGHT].ob_flags |= HIDETREE;
-  };
+  }
         
+  DEBUG3("wind.c: set_win_elem: 16");
   if(elem & HSLIDE) {
     tree[WHSB].ob_flags &= ~HIDETREE;
                 
@@ -842,6 +860,7 @@ set_win_elem (OBJECT *tree,
     tree[WHSB].ob_flags |= HIDETREE;
   }
         
+  DEBUG3("wind.c: set_win_elem: 17");
   if(!(HSLIDE & elem) && (bottomsize > 0)) {
     tree[BFILLOUT].ob_flags &= ~HIDETREE;
                 
@@ -849,8 +868,9 @@ set_win_elem (OBJECT *tree,
   }
   else {
     tree[BFILLOUT].ob_flags |= HIDETREE;
-  };
+  }
         
+  DEBUG3("wind.c: set_win_elem: 18");
   if(IMOVER & elem) {
     tree[WMOVER].ob_flags &= ~HIDETREE;
     tree[WMOVER].ob_height = /*globals.csheight*/ + 2;
@@ -861,7 +881,8 @@ set_win_elem (OBJECT *tree,
   }
   else {
     tree[WAPP].ob_flags &= ~HIDETREE;
-  };
+  }
+  DEBUG3("wind.c: set_win_elem: 19");
 }
 
 
@@ -1067,8 +1088,6 @@ Wind_redraw_elements (WORD   apid,
 
 /*
 ** Exported
-**
-** 1999-01-10 CG
 */
 WORD
 Wind_do_create (WORD   apid,
@@ -1081,23 +1100,25 @@ Wind_do_create (WORD   apid,
   WINDOW_STRUCT * ws;
   GLOBAL_APPL   * globals = get_globals (apid);
   GLOBAL_COMMON * global_common = globals->common;
-  
-  par.common.call = SRV_WIND_CREATE;
-  par.common.apid = apid;
-  par.common.pid = getpid ();
+
+  PUT_C_ALL(WIND_CREATE,&par);
+
   par.elements = elements;
   par.maxsize = *maxsize;
   par.status = status;
-        
-  Client_send_recv (&par,
-                    sizeof (C_WIND_CREATE),
-                    &ret,
-                    sizeof (R_WIND_CREATE));
+  DEBUG3("wind.c: Wind_do_create: 1");
+  CLIENT_SEND_RECV(&par,
+                   sizeof (C_WIND_CREATE),
+                   &ret,
+                   sizeof (R_WIND_CREATE));
   
+  DEBUG3("wind.c: Wind_do_create: 2");
   ws = winalloc (apid);
 
+  DEBUG3("wind.c: Wind_do_create: 3");
   ws->id = ret.common.retval;
 
+  DEBUG3("wind.c: Wind_do_create: 4");
   ws->status = status;
         
   ws->maxsize = *maxsize;
@@ -1107,6 +1128,7 @@ Wind_do_create (WORD   apid,
   ws->hslidepos = 1;
   ws->hslidesize = 1000;
 
+  DEBUG3("wind.c: Wind_do_create: 5");
   if((ws->status & WIN_DIALOG) || (ws->status & WIN_MENU)) {
     ws->tree = 0L;
     ws->totsize = ws->maxsize;
@@ -1117,8 +1139,10 @@ Wind_do_create (WORD   apid,
     AP_INFO *ai;
     */
 
+    DEBUG3("wind.c: Wind_do_create: 5.1");
     ws->tree = allocate_window_elements ();
 
+    DEBUG3("wind.c: Wind_do_create: 5.2: elements = 0x%x", elements);
     ws->elements = elements;
     set_win_elem (ws->tree, ws->elements);
 
@@ -1136,21 +1160,25 @@ Wind_do_create (WORD   apid,
     };
     */
     
+    DEBUG3("wind.c: Wind_do_create: 6");
     ws->totsize.x = ws->tree[0].ob_x;
     ws->totsize.y = ws->tree[0].ob_y;
     ws->totsize.width = ws->tree[0].ob_width;
     ws->totsize.height = ws->tree[0].ob_height;
     
+    DEBUG3("wind.c: Wind_do_create: 7");
     calcworksize (apid, ws->elements, &ws->totsize, &ws->worksize, WC_WORK);
                 
     for(i = 0; i <= W_SMALLER; i++) {
       ws->top_colour[i] = global_common->top_colour[i];
       ws->untop_colour[i] = global_common->untop_colour[i];
     }
-    
+    DEBUG3("wind.c: Wind_do_create: 8");
+
     ws->own_colour = 0;
   }
 
+  DEBUG3("wind.c: Wind_do_create: 9");
   return ret.common.retval;
 }
 

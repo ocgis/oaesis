@@ -155,11 +155,6 @@ copy_mfdb (MFDB * dst,
 /*
 ** Description
 ** Tunnel a vdi call to the oaesis server
-**
-** 1999-05-16 CG
-** 1999-05-22 CG
-** 1999-05-23 CG
-** 1999-05-26 CG
 */
 static
 void
@@ -168,23 +163,25 @@ vdi_tunnel (VDIPB * vpb) {
   R_VDI_CALL ret;
   int        i;
   int        j;
+  int        apid = 0;
 
-  par.common.call = htons (SRV_VDI_CALL);
-  
+  DEBUG2("appl.c: vdi_tunnel entered");
   /* Copy contrl array */
   for (i = 0; i < 15; i++) {
-    par.contrl[i] = htons (vpb->contrl[i]);
+    par.contrl[i] = vpb->contrl[i];
   }
 
   /* Copy ptsin parameters */
   for (i = 0, j = 0; i < (vpb->contrl[1] * 2); i++, j++) {
-    par.inpar[j] = htons (vpb->ptsin[i]);
+    par.inpar[j] = vpb->ptsin[i];
   }
 
   /* Copy intin parameters */
   for (i = 0; i < vpb->contrl[3]; i++, j++) {
-    par.inpar[j] = htons (vpb->intin[i]);
+    par.inpar[j] = vpb->intin[i];
   }
+
+  PUT_C_ALL_W(VDI_CALL,&par,C_ALL_WORDS + 15 + j);
 
   /* Copy MFDBs when available */
   if ((vpb->contrl[0] == 109) ||  /* vro_cpyfm */
@@ -199,25 +196,25 @@ vdi_tunnel (VDIPB * vpb) {
   }
 
   /* Pass the call to the server */
-  Client_send_recv (&par,
-                    sizeof (C_ALL) +
-                    sizeof (WORD) * (15 + j),
-                    &ret,
-                    sizeof (R_VDI_CALL));
+  CLIENT_SEND_RECV(&par,
+                   sizeof (C_ALL) +
+                   sizeof (WORD) * (15 + j),
+                   &ret,
+                   sizeof (R_VDI_CALL));
 
   /* Copy contrl array */
   for (i = 0; i < 15; i++) {
-    vpb->contrl[i] = ntohs (ret.contrl[i]);
+    vpb->contrl[i] = ret.contrl[i];
   }
 
   /* Copy ptsout parameters */
   for (i = 0, j = 0; i < (vpb->contrl[2] * 2); i++, j++) {
-    vpb->ptsout[i] = ntohs (ret.outpar[j]);
+    vpb->ptsout[i] = ret.outpar[j];
   }
 
   /* Copy intout parameters */
   for (i = 0; i < vpb->contrl[4]; i++, j++) {
-    vpb->intout[i] = ntohs (ret.outpar[j]);
+    vpb->intout[i] = ret.outpar[j];
   }
 }
 #endif /* TUNNEL_VDI_CALLS */
@@ -351,14 +348,18 @@ Appl_do_init (GLOBAL_ARRAY * global) {
   global->maxchar = 0;
   global->minchar = 0;
 
+  DEBUG2("apid = %d", ret.apid);
+
   if(global->apid >= 0) {
 #ifdef MINT_TARGET
     init_global_appl (global->apid, ret.physical_vdi_id);
 #else
     GLOBAL_APPL * globals_appl = get_globals (global->apid);
 
+    DEBUG2("appl.c: Appl_do_init: Calling init_global_appl");
     init_global_appl (global->apid, ret.physical_vdi_id);
 
+    DEBUG2("appl.c: Appl_do_init: Calling init_global");
     init_global (globals_appl->vid);
 #endif
 
@@ -390,8 +391,6 @@ Appl_read (AES_PB *apb) {
 
 /*
 ** Exported
-**
-** 1998-12-20 CG
 */
 WORD
 Appl_do_write (WORD   apid,
@@ -401,19 +400,17 @@ Appl_do_write (WORD   apid,
   C_APPL_WRITE par;
   R_APPL_WRITE ret;
 
-  par.common.call = SRV_APPL_WRITE;
-  par.common.apid = apid;
-  par.common.pid = getpid ();
+  PUT_C_ALL(APPL_WRITE, &par);
 
   par.addressee = apid;
   par.length = length;
   par.is_reference = FALSE;
   par.msg.event = *(COMMSG *)m; /* FIXME handle msgs larger than 16 bytes */
 	
-  Client_send_recv (&par,
-                    sizeof (C_APPL_WRITE),
-                    &ret,
-                    sizeof (R_APPL_WRITE));
+  CLIENT_SEND_RECV(&par,
+                   sizeof (C_APPL_WRITE),
+                   &ret,
+                   sizeof (R_APPL_WRITE));
   
   return ret.common.retval;
 }
@@ -437,8 +434,6 @@ Appl_write (AES_PB *apb) {
 /*
 ** Description
 ** Implementation of appl_find ()
-**
-** 1999-06-10 CG
 */
 WORD
 Appl_do_find (WORD   apid,
@@ -446,9 +441,7 @@ Appl_do_find (WORD   apid,
   C_APPL_FIND par;
   R_APPL_FIND ret;
 
-  par.common.call = SRV_APPL_FIND;
-  par.common.apid = apid;
-  par.common.pid = getpid ();
+  PUT_C_ALL(APPL_FIND,&par);
 
   switch (((LONG)fname >> 16) & 0xffff) {
   case 0xffff :
@@ -467,10 +460,10 @@ Appl_do_find (WORD   apid,
     break;
   }
 
-  Client_send_recv (&par,
-                    sizeof (C_APPL_FIND),
-                    &ret,
-                    sizeof (R_APPL_FIND));
+  CLIENT_SEND_RECV(&par,
+                   sizeof (C_APPL_FIND),
+                   &ret,
+                   sizeof (R_APPL_FIND));
 
   return ret.common.retval;
 }
@@ -498,9 +491,6 @@ Appl_find (AES_PB * apb)
 /*
 ** Exported
 ** Implementation of appl_search ()
-**
-** 1999-04-11 CG
-** 1999-04-12 CG
 */
 WORD
 Appl_do_search (WORD   apid,
@@ -511,16 +501,14 @@ Appl_do_search (WORD   apid,
   C_APPL_SEARCH par;
   R_APPL_SEARCH ret;
 
-  par.common.call = SRV_APPL_SEARCH;
-  par.common.apid = apid;
-  par.common.pid = getpid ();
+  PUT_C_ALL(APPL_SEARCH, &par);
 
   par.mode = mode; /* FIXME: Needed? */
 
-  Client_send_recv (&par,
-                    sizeof (C_APPL_SEARCH),
-                    &ret,
-                    sizeof (R_APPL_SEARCH));
+  CLIENT_SEND_RECV(&par,
+                   sizeof (C_APPL_SEARCH),
+                   &ret,
+                   sizeof (R_APPL_SEARCH));
 
   strcpy (name, ret.info.name);
   *type = ret.info.type;
@@ -550,9 +538,6 @@ Appl_search (AES_PB * apb) {
 
 /*
 ** Exported
-**
-** 1998-12-28 CG
-** 1999-05-16 CG
 */
 WORD
 Appl_do_exit (WORD apid) {
@@ -560,14 +545,12 @@ Appl_do_exit (WORD apid) {
   R_APPL_EXIT   ret;
   GLOBAL_APPL * globals = get_globals (apid);
 
-  par.common.call = SRV_APPL_EXIT;
-  par.common.apid = apid;
-  par.common.pid = getpid ();
+  PUT_C_ALL(APPL_EXIT, &par);
 
-  Client_send_recv (&par,
-                    sizeof (C_APPL_EXIT),
-                    &ret,
-                    sizeof (R_APPL_EXIT));
+  CLIENT_SEND_RECV(&par,
+                   sizeof (C_APPL_EXIT),
+                   &ret,
+                   sizeof (R_APPL_EXIT));
   
   v_clsvwk (globals->vid);
 
@@ -712,8 +695,6 @@ Appl_getinfo(AES_PB *apb) /* AES parameter block.                           */
 /*
 ** Exported
 ** Library part of appl_control ()
-**
-** 1999-04-18 CG
 */
 WORD
 Appl_do_control (WORD apid,
@@ -722,17 +703,15 @@ Appl_do_control (WORD apid,
   C_APPL_CONTROL par;
   R_APPL_CONTROL ret;
 	
-  par.common.call = SRV_APPL_CONTROL;
-  par.common.apid = apid;
-  par.common.pid = getpid ();
+  PUT_C_ALL(APPL_CONTROL, &par);
 
   par.ap_id = ap_id;
   par.mode = mode;
 
-  Client_send_recv (&par,
-                    sizeof (C_APPL_CONTROL),
-                    &ret,
-                    sizeof (R_APPL_CONTROL));
+  CLIENT_SEND_RECV(&par,
+                   sizeof (C_APPL_CONTROL),
+                   &ret,
+                   sizeof (R_APPL_CONTROL));
   
   return ret.common.retval;
 }

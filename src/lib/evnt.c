@@ -64,6 +64,7 @@
 #include "debug.h"
 #include "evnt.h"
 #include "evnthndl.h"
+#include "lib_comm.h"
 #include "lib_global.h"
 #include "mintdefs.h"
 #include "mesagdef.h"
@@ -312,17 +313,6 @@ void	Evnt_timer(AES_PB *apb) {
 
 /*
 ** Exported
-**
-** 1998-10-04 CG
-** 1998-10-11 CG
-** 1998-12-13 CG
-** 1998-12-19 CG
-** 1999-01-01 CG
-** 1999-01-09 CG
-** 1999-03-21 CG
-** 1999-04-10 CG
-** 1999-05-24 CG
-** 1999-08-20 CG
 */
 void
 Evnt_do_multi (WORD       apid,
@@ -337,9 +327,8 @@ Evnt_do_multi (WORD       apid,
   GLOBAL_APPL * globals = get_globals (apid);
   WORD          events_out = 0;
 
-  par.common.call = SRV_EVNT_MULTI;
-  par.common.apid = apid;
-  par.common.pid = getpid ();
+  PUT_C_ALL(EVNT_MULTI,&par);
+
   par.eventin = *eventin;
 
   /* Handle internal menu events */
@@ -351,10 +340,10 @@ Evnt_do_multi (WORD       apid,
   /* Loop until a user event has been found */
   while (events_out == 0) {
     DEBUG3 ("evnt.c: timeout = %d %d", par.eventin.hicount, par.eventin.locount);
-    Client_send_recv (&par,
-                      sizeof (C_EVNT_MULTI),
-                      &ret,
-                      sizeof (R_EVNT_MULTI));
+    CLIENT_SEND_RECV(&par,
+                     sizeof (C_EVNT_MULTI),
+                     &ret,
+                     sizeof (R_EVNT_MULTI));
     
     /* Handle messages */
     if (ret.eventout.events & MU_MENU_BAR) {

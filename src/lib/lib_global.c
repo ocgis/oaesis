@@ -169,19 +169,6 @@ WORD own_graf_handle(void) {
 /*
 ** Description
 ** Initialize global variables, open vdi workstation etc
-**
-** 1998-11-15 CG
-** 1999-01-01 CG
-** 1999-01-06 CG
-** 1999-01-09 CG
-** 1999-01-13 CG
-** 1999-03-11 CG
-** 1999-04-13 CG
-** 1999-04-18 CG
-** 1999-04-24 CG
-** 1999-05-16 CG
-** 1999-08-22 CG
-** 1999-08-25 CG
 */
 void
 init_global (WORD physical_vdi_id) {
@@ -246,7 +233,7 @@ init_global (WORD physical_vdi_id) {
 #endif
 
   global_common.physical_vdi_id = physical_vdi_id;
-  DB_printf ("lib_global.c: init_global: calling vq_extnd");
+  DEBUG2 ("lib_global.c: init_global: calling vq_extnd");
   vq_extnd (physical_vdi_id, 0, work_out);
 
   
@@ -283,7 +270,7 @@ init_global (WORD physical_vdi_id) {
   
   global_common.arrowrepeat = 100;
   
-  DEBUG3 ("lib_global.c: init_global: calling vqt_attributes");
+  DEBUG2 ("lib_global.c: init_global: calling vqt_attributes");
   vqt_attributes (physical_vdi_id, work_out);
   
   global_common.blwidth = work_out[8] + 3;
@@ -298,9 +285,16 @@ init_global (WORD physical_vdi_id) {
   
   global_common.time = 0L;
 
+  DEBUG2("lib_global.c: init_global: Calling Rsrc_do_rcfix");
   Rsrc_do_rcfix (physical_vdi_id,
                  (RSHDR *)resource,
-                 FALSE /* FIXME: Swap if low_endian*/);
+#ifdef WORDS_BIGENDIAN
+                 FALSE
+#else
+                 TRUE
+#endif
+                 );
+  DEBUG2("lib_global.c: init_global: Called Rsrc_do_rcfix");
 
   Rsrc_do_gaddr ((RSHDR *)resource, R_TREE, AICONS, &global_common.aiconstad);
   Rsrc_do_gaddr ((RSHDR *)resource, R_TREE, ALERT, &global_common.alerttad);

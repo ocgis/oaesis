@@ -54,6 +54,7 @@
 #include "evnt.h"
 #include "evnthndl.h"
 #include "graf.h"
+#include "lib_comm.h"
 #include "lib_global.h"
 #include "lib_misc.h"
 #include "mintdefs.h"
@@ -833,8 +834,6 @@ Graf_handle(AES_PB *apb) {
 
 /*
 ** Exported
-**
-** 1999-01-01 CG
 */
 WORD
 Graf_do_mouse (WORD    apid,
@@ -847,15 +846,14 @@ Graf_do_mouse (WORD    apid,
   C_GRAF_MOUSE par;
   R_GRAF_MOUSE ret;
 
-  par.common.call = SRV_GRAF_MOUSE;
-  par.common.apid = apid;
-  par.common.pid = getpid ();
+  PUT_C_ALL(GRAF_MOUSE, &par);
+
   par.mode = mode;
 	
-  Client_send_recv (&par,
-                    sizeof (C_GRAF_MOUSE),
-                    &ret,
-                    sizeof (R_GRAF_MOUSE));
+  CLIENT_SEND_RECV(&par,
+                   sizeof (C_GRAF_MOUSE),
+                   &ret,
+                   sizeof (R_GRAF_MOUSE));
 
   return ret.common.retval;
 
@@ -990,8 +988,6 @@ Graf_mouse (AES_PB *apb) {
 
 /*
 ** Exported
-**
-** 1998-12-23 CG
 */
 WORD
 Graf_do_mkstate (WORD   apid,
@@ -1002,14 +998,12 @@ Graf_do_mkstate (WORD   apid,
   C_GRAF_MKSTATE par;
   R_GRAF_MKSTATE ret;
 
-  par.common.call = SRV_GRAF_MKSTATE;
-  par.common.apid = apid;
-  par.common.pid = getpid ();
+  PUT_C_ALL(GRAF_MKSTATE, &par);
 	
-  Client_send_recv (&par,
-                    sizeof (C_GRAF_MKSTATE),
-                    &ret,
-                    sizeof (R_GRAF_MKSTATE));
+  CLIENT_SEND_RECV(&par,
+                   sizeof (C_GRAF_MKSTATE),
+                   &ret,
+                   sizeof (R_GRAF_MKSTATE));
 
   *mx = ret.mx;
   *my = ret.my;

@@ -47,7 +47,7 @@ typedef struct {
   WORD call;
 }C_ALL;
 
-#define C_ALL_WORDS 3
+#define C_ALL_WORDS 4
 
 typedef struct {
   WORD words;
@@ -64,6 +64,8 @@ typedef struct {
   WORD  mode;
 }C_APPL_CONTROL;
 
+#define C_APPL_CONTROL_WORDS 2
+
 typedef struct {
   R_ALL common;
 }R_APPL_CONTROL;
@@ -71,6 +73,8 @@ typedef struct {
 typedef struct {
   C_ALL common;
 }C_APPL_EXIT;
+
+#define C_APPL_EXIT_WORDS 0
 
 typedef struct {
   R_ALL common;
@@ -89,6 +93,8 @@ typedef struct {
     WORD   apid;
   } data;
 } C_APPL_FIND;
+
+#define C_APPL_FIND_WORDS 1 /* FIXME */
 
 typedef struct {
   R_ALL common;
@@ -114,6 +120,8 @@ typedef struct {
   WORD   mode;
 } C_APPL_SEARCH;
 
+#define C_APPL_SEARCH_WORDS 1
+
 typedef struct {
   BYTE   name[20];
   WORD   type;
@@ -138,6 +146,8 @@ typedef struct {
   }msg;
 } C_APPL_WRITE;
 
+#define C_APPL_WRITE_WORDS 11
+
 typedef struct {
   R_ALL common;
 } R_APPL_WRITE;
@@ -157,6 +167,8 @@ typedef struct {
   EVENTIN eventin;
 }C_EVNT_MULTI;
 
+#define C_EVNT_MULTI_WORDS (sizeof(EVENTIN) / sizeof(WORD))
+
 typedef struct {
   R_ALL    common;
   COMMSG   msg;
@@ -166,6 +178,8 @@ typedef struct {
 typedef struct {
   C_ALL common;
 } C_GRAF_MKSTATE;
+
+#define C_GRAF_MKSTATE_WORDS 0
 
 typedef struct {
   R_ALL common;
@@ -180,6 +194,8 @@ typedef struct {
   WORD  mode;
   MFORM cursor;
 } C_GRAF_MOUSE;
+
+#define C_GRAF_MOUSE_WORDS (1 + sizeof(MFORM) / sizeof(WORD))
 
 typedef struct {
   R_ALL common;
@@ -219,12 +235,15 @@ typedef struct {
   WORD   elements;
   RECT   maxsize;
   WORD   status;
-  WORD   retval;
 }C_WIND_CREATE;
+
+#define C_WIND_CREATE_WORDS 6
 
 typedef struct {
   R_ALL common;
 }R_WIND_CREATE;
+
+#define R_WIND_CREATE_WORDS 0
 
 typedef struct {
   C_ALL common;
@@ -317,6 +336,8 @@ typedef struct {
   ULONG amount;
 } C_MALLOC;
 
+#define C_MALLOC_WORDS 0
+
 typedef struct {
   R_ALL common;
   ULONG address;
@@ -326,6 +347,8 @@ typedef struct {
   C_ALL common;
   ULONG address;
 } C_FREE;
+
+#define C_FREE_WORDS 0
 
 typedef struct {
   R_ALL common;
@@ -408,6 +431,14 @@ typedef union {
   (parameters)->common.call = SRV_##callname; \
 }
 
+#define PUT_C_ALL_W(callname,parameters,words_in) \
+{ \
+  (parameters)->common.words = words_in; \
+  (parameters)->common.apid = apid; \
+  (parameters)->common.pid  = getpid(); \
+  (parameters)->common.call = SRV_##callname; \
+}
+
 #ifndef WORDS_BIGENDIAN
 #define HTON(parameters)
 #else
@@ -420,9 +451,15 @@ typedef union {
 #define NTOH(parameters) FIX_ENDIAN(parameters,ntoh,ntohs((parameters)->common.words))
 #endif
 
-#define PUT_R_ALL(callname,parameters) \
+#define PUT_R_ALL(callname,parameters,retval_in) \
 { \
   (parameters)->common.words = R_ALL_WORDS + R_##callname##_WORDS; \
+  (parameters)->common.retval = retval_in; \
+}
+
+#define PUT_R_ALL_W(callname,parameters,words_in) \
+{ \
+  (parameters)->common.words = words_in; \
   (parameters)->common.retval = retval; \
 }
 

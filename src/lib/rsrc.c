@@ -298,9 +298,6 @@ typedef struct {
 
 /*
 ** Exported
-**
-** 1999-04-24 CG
-** 1999-06-26 CG
 */
 WORD
 Rsrc_do_rcfix(WORD     vid,
@@ -321,6 +318,15 @@ Rsrc_do_rcfix(WORD     vid,
   LARRAY *    treewalk;
   LARRAY *    frstrwalk;
   CICONBLK ** cicons = NULL;
+
+  /*
+  ** Detect previously undetected endian mismatch. This issue has to be
+  ** solved in a better way.
+  */
+  if((rsc->rsh_nobs & 0xff00) && ((rsc->rsh_nobs & 0xff) == 0))
+  {
+    swap_endian = TRUE;
+  }
 
   DEBUG3 ("Rsrc_do_rcfix: 1");
   /* Swap words if necessary */
@@ -348,34 +354,84 @@ Rsrc_do_rcfix(WORD     vid,
     WORD     nr_cicon;
     WORD     i = 0;
 
+    /* Swap endianess on extension array if necessary */
+    if (swap_endian) {
+      extension->filesize = SWAP_LONG(extension->filesize);
+      extension->cicon_offset = SWAP_LONG(extension->cicon_offset);
+      extension->terminator = SWAP_LONG(extension->terminator);
+    }
+
+    DEBUG3 ("Rsrc_do_rcfix: 4: extension = %p rsc = %p", extension, rsc);
     /* What if there are no colour icons? Check for cicon_offset == -1! */
     cicons = (CICONBLK **)((LONG)extension->cicon_offset + (LONG)rsc);
+    DEBUG3 ("Rsrc_do_rcfix: 4.1: cicons = %p cicon_offset = 0x%x",
+            cicons, extension->cicon_offset);
     
-    while(cicons[i++] != (CICONBLK *)-1);
+    while((cicons[i] =
+           (CICONBLK *)SWAP_LONG((LONG)cicons[i])) != (CICONBLK *)-1)
+    {
+      DEBUG3("cicons[%d]@0x%x", i, (LONG)&cicons[i] - (LONG)rsc);
+      i++;
+    }
     
-    nr_cicon = i - 1;
+    nr_cicon = i;
 
-    cwalk = (CICONBLK *)&cicons[i];
+    cwalk = (CICONBLK *)&cicons[i + 1];
+
+    DEBUG3("cwalk = 0x%x, cwalk->monoblk = 0x%x",
+           (LONG)cwalk - (LONG)rsc,
+           (LONG)&cwalk->monoblk - (LONG)rsc);
 
     for(i = 0; i < nr_cicon; i++) {
-      LONG monosize = (((cwalk->monoblk.ib_wicon + 15) >> 4) << 1) * cwalk->monoblk.ib_hicon;
+      LONG monosize;
       CICON *cicwalk;
       WORD last_res = FALSE;
 
+      DEBUG3 ("Rsrc_do_rcfix: 6");
       cicons[i] = cwalk;
       
+      /* Swap endianess if necessary */
+      if(swap_endian)
+      {
+        WORD * word_ptr;
+
+        for(word_ptr = &cwalk->monoblk.ib_char;
+            word_ptr <= &cwalk->monoblk.ib_htext;
+            word_ptr++)
+        {
+          *word_ptr = SWAP_WORD(*word_ptr);
+          DEBUG3("iconblk... 0x%4x@%p", *word_ptr, word_ptr);
+        }
+      }
+
+      monosize =
+        (((cwalk->monoblk.ib_wicon + 15) >> 4) << 1) * cwalk->monoblk.ib_hicon;
+      DEBUG3("monosize = 0x%x", monosize);
+
       cwalk->monoblk.ib_pdata = (WORD *)((LONG)cwalk + sizeof(ICONBLK) + sizeof(LONG));
       cwalk->monoblk.ib_pmask = (WORD *)((LONG)cwalk->monoblk.ib_pdata + monosize);
       cwalk->monoblk.ib_ptext = (BYTE *)((LONG)cwalk->monoblk.ib_pmask + monosize);
-      
       cicwalk = (CICON *)((LONG)cwalk->monoblk.ib_ptext + 12);
       cwalk->mainlist = cicwalk;
       
+      DEBUG3 ("Rsrc_do_rcfix: 7: cicwalk = %p 0x%x", cicwalk,
+              (LONG)cicwalk - (LONG)rsc);
       /* Go through all of the resolutions for this colour icon */
       while (!last_res) {
-        LONG planesize = monosize * cicwalk->num_planes;
+        LONG planesize;
         MFDB s,d;
         
+        /* Swap endianess if necessary */
+        if(swap_endian)
+        {
+          cicwalk->num_planes = SWAP_WORD(cicwalk->num_planes);
+          (LONG)cicwalk->next_res = SWAP_LONG((LONG)cicwalk->next_res);
+        }
+
+        DEBUG3 ("Rsrc_do_rcfix: 8: cicwalk = %p cicwalk->num_planes = 0x%x",
+                cicwalk, cicwalk->num_planes);
+        planesize = monosize * cicwalk->num_planes;
+
         /* If next_res is equal to 1 there are more resolutions to follow */
         if ((LONG)cicwalk->next_res == 1) {
           last_res = FALSE;
@@ -386,17 +442,20 @@ Rsrc_do_rcfix(WORD     vid,
         cicwalk->col_data = (WORD *)((LONG)cicwalk + sizeof(CICON));
         cicwalk->col_mask = (WORD *)((LONG)cicwalk->col_data + planesize);
         
+        DEBUG3 ("Rsrc_do_rcfix: 9");
         if(cicwalk->sel_data) {
           cicwalk->sel_data = (WORD *)((LONG)cicwalk->col_mask + monosize);
           cicwalk->sel_mask = (WORD *)((LONG)cicwalk->sel_data + planesize);
           cicwalk->next_res = (CICON *)((LONG)cicwalk->sel_mask + monosize);                            
         }
-        else {
+        else
+        {
           cicwalk->sel_data = NULL;
           cicwalk->sel_mask = NULL;
           cicwalk->next_res = (CICON *)((LONG)cicwalk->col_mask + monosize);                            
-        };
+        }
         
+        DEBUG3 ("Rsrc_do_rcfix: 10");
         (LONG)s.fd_addr = (LONG)cicwalk->col_data;
         s.fd_w = cwalk->monoblk.ib_wicon;
         s.fd_h = cwalk->monoblk.ib_hicon;
@@ -407,14 +466,16 @@ Rsrc_do_rcfix(WORD     vid,
         d = s;
         d.fd_stand = 0;
         
+        DEBUG3 ("Rsrc_do_rcfix: 11");
         vr_trnfm(vid,&s,&d);
+        DEBUG3 ("Rsrc_do_rcfix: 12");
 
         if(cicwalk->sel_data) {
           (LONG)s.fd_addr = (LONG)cicwalk->sel_data;
           (LONG)d.fd_addr = (LONG)cicwalk->sel_data;
           
           vr_trnfm(vid,&s,&d);
-        };
+        }
 
         if(last_res == TRUE) {
           /*

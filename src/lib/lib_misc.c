@@ -50,6 +50,7 @@
 #include <vdibind.h>
 
 #include "aesbind.h"
+#include "lib_comm.h"
 #include "lib_global.h"
 /*#include "lxgemdos.h"*/
 #include "lib_misc.h"
@@ -196,6 +197,7 @@ BYTE *dir)        /* New directory.                                         */
 }
 
 
+/* FIXME: Fix for longs if this call should be here */
 /****************************************************************************
  * Misc_Vdi_Malloc                                                          *
  *  Reserve a memory block for use with VDI calls. The server does the      *
@@ -209,15 +211,17 @@ size_t amount)      /* Amount of bytes to reserve.                          */
 #ifdef TUNNEL_VDI_CALLS
   C_MALLOC par;
   R_MALLOC ret;
+  WORD     apid = 0;
 
-  par.common.call = htons (SRV_MALLOC);
+  PUT_C_ALL(MALLOC, &par);
+
   par.amount = htonl ((ULONG)amount);
 
   /* Pass the call to the server */
-  Client_send_recv (&par,
-                    sizeof (C_MALLOC),
-                    &ret,
-                    sizeof (R_MALLOC));
+  CLIENT_SEND_RECV(&par,
+                   sizeof (C_MALLOC),
+                   &ret,
+                   sizeof (R_MALLOC));
   
   return (void *)ntohl (ret.address);
 #else /* TUNNEL_VDI_CALLS */
@@ -225,6 +229,7 @@ size_t amount)      /* Amount of bytes to reserve.                          */
 #endif /* TUNNEL_VDI_CALLS */
 }
 
+/* FIXME: Fix for longs if this call should be here */
 /****************************************************************************
  * Misc_Vdi_Free                                                            *
  *  Free a memory block reserved by Misc_Vdi_Malloc.                        *
@@ -237,16 +242,17 @@ void *address)      /* Pointer to block to free.                            */
 #ifdef TUNNEL_VDI_CALLS
   C_FREE par;
   R_FREE ret;
+  WORD   apid = 0;
 
-  par.common.call = htons (SRV_FREE);
-  par.address = htonl ((ULONG)address);
+  PUT_C_ALL(FREE, &par);
+  par.address = htonl((ULONG)address);
 
   /* Pass the call to the server */
-  Client_send_recv (&par,
-                    sizeof (C_FREE),
-                    &ret,
-                    sizeof (R_FREE));  
+  CLIENT_SEND_RECV(&par,
+                   sizeof (C_FREE),
+                   &ret,
+                   sizeof (R_FREE));  
 #else /* TUNNEL_VDI_CALLS */
-  free (address);
+  free(address);
 #endif /* TUNNEL_VDI_CALLS */
 }

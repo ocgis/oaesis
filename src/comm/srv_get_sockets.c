@@ -169,11 +169,9 @@ Srv_get (void * in,
   FD_ZERO (&handle_set);
 
   if (QUEUE_EMPTY) {
-    DEBUG2("Timeout 50 ms");
     /* Timeout after 50 ms */
     timeout.tv_usec = 50000;
   } else {
-    DEBUG2("Timeout 0 ms");
     timeout.tv_usec = 0;
   }
 
@@ -203,8 +201,6 @@ Srv_get (void * in,
 		NULL,
 		NULL,
 		&timeout);
-
-  DEBUG2("After select: err = %d", err);
 
   if(err == -1)
   {

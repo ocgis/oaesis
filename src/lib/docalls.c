@@ -24,11 +24,13 @@
  
  ****************************************************************************/
 
+#define DEBUGLEVEL 0
+
 /****************************************************************************
  * Used interfaces                                                          *
  ****************************************************************************/
 
-#include	<stdio.h>
+#include <stdio.h>
 
 #include "aesbind.h"
 #include "appl.h"
@@ -462,19 +464,13 @@ static AESCB aescalls[] = {
 
 /*
 ** Exported
-**
-** 1999-05-30 CG
 */
 void
 aes_call(AESPB * apb) {
-#if 0
-  if((apb->global[2] != 0) /*&& (apb->contrl[0] != 25)*/) {
-    DB_printf ("Aes call %d (0x%x) %s",
-	       apb->contrl[0],
-	       apb->contrl[0],
-	       aescalls[apb->contrl[0]].name);
-  }
-#endif
+  DEBUG2("Aes call %d (0x%x) %s",
+         apb->contrl[0],
+         apb->contrl[0],
+         aescalls[apb->contrl[0]]);
   
   if(aescalls[apb->contrl[0]].func) {
     aescalls[apb->contrl[0]].func (apb);
