@@ -44,6 +44,7 @@
 #include <osbind.h>
 #endif
 
+#include <dirent.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -178,81 +179,176 @@ static WORD	globcmp(BYTE *pattern,BYTE *str) {
 	}
 }
 
-static WORD set_path(BYTE *pattern,DIRDESC *dd) {
-	BYTE	path[128];
-	BYTE	pat[30];
-	BYTE	*tmp;
-	LONG  d;
 
-	strcpy(path,pattern);
-	
-	tmp = strrchr(path,'\\');
-	
-	if(tmp) {
-		tmp++;
-		
-		strcpy(pat,tmp);
-		*tmp = '\0';
-	}
-	else {
-		strcpy(pat,path);
-		strcpy(path,".\\");
-	};
-	
-	d = Dopendir(path,0);
-	
-	if((d & 0xff000000L) != 0xff000000L) {
-		BYTE name[50];
-	
-		while(!Dreaddir(50,d,name)) {
-			if(strcmp("..",&name[4]) && strcmp(".",&name[4])) {
-				WORD  fa = 0;
-				BYTE  filepath[128];
+/*
+** Description
+** Set path when using MiNT pathnames
+**
+** 1999-03-11 CG
+*/
+static
+WORD
+mint_set_path (BYTE *    pattern,
+               DIRDESC * dd) {
+  BYTE	path[128];
+  BYTE	pat[30];
+  BYTE	*tmp;
+  LONG  d;
+  
+  strcpy(path,pattern);
+  
+  tmp = strrchr(path,'\\');
+  
+  if(tmp) {
+    tmp++;
+    
+    strcpy(pat,tmp);
+    *tmp = '\0';
+  } else {
+    strcpy(pat,path);
+    strcpy(path,".\\");
+  }
+  
+  d = Dopendir(path,0);
+  
+  if((d & 0xff000000L) != 0xff000000L) {
+    BYTE name[50];
+    
+    while(!Dreaddir(50,d,name)) {
+      if(strcmp("..",&name[4]) && strcmp(".",&name[4])) {
+        WORD  fa = 0;
+        BYTE  filepath[128];
+        
+        sprintf(filepath,"%s%s",path,&name[4]);
+        
+        fa = Fattrib(filepath,0,0);
+        if((fa & 0x10) || (!globcmp(pat,&name[4]))) {
+          DIRENTRY *detmp = (DIRENTRY *)Mxalloc(sizeof(DIRENTRY),PRIVATEMEM);
+          DIRENTRY **dwalk = &dd->dent;
+          
+          if(fa & 0x10) {
+            detmp->type = S_IFDIR;
+          } else {
+            detmp->type = S_IFREG;
+          }
+          
+          detmp->name = (BYTE *)Mxalloc(strlen(&name[4]) + 4,PRIVATEMEM);
+          sprintf(detmp->name,"   %s",&name[4]);
+          
+          if(detmp->type == S_IFDIR) {
+            detmp->name[1] = 0x7;
+          }
+          
+          if(detmp->type == S_IFLNK) {
+            detmp->name[0] = '=';
+          }
+          
+          detmp->next = NULL;
+          dd->num_files++;
+          
+          while(*dwalk) {
+            dwalk = &(*dwalk)->next;
+          }
+          
+          *dwalk = detmp;
+        }
+      }
+    }
+    
+    Dclosedir(d);
+    
+    return 0;
+  } else {
+    return -1;
+  }
+}
 
-				sprintf(filepath,"%s%s",path,&name[4]);
 
-				fa = Fattrib(filepath,0,0);
-				if((fa & 0x10) || (!globcmp(pat,&name[4]))) {
-					DIRENTRY *detmp = (DIRENTRY *)Mxalloc(sizeof(DIRENTRY),PRIVATEMEM);
-					DIRENTRY **dwalk = &dd->dent;
-					
-					if(fa & 0x10) {
-						detmp->type = S_IFDIR;
-					}
-					else {
-						detmp->type = S_IFREG;
-					};
-					
-					detmp->name = (BYTE *)Mxalloc(strlen(&name[4]) + 4,PRIVATEMEM);
-					sprintf(detmp->name,"   %s",&name[4]);
-					
-					if(detmp->type == S_IFDIR) {
-						detmp->name[1] = 0x7;
-					};
-					
-					if(detmp->type == S_IFLNK) {
-						detmp->name[0] = '=';
-					};
-					
-					detmp->next = NULL;
-					dd->num_files++;
-					
-					while(*dwalk) {
-						dwalk = &(*dwalk)->next;
-					};
-					
-					*dwalk = detmp;
-				};
-			};
-		};
+/*
+** Description
+** Set path when using Unix pathnames
+**
+** 1999-03-11 CG
+*/
+static
+WORD
+unix_set_path (BYTE *    pattern,
+               DIRDESC * dd) {
+  BYTE	path[128];
+  BYTE	pat[30];
+  BYTE * tmp;
+  DIR *  d;
+  
+  strcpy (path, pattern);
+  
+  tmp = strrchr (path,'/');
+  
+  if(tmp) {
+    tmp++;
+    
+    strcpy(pat,tmp);
+    *tmp = 0;
+  } else {
+    strcpy(pat,path);
+    strcpy(path,"./");
+  }
+  
+  d = opendir (path);
+  
+  if (d != NULL) {
+    struct dirent * dir_entry;
+    
+    while ((dir_entry = readdir (d)) != NULL) {
+      if (strcmp ("..", dir_entry->d_name) && strcmp(".", dir_entry->d_name)) {
+        struct stat st_buf;
+        BYTE        filepath[128];
+        
+        sprintf (filepath,"%s%s", path, dir_entry->d_name);
+        
+        if (stat (filepath, &st_buf) != 0) {
+          return -1;
+        }
 
-		Dclosedir(d);
-
-		return 0;
-	}
-	else {
-		return -1;
-	};
+        if((S_ISDIR (st_buf.st_mode)) || (!globcmp (pat, dir_entry->d_name))) {
+          DIRENTRY *detmp = (DIRENTRY *)Mxalloc(sizeof(DIRENTRY),PRIVATEMEM);
+          DIRENTRY **dwalk = &dd->dent;
+          
+          if (S_ISDIR (st_buf.st_mode)) {
+            detmp->type = S_IFDIR;
+          } else {
+            detmp->type = S_IFREG;
+          }
+          
+          detmp->name =
+            (BYTE *)Mxalloc (strlen (dir_entry->d_name) + 4, PRIVATEMEM);
+          sprintf (detmp->name, "   %s", dir_entry->d_name);
+          
+          if(detmp->type == S_IFDIR) {
+            detmp->name[1] = 0x7;
+          }
+          
+          if(detmp->type == S_IFLNK) {
+            detmp->name[0] = '=';
+          }
+          
+          detmp->next = NULL;
+          dd->num_files++;
+          
+          while (*dwalk) {
+            dwalk = &(*dwalk)->next;
+          }
+          
+          *dwalk = detmp;
+        }
+      }
+    }
+    
+    closedir (d);
+    
+    return 0;
+  } else {
+    return -1;
+  }
 }
 
 
@@ -445,6 +541,7 @@ slider_handle (WORD      apid,
 ** 1998-12-19 CG
 ** 1999-01-01 CG
 ** 1999-01-11 CG
+** 1999-03-11 CG
 */
 WORD
 Fsel_do_exinput (WORD   apid,
@@ -465,14 +562,20 @@ Fsel_do_exinput (WORD   apid,
   DIRDESC dd = { NULL,0,0 };
   RECT src,dst;
   GLOBAL_APPL * globals = get_globals (apid);
+  BYTE          path_separator = globals->use_mint_paths ? '\\' : '/';
 
   Graf_do_mouse (apid, BUSY_BEE, NULL);
 
   tree = Rsrc_duplicate(globals->common->fiseltad);	
 	
   Graf_do_handle(&cwidth,&cheight,&width,&height);
-	
-  set_path(path,&dd);
+
+  if (globals->use_mint_paths) {
+    mint_set_path (path, &dd);
+  } else {
+    unix_set_path (path, &dd);
+  }
+
   directory_sort(&dd, globals->common->fsel_sorted);
 
   get_files(tree,&dd);
@@ -511,7 +614,13 @@ Fsel_do_exinput (WORD   apid,
         Objc_do_draw (globals->vid, tree,FISEL_OK,9,&clip);
 				
         reset_dirdesc(&dd);
-        set_path(path,&dd);
+
+        if (globals->use_mint_paths) {
+          mint_set_path (path, &dd);
+        } else {
+          unix_set_path (path, &dd);
+        }
+
         directory_sort(&dd, globals->common->fsel_sorted);
 
         get_files(tree,&dd);
@@ -668,20 +777,20 @@ Fsel_do_exinput (WORD   apid,
 
       strcpy(newpath,path);
 								
-      tmp = strrchr(newpath,'\\');
+      tmp = strrchr (newpath, path_separator);
 
       if(!tmp)
         break;
 					
-      *tmp = '\0';
-      tmp = strrchr(newpath,'\\');
+      *tmp = 0;
+      tmp = strrchr(newpath, path_separator);
 				
       if(!tmp)
         break;
 					
       *tmp = '\0';
 							
-      tmp = strrchr(path,'\\');
+      tmp = strrchr(path, path_separator);
       strcat(newpath,tmp);
       strcpy(path,newpath);
 
@@ -689,7 +798,13 @@ Fsel_do_exinput (WORD   apid,
 
 
       reset_dirdesc(&dd);
-      set_path(path,&dd);
+
+      if (globals->use_mint_paths) {
+        mint_set_path (path, &dd);
+      } else {
+        unix_set_path (path, &dd);
+      }
+      
       directory_sort(&dd, globals->common->fsel_sorted);
 
       Objc_area_needed(tree,FISEL_DIRECTORY,&area);	
@@ -723,11 +838,12 @@ Fsel_do_exinput (WORD   apid,
 		
             strcpy(newpath,path);
 							
-            tmp = strrchr(newpath,'\\');
+            tmp = strrchr (newpath, path_separator);
 							
-            sprintf(tmp,"\\%s\\",&dent->name[3]);
+            sprintf (tmp, "%c%s%c",
+                     path_separator, &dent->name[3], path_separator);
 							
-            tmp = strrchr(path,'\\');
+            tmp = strrchr (path, path_separator);
             tmp++;
             strcat(newpath,tmp);
             strcpy(path,newpath);
@@ -738,7 +854,13 @@ Fsel_do_exinput (WORD   apid,
             Objc_do_change (globals->vid, tree,obj,&clip,
                             tree[obj].ob_state &= ~SELECTED,REDRAW);		
             reset_dirdesc(&dd);
-            set_path(path,&dd);
+
+            if (globals->use_mint_paths) {
+              mint_set_path (path, &dd);
+            } else {
+              unix_set_path (path, &dd);
+            }
+            
             directory_sort(&dd, globals->common->fsel_sorted);
 
             Objc_area_needed(tree,FISEL_DIRECTORY,&area);	
@@ -758,11 +880,11 @@ Fsel_do_exinput (WORD   apid,
             if(((selected - dd.pos) >= 0) &&
                ((selected - dd.pos) <= (FISEL_LAST - FISEL_FIRST))) {
               WORD oldobj = selected - dd.pos + FISEL_FIRST;
-													
+
               Objc_do_change (globals->vid, tree,oldobj,&clip,
-                              tree[oldobj].ob_state &= ~SELECTED,REDRAW);								
-            };
-					
+                              tree[oldobj].ob_state &= ~SELECTED,REDRAW);
+            }
+            
             Objc_do_change (globals->vid, tree,obj,&clip,
                             tree[obj].ob_state | SELECTED,REDRAW);
 					
@@ -771,7 +893,7 @@ Fsel_do_exinput (WORD   apid,
             Objc_area_needed(tree,FISEL_SELECTION,&area);	
             Objc_do_draw (globals->vid, tree,0,9,&area);	
 
-            if(but_chosen & 0x8000) {						
+            if(but_chosen & 0x8000) {
               Form_do_dial(apid,FMD_FINISH,&clip,&clip);
 
               Rsrc_free_tree(tree);
@@ -780,12 +902,12 @@ Fsel_do_exinput (WORD   apid,
               reset_dirdesc(&dd);
 
               return 1;
-            };						
-          };
-        };
-      };
-    };
-  };
+            }						
+          }
+        }
+      }
+    }
+  }
 }
 
 

@@ -96,6 +96,7 @@ typedef struct global_common {
 ** global_appl contains variables that are global within a special application
 **
 ** 1999-01-09 CG
+** 1999-03-11 CG
 */
 typedef struct global_appl {
   GLOBAL_COMMON * common;
@@ -106,6 +107,7 @@ typedef struct global_appl {
   RECT            menu_bar_rect;
   RSHDR         * rshdr;
   OBJECT       ** rscfile;
+  WORD            use_mint_paths;
 }GLOBAL_APPL;
 
 /*

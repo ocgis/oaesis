@@ -166,6 +166,7 @@ WORD own_graf_handle(void) {
 ** 1999-01-06 CG
 ** 1999-01-09 CG
 ** 1999-01-13 CG
+** 1999-03-11 CG
 */
 void
 init_global (WORD nocnf,
@@ -340,6 +341,9 @@ init_global (WORD nocnf,
   /* Setup resource header and resource file */
   global_appl.rscfile = NULL;
   global_appl.rshdr = NULL;
+
+  /* Default is not to use MiNT pathnames, at least under unix */
+  global_appl.use_mint_paths = FALSE;
 
   global_appl.common = &global_common;
 }

@@ -371,7 +371,7 @@ typedef struct dirstruct {
   /* NOTE: this must be at least 45 bytes */
   struct dirstruct *next; /* linked together so we can close them
                              on process termination */
-} DIR;
+} MINTDIR;
 
 typedef struct devdrv {
   LONG CDECL (*open)(FILEPTR *f);
@@ -423,10 +423,10 @@ typedef struct filesys {
                            BYTE *pathname, WORD size);
   LONG    CDECL (*rename)(fcookie *olddir, BYTE *oldname,
                           fcookie *newdir, const BYTE *newname);
-  LONG    CDECL (*opendir)(DIR *dirh, WORD tosflag);
-  LONG    CDECL (*readdir)(DIR *dirh, BYTE *name, WORD namelen, fcookie *fc);
-  LONG    CDECL (*rewinddir)(DIR *dirh);
-  LONG    CDECL (*closedir)(DIR *dirh);
+  LONG    CDECL (*opendir)(MINTDIR *dirh, WORD tosflag);
+  LONG    CDECL (*readdir)(MINTDIR *dirh, BYTE *name, WORD namelen, fcookie *fc);
+  LONG    CDECL (*rewinddir)(MINTDIR *dirh);
+  LONG    CDECL (*closedir)(MINTDIR *dirh);
   LONG    CDECL (*pathconf)(fcookie *dir, WORD which);
   LONG    CDECL (*dfree)(fcookie *dir, LONG *buf);
   LONG    CDECL (*writelabel)(fcookie *dir, const BYTE *name);

@@ -31,6 +31,8 @@
 #define HI_WORD(l) ((WORD)((LONG)l >> 16))
 #define LO_WORD(l) ((WORD)((LONG)l & 0xffff))
 
+#define PATH_SEPARATOR '/'
+
 static int  vid;
 static WORD num_colors;
 static char title[] = "Lines";
@@ -57,7 +59,8 @@ min (WORD a,
 
 #define NUM_LINES       10
 
-static char progpath[500] = "c:\\*";
+/*static char progpath[500] = "c:\\*";*/
+static char progpath[500] = "/opt/osis/bin/*";
 static char progfile[70] = "";
 
 /*
@@ -65,6 +68,7 @@ static char progfile[70] = "";
 ** Let the user select an application and start it
 **
 ** 1999-01-11 CG
+** 1999-03-11 CG
 */
 static
 void
@@ -84,11 +88,11 @@ launch_application (void) {
     
     strcpy(newpath,progpath);
     
-    tmp = strrchr(newpath,'\\');
+    tmp = strrchr (newpath, PATH_SEPARATOR);
     
     if (tmp) {
-      *tmp = '\0';
-      sprintf (execpath, "%s\\%s", newpath, progfile);
+      *tmp = 0;
+      sprintf (execpath, "%s%c%s", newpath, PATH_SEPARATOR, progfile);
     } else {
       strcpy (execpath, progfile);
     }
@@ -104,9 +108,7 @@ launch_application (void) {
     */
 
     if (fork () == 0) {
-      fprintf (stderr, "launcher.c: starting lines.prg");
-      fprintf (stderr, "launcher.c: lines.prg returned %d", 
-               execlp ("lines.prg", NULL));
+      execlp (execpath, NULL);
 
       exit (0);
     }

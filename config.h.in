@@ -38,3 +38,7 @@
 
 /* Define if you have the <vdibind.h> header file.  */
 #undef HAVE_VDIBIND_H
+
+/* define if compiled symbols have a leading underscore */
+#undef WITH_SYMBOL_UNDERSCORE
+
