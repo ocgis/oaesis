@@ -1,7 +1,7 @@
 /*
 ** srv_interface.h
 **
-** Copyright 1999 Christer Gustavsson <cg@nocrew.org>
+** Copyright 1999 - 2000 Christer Gustavsson <cg@nocrew.org>
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@
 
 enum
 {
+  /* Client services */
   SRV_APPL_CONTROL,
   SRV_APPL_INIT     =  10,
   SRV_APPL_WRITE    =  12,
@@ -292,9 +293,10 @@ typedef struct
 typedef struct
 {
   R_ALL common;
+  MFORM cursor;
 } R_GRAF_MOUSE;
 
-#define R_GRAF_MOUSE_WORDS 0
+#define R_GRAF_MOUSE_WORDS (sizeof(MFORM) / sizeof(WORD))
 #define R_GRAF_MOUSE_LONGS 0
 
 typedef struct
