@@ -53,7 +53,8 @@ enum
   SRV_MEMORY_ALLOC  = 202,
   SRV_MEMORY_FREE   = 203,
   SRV_MEMORY_SET    = 205,
-  SRV_MEMORY_GET    = 206
+  SRV_MEMORY_GET    = 206,
+  SRV_CONN_LOST     = 207
 };
 
 
