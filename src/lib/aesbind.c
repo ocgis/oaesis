@@ -1336,10 +1336,11 @@ wind_get (int   WindowHandle,
 
   aes_call (&aespb);
 
-  *W1 = aespb.intout[1];
-  *W2 = aespb.intout[2];
-  *W3 = aespb.intout[3];
-  *W4 = aespb.intout[4];
+  if(W1) *W1 = aespb.intout[1];
+  if(W2) *W2 = aespb.intout[2];
+  if(W3) *W3 = aespb.intout[3];
+  if(W4) *W4 = aespb.intout[4];
+
   return aespb.intout[0];
 }
 
