@@ -1,0 +1,17 @@
+1999-10-03  Christer Gustavsson  <cg@nocrew.org>
+
+	* I've decided to release 0.90. Please note that this is no stable
+	version, but more a test version. Don't run anything important
+	under it.
+
+	* A lot has been changed since 0.80. oAESis has been converted
+	into a real client/server system where the "trap library" is the
+	client part. The AES API is not the same as the oAESis server
+	interface. The main reason for this is to be compatible with
+	memory protection, ie since resources and menus are owned by the
+	application they have to be handled by the client part. Things
+	like messaging and events are handled by the server. Unfortunately
+	some things that should be implemented with shared memory are not
+	finished on the MiNT side. Hopefully they will be until the next
+	version.
+

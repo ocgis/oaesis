@@ -1,12 +1,10 @@
 oAESis: A free multitasking application environment running under 
 MiNT.
 
-Copyright 1995,1996 Christer Gustavsson.
+Copyright 1995-1999 Christer Gustavsson
 
-The oAESis source code and binaries are provided free of charge, as is. 
-No warranties are given for oAESis. You may use it on your own risk. 
-Redistribution of oAESis for profit, or use of it in any product, requires 
-a license from the authors.
+oAESis is released under the GNU General Public License. See COPYING for
+more information.
 ---------------------------------------------------------------------------- 
 
 Version 0.5, January 31st 1996.
@@ -143,6 +141,10 @@ Next time, same channel.
 
 jps
 
+Version >= 0.90
+
+Please check the files NEWS and ChangeLog for more information.
+
 
 Installation.
 
@@ -151,7 +153,7 @@ oaesis.prg, or from mint.cnf. To use the latter you should add the
 following to your mint.cnf (assuming oaesis.prg is in the root of your 
 c:-drive):
 
-INIT=c:\oaesis.prg -physical
+INIT=c:\oaesis.prg
 
 
 Distribution.
@@ -165,4 +167,3 @@ If you don't have access to www but to ftp you could try:
 ftp://ftp.nocrew.org/pub/osis/oaesis/
 ---
 Christer Gustavsson (cg@nocrew.org)
-

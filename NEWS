@@ -1,0 +1,9 @@
+* Version 0.90
+
+** oAESis has been converted into a client/server system and can now
+   be compiled under MiNT or Linux.
+
+** Please note that this is a test version and that the functionality
+   is somewhat limited compared to earlier versions. Feel free to
+   report bugs or ideas to nocrew-oaesis@nocrew.org . Read the file
+   ToDo for an incomplete list of bugs.
