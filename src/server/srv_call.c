@@ -1,7 +1,7 @@
 /*
 ** srv_call.c
 **
-** Copyright 1996 - 2000 Christer Gustavsson <cg@nocrew.org>
+** Copyright 1996 - 2001 Christer Gustavsson <cg@nocrew.org>
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -134,10 +134,8 @@ srv_vdi_call (COMM_HANDLE  handle,
 
     srv_copy_mfdb (&mfdb_dst, (MFDB *)&par->inpar[j]);
 
-    vpb.contrl[7] = MSW(&mfdb_src);
-    vpb.contrl[8] = LSW(&mfdb_src);
-    vpb.contrl[9] = MSW(&mfdb_dst);
-    vpb.contrl[10] = LSW(&mfdb_dst);
+    *(MFDB **)&vpb.contrl[7] = &mfdb_src;
+    *(MFDB **)&vpb.contrl[9] = &mfdb_dst;
   }
 
   /* Reset INTOUT and PTSOUT count in case the call fails */

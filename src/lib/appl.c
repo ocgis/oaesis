@@ -198,8 +198,8 @@ vdi_tunnel(VDIPB * vpb)
 
   if(is_blit_call(vpb->contrl[0]))
   {
-    src = (MFDB *)WORDS_TO_POINTER(vpb->contrl[7],vpb->contrl[8]);
-    dst = (MFDB *)WORDS_TO_POINTER(vpb->contrl[9],vpb->contrl[10]);
+    src = *(MFDB **)&vpb->contrl[7];
+    dst = *(MFDB **)&vpb->contrl[9];
 
     if(src->fd_addr != NULL)
     {
