@@ -23,6 +23,7 @@
 #include "srv_event.h"
 #include "srv_global.h"
 #include "srv_interface.h"
+#include "srv_menu.h"
 #include "srv_wind.h"
 
 
@@ -499,4 +500,54 @@ srv_appl_write (C_APPL_WRITE * msg,
   }
 
   PUT_R_ALL(APPL_WRITE, ret, retval);
+}
+
+
+/*
+** Description
+** Get the id of the application that owns the desktop
+*/
+WORD
+get_desktop_owner_id (void)
+{
+  AP_INFO_REF ai;
+  
+  ai = search_appl_info (DESK_OWNER);
+  
+  if (ai != AP_INFO_REF_NIL)
+  {
+    return ai->id;
+  }
+
+  /* The default is the first application */
+  return 0;
+}
+
+
+/*
+** Description
+** Update all of the desk background
+*/
+void
+update_desktop_background (void)
+{
+  C_APPL_WRITE c_appl_write;
+  R_APPL_WRITE r_appl_write;
+  
+  c_appl_write.msg.redraw.type = WM_REDRAW;
+  
+  c_appl_write.msg.redraw.sid = 0;
+ 
+  c_appl_write.msg.redraw.length = 0;
+  c_appl_write.msg.redraw.wid = DESKTOP_WINDOW;
+  
+  c_appl_write.msg.redraw.area.x = globals.screen.x;
+  c_appl_write.msg.redraw.area.y = globals.screen.y;
+  c_appl_write.msg.redraw.area.width = globals.screen.width;
+  c_appl_write.msg.redraw.area.height = globals.screen.height;
+  
+  c_appl_write.addressee = get_desktop_owner_id ();
+  c_appl_write.length = MSG_LENGTH;
+  c_appl_write.is_reference = FALSE;
+  srv_appl_write (&c_appl_write, &r_appl_write);
 }

@@ -60,8 +60,23 @@ srv_appl_search(C_APPL_SEARCH * msg,
 
 /*
 ** Description
-**  Implementation of appl_write()
+** Implementation of appl_write()
 */
 void
 srv_appl_write (C_APPL_WRITE * msg,
                 R_APPL_WRITE * ret);
+
+/*
+** Description
+** Get the id of the application that owns the desktop
+*/
+WORD
+get_desktop_owner_id (void);
+
+
+/*
+** Description
+** Update all of the desk background
+*/
+void
+update_desktop_background (void);

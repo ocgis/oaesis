@@ -22,10 +22,12 @@
 #include "debug.h"
 #include "mesagdef.h"
 #include "oconfig.h"
+#include "srv.h"
 #include "srv_appl_info.h"
 #include "srv_comm.h"
 #include "srv_event.h"
 #include "srv_get.h"
+#include "srv_menu.h"
 #include "srv_misc.h"
 #include "srv_wind.h"
 

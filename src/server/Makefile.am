@@ -6,9 +6,9 @@ TRAP_SRCS = gcc.s
 
 SERVER_SRCS = \
 	boot.c srv_debug.c main.c rlist.c srv.c srv_appl.c srv_appl.h \
-	srv_appl_info.c srv_comm.h \
-	srv_event.c srv_get.c srv_global.c srv_misc.c srv_queue.c srv_wind.c \
-        srv_appl_info.h srv_event.h srv_queue.h srv_wind.h
+	srv_appl_info.c srv_appl_info.h srv_comm.h srv_event.c srv_event.h \
+	srv_get.c srv_global.c srv_menu.c srv_menu.h srv_misc.c srv_queue.c \
+	srv_queue.h srv_wind.c srv_wind.h
 
 if MINT_TARGET
 oaesis_SOURCES = \

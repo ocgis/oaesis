@@ -85,6 +85,13 @@ next_appl_list_element (AP_LIST_REF element);
 
 /*
 ** Description
+** Find AES-id & return AP_LIST entry for that
+*/
+AP_LIST_REF
+search_apid(WORD apid);
+
+/*
+** Description
 ** Find MiNT-PID & return AP_LIST entry for that 
 */
 AP_LIST_REF
