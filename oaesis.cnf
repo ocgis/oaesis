@@ -1,0 +1,81 @@
+# Example of oAESis configuration file (oaesis.cnf)
+#
+# The file should go in one of the following directories:
+#
+# The same as oaesis.prg
+# <boot drive>:\mint\
+# <boot drive>:\multitos\
+# <boot drive>:\
+#
+# The following AES variables are supported:
+#
+# Set debug output device (default is u:\dev\null)
+# AE_DEBUG=u:\dev\modem2
+#
+# Set font id
+# AE_FONTID=1
+#
+# Set font size
+# AE_PNTSIZE=9
+#
+# Set realtime moving of windows
+# AE_REALMOVE=1
+#
+# Set realtime sizing of windows
+# AE_REALSIZE=1
+#
+# Set realtime scrolling of windows
+# AE_REALSLIDE=1
+# 
+# Set resolution. The number is the same as in VsetScreen();
+# 0 => 320x200x16
+# 1 => 640x200x4
+# 2 => 640x400x2
+# 3 => Use AE_VMODECODE (Falcon only)
+# etc.
+# AE_VMODE=3
+#
+# Set Falcon resolution. The mode is the same as in VsetMode();
+# The following should be added to form a modecode (one from each
+# section).
+#
+# - Number of bitplanes:
+# 1 bitplane  => 0
+# 2 bitplanes => 1
+# 4 bitplanes => 2
+# 8 bitplanes => 3
+# Hicolour    => 4
+#
+# - Number of columns:
+# 40 columns  => 0
+# 80 columns  => 8
+#
+# - VGA / TV
+# TV          => 0
+# VGA         => 16
+#
+# - PAL / NTSC
+# NTSC        => 0
+# PAL         => 32
+#
+# - Overscan (not valid with VGA)
+# Overscan    => 64
+#
+# - ST compability flag
+# ST compatibility => 128
+#
+# - Vertical flag (enables interlace on TV and double line mode on VGA)
+# Vertical flag    => 256
+#
+# AE_VMODECODE=26
+#
+# Don't show application name in window mover
+# AE_WIND_APPL=0
+#
+# The following commands are recognized:
+#
+# Start shell program (desktop)
+# shell d:\nytto\desktop\thing\thing\thing.app
+#
+# Start program
+# run d:\nytto\test\gembench\gembench.prg
