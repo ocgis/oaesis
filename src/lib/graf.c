@@ -147,13 +147,6 @@ void Graf_init_module(void) {
   last_saved = m_arrow;
 }
 
-void Graf_exit_module(void) {
-  Psemaphore(SEM_LOCK,GRAFSEM,-1);
-  Psemaphore(SEM_DESTROY,GRAFSEM,-1);
-
-  v_clsvwk(grafvid);
-}
-
 
 /*
 ** Exported

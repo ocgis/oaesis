@@ -1433,15 +1433,15 @@ Wind_get (AES_PB *apb)
 /*
 ** Description
 ** Set the name or the info string of a window
-**
-** 1998-12-26 CG
-** 1999-01-01 CG
 */
+static
+inline
 WORD
 Wind_set_name_or_info (WORD   apid,
                        WORD   id,
                        WORD   mode,
-                       BYTE * str) {
+                       BYTE * str)
+{
   WORD object = (mode == WF_NAME) ? WMOVER : WINFO;
   WINDOW_STRUCT * win = find_window_struct (apid, id);
 
@@ -1697,6 +1697,8 @@ Wind_calc (AES_PB *apb) {
 ** Description
 ** Implementation of wind_new ()
 */
+static
+inline
 WORD
 Wind_do_new (WORD apid) {
   C_WIND_NEW par;
