@@ -53,7 +53,7 @@ typedef struct tiext
 } TIEXT;
 
 
-static WORD num_planes;
+static WORD numplanes;
 
 static WORD textyoffs = 8;
 
@@ -302,16 +302,16 @@ draw_text(WORD     vid,
   WORD            writemode = SWRM_TRANS;
   WORD            draw3d = OB_FLAGS(ob) & FLD3DANY;
   WORD            invertcolour = 0;
-  U_OB_SPEC       ob_spec;
+  U_OB_SPEC       obspec;
   GLOBAL_COMMON * globals = get_global_common ();
 
   if(OB_FLAGS(ob) & INDIRECT)
   {
-    ob_spec = *((U_OB_SPEC *)OB_SPEC(ob));
+    obspec = *((U_OB_SPEC *)OB_SPEC(ob));
   }
   else
   {
-    ob_spec.index = OB_SPEC(ob);
+    obspec.index = OB_SPEC(ob);
   }
 
   /* find the text string to draw */
@@ -321,8 +321,8 @@ draw_text(WORD     vid,
   case G_FTEXT:
   case G_FBOXTEXT:
   {
-    BYTE * ptmplt = TE_PTMPLT(ob_spec.tedinfo);
-    BYTE * ptext = TE_PTEXT(ob_spec.tedinfo);
+    BYTE * ptmplt = TE_PTMPLT(obspec.tedinfo);
+    BYTE * ptext = TE_PTEXT(obspec.tedinfo);
     BYTE * pctext = ctext;
 
     if(*ptext == '@')
@@ -355,32 +355,32 @@ draw_text(WORD     vid,
     *pctext = '\0';
     text = ctext;
 			
-    bfill = GET_TE_COLOR_PATTERN(TE_COLOR(ob_spec.tedinfo));
-    bcolour = GET_TE_COLOR_FILLC(TE_COLOR(ob_spec.tedinfo));
+    bfill = GET_TE_COLOR_PATTERN(TE_COLOR(obspec.tedinfo));
+    bcolour = GET_TE_COLOR_FILLC(TE_COLOR(obspec.tedinfo));
   }
   break;
 		
   case G_TEXT:
   case G_BOXTEXT:
-    text = TE_PTEXT(ob_spec.tedinfo);
+    text = TE_PTEXT(obspec.tedinfo);
 
-    bfill = GET_TE_COLOR_PATTERN(TE_COLOR(ob_spec.tedinfo));
-    bcolour = GET_TE_COLOR_FILLC(TE_COLOR(ob_spec.tedinfo));
+    bfill = GET_TE_COLOR_PATTERN(TE_COLOR(obspec.tedinfo));
+    bcolour = GET_TE_COLOR_FILLC(TE_COLOR(obspec.tedinfo));
     break;
 		
   case G_TITLE:
   case G_STRING:
   case G_BUTTON:
-    text = ob_spec.free_string;
+    text = obspec.free_string;
     break;
 
   case G_BOXCHAR:
-    ctext[0] = GET_OBSPEC_CHARACTER(ob_spec.index);
+    ctext[0] = GET_OBSPEC_CHARACTER(obspec.index);
     ctext[1] = 0;
     text = ctext;
 
-    bfill = GET_OBSPEC_FILLPATTERN(ob_spec.index);
-    bfill = GET_OBSPEC_INTERIORCOL(ob_spec.index);
+    bfill = GET_OBSPEC_FILLPATTERN(obspec.index);
+    bfill = GET_OBSPEC_INTERIORCOL(obspec.index);
   }
 
   /* set font, alignment, color and writemode */
@@ -394,7 +394,7 @@ draw_text(WORD     vid,
     case G_FTEXT:
     case G_FBOXTEXT:
     {
-      TEDINFO *textblk = (TEDINFO *)ob_spec.tedinfo;
+      TEDINFO *textblk = (TEDINFO *)obspec.tedinfo;
 
       switch(TE_FONT(textblk)) /* Set the correct text size & font */
       {
@@ -437,7 +437,7 @@ draw_text(WORD     vid,
         vst_alignment(vid, 1, 5, &temp, &temp);
       }
 				
-      tcolour = GET_TE_COLOR_TEXTC(TE_COLOR(ob_spec.tedinfo));
+      tcolour = GET_TE_COLOR_TEXTC(TE_COLOR(obspec.tedinfo));
 
       if(draw3d)
       {
@@ -445,7 +445,7 @@ draw_text(WORD     vid,
       }
       else
       {
-        writemode = GET_TE_COLOR_OPAQUE(TE_COLOR(ob_spec.tedinfo));
+        writemode = GET_TE_COLOR_OPAQUE(TE_COLOR(obspec.tedinfo));
       }
       break;
 				
@@ -478,7 +478,7 @@ draw_text(WORD     vid,
       tx = par_x + OB_X(ob) + (OB_WIDTH(ob) >> 1);
       vst_alignment(vid, 1, 5, &temp, &temp);
 
-      tcolour = GET_OBSPEC_TEXTCOL(ob_spec.index);
+      tcolour = GET_OBSPEC_TEXTCOL(obspec.index);
 				
       if(draw3d)
       {
@@ -486,7 +486,7 @@ draw_text(WORD     vid,
       }
       else
       {
-        writemode = GET_OBSPEC_TEXTMODE(ob_spec.index);
+        writemode = GET_OBSPEC_TEXTMODE(obspec.index);
       }
       break;			
 				
@@ -689,16 +689,16 @@ draw_bg(WORD     vid,
   WORD            bcolour = WHITE;
   WORD            mode3d;
   WORD            invertcolour = 0;
-  U_OB_SPEC       ob_spec;
+  U_OB_SPEC       obspec;
   GLOBAL_COMMON * globals = get_global_common ();
 
   if(OB_FLAGS(ob) & INDIRECT)
   {
-    ob_spec = *((U_OB_SPEC *)OB_SPEC(ob));
+    obspec = *((U_OB_SPEC *)OB_SPEC(ob));
   }
   else
   {
-    ob_spec.index = OB_SPEC(ob);
+    obspec.index = OB_SPEC(ob);
   }
 
   switch(type)
@@ -710,8 +710,8 @@ draw_bg(WORD     vid,
     r.width  = OB_WIDTH(ob);
     r.height = OB_HEIGHT(ob);
 						
-    fillcolour = GET_OBSPEC_INTERIORCOL(ob_spec.index);
-    filltype = GET_OBSPEC_FILLPATTERN(ob_spec.index);
+    fillcolour = GET_OBSPEC_INTERIORCOL(obspec.index);
+    filltype = GET_OBSPEC_FILLPATTERN(obspec.index);
     break;
 		
   case G_BOXTEXT:
@@ -722,8 +722,8 @@ draw_bg(WORD     vid,
     r.width  = OB_WIDTH(ob);
     r.height = OB_HEIGHT(ob);
 
-    fillcolour = GET_TE_COLOR_FILLC(TE_COLOR(ob_spec.tedinfo));
-    filltype = GET_TE_COLOR_PATTERN(TE_COLOR(ob_spec.tedinfo));
+    fillcolour = GET_TE_COLOR_FILLC(TE_COLOR(obspec.tedinfo));
+    filltype = GET_TE_COLOR_PATTERN(TE_COLOR(obspec.tedinfo));
   }
   break;
 
@@ -919,15 +919,15 @@ draw_frame(WORD     vid,
   RECT      r;
   WORD      draw = 1;
   BYTE      framesize = 0;
-  U_OB_SPEC ob_spec;
+  U_OB_SPEC obspec;
 
   if(OB_FLAGS(ob) & INDIRECT)
   {
-    ob_spec = *((U_OB_SPEC *)OB_SPEC(ob));
+    obspec = *((U_OB_SPEC *)OB_SPEC(ob));
   }
   else
   {
-    ob_spec.index = OB_SPEC(ob);
+    obspec.index = OB_SPEC(ob);
   }
 
   DEBUG3("objc.c: draw_frame: type = %d (0x%x)", type, type);
@@ -942,11 +942,11 @@ draw_frame(WORD     vid,
     r.width  = OB_WIDTH(ob);
     r.height = OB_HEIGHT(ob);
 			
-    framesize = GET_OBSPEC_FRAMESIZE(ob_spec.index);
+    framesize = GET_OBSPEC_FRAMESIZE(obspec.index);
     DEBUG3("objc.c: draw_frame: framesize = %d obspec = 0x%x",
-           framesize, ob_spec.index);
+           framesize, obspec.index);
 
-    vsl_color(vid, GET_OBSPEC_FRAMECOL(ob_spec.index));
+    vsl_color(vid, GET_OBSPEC_FRAMECOL(obspec.index));
   }
   break;
 
@@ -958,9 +958,9 @@ draw_frame(WORD     vid,
     r.width  = OB_WIDTH(ob);
     r.height = OB_HEIGHT(ob);
 			
-    framesize = TE_THICKNESS(ob_spec.tedinfo);
+    framesize = TE_THICKNESS(obspec.tedinfo);
 
-    vsl_color(vid, GET_TE_COLOR_BORDERC(TE_COLOR(ob_spec.tedinfo)));
+    vsl_color(vid, GET_TE_COLOR_BORDERC(TE_COLOR(obspec.tedinfo)));
   }
   break;
 
@@ -1238,13 +1238,13 @@ drawcicon(WORD       vid,
 
   while(ciwalk)
   {
-    if((NUM_PLANES(ciwalk) <= num_planes) &&
+    if((NUM_PLANES(ciwalk) <= numplanes) &&
        (NUM_PLANES(ciwalk) > bestplanes))
     {
       best = ciwalk;
       bestplanes = NUM_PLANES(best);
 			
-      if(bestplanes == num_planes)
+      if(bestplanes == numplanes)
       {
         break;
       }
@@ -1333,7 +1333,7 @@ draw_object(WORD     vid,
             WORD     is_top)
 {
   WORD      type = OB_TYPE(&tree[object]) & 0xff;
-  U_OB_SPEC ob_spec;
+  U_OB_SPEC obspec;
   RECT      ci = *clip;
   RECT      cu;
   RECT      area;
@@ -1353,57 +1353,66 @@ draw_object(WORD     vid,
 
   if(OB_FLAGS(&tree[object]) & INDIRECT)
   {
-    ob_spec = *((U_OB_SPEC *)OB_SPEC(&tree[object]));
+    obspec = *((U_OB_SPEC *)OB_SPEC(&tree[object]));
   }
   else
   {
-    ob_spec.index = OB_SPEC(&tree[object]);
+    obspec.index = OB_SPEC(&tree[object]);
   }
 
   switch(type)
   {
   case G_IMAGE: /*0x17*/
-    drawimage (vid,tree[object].ob_x + par_x,
-               tree[object].ob_y + par_y,
-               (BITBLK *)ob_spec.index,
+    drawimage (vid,
+               OB_X(&tree[object]) + par_x,
+               OB_Y(&tree[object]) + par_y,
+               (BITBLK *)obspec.index,
                OB_STATE(&tree[object]));
     break;
 
-    /* CONT HERE */
   case G_PROGDEF: /*0x18*/
   {
     PARMBLK pb;
     WORD    remainstate;
     RECT    oclip;
+    RECT    nclip;
+    WORD    xy[2];
 
-    pb.pb_tree = tree;
-    pb.pb_obj = object;
-    pb.pb_prevstate = OB_STATE(&tree[object]); /* FIXME: endian */
-    pb.pb_currstate = OB_STATE(&tree[object]); /* FIXME: endian */
+    PB_TREE_PUT(&pb, tree);
+    PB_OBJ_PUT(&pb, object);
+    PB_PREVSTATE_PUT(&pb, OB_STATE(&tree[object]));
+    PB_CURRSTATE_PUT(&pb, OB_STATE(&tree[object]));
 				
-    Objc_do_offset(tree,object,(WORD *)&pb.pb_x);
-    pb.pb_w = tree[object].ob_width;
-    pb.pb_h = tree[object].ob_height;
+    Objc_do_offset(tree, object, xy);
+    PB_X_PUT(&pb, xy[0]);
+    PB_Y_PUT(&pb, xy[1]);
+    PB_W_PUT(&pb, OB_WIDTH(&tree[object]));
+    PB_H_PUT(&pb, OB_HEIGHT(&tree[object]));
 				
-    Objc_calc_clip(tree,object,&oclip);
+    Objc_calc_clip(tree, object, &oclip);
 				
-    if(Misc_intersect(&oclip,clip,(RECT *)&pb.pb_xc))
+    if(Misc_intersect(&oclip, clip, &nclip))
     {
-      pb.pb_parm = ob_spec.userblk->ub_parm;
+      PB_XC_PUT(&pb, nclip.x);
+      PB_YC_PUT(&pb, nclip.y);
+      PB_WC_PUT(&pb, nclip.width);
+      PB_HC_PUT(&pb, nclip.height);
+
+      PB_PARM_PUT(&pb, UB_PARM(obspec.userblk));
 
 #ifdef MINT_TARGET
-      remainstate = ob_spec.userblk->ub_code(&pb);
+      remainstate = UB_CODE(obspec)(&pb);
 #else
       {
         GLOBAL_COMMON * globals = get_global_common();
 
         if(globals->callback_handler == NULL)
         {
-          remainstate = ob_spec.userblk->ub_code(&pb);
+          remainstate = UB_CODE(obspec.userblk)(&pb);
         }
         else
         {
-          remainstate = globals->callback_handler(ob_spec.userblk->ub_code,
+          remainstate = globals->callback_handler(UB_CODE(obspec.userblk),
                                                   &pb);
         }
       }
@@ -1415,35 +1424,39 @@ draw_object(WORD     vid,
   break;
 
   case	G_ICON:
-    drawicon (vid,tree[object].ob_x + par_x,
-              tree[object].ob_y + par_y,
-              ob_spec.iconblk,
+    drawicon (vid,
+              OB_X(&tree[object]) + par_x,
+              OB_Y(&tree[object]) + par_y,
+              obspec.iconblk,
               OB_STATE(&tree[object]));
     break;
 		
   case	G_CICON:
-    drawcicon (vid,tree[object].ob_x + par_x,
-               tree[object].ob_y + par_y,
-               (CICONBLK *)ob_spec.index,
+    drawcicon (vid,
+               OB_X(&tree[object]) + par_x,
+               OB_Y(&tree[object]) + par_y,
+               (CICONBLK *)obspec.index,
                OB_STATE(&tree[object]));
-			
     break;
 			
   default:
-    draw_bg (vid,&tree[object],par_x,par_y);
-    draw_text (vid,&tree[object],par_x,par_y,is_top);
-    draw_frame(vid,&tree[object],par_x,par_y);
+    draw_bg(vid, &tree[object], par_x, par_y);
+    draw_text(vid, &tree[object], par_x, par_y, is_top);
+    draw_frame(vid, &tree[object], par_x, par_y);
   }
 
   if(OB_STATE(&tree[object]) & CHECKED)
   {
     int dum;
 		
-    vst_alignment(vid,0,5,&dum,&dum);
-    v_gtext(vid,tree[object].ob_x + par_x,tree[object].ob_y + par_y,
-                "\x8");
+    vst_alignment(vid, 0, 5, &dum, &dum);
+    v_gtext(vid,
+            OB_X(&tree[object]) + par_x,
+            OB_Y(&tree[object]) + par_y,
+            "\x8");
   }
 }
+
 
 static
 void
@@ -1457,22 +1470,23 @@ get_char_bound(OBJECT * tree,
   BYTE *          ptmplt;
   WORD            firstreal = 0;
   WORD            lastreal = 0;
-  U_OB_SPEC       ob_spec;
+  U_OB_SPEC       obspec;
 	
-  if(OB_FLAGS(&tree[obj]) & INDIRECT)
+  if(OB_FLAGS(&tree[object]) & INDIRECT)
   {
-    ob_spec = *tree[obj].ob_spec.indirect;
+    obspec = *((U_OB_SPEC *)OB_SPEC(&tree[object]));
   }
   else
   {
-    ob_spec = tree[obj].ob_spec;
+    obspec.index = OB_SPEC(&tree[object]);
   }
 
-  ptmplt = ob_spec.tedinfo->te_ptmplt;
+  ptmplt = TE_PTMPLT(obspec.tedinfo);
 	
   while(*ptmplt)
   {
-    if(*ptmplt == '_') {
+    if(*ptmplt == '_')
+    {
       object--;
       last--;
     }
@@ -1490,24 +1504,25 @@ get_char_bound(OBJECT * tree,
     ptmplt++;
   }
 
-  Objc_do_offset(tree,obj,(WORD *)r);
+  Objc_do_offset(tree, obj, (WORD *)r);
 
-  r->y += (tree[obj].ob_height - globals->clheight) >> 1;
+  r->y += (OB_HEIGHT(&tree[obj]) - globals->clheight) >> 1;
   r->height = globals->clheight;
   r->width = globals->clwidth * (lastreal - firstreal);
 	
-  switch(ob_spec.tedinfo->te_just)
+  switch(TE_JUST(obspec.tedinfo))
   {
   case 0:
     break;
+
   case 1:
-    r->x += (tree[obj].ob_width - 
-             (globals->clwidth * (WORD)strlen(ob_spec.tedinfo->te_ptmplt)));
+    r->x += (OB_WIDTH(&tree[obj]) - 
+             (globals->clwidth * (WORD)strlen(TE_PTMPLT(obspec.tedinfo))));
     break;
   case 2:
-    r->x +=
-      ((tree[obj].ob_width - (globals->clwidth *
-                              (WORD)strlen(ob_spec.tedinfo->te_ptmplt))) >> 1);
+    r->x += ((OB_WIDTH(&tree[obj]) -
+              (globals->clwidth *
+               (WORD)strlen(TE_PTMPLT(obspec.tedinfo)))) >> 1);
     break;
   }
 
@@ -1525,15 +1540,15 @@ draw_cursor(WORD    vid,
   RECT r;
   int  xy[4];
   
-  get_char_bound (tree,obj,pos,pos,&r);
+  get_char_bound(tree, obj, pos, pos, &r);
   
   xy[0] = r.x;
   xy[1] = r.y;
   xy[2] = xy[0];
   xy[3] = xy[1] + r.height;
 
-  vswr_mode (vid,MD_XOR);
-  v_pline (vid,2,xy);
+  vswr_mode(vid, MD_XOR);
+  v_pline(vid, 2, xy);
 }
 
 
@@ -1546,16 +1561,16 @@ handle_ed_char(WORD     vid,
                WORD     kc)
 {
   RECT      clip;
-  U_OB_SPEC ob_spec;
+  U_OB_SPEC obspec;
   WORD      internal_kc;
 	
   if(OB_FLAGS(&tree[obj]) & INDIRECT)
   {
-    ob_spec = *tree[obj].ob_spec.indirect;
+    obspec = *((U_OB_SPEC *)OB_SPEC(&tree[obj]));
   }
   else
   {
-    ob_spec = tree[obj].ob_spec;
+    obspec.index = OB_SPEC(&tree[obj]);
   }
 
   /* Ignore scancode for standard characters */
@@ -1573,12 +1588,12 @@ handle_ed_char(WORD     vid,
   case 0x001b: /* escape */
     if(idx > 0)
     {
-      draw_cursor (vid, idx, tree, obj);
-      get_char_bound (tree, obj, 0,
-                      (WORD)strlen(ob_spec.tedinfo->te_ptext), &clip);
-      ob_spec.tedinfo->te_ptext[0] = '\0';
-      Objc_do_draw (vid, tree, 0, 9, &clip);
-      draw_cursor (vid, 0, tree, obj);
+      draw_cursor(vid, idx, tree, obj);
+      get_char_bound(tree, obj, 0,
+                     (WORD)strlen(TE_PTEXT(obspec.tedinfo)), &clip);
+      TE_PTEXT(obspec.tedinfo)[0] = '\0';
+      Objc_do_draw(vid, tree, 0, 9, &clip);
+      draw_cursor(vid, 0, tree, obj);
     }
     return(0);
 
@@ -1587,16 +1602,18 @@ handle_ed_char(WORD     vid,
     {
       draw_cursor (vid, idx, tree, obj);
 			
-      strcpy(&ob_spec.tedinfo->te_ptext[idx - 1],
-             &ob_spec.tedinfo->te_ptext[idx]);
+      strcpy(&TE_PTEXT(obspec.tedinfo)[idx - 1],
+             &TE_PTEXT(obspec.tedinfo)[idx]);
 	    
-      get_char_bound (tree,obj,idx - 1,
-                      (WORD)strlen(ob_spec.tedinfo->te_ptext)
-                      + 2,&clip);
+      get_char_bound (tree,
+                      obj,
+                      idx - 1,
+                      (WORD)strlen(TE_PTEXT(obspec.tedinfo)) + 2,
+                      &clip);
 
-      Objc_do_draw (vid, tree,0,9,&clip);
+      Objc_do_draw(vid, tree, 0, 9, &clip);
 			
-      draw_cursor (vid, idx - 1, tree, obj);
+      draw_cursor(vid, idx - 1, tree, obj);
       return idx - 1;
     }
     return idx;
@@ -1604,8 +1621,8 @@ handle_ed_char(WORD     vid,
   case 0x4b00: /* left */
     if(idx > 0)
     {
-      draw_cursor (vid, idx, tree, obj);
-      draw_cursor (vid, idx - 1, tree, obj);
+      draw_cursor(vid, idx, tree, obj);
+      draw_cursor(vid, idx - 1, tree, obj);
       return idx - 1;
     }
     return idx;
@@ -1613,71 +1630,72 @@ handle_ed_char(WORD     vid,
   case 0x4b34: /* shift left */
     if(idx > 0)
     {
-      draw_cursor (vid,idx, tree, obj);
-      draw_cursor (vid,0, tree, obj);
-      return(0);
+      draw_cursor(vid, idx, tree, obj);
+      draw_cursor(vid, 0, tree, obj);
+      return 0;
     }
     return(idx);
 
   case 0x4d00: /* right */
-    if(idx < (WORD)strlen(ob_spec.tedinfo->te_ptext))
+    if(idx < (WORD)strlen(TE_PTEXT(obspec.tedinfo)))
     {
-      draw_cursor (vid,idx,tree,obj);
-      draw_cursor (vid,idx + 1,tree,obj);
+      draw_cursor(vid, idx, tree, obj);
+      draw_cursor(vid, idx + 1, tree, obj);
       return idx + 1;
     }
     return idx;
 
   case 0x4d36: /* shift right */
-    if(idx < (WORD)strlen(ob_spec.tedinfo->te_ptext))
+    if(idx < (WORD)strlen(TE_PTEXT(obspec.tedinfo)))
     {
-      draw_cursor (vid,idx, tree, obj);
-      idx = (WORD)strlen(ob_spec.tedinfo->te_ptext);
-      draw_cursor (vid,idx, tree, obj);
-      return(idx);
+      draw_cursor(vid, idx, tree, obj);
+      idx = (WORD)strlen(TE_PTEXT(obspec.tedinfo));
+      draw_cursor(vid, idx, tree, obj);
+      return idx;
     }
     return idx;
 
   case 0x007f: /* delete */
-    if(idx < (WORD)strlen(ob_spec.tedinfo->te_ptext))
+    if(idx < (WORD)strlen(TE_PTEXT(obspec.tedinfo)))
     {
-      draw_cursor (vid,idx,tree,obj);
+      draw_cursor(vid, idx, tree, obj);
 			
-      strcpy(&ob_spec.tedinfo->te_ptext[idx],
-             &ob_spec.tedinfo->te_ptext[idx + 1]);
+      strcpy(&TE_PTEXT(obspec.tedinfo)[idx],
+             &TE_PTEXT(obspec.tedinfo)[idx + 1]);
 
-      get_char_bound (tree,obj,idx,
-                      (WORD)strlen(ob_spec.tedinfo->te_ptext) + 1,&clip);
-      Objc_do_draw (vid, tree,0,9,&clip);
+      get_char_bound(tree, obj, idx,
+                     (WORD)strlen(TE_PTEXT(obspec.tedinfo)) + 1, &clip);
+      Objc_do_draw(vid, tree, 0, 9, &clip);
 			
-      draw_cursor (vid,idx,tree,obj);
+      draw_cursor(vid, idx, tree, obj);
     }
     return idx;
 		
   default:
-    if(ob_spec.tedinfo->te_ptext[idx] != '\0')
+    if(TE_PTEXT(obspec.tedinfo)[idx] != '\0')
     {
-      BYTE i = strlen(ob_spec.tedinfo->te_ptext);
+      BYTE i = strlen(TE_PTEXT(obspec.tedinfo));
 			
-      while(i >= idx) {
-        ob_spec.tedinfo->te_ptext[i + 1] = 
-          ob_spec.tedinfo->te_ptext[i];
+      while(i >= idx)
+      {
+        /* FIXME: ALL TE_PTEXT */
+        TE_PTEXT(obspec.tedinfo)[i + 1] = TE_PTEXT(obspec.tedinfo)[i];
 				
         i--;
       }
     }
     else
     {
-      ob_spec.tedinfo->te_ptext[idx + 1] = '\0';
+      TE_PTEXT(obspec.tedinfo)[idx + 1] = '\0';
     }
 		
-    ob_spec.tedinfo->te_ptext[idx] = (BYTE)internal_kc;
+    TE_PTEXT(obspec.tedinfo)[idx] = (BYTE)internal_kc;
 
-    draw_cursor (vid,idx,tree,obj);
-    get_char_bound (tree,obj,idx,
-                    (WORD)strlen(ob_spec.tedinfo->te_ptext),&clip);
-    Objc_do_draw (vid, tree,0,9,&clip);
-    draw_cursor (vid,idx + 1,tree,obj);
+    draw_cursor(vid, idx, tree, obj);
+    get_char_bound(tree, obj, idx,
+                   (WORD)strlen(TE_PTEXT(obspec.tedinfo)), &clip);
+    Objc_do_draw (vid, tree, 0, 9, &clip);
+    draw_cursor (vid, idx + 1, tree, obj);
 		
     return idx + 1;
   }
@@ -1689,17 +1707,17 @@ do_objc_add(OBJECT * t,
             WORD     p,
             WORD     c)
 {
-  if(t[p].ob_tail < 0)
+  if(OB_TAIL(&t[p]) < 0)
   {
-    t[p].ob_head = c;
-    t[p].ob_tail = c;
-    t[c].ob_next = p;
+    OB_HEAD_PUT(&t[p], c);
+    OB_TAIL_PUT(&t[p], c);
+    OB_NEXT_PUT(&t[c], p);
   }
   else
   {
-    t[c].ob_next = p;
-    t[t[p].ob_tail].ob_next = c;
-    t[p].ob_tail = c;
+    OB_NEXT_PUT(&t[c], p);
+    OB_NEXT_PUT(&t[OB_TAIL(&t[p])], c);
+    OB_TAIL_PUT(&t[p], c);
   }
 }
 
@@ -1728,11 +1746,11 @@ Objc_do_delete(OBJECT * tree,
   
   i = 0;
   
-  next = tree[object].ob_next;
+  next = OB_NEXT(&tree[object]);
   
   if(next != -1)
   {
-    if(tree[next].ob_tail == object)
+    if(OB_TAIL(&tree[next]) == object)
     {
       next = -1;
     }
@@ -1740,10 +1758,10 @@ Objc_do_delete(OBJECT * tree,
   
   while(TRUE)
   {	
-    if((tree[i].ob_next == object) && (tree[object].ob_tail != i))
+    if((OB_NEXT(&tree[i]) == object) && (OB_TAIL(&tree[object]) != i))
     {
       prev = i;
-      tree[i].ob_next = tree[object].ob_next;
+      OB_NEXT_PUT(&tree[i], OB_NEXT(&tree[object]));
       
       break;
     }
@@ -1760,14 +1778,14 @@ Objc_do_delete(OBJECT * tree,
   
   while(TRUE)
   {	
-    if(tree[i].ob_head == object)
+    if(OB_HEAD(&tree[i]) == object)
     {
-      tree[i].ob_head = next;
+      OB_HEAD_PUT(&tree[i], next);
     }
     
-    if(tree[i].ob_tail == object)
+    if(OB_TAIL(&tree[i]) == object)
     {
-      tree[i].ob_tail = prev;
+      OB_TAIL_PUT(&tree[i], prev);
     }
     
     if(OB_FLAGS(&tree[i]) & LASTOB)
@@ -1783,7 +1801,7 @@ Objc_do_delete(OBJECT * tree,
 void
 Objc_delete(AES_PB *apb)
 {
-  Objc_do_delete((OBJECT *)apb->addr_in[0],apb->int_in[0]);
+  Objc_do_delete((OBJECT *)apb->addr_in[0], apb->int_in[0]);
   
   apb->int_out[0] = 1;
 }
@@ -1813,22 +1831,22 @@ Objc_do_draw(WORD     vid,
     return 0;
   }
   
-  if (Objc_do_offset(tree,object,xy) == 0)
+  if (Objc_do_offset(tree, object, xy) == 0)
   {
     return 0;
   }
 
-  x = xy[0] - tree[object].ob_x;
-  y = xy[1] - tree[object].ob_y;
+  x = xy[0] - OB_X(&tree[object]);
+  y = xy[1] - OB_Y(&tree[object]);
   
   xyxy[0] = clip->x;
   xyxy[1] = clip->y;
   xyxy[2] = xyxy[0] + clip->width - 1;
   xyxy[3] = xyxy[1] + clip->height - 1;
   
-  vs_clip (vid, 1, xyxy);
+  vs_clip(vid, 1, xyxy);
 
-  v_hide_c (vid);
+  v_hide_c(vid);
 
   do
   {
@@ -1842,12 +1860,12 @@ Objc_do_draw(WORD     vid,
                    y,
                    object == current);
 
-      next = tree[current].ob_head;
+      next = OB_HEAD(&tree[current]);
       
       if(next != -1)
       {
-	x += tree[current].ob_x;
-	y += tree[current].ob_y;
+	x += OB_X(&tree[current]);
+	y += OB_Y(&tree[current]);
       }
     }
     
@@ -1858,14 +1876,14 @@ Objc_do_draw(WORD     vid,
     
     if((depth < 0) || (next == -1) || (OB_FLAGS(&tree[current]) & HIDETREE))
     {
-      next = tree[current].ob_next;
+      next = OB_NEXT(&tree[current]);
       
       if(next == -1)
       {
 	break;
       }
       
-      while((tree[next].ob_tail == current) && (current != object))
+      while((OB_TAIL(&tree[next]) == current) && (current != object))
       {
 	depth++;
 	
@@ -1876,10 +1894,10 @@ Objc_do_draw(WORD     vid,
 	
 	current = next;
 	
-	x -= tree[current].ob_x;
-	y -= tree[current].ob_y;
+	x -= OB_X(&tree[current]);
+	y -= OB_Y(&tree[current]);
 	
-	next = tree[current].ob_next;
+	next = OB_NEXT(&tree[current]);
 	
 	if(next == -1)
         {
@@ -1905,9 +1923,9 @@ Objc_do_draw(WORD     vid,
     }
   } while(current != object);
 
-  v_show_c (vid,1);
+  v_show_c(vid, 1);
 
-  vs_clip (vid,0,xyxy);
+  vs_clip(vid, 0, xyxy);
 
   return 1;
 }
@@ -1924,13 +1942,13 @@ Objc_draw(AES_PB *apb)
 
   CHECK_APID(apb->global->apid);
 
-  globals = get_globals (apb->global->apid);
+  globals = get_globals(apb->global->apid);
 
-  apb->int_out[0] = Objc_do_draw (globals->vid,
-                                  (OBJECT *)apb->addr_in[0],
-                                  apb->int_in[0],
-                                  apb->int_in[1],
-                                  (RECT *)&apb->int_in[2]);
+  apb->int_out[0] = Objc_do_draw(globals->vid,
+                                 (OBJECT *)apb->addr_in[0],
+                                 apb->int_in[0],
+                                 apb->int_in[1],
+                                 (RECT *)&apb->int_in[2]);
 }
 
 
@@ -1962,34 +1980,37 @@ Objc_do_find(OBJECT * t,
   {
     WORD lxy[2];
 
-    Objc_do_offset(t,startobject,lxy);
+    Objc_do_offset(t, startobject, lxy);
     
     x -= lxy[0];
     y -= lxy[1];
   }
 	
-  if ((x >= 0) && (x < t[startobject].ob_width) &&
-      (y >= 0) && (y < t[startobject].ob_height))
+  if ((x >= 0) && (x < OB_WIDTH(&t[startobject])) &&
+      (y >= 0) && (y < OB_HEIGHT(&t[startobject])))
   {
     WORD deeper;
     WORD bestobj = startobject;
     
-    if((depth > 0) && (t[startobject].ob_head >= 0))
+    if((depth > 0) && (OB_HEAD(&t[startobject]) >= 0))
     {
-      WORD i = t[startobject].ob_head;
+      WORD i = OB_HEAD(&t[startobject]);
       
       while(i != startobject)
       {
-        deeper = Objc_do_find(t,i,depth - 1,
-                              x - t[i].ob_x,
-                              y - t[i].ob_y,level + 1);
+        deeper = Objc_do_find(t,
+                              i,
+                              depth - 1,
+                              x - OB_X(&t[i]),
+                              y - OB_Y(&t[i]),
+                              level + 1);
         
         if(deeper >= 0)
         {
           bestobj = deeper;
         }
         
-        i = t[i].ob_next;
+        i = OB_NEXT(&t[i]);
       }
     }
     
@@ -2003,9 +2024,12 @@ Objc_do_find(OBJECT * t,
 void
 Objc_find(AES_PB *apb)
 {
-  apb->int_out[0] =
-    Objc_do_find((OBJECT *)apb->addr_in[0],apb->int_in[0],
-                 apb->int_in[1],apb->int_in[2],apb->int_in[3],0);
+  apb->int_out[0] = Objc_do_find((OBJECT *)apb->addr_in[0],
+                                 apb->int_in[0],
+                                 apb->int_in[1],
+                                 apb->int_in[2],
+                                 apb->int_in[3],
+                                 0);
 }
 
 
@@ -2032,10 +2056,10 @@ Objc_do_offset(OBJECT * tree,
   {
     WORD last;
     
-    xy[0] += tree[object].ob_x;
-    xy[1] += tree[object].ob_y;
+    xy[0] += OB_X(&tree[object]);
+    xy[1] += OB_Y(&tree[object]);
     
-    if((tree[object].ob_next < 0) || (object == 0))
+    if((OB_NEXT(&tree[object]) < 0) || (object == 0))
     {
       break;
     }
@@ -2043,8 +2067,8 @@ Objc_do_offset(OBJECT * tree,
     do
     {
       last = object;
-      object = tree[object].ob_next;
-    } while(last != tree[object].ob_tail);	
+      object = OB_NEXT(&tree[object]);
+    } while(last != OB_TAIL(&tree[object]));	
   } while(1);
 	
   if(object == 0)
@@ -2080,15 +2104,15 @@ Objc_do_edit(WORD     vid,
              WORD     mode)
 {
   WORD      type;
-  U_OB_SPEC ob_spec;
+  U_OB_SPEC obspec;
 
   if(OB_FLAGS(&tree[obj]) & INDIRECT)
   {
-    ob_spec = *tree[obj].ob_spec.indirect;
+    obspec = *((U_OB_SPEC *)OB_SPEC(&tree[obj]));
   }
   else
   {
-    ob_spec = tree[obj].ob_spec;
+    obspec.index = OB_SPEC(&tree[obj]);
   }
 	
   if((obj < 0) || (tree == NULL) || (idx == NULL))
@@ -2096,7 +2120,7 @@ Objc_do_edit(WORD     vid,
     return 0;
   }
 	
-  if(((type = tree[obj].ob_type & 0xff) != G_FTEXT) &&
+  if(((type = OB_TYPE(&tree[obj]) & 0xff) != G_FTEXT) &&
      (type != G_FBOXTEXT))
   {
     return 0;
@@ -2105,16 +2129,16 @@ Objc_do_edit(WORD     vid,
   switch(mode)
   {
   case ED_INIT:
-    *idx = (WORD)strlen(ob_spec.tedinfo->te_ptext);
-    draw_cursor (vid,*idx,tree,obj);
+    *idx = (WORD)strlen(TE_PTEXT(obspec.tedinfo));
+    draw_cursor(vid, *idx, tree, obj);
     break;
 	
   case ED_CHAR:
-    *idx = handle_ed_char (vid, *idx,tree,obj,kc);
+    *idx = handle_ed_char(vid, *idx, tree, obj, kc);
     break;
 		
   case ED_END:
-    draw_cursor (vid,*idx,tree,obj);
+    draw_cursor(vid, *idx, tree, obj);
     break;
 		
   default:
@@ -2162,7 +2186,7 @@ Objc_do_change(WORD     vid,
 	
   if(drawflag == REDRAW)
   {
-    Objc_do_draw (vid, tree,obj,9,clip);
+    Objc_do_draw(vid, tree, obj, 9, clip);
   }
   
   return 1;
@@ -2180,13 +2204,14 @@ Objc_change(AES_PB * apb)
 
   CHECK_APID(apb->global->apid);
 
-  globals = get_globals (apb->global->apid);
+  globals = get_globals(apb->global->apid);
 
-  apb->int_out[0] = Objc_do_change (globals->vid,
-                                    (OBJECT *)apb->addr_in[0],
-                                    apb->int_in[0],
-                                    (RECT *)&apb->int_in[2],
-                                    apb->int_in[6],apb->int_in[7]);
+  apb->int_out[0] = Objc_do_change(globals->vid,
+                                   (OBJECT *)apb->addr_in[0],
+                                   apb->int_in[0],
+                                   (RECT *)&apb->int_in[2],
+                                   apb->int_in[6],
+                                   apb->int_in[7]);
 }
 
 
@@ -2277,9 +2302,12 @@ Objc_do_sysvar(WORD   mode,
 void
 Objc_sysvar(AES_PB * apb)
 {
-  apb->int_out[0] = Objc_do_sysvar(apb->int_in[0],apb->int_in[1],
-				   apb->int_in[2],apb->int_in[3],
-				   &apb->int_out[1],&apb->int_out[2]);
+  apb->int_out[0] = Objc_do_sysvar(apb->int_in[0],
+                                   apb->int_in[1],
+				   apb->int_in[2],
+                                   apb->int_in[3],
+				   &apb->int_out[1],
+                                   &apb->int_out[2]);
 }
 
 
@@ -2293,29 +2321,29 @@ Objc_area_needed(OBJECT * tree,
                  RECT   * rect)
 {
   WORD      mode3d = OB_FLAGS(&tree[object]) & FLD3DANY;
-  U_OB_SPEC ob_spec;
+  U_OB_SPEC obspec;
   WORD      framesize;
   
   if(OB_FLAGS(&tree[object]) & INDIRECT)
   {
-    ob_spec = *tree[object].ob_spec.indirect;
+    obspec = *((U_OB_SPEC *)OB_SPEC(&tree[object]));
   }
   else
   {
-    ob_spec = tree[object].ob_spec;
+    obspec.index = OB_SPEC(&tree[object]);
   }
-	
-  Objc_do_offset(tree,object,(WORD *)rect);
+
+  Objc_do_offset(tree, object, (WORD *)rect);
   
-  rect->width = tree[object].ob_width;
-  rect->height = tree[object].ob_height;
+  rect->width = OB_WIDTH(&tree[object]);
+  rect->height = OB_HEIGHT(&tree[object]);
   
-  switch(tree[object].ob_type)
+  switch(OB_TYPE(&tree[object]))
   {
   case	G_BOX:
   case	G_IBOX:
   case	G_BOXCHAR:
-    framesize = (BYTE)GET_OBSPEC_FRAMESIZE(ob_spec.index);
+    framesize = (BYTE)GET_OBSPEC_FRAMESIZE(obspec.index);
 
     if(framesize < 0)
     {
@@ -2374,30 +2402,30 @@ Objc_calc_clip(OBJECT * tree,
   
   while(1)
   {
-    if(tree[owalk].ob_next == -1)
+    if(OB_NEXT(&tree[owalk]) == -1)
     {
       owalk = -1;
       break;
     }
     
-    if(tree[tree[owalk].ob_next].ob_tail == owalk)
+    if(OB_TAIL(&tree[OB_NEXT(&tree[owalk])]) == owalk)
     {
-      owalk = tree[owalk].ob_next;
+      owalk = OB_NEXT(&tree[owalk]);
       break;
     }
     
-    owalk = tree[owalk].ob_next;
+    owalk = OB_NEXT(&tree[owalk]);
   }
   
   if(owalk == -1)
   {
-    Objc_area_needed(tree,object,rect);
+    Objc_area_needed(tree, object, rect);
   }
   else
   {
-    Objc_do_offset(tree,owalk,(WORD *)rect);
+    Objc_do_offset(tree, owalk, (WORD *)rect);
     
-    rect->width = tree[owalk].ob_width;
-    rect->height = tree[owalk].ob_height;
+    rect->width = OB_WIDTH(&tree[owalk]);
+    rect->height = OB_HEIGHT(&tree[owalk]);
   }
 }

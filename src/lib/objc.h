@@ -120,8 +120,42 @@
 #define SEL_MASK(ci)           ((WORD *)CL_TO_HL(((CICON *)ci)->sel_mask))
 #define NEXT_RES(ci)           ((CICON *)CL_TO_HL(((CICON *)ci)->next_res))
 
+/* Parmblk handling macros */
+#define PB_TREE(pb)              ((OBJECT *)CL_TO_HL(((PARMBLK *)pb)->pb_tree))
+#define PB_TREE_PUT(pb,val)      ((PARMBLK *)pb)->pb_tree = \
+                                                        (OBJECT *)HL_TO_CL(val)
+#define PB_OBJ(pb)               (CW_TO_HW(((PARMBLK *)pb)->pb_obj))
+#define PB_OBJ_PUT(pb,val)       ((PARMBLK *)pb)->pb_obj = HW_TO_CW(val)
+#define PB_PREVSTATE(pb)         (CW_TO_HW(((PARMBLK *)pb)->pb_prevstate))
+#define PB_PREVSTATE_PUT(pb,val) ((PARMBLK *)pb)->pb_prevstate = HW_TO_CW(val)
+#define PB_CURRSTATE(pb)         (CW_TO_HW(((PARMBLK *)pb)->pb_currstate))
+#define PB_CURRSTATE_PUT(pb,val) ((PARMBLK *)pb)->pb_currstate = HW_TO_CW(val)
+#define PB_X(pb)                 (CW_TO_HW(((PARMBLK *)pb)->pb_x))
+#define PB_X_PUT(pb,val)         ((PARMBLK *)pb)->pb_x = HW_TO_CW(val)
+#define PB_Y(pb)                 (CW_TO_HW(((PARMBLK *)pb)->pb_y))
+#define PB_Y_PUT(pb,val)         ((PARMBLK *)pb)->pb_y = HW_TO_CW(val)
+#define PB_W(pb)                 (CW_TO_HW(((PARMBLK *)pb)->pb_w))
+#define PB_W_PUT(pb,val)         ((PARMBLK *)pb)->pb_w = HW_TO_CW(val)
+#define PB_H(pb)                 (CW_TO_HW(((PARMBLK *)pb)->pb_h))
+#define PB_H_PUT(pb,val)         ((PARMBLK *)pb)->pb_h = HW_TO_CW(val)
+#define PB_XC(pb)                (CW_TO_HW(((PARMBLK *)pb)->pb_xc))
+#define PB_XC_PUT(pb,val)        ((PARMBLK *)pb)->pb_xc = HW_TO_CW(val)
+#define PB_YC(pb)                (CW_TO_HW(((PARMBLK *)pb)->pb_yc))
+#define PB_YC_PUT(pb,val)        ((PARMBLK *)pb)->pb_yc = HW_TO_CW(val)
+#define PB_WC(pb)                (CW_TO_HW(((PARMBLK *)pb)->pb_wc))
+#define PB_WC_PUT(pb,val)        ((PARMBLK *)pb)->pb_wc = HW_TO_CW(val)
+#define PB_HC(pb)                (CW_TO_HW(((PARMBLK *)pb)->pb_hc))
+#define PB_HC_PUT(pb,val)        ((PARMBLK *)pb)->pb_hc = HW_TO_CW(val)
+#define PB_PARM(pb)              (CL_TO_HL(((PARMBLK *)pb)->pb_parm))
+#define PB_PARM_PUT(pb,val)      ((PARMBLK *)pb)->pb_parm = HL_TO_CL(val)
 
-#define IB_HTEXT(ib)           (CW_TO_HW(((ICONBLK *)ib)->ib_htext))
+/* Userblk handling macros */
+typedef WORD CDECL (*UbFunc)(PARMBLK *);
+
+#define UB_CODE(ub)              ((UbFunc)CL_TO_HL(((USERBLK *)ub)->ub_code))
+#define UB_PARM(ub)              (CL_TO_HL(((USERBLK *)ub)->ub_parm))
+
+
 void do_objc_add(OBJECT *t,WORD p,WORD c);
 
 /****************************************************************************
