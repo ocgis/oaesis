@@ -626,7 +626,7 @@ typedef union __u_ob_spec {
   struct user_block * userblk;
   /*      APPLBLK           *applblk;
           char              *string;      */
-} U_OB_SPEC;
+} PACKED U_OB_SPEC;
 
 typedef struct object
 {
@@ -641,7 +641,7 @@ typedef struct object
   short          ob_y;      /* upper left corner of object            */
   short          ob_width;  /* width of obj                           */
   short          ob_height; /* height of obj                          */
-} OBJECT;
+} PACKED OBJECT;
 
 typedef struct parm_block {
    OBJECT * pb_tree;
