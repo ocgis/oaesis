@@ -2877,13 +2877,13 @@ srv_call(COMM_HANDLE handle,
   case SRV_MENU_BAR:
     srv_menu_bar (&par->menu_bar, &ret.menu_bar);
     
-    SRV_REPLY(handle, &par, sizeof (R_MENU_BAR));
+    SRV_REPLY(handle, &ret, sizeof (R_MENU_BAR));
     break;
     
   case SRV_MENU_REGISTER:
     srv_menu_register (&par->menu_register, &ret.menu_register);
     
-    SRV_REPLY(handle, &par, sizeof (R_MENU_REGISTER));
+    SRV_REPLY(handle, &ret, sizeof (R_MENU_REGISTER));
     break;
     
   case SRV_WIND_CLOSE:
