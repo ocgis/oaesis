@@ -1,5 +1,5 @@
 /*
-** rsrc.c.h
+** rsrc.c
 **
 ** Copyright 1995 - 2000 Christer Gustavsson <cg@nocrew.org>
 **
@@ -219,10 +219,6 @@ typedef struct {
 /*
 ** Description
 ** Calculate the address of an resource object
-**
-** 1998-10-01 CG
-** 1999-04-24 CG
-** 1999-06-26 CG
 */
 static
 void *
@@ -238,6 +234,9 @@ calculate_element_address (RSHDR * rsc,
 
   case R_STRING:  /* 0x05 */
     return ((BYTE **)(rsc->rsh_frstr + (LONG)rsc))[nr];
+
+  case R_IMAGEDATA:  /* 0x06 */
+    return ((void **)(rsc->rsh_frimg + (LONG)rsc))[nr];
                 
   case R_FRSTR:   /* 0x0f */
     return &((BYTE **)(rsc->rsh_frstr + (LONG)rsc))[nr];
@@ -284,6 +283,7 @@ Rsrc_do_rcfix(WORD     vid,
   BITBLK *    bbwalk;
   LARRAY *    treewalk;
   LARRAY *    frstrwalk;
+  LARRAY *    frimgwalk;
   CICONBLK ** cicons = NULL;
 
   /*
@@ -312,6 +312,7 @@ Rsrc_do_rcfix(WORD     vid,
   bbwalk = (BITBLK *)((LONG)rsc->rsh_bitblk + (LONG)rsc);
   treewalk = (LARRAY *)((LONG)rsc->rsh_trindex + (LONG)rsc);
   frstrwalk = (LARRAY *)((LONG)rsc->rsh_frstr + (LONG)rsc);
+  frimgwalk = (LARRAY *)((LONG)rsc->rsh_frimg + (LONG)rsc);
   DEBUG3 ("Rsrc_do_rcfix: 3");
 
   if (rsc->rsh_vrsn & 0x4) {
@@ -567,6 +568,10 @@ Rsrc_do_rcfix(WORD     vid,
   }    
   DEBUG3 ("Rsrc_do_rcfix: 10");
   
+  for (i = 0; i < rsc->rsh_nimages; i++)
+  {
+    frimgwalk->l[i] = SWAP_LONG(frimgwalk->l[i]) + (LONG)rsc;
+  }    
   return 0;
 
 #undef SWAP_WORD
