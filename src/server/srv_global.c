@@ -50,8 +50,8 @@
 #include <unistd.h>
 #include <vdibind.h>
 
-#include "boot.h"
 #include "debug.h"
+#include "srv.h"
 #include "srv_global.h"
 #include "lxgemdos.h"
 #include "types.h"
@@ -292,10 +292,6 @@ srv_init_global (WORD no_configuration_file)
   globals.csheight = work_out[9] / 2;
   
   sprintf(versionstring,"Version %s",VERSIONTEXT);
-
-  if (!no_configuration_file) {
-    Boot_parse_cnf ();
-  }
 }
 
 
@@ -326,4 +322,16 @@ srv_exit_global (void)
 #else
   v_clswk (globals.vid);
 #endif
+}
+
+
+/*
+** Description
+** Set server variable
+*/
+void
+Srv_set_variable(SRV_VAR_KIND    var,
+                 SRV_VAR_VALUE * value)
+{
+  /* FIXME: implement */
 }
