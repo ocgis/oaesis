@@ -298,7 +298,7 @@ Menu_do_text(OBJECT * tree,
     }
     else
     {
-      ti = OB_SPEC(&tree[obj]);
+      ti = (TEDINFO *)OB_SPEC(&tree[obj]);
     }
     
     strcpy(ti->te_ptext,
