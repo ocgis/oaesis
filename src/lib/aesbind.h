@@ -651,10 +651,10 @@ typedef struct parm_block {
    short    pb_x, pb_y, pb_w, pb_h;
    short    pb_xc, pb_yc, pb_wc, pb_hc;
    long     pb_parm;
-}PARMBLK;
+} PACKED PARMBLK;
 
 typedef struct user_block {
-        int /*__CDECL*/ (*ub_code)(PARMBLK *parmblock);
+        short /*__CDECL*/ (*ub_code)(PARMBLK *parmblock);
 
         long ub_parm;
 }USERBLK;
