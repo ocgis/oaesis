@@ -19,6 +19,7 @@
 #include "srv_appl_info.h"
 #include "srv_event.h"
 #include "srv_get.h"
+#include "srv_misc.h"
 #include "vdi.h"
 
 
@@ -48,8 +49,10 @@ typedef struct appl_list {
 static APPL_LIST_REF waiting_appl = APPL_LIST_REF_NIL;
 static APPL_LIST     apps [MAX_NUM_APPS];
 
-static WORD x_last;
-static WORD y_last;
+static WORD x_new = 0;
+static WORD x_last = 0;
+static WORD y_new = 0;
+static WORD y_last = 0;
 static WORD buttons_new = 0;
 static WORD buttons_last = 0;
 
@@ -71,6 +74,27 @@ catch_mouse_buttons (int buttons) {
 
 
 /*
+** Description
+** This procedure is installed with vex_motv to handle mouse motion.
+**
+** 1998-12-13 CG
+*/
+static
+void
+catch_mouse_motion (int x,
+                    int y) {
+  WORD wake = ((x_new == x_last) && (y_new == y_last));
+  x_new = x;
+  y_new = y;
+
+  /* Wake up the server so that it will be able to distribute the event */
+  if (wake) {
+    Srv_wake ();
+  }
+}
+
+
+/*
 ** Exported
 **
 ** 1998-12-07 CG
@@ -79,6 +103,7 @@ catch_mouse_buttons (int buttons) {
 void
 srv_init_event_handler (WORD vdi_workstation_id) {
   void * old_button_vector;
+  void * old_motion_vector;
   int    i;
 
   /* Reset buffers */
@@ -90,6 +115,9 @@ srv_init_event_handler (WORD vdi_workstation_id) {
 
   /* Setup mouse button handler */
   Vdi_vex_butv (vdi_workstation_id, catch_mouse_buttons, &old_button_vector);
+
+  /* Setup mpuse motion handler */
+  Vdi_vex_motv (vdi_workstation_id, catch_mouse_motion, &old_motion_vector);
 }
 
 
@@ -182,16 +210,65 @@ check_for_messages (C_EVNT_MULTI * par,
 */
 static
 WORD
-check_mouse (C_EVNT_MULTI * par,
-             R_EVNT_MULTI * ret) {
+check_mouse_buttons (C_EVNT_MULTI * par,
+                     R_EVNT_MULTI * ret) {
   if (par->eventin.events & MU_BUTTON) {
     if (apps [par->common.apid].mouse_size > 0) {
+      ret->eventout.mx =
+        apps [par->common.apid].mouse_buffer [apps [par->common.apid].mouse_head].x;
+      ret->eventout.my =
+        apps [par->common.apid].mouse_buffer [apps [par->common.apid].mouse_head].y;
+      ret->eventout.mb =
+        apps [par->common.apid].mouse_buffer [apps [par->common.apid].mouse_head].buttons;
+      ret->eventout.mc = 1; /* FIXME */
+      apps [par->common.apid].mouse_head =
+        (apps [par->common.apid].mouse_head + 1) % MOUSE_BUFFER_SIZE;
       apps [par->common.apid].mouse_size--;
       return MU_BUTTON;
     }
   }
 
   return 0;
+}
+
+
+/* FIXME include aesbind.h instead */
+#define MO_ENTER 0
+#define MO_LEAVE 1
+
+/*
+** Description
+** Check if the mouse is inside / outside an area
+**
+** 1998-12-13 CG
+*/
+static
+WORD
+check_mouse_motion (WORD           x,
+                    WORD           y,
+                    C_EVNT_MULTI * par,
+                    R_EVNT_MULTI * ret) {
+  WORD retval = 0;
+
+  if (par->eventin.events & MU_M1) {
+    WORD inside = Misc_inside (&par->eventin.m1r, x, y);
+
+    if ((inside && (par->eventin.m1flag == MO_ENTER)) ||
+        ((!inside) && (par->eventin.m1flag == MO_LEAVE))) {
+      retval |= MU_M1;
+    }
+  }
+
+  if (par->eventin.events & MU_M2) {
+    WORD inside = Misc_inside (&par->eventin.m2r, x, y);
+
+    if ((inside && (par->eventin.m2flag == MO_ENTER)) ||
+        ((!inside) && (par->eventin.m2flag == MO_LEAVE))) {
+      retval |= MU_M2;
+    }
+  }
+
+  return retval;
 }
 
 
@@ -213,8 +290,13 @@ srv_wait_for_event (COMM_HANDLE    handle,
   ret.eventout.events |= MU_TIMER;
 
   /* Look for waiting mouse events */
-  ret.eventout.events |= check_mouse (par, &ret);
+  ret.eventout.events |= check_mouse_buttons (par, &ret);
 
+  /* Check if inside or outside area */
+  ret.eventout.events |= check_mouse_motion (x_new,
+                                             y_new,
+                                             par,
+                                             &ret);
   /*
   ** If there were waiting events we return immediately and if not we
   ** queue the application in the waiting list.
@@ -228,19 +310,21 @@ srv_wait_for_event (COMM_HANDLE    handle,
 
 
 /*
-** Exported
+** Description
+** Check if a mouse button has been pressed or released and report it to
+** the right application
 **
-** 1998-12-07 CG
 ** 1998-12-13 CG
 */
+static
 void
-srv_handle_events (void) {
+handle_mouse_buttons (void) {
   /* Did the mouse buttons change? */
   if (buttons_last != buttons_new) {
     WORD click_owner = 0; /* FIXME lookup the real owner here */
     WORD index = (apps [click_owner].mouse_head +
                   apps [click_owner].mouse_size) % MOUSE_BUFFER_SIZE;
-
+    
     apps [click_owner].mouse_buffer [index].x = x_last;
     apps [click_owner].mouse_buffer [index].y = y_last;
     apps [click_owner].mouse_buffer [index].buttons = buttons_new;
@@ -254,7 +338,8 @@ srv_handle_events (void) {
     if (apps [click_owner].is_waiting) {
       R_EVNT_MULTI ret;
       
-      ret.eventout.events = check_mouse (&apps [click_owner].par, &ret);
+      ret.eventout.events = check_mouse_buttons (&apps [click_owner].par,
+                                                 &ret);
 
       if (ret.eventout.events != 0) {
         Srv_reply (apps [click_owner].handle, &ret, sizeof (R_EVNT_MULTI));
@@ -264,6 +349,59 @@ srv_handle_events (void) {
       }
     }
   }
+}
+
+
+/*
+** Description
+** Check if the mouse has been moved and now matches a rectangle for an
+** waiting application
+**
+** 1998-12-13 CG
+*/
+static
+void
+handle_mouse_motion (void) {
+  /* Did the mouse move? */
+  if ((x_new != x_last) || (y_new != y_last)) {
+    APPL_LIST_REF appl_walk = waiting_appl;
+
+    while (appl_walk != APPL_LIST_REF_NIL) {
+      APPL_LIST_REF this_appl = appl_walk;
+      R_EVNT_MULTI  ret;
+
+      appl_walk = appl_walk->next;
+
+      ret.common.retval = check_mouse_motion (x_new,
+                                              y_new,
+                                              &this_appl->par,
+                                              &ret);
+
+      if (ret.common.retval != 0) {
+        Srv_reply (this_appl->handle, &ret, sizeof (R_EVNT_MULTI));
+
+        /* The application is not waiting anymore */
+        dequeue_appl (this_appl);
+      }
+    }
+    
+    /* Update coordinates */
+    x_last = x_new;
+    y_last = y_new;
+  }
+}
+
+
+/*
+** Exported
+**
+** 1998-12-07 CG
+** 1998-12-13 CG
+*/
+void
+srv_handle_events (void) {
+  handle_mouse_motion ();
+  handle_mouse_buttons ();
 }
 
 

@@ -558,12 +558,14 @@ WORD     level)      /* Number of times the function has been called by     */
 }
 
 
+static WORD m1toggle = MO_ENTER;
 /*
 ** Description
 ** Implementation of evnt_multi
 **
 ** 1998-10-04 CG
 ** 1998-10-11 CG
+** 1998-12-13 CG
 */
 void
 Evnt_do_multi (WORD       apid,
@@ -581,7 +583,16 @@ Evnt_do_multi (WORD       apid,
   par.common.apid = apid;
   par.common.pid = getpid ();
   par.eventin = *eventin;
-	
+
+  /*
+  par.eventin.events |= MU_M1;
+  par.eventin.m1flag = m1toggle;
+  par.eventin.m1r.x = 0;
+  par.eventin.m1r.y = 0;
+  par.eventin.m1r.width = 100;
+  par.eventin.m1r.height = 100;
+  */
+
   Client_send_recv (&par,
                     sizeof (C_EVNT_MULTI),
                     &ret,
@@ -595,6 +606,18 @@ Evnt_do_multi (WORD       apid,
       Wind_redraw_elements (apid, ret.msg.msg0, (RECT *)&ret.msg.msg1, 0);
     }
   }
+
+  /*
+  if (ret.eventout.events & MU_M1) {
+    if (m1toggle == MO_ENTER) {
+      DB_printf ("Got MO_ENTER");
+      m1toggle = MO_LEAVE;
+    } else {
+      DB_printf ("Got MO_LEAVE");
+      m1toggle = MO_ENTER;
+    }
+  }
+  */
 
   *msg = ret.msg;
   *eventout = ret.eventout;
