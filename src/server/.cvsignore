@@ -4,3 +4,4 @@ Makefile
 oaesis
 Makefile.in
 srv_get.c
+*.P

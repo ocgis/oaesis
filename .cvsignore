@@ -7,3 +7,5 @@ libtool
 aclocal.m4
 Makefile.in
 configure
+COPYING
+INSTALL

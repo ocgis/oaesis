@@ -5,3 +5,4 @@ Makefile
 launch.h
 launch.c
 Makefile.in
+*.P

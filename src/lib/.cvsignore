@@ -11,3 +11,4 @@ resource.c
 Makefile.in
 *.lib
 srv_put.c
+*.P
