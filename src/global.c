@@ -70,11 +70,13 @@ static WORD oldmode,oldmodecode;
  * Public functions                                                         *
  ****************************************************************************/
 
-void	init_global(WORD physical) {
+void init_global(WORD physical) {
   WORD work_in[] = {1,1,1,1,1,1,1,1,1,1,2};
   WORD work_out[57];
   WORD dum;
   
+  fprintf(stderr,"init_global 1\r\n");
+
   if(globals.video == 0x00030000L) {
     oldmode = globals.vmode = 3;
     DB_printf("Getting old modecode\n");
@@ -85,6 +87,8 @@ void	init_global(WORD physical) {
     oldmode = globals.vmode = Getrez();
   };
   
+  fprintf(stderr,"init_global 2\r\n");
+
   globals.mouse_owner = -1;
   globals.realmove = 0;
   globals.realsize = 0;
@@ -95,8 +99,12 @@ void	init_global(WORD physical) {
   globals.icon_height = 56;
   globals.wind_appl = 1;
   
+  fprintf(stderr,"init_global 3\r\n");
+
   Boot_parse_cnf();
   
+  fprintf(stderr,"init_global 4\r\n");
+
   open_physical_ws = physical;
   
   if(open_physical_ws) {	

@@ -19,9 +19,11 @@
   be freely duplicated and distributed without fee, but not charged for.
  
  ****************************************************************************/
+
 /*
 #define SRV_DEBUG
 */
+
 /****************************************************************************
  * Used interfaces                                                          *
  ****************************************************************************/
@@ -380,49 +382,49 @@ static WORD	elemnumber = -1;
 static WORD	tednumber;
 
 static OBJC_COLORWORD top_colour[20] = {
-	BLACK,BLACK,1,7,LWHITE,
-	BLACK,BLACK,1,7,LWHITE,
-	BLACK,BLACK,1,7,LWHITE,
-	BLACK,BLACK,0,7,LYELLOW,
-	BLACK,BLACK,1,7,LWHITE,
-	BLACK,BLACK,0,7,WHITE,
-	BLACK,BLACK,1,7,LWHITE,
-	BLACK,BLACK,1,7,LWHITE,
-	BLACK,BLACK,1,7,LWHITE,
-	BLACK,BLACK,1,7,LWHITE,
-	BLACK,BLACK,1,7,LWHITE,
-	BLACK,BLACK,1,7,LWHITE,
-	BLACK,BLACK,1,7,LWHITE,
-	BLACK,BLACK,1,7,LWHITE,
-	BLACK,BLACK,1,7,LWHITE,
-	BLACK,BLACK,1,7,LWHITE,
-	BLACK,BLACK,1,7,LWHITE,
-	BLACK,BLACK,1,7,LWHITE,
-	BLACK,BLACK,1,7,LWHITE,
-	BLACK,BLACK,1,7,LWHITE
+  {BLACK,BLACK,1,7,LWHITE},
+  {BLACK,BLACK,1,7,LWHITE},
+  {BLACK,BLACK,1,7,LWHITE},
+  {BLACK,BLACK,0,7,LYELLOW},
+  {BLACK,BLACK,1,7,LWHITE},
+  {BLACK,BLACK,0,7,WHITE},
+  {BLACK,BLACK,1,7,LWHITE},
+  {BLACK,BLACK,1,7,LWHITE},
+  {BLACK,BLACK,1,7,LWHITE},
+  {BLACK,BLACK,1,7,LWHITE},
+  {BLACK,BLACK,1,7,LWHITE},
+  {BLACK,BLACK,1,7,LWHITE},
+  {BLACK,BLACK,1,7,LWHITE},
+  {BLACK,BLACK,1,7,LWHITE},
+  {BLACK,BLACK,1,7,LWHITE},
+  {BLACK,BLACK,1,7,LWHITE},
+  {BLACK,BLACK,1,7,LWHITE},
+  {BLACK,BLACK,1,7,LWHITE},
+  {BLACK,BLACK,1,7,LWHITE},
+  {BLACK,BLACK,1,7,LWHITE}
 };
 
 static OBJC_COLORWORD untop_colour[20] = {
-	BLACK,BLACK,1,7,LWHITE,
-	BLACK,BLACK,1,7,LWHITE,
-	BLACK,BLACK,1,7,LWHITE,
-	BLACK,BLACK,1,7,LWHITE,
-	BLACK,BLACK,1,7,LWHITE,
-	BLACK,BLACK,0,7,WHITE,
-	BLACK,BLACK,1,7,LWHITE,
-	BLACK,BLACK,1,7,LWHITE,
-	BLACK,BLACK,1,7,LWHITE,
-	BLACK,BLACK,1,7,LWHITE,
-	BLACK,BLACK,1,7,LWHITE,
-	BLACK,BLACK,1,7,LWHITE,
-	BLACK,BLACK,1,7,LWHITE,
-	BLACK,BLACK,1,7,LWHITE,
-	BLACK,BLACK,1,7,LWHITE,
-	BLACK,BLACK,1,7,LWHITE,
-	BLACK,BLACK,1,7,LWHITE,
-	BLACK,BLACK,1,7,LWHITE,
-	BLACK,BLACK,1,7,LWHITE,
-	BLACK,BLACK,1,7,LWHITE
+  {BLACK,BLACK,1,7,LWHITE},
+  {BLACK,BLACK,1,7,LWHITE},
+  {BLACK,BLACK,1,7,LWHITE},
+  {BLACK,BLACK,1,7,LWHITE},
+  {BLACK,BLACK,1,7,LWHITE},
+  {BLACK,BLACK,0,7,WHITE},
+  {BLACK,BLACK,1,7,LWHITE},
+  {BLACK,BLACK,1,7,LWHITE},
+  {BLACK,BLACK,1,7,LWHITE},
+  {BLACK,BLACK,1,7,LWHITE},
+  {BLACK,BLACK,1,7,LWHITE},
+  {BLACK,BLACK,1,7,LWHITE},
+  {BLACK,BLACK,1,7,LWHITE},
+  {BLACK,BLACK,1,7,LWHITE},
+  {BLACK,BLACK,1,7,LWHITE},
+  {BLACK,BLACK,1,7,LWHITE},
+  {BLACK,BLACK,1,7,LWHITE},
+  {BLACK,BLACK,1,7,LWHITE},
+  {BLACK,BLACK,1,7,LWHITE},
+  {BLACK,BLACK,1,7,LWHITE}
 };
 
 static WORD widgetmap[] = {
@@ -776,56 +778,59 @@ update_appl_menu(void) /*                                                   */
 	
 	return topappl;}
 
-static void set_widget_colour(WINSTRUCT *win,WORD widget,OBJC_COLORWORD *untop,OBJC_COLORWORD *top) {
-	U_OB_SPEC      *ob_spec;
-	WORD           object = 0;
-	OBJC_COLORWORD *colour;
-
-	if(win->tree) {
-		object = widgetmap[widget];
-		
-		if(win->tree[object].ob_flags & INDIRECT) {
-			ob_spec = (U_OB_SPEC *)win->tree[object].ob_spec.indirect;
-		}
-		else {
-			ob_spec = (U_OB_SPEC *)&win->tree[object].ob_spec;
-		};
-		
-		switch(win->tree[object].ob_type & 0xff) {
-		case G_BOX:
-		case G_IBOX:
-		case G_BOXCHAR:
-			colour = &((OBJC_COLORWORD *)ob_spec)[1];
-			break;
-		
-		case G_TEXT:
-		case G_BOXTEXT:
-		case G_FTEXT:
-		case G_FBOXTEXT:
-			colour = (OBJC_COLORWORD *)&ob_spec->tedinfo->te_color;
-			break;
-		
-		case G_IMAGE:
-			colour = (OBJC_COLORWORD *)&ob_spec->bitblk->bi_color;
-			break;
-		
-		case G_BUTTON:
-		case G_PROGDEF:
-		case G_STRING:
-		case G_TITLE:
-			return;
-			
-		default:
-			DB_printf("Unsupported type %d in set_widget_colour.",win->tree[object].ob_type);
-		};
-		
-		if(win->status & WIN_TOPPED) {
-			*colour = *top;
-		}
-		else {
-			*colour = *untop;
-		};
-	};
+static void set_widget_colour(WINSTRUCT *win,WORD widget,
+			      OBJC_COLORWORD *untop,OBJC_COLORWORD *top) {
+  U_OB_SPEC      *ob_spec;
+  WORD           object = 0;
+  OBJC_COLORWORD *colour;
+  
+  if(win->tree) {
+    object = widgetmap[widget];
+    
+    if(win->tree[object].ob_flags & INDIRECT) {
+      ob_spec = (U_OB_SPEC *)win->tree[object].ob_spec.indirect;
+    }
+    else {
+      ob_spec = (U_OB_SPEC *)&win->tree[object].ob_spec;
+    };
+    
+    switch(win->tree[object].ob_type & 0xff) {
+    case G_BOX:
+    case G_IBOX:
+    case G_BOXCHAR:
+      colour = &((OBJC_COLORWORD *)ob_spec)[1];
+      break;
+      
+    case G_TEXT:
+    case G_BOXTEXT:
+    case G_FTEXT:
+    case G_FBOXTEXT:
+      colour = (OBJC_COLORWORD *)&ob_spec->tedinfo->te_color;
+      break;
+      
+    case G_IMAGE:
+      colour = (OBJC_COLORWORD *)&ob_spec->bitblk->bi_color;
+      break;
+      
+    case G_BUTTON:
+    case G_PROGDEF:
+    case G_STRING:
+    case G_TITLE:
+      return;
+      
+    default:
+      DB_printf("Unsupported type %d in set_widget_colour.",
+		win->tree[object].ob_type);
+      return;
+    };
+    
+    if(win->status & WIN_TOPPED) {
+      *colour = *top;
+    }
+    else {
+      *colour = *untop;
+    };
+  };
 }
 
 static void packelem(OBJECT *tree,WORD object,WORD left,WORD right,
@@ -1530,60 +1535,65 @@ WORD apid,          /* Application to control.                              */
 WORD mode)          /* What to do.                                          */
 /****************************************************************************/
 {
-	switch(mode) {
-	case APC_TOPNEXT:
-	{
-		AP_LIST *al = ap_pri;
-		WORD    nexttop = -1;
-
-		while(al) {
-			nexttop = al->ai->id;
-			
-			al = al->next;
-		};
-		
-		if(nexttop != -1) {
-			top_appl(nexttop);
-		};
-		
-		return 1;
-	};
+  switch(mode) {
+  case APC_TOPNEXT:
+    {
+      AP_LIST *al = ap_pri;
+      WORD    nexttop = -1;
+      
+      while(al) {
+	nexttop = al->ai->id;
 	
-	case APC_KILL:
-	{
-		AP_INFO *ai = internal_appl_info(apid);
-
-		if(ai->newmsg & 0x1) {
-			COMMSG m;
-			
-			DB_printf("Sending AP_TERM to %d",apid);
-
-			m.type = AP_TERM;
-			m.sid = 0;
-			m.length = 0;
-			m.msg2 = AP_TERM;
-			
-			srv_appl_write(apid,sizeof(COMMSG),&m);
-		}
-		else {
-			DB_printf("Killing %d",apid);
-			
-			(void)Pkill(ai->pid,SIGKILL);
-		
-			srv_appl_exit(apid);
-		};
-		
-		return 1;
-	};
+	al = al->next;
+      };
+      
+      if(nexttop != -1) {
+	top_appl(nexttop);
+      };
+      
+      return 1;
+    };
+    
+  case APC_KILL:
+    {
+      AP_INFO *ai = internal_appl_info(apid);
+      
+      /* This will not work <--
+	 if(ai->newmsg & 0x1) {
+	 COMMSG m;
+	 
+	 DB_printf("Sending AP_TERM to %d",apid);
+	 
+	 m.type = AP_TERM;
+	 m.sid = 0;
+	 m.length = 0;
+	 m.msg2 = AP_TERM;
+	 
+	 srv_appl_write(apid,sizeof(COMMSG),&m);
+	 }
+	 else 
+	 */
+      {
+	DB_printf("Killing apid %d",apid);
 	
-	case APC_TOP:
-		top_appl(apid);
-		return 1;
+	(void)Pkill(ai->pid,SIGKILL);
 	
-	default:
-		DB_printf("srv_appl_control doesn't support mode %d",mode);
-		return 0;
-	}
+	srv_appl_exit(apid);
+
+	DB_printf("Exited apid %d",apid);
+      };
+      
+      return 1;
+    };
+    
+  case APC_TOP:
+    top_appl(apid);
+    return 1;
+    
+  default:
+    DB_printf("srv_appl_control doesn't support mode %d",mode);
+    return 0;
+  }
 }
 
 /****************************************************************************
@@ -1923,43 +1933,43 @@ top_appl(         /*                                                        */
 WORD apid)        /* Id of application.                                     */
 /****************************************************************************/
 {
-	AP_LIST **al;
-	OBJECT  *deskbg;
-	WORD    deskbgcount = 0;
-	WORD    lasttop;
-	
-	lasttop = ap_pri->ai->id;
-	al = &ap_pri;
-	
-	while(*al) {
-		if((*al)->ai->id == apid) {
-			AP_LIST *tmp = *al;
-			
-			*al = (*al)->next;
-			
-			tmp->next = ap_pri;
-			ap_pri = tmp;
-			
-			deskbg = tmp->ai->deskbg;
-			
-			break;
-		};
-
-		if((*al)->ai->deskbg) {
-			deskbgcount++;
-		}
-		
-		al = &(*al)->next;
-	};
-	
-	if(deskbg && deskbgcount) {
-		update_deskbg();
-	};
-	
-	update_appl_menu();
-	redraw_menu_bar();
-	
-	return lasttop;
+  AP_LIST **al;
+  OBJECT  *deskbg = NULL;
+  WORD    deskbgcount = 0;
+  WORD    lasttop;
+  
+  lasttop = ap_pri->ai->id;
+  al = &ap_pri;
+  
+  while(*al) {
+    if((*al)->ai->id == apid) {
+      AP_LIST *tmp = *al;
+      
+      *al = (*al)->next;
+      
+      tmp->next = ap_pri;
+      ap_pri = tmp;
+      
+      deskbg = tmp->ai->deskbg;
+      
+      break;
+    };
+    
+    if((*al)->ai->deskbg) {
+      deskbgcount++;
+    }
+    
+    al = &(*al)->next;
+  };
+  
+  if(deskbg && deskbgcount) {
+    update_deskbg();
+  };
+  
+  update_appl_menu();
+  redraw_menu_bar();
+  
+  return lasttop;
 }
 
 static void del_env(const BYTE *strng) {
@@ -3067,150 +3077,152 @@ static WORD	bottom_window(WORD winid) {
 	return 1;
 }
 
-static WORD	top_window(WORD winid) { 
-	WORD          wastopped = 0;
-	WINSTRUCT     *oldtop;
-	REDRAWSTRUCT	m;
+static WORD top_window(WORD winid) { 
+  WORD         wastopped = 0;
+  WINSTRUCT    *oldtop = NULL;
+  REDRAWSTRUCT m;
+  
+  RLIST        *rl = 0L;
+  RLIST	       *rl2 = 0L;
+  
+  WINLIST      **wl = &win_vis;
+  WINLIST      *wl2;
+  WINLIST      *ourwl;
+  
+  WORD	dx,dy;
 	
-	RLIST	*rl = 0L;
-	RLIST	*rl2 = 0L;
+  if(winid == 0) {
+    if(win_vis && (win_vis->win->status & WIN_TOPPED)) {
+      WORD i;
+      
+      win_vis->win->status &= ~WIN_TOPPED;
+      
+      for(i = 0; i <= W_SMALLER; i++) {
+	set_widget_colour(win_vis->win,i,&win_vis->win->untop_colour[i],
+			  &win_vis->win->top_colour[i]);
+      };
+      
+      draw_wind_elements(win_vis->win,&win_vis->win->totsize,0);
+    };
+  }
+  else {
+    while(*wl) {
+      if((*wl)->win->id == winid)
+	break;
+      
+      wl = &(*wl)->next;
+    };
+    
+    if(!*wl)
+      return 0;
+    
+    wl2 = *wl;
+    
+    *wl = (*wl)->next;
+    
+    if(win_vis) {
+      if(win_vis->win->status & WIN_DIALOG) {
+	wl2->next = win_vis->next;
+	win_vis->next = wl2;
+      }
+      else {
+	oldtop = win_vis->win;
+	wl2->next = win_vis;
+	win_vis = wl2;
 	
-	WINLIST	**wl = &win_vis;
-	WINLIST	*wl2;
-	WINLIST	*ourwl;
-	
-	WORD	dx,dy;
-	
-	if(winid == 0) {
-		if(win_vis && (win_vis->win->status & WIN_TOPPED)) {
-			WORD i;
-			
-			win_vis->win->status &= ~WIN_TOPPED;
-
-			for(i = 0; i <= W_SMALLER; i++) {
-				set_widget_colour(win_vis->win,i,&win_vis->win->untop_colour[i],&win_vis->win->top_colour[i]);
-			};
-	
-			draw_wind_elements(win_vis->win,&win_vis->win->totsize,0);
-		};
-	}
-	else {
-		while(*wl) {
-			if((*wl)->win->id == winid)
-				break;
-				
-			wl = &(*wl)->next;
-		};
-		
-		if(!*wl)
-			return 0;
-		
-		wl2 = *wl;
-		
-		*wl = (*wl)->next;
-
-		if(win_vis) {
-			if(win_vis->win->status & WIN_DIALOG) {
-				wl2->next = win_vis->next;
-				win_vis->next = wl2;
-			}
-			else {
-				oldtop = win_vis->win;
-				wl2->next = win_vis;
-				win_vis = wl2;
-				
-				if(!(wl2->win->status & WIN_TOPPED)) {
-					wl2->win->status |= WIN_TOPPED;
-					oldtop->status &= ~WIN_TOPPED;
-					
-					wastopped = 1;
-				};
-			};
-		}
-		else
-		{	
-			wl2->next = 0L;
-			win_vis = wl2;
-		};
-	
-		m.type = WM_REDRAW;
-		
-		if(globals.realmove) {
-			m.sid = -1;
-		}
-		else {
-			m.sid = 0;
-		};
-		
-		ourwl = wl2;
-	
-		m.wid = ourwl->win->id;
-		m.length = 0;
-	
-		dx = wl2->win->totsize.x;
-		dy = wl2->win->totsize.y;	
-			
-		wl2 = wl2->next;
-	
-		while(wl2) {
-			RLIST	*rd = 0L;
-			
-			Rlist_rectinter(&rl,&ourwl->win->totsize,&wl2->win->rlist);
-			
-			Rlist_insert(&rd,&wl2->win->rlist);
-				
-			wl2->win->rlist = rd;
-			wl2->win->rpos = wl2->win->rlist;
-			
-			wl2 = wl2->next;
-		};
-		
-	
-		Rlist_insert(&rl2,&rl);
-		
-		rl = rl2;
-	
-		while(rl) {
-			m.area.x = rl->r.x;
-			m.area.y = rl->r.y;
-			
-			m.area.width = rl->r.width;
-			m.area.height = rl->r.height;
-		
-			if(!wastopped) {
-				draw_wind_elemfast(ourwl->win,&rl->r,0);
-			};
-			
-			if(globals.realmove) {
-				m.area.x -= dx;
-				m.area.y -= dy;
-			};
-			
-			srv_appl_write(ourwl->win->owner,16,&m);
-	
-			rl = rl->next;
-		};
-	
-		Rlist_insert(&ourwl->win->rlist,&rl2);
-	
-		ourwl->win->rpos = ourwl->win->rlist;
-	
-		if(wastopped) {
-			WORD i;
-			
-			for(i = 0; i <= W_SMALLER; i++) {
-				set_widget_colour(oldtop,i,&oldtop->untop_colour[i],&oldtop->top_colour[i]);
-				set_widget_colour(ourwl->win,i,&ourwl->win->untop_colour[i],&ourwl->win->top_colour[i]);
-			};
-	
-			draw_wind_elements(ourwl->win,&ourwl->win->totsize,0);
-			draw_wind_elements(oldtop,&oldtop->totsize,0);
-
-			srv_appl_control(ourwl->win->owner,APC_TOP);
-		};
+	if(!(wl2->win->status & WIN_TOPPED)) {
+	  wl2->win->status |= WIN_TOPPED;
+	  oldtop->status &= ~WIN_TOPPED;
+	  
+	  wastopped = 1;
 	};
-		
-	return 1;
+      };
+    }
+    else {	
+      wl2->next = 0L;
+      win_vis = wl2;
+    };
+    
+    m.type = WM_REDRAW;
+    
+    if(globals.realmove) {
+      m.sid = -1;
+    }
+    else {
+      m.sid = 0;
+    };
+    
+    ourwl = wl2;
+    
+    m.wid = ourwl->win->id;
+    m.length = 0;
+    
+    dx = wl2->win->totsize.x;
+    dy = wl2->win->totsize.y;	
+    
+    wl2 = wl2->next;
+	
+    while(wl2) {
+      RLIST	*rd = 0L;
+      
+      Rlist_rectinter(&rl,&ourwl->win->totsize,&wl2->win->rlist);
+      
+      Rlist_insert(&rd,&wl2->win->rlist);
+      
+      wl2->win->rlist = rd;
+      wl2->win->rpos = wl2->win->rlist;
+      
+      wl2 = wl2->next;
+    };
+    
+    
+    Rlist_insert(&rl2,&rl);
+    
+    rl = rl2;
+    
+    while(rl) {
+      m.area.x = rl->r.x;
+      m.area.y = rl->r.y;
+      
+      m.area.width = rl->r.width;
+      m.area.height = rl->r.height;
+      
+      if(!wastopped) {
+	draw_wind_elemfast(ourwl->win,&rl->r,0);
+      };
+      
+      if(globals.realmove) {
+	m.area.x -= dx;
+	m.area.y -= dy;
+      };
+      
+      srv_appl_write(ourwl->win->owner,16,&m);
+      
+      rl = rl->next;
+    };
+    
+    Rlist_insert(&ourwl->win->rlist,&rl2);
+    
+    ourwl->win->rpos = ourwl->win->rlist;
+    
+    if(wastopped) {
+      WORD i;
+      
+      for(i = 0; i <= W_SMALLER; i++) {
+	set_widget_colour(oldtop,i,&oldtop->untop_colour[i],
+			  &oldtop->top_colour[i]);
+	set_widget_colour(ourwl->win,i,&ourwl->win->untop_colour[i],
+			  &ourwl->win->top_colour[i]);
+      };
+	
+      draw_wind_elements(ourwl->win,&ourwl->win->totsize,0);
+      draw_wind_elements(oldtop,&oldtop->totsize,0);
+      
+      srv_appl_control(ourwl->win->owner,APC_TOP);
+    };
+  };
+  
+  return 1;
 }
 
 /****************************************************************************
@@ -3791,119 +3803,118 @@ WORD id,       /* Identification number of window to open.                  */
 RECT *size)    /* Initial size of window.                                   */
 /****************************************************************************/
 {
-	WINLIST	     *wl,*wp;
-	WINSTRUCT    *ws,*oldtop;
-	RLIST	       *rl = 0L;
-	REDRAWSTRUCT m;
-	WORD         owner;
-	WORD         i;
-	WORD         wastopped = 0;
+  WINLIST      *wl,*wp;
+  WINSTRUCT    *ws,*oldtop = NULL;
+  RLIST	       *rl = 0L;
+  REDRAWSTRUCT m;
+  WORD         owner;
+  WORD         i;
+  WORD         wastopped = 0;
 
-	ws = find_wind_description(id);
-
-	if(ws) {
-		if(!(ws->status & WIN_OPEN)) {
-			wl = (WINLIST *)Mxalloc(sizeof(WINLIST),GLOBALMEM);
-		
-			wl->win = ws;
-			
-			setwinsize(wl->win,size);
-		
-			if(win_vis) {
-				if(win_vis->win->status & WIN_DIALOG) {
-					wl->next = win_vis->next;
-					win_vis->next = wl;
-					wl->win->status &= ~WIN_TOPPED;
-				}
-				else
-				{					
-					oldtop = win_vis->win;
-					wl->next = win_vis;
-					win_vis = wl;
-
-					if(!(wl->win->status & WIN_MENU)) {
-						wl->win->status |= WIN_TOPPED;
-						oldtop->status &= ~WIN_TOPPED;
-						wastopped = 1;
-					};
-				};
-			}
-			else {	
-				wl->next = 0L;
-				win_vis = wl;
-				wl->win->status |= WIN_TOPPED;
-			};
-			
-			wp = wl->next;
-		
-			while(wp != 0L) {
-				RLIST	*rd = 0L;
-				
-				Rlist_rectinter(&rl,&wl->win->totsize,&wp->win->rlist);
-				
-				Rlist_insert(&rd,&wp->win->rlist);
-					
-				wp->win->rlist = rd;
-				wp = wp->next;
-			};
-		
-			wl->win->rlist = 0L;
-			Rlist_insert(&wl->win->rlist,&rl);
-		
-			wl->win->status |= WIN_OPEN;
-			
-			for(i = 0; i <= W_SMALLER; i++) {
-				set_widget_colour(ws,i,&ws->untop_colour[i],&ws->top_colour[i]);
-			};
-			
-			if(!(wl->win->status & (WIN_DIALOG | WIN_MENU))){
-				m.type = WM_REDRAW;
-				m.length = 0;
-				
-				if(globals.realmove) {
-					m.sid = -1;
-					m.area.x = 0; /*x and y are relative to the position of the window*/
-					m.area.y = 0;
-				}
-				else {
-					m.sid = 0;
-					m.area.x = wl->win->totsize.x;
-					m.area.y = wl->win->totsize.y;
-				};
-				
-				m.area.width = wl->win->totsize.width;
-				m.area.height = wl->win->totsize.height;
-				
-				m.wid = wl->win->id;
-			
-				owner = wl->win->owner;
-
-				draw_wind_elements(wl->win,&wl->win->totsize,0);				
-			
-				srv_appl_write(owner,MSG_LENGTH,&m);
-			};
-
-			if(wastopped) {
-				WORD i;
-				
-				for(i = 0; i <= W_SMALLER; i++) {
-					set_widget_colour(oldtop,i,&oldtop->untop_colour[i],&oldtop->top_colour[i]);
-				};
-
-				draw_wind_elements(oldtop,&oldtop->totsize,0);
-
-				srv_appl_control(wl->win->owner,APC_TOP);
-			};
-		}
-		else {
-			return 0;
-		};
+  ws = find_wind_description(id);
+  
+  if(ws) {
+    if(!(ws->status & WIN_OPEN)) {
+      wl = (WINLIST *)Mxalloc(sizeof(WINLIST),GLOBALMEM);
+      
+      wl->win = ws;
+      
+      setwinsize(wl->win,size);
+      
+      if(win_vis) {
+	if(win_vis->win->status & WIN_DIALOG) {
+	  wl->next = win_vis->next;
+	  win_vis->next = wl;
+	  wl->win->status &= ~WIN_TOPPED;
+	}
+	else {					
+	  oldtop = win_vis->win;
+	  wl->next = win_vis;
+	  win_vis = wl;
+	  
+	  if(!(wl->win->status & WIN_MENU)) {
+	    wl->win->status |= WIN_TOPPED;
+	    oldtop->status &= ~WIN_TOPPED;
+	    wastopped = 1;
+	  };
+	};
+      }
+      else {	
+	wl->next = 0L;
+	win_vis = wl;
+	wl->win->status |= WIN_TOPPED;
+      };
+      
+      wp = wl->next;
+      
+      while(wp != 0L) {
+	RLIST	*rd = 0L;
+	
+	Rlist_rectinter(&rl,&wl->win->totsize,&wp->win->rlist);
+	
+	Rlist_insert(&rd,&wp->win->rlist);
+	
+	wp->win->rlist = rd;
+	wp = wp->next;
+      };
+      
+      wl->win->rlist = 0L;
+      Rlist_insert(&wl->win->rlist,&rl);
+      
+      wl->win->status |= WIN_OPEN;
+      
+      for(i = 0; i <= W_SMALLER; i++) {
+	set_widget_colour(ws,i,&ws->untop_colour[i],&ws->top_colour[i]);
+      };
+      
+      if(!(wl->win->status & (WIN_DIALOG | WIN_MENU))){
+	m.type = WM_REDRAW;
+	m.length = 0;
+	
+	if(globals.realmove) {
+	  m.sid = -1;
+	  m.area.x = 0; /*x and y are relative to the position of the window*/
+	  m.area.y = 0;
 	}
 	else {
-		return 0;
+	  m.sid = 0;
+	  m.area.x = wl->win->totsize.x;
+	  m.area.y = wl->win->totsize.y;
 	};
 	
-	return 1;
+	m.area.width = wl->win->totsize.width;
+	m.area.height = wl->win->totsize.height;
+	
+	m.wid = wl->win->id;
+	
+	owner = wl->win->owner;
+	
+	draw_wind_elements(wl->win,&wl->win->totsize,0);				
+	srv_appl_write(owner,MSG_LENGTH,&m);
+      };
+      
+      if(wastopped) {
+	WORD i;
+	
+	for(i = 0; i <= W_SMALLER; i++) {
+	  set_widget_colour(oldtop,i,&oldtop->untop_colour[i],
+			    &oldtop->top_colour[i]);
+	};
+	
+	draw_wind_elements(oldtop,&oldtop->totsize,0);
+	
+	srv_appl_control(wl->win->owner,APC_TOP);
+      };
+    }
+    else {
+      return 0;
+    };
+  }
+  else {
+    return 0;
+  };
+  
+  return 1;
 }
 
 /*wind_set 0x0069*/
@@ -4241,58 +4252,61 @@ static WORD server(LONG arg) {
 		
 		switch(msg.call) {
 		case SRV_SHAKE:
-			DB_printf("I'm fine process %d!",msg.pid);
-			DB_printf("How are you doing yourself?");
-			Pmsg(MSG_WRITE,0xffff0000L | msg.pid,&msg);
-			break;
-
+		  DB_printf("I'm fine process %d!",msg.pid);
+		  DB_printf("How are you doing yourself?");
+		  Pmsg(MSG_WRITE,0xffff0000L | msg.pid,&msg);
+		  break;
+		  
 		case SRV_SHUTDOWN:
-			DB_printf("OK! Nice chatting with you! Bye!");
-			DB_printf("Killing off alive processes");
-			
-			while(ap_pri) {
-				srv_appl_control(ap_pri->ai->id,APC_KILL);
-			};
-			
-			Pmsg(MSG_WRITE,0xffff0000L | msg.pid,&msg);
-			Vdi_v_clsvwk(svid);
-			return 0;
-		
+		  DB_printf("OK! Nice chatting with you! Bye!");
+		  DB_printf("Killing off alive processes");
+		  
+		  while(ap_pri) {
+		    srv_appl_control(ap_pri->ai->id,APC_KILL);
+		  };
+		  
+		  DB_printf("Killed all processes\r\n");
+
+		  Pmsg(MSG_WRITE,0xffff0000L | msg.pid,&msg);
+		  Vdi_v_clsvwk(svid);
+		  return 0;
+		  
 		case SRV_APPL_CONTROL:
-			msg.spec.appl_control->retval = 
-				srv_appl_control(msg.spec.appl_control->apid,
-													msg.spec.appl_control->mode);
-
-			Pmsg(MSG_WRITE,0xffff0000L | msg.pid,&msg);
-			break;
-			
+		  msg.spec.appl_control->retval = 
+		    srv_appl_control(msg.spec.appl_control->apid,
+				     msg.spec.appl_control->mode);
+		  
+		  Pmsg(MSG_WRITE,0xffff0000L | msg.pid,&msg);
+		  break;
+		  
 		case SRV_APPL_EXIT:
-			msg.spec.appl_exit->retval = srv_appl_exit(msg.apid);
-
-			Pmsg(MSG_WRITE,0xffff0000L | msg.pid,&msg);
-			break;
-			
+		  msg.spec.appl_exit->retval = srv_appl_exit(msg.apid);
+		  
+		  Pmsg(MSG_WRITE,0xffff0000L | msg.pid,&msg);
+		  break;
+		  
 		case SRV_APPL_FIND:
-			msg.spec.appl_find->retval = srv_appl_find(msg.spec.appl_find->fname);
-
-			Pmsg(MSG_WRITE,0xffff0000L | msg.pid,&msg);
-			break;
-			
+		  msg.spec.appl_find->retval = srv_appl_find(msg.spec.appl_find->fname);
+		  
+		  Pmsg(MSG_WRITE,0xffff0000L | msg.pid,&msg);
+		  break;
+		  
 		case SRV_APPL_INIT:
-			srv_appl_init(msg.pid,msg.spec.appl_init);
-
-			Pmsg(MSG_WRITE,0xffff0000L | msg.pid,&msg);
-			break;
-			
+		  srv_appl_init(msg.pid,msg.spec.appl_init);
+		  
+		  Pmsg(MSG_WRITE,0xffff0000L | msg.pid,&msg);
+		  break;
+		  
 		case SRV_APPL_SEARCH:
-			msg.spec.appl_search->retval = srv_appl_search(msg.apid,
-											msg.spec.appl_search->mode,
-											msg.spec.appl_search->name,
-											&msg.spec.appl_search->type,
-											&msg.spec.appl_search->ap_id);
-
-			Pmsg(MSG_WRITE,0xffff0000L | msg.pid,&msg);
-			break;
+		  msg.spec.appl_search->retval =
+		    srv_appl_search(msg.apid,
+				    msg.spec.appl_search->mode,
+				    msg.spec.appl_search->name,
+				    &msg.spec.appl_search->type,
+				    &msg.spec.appl_search->ap_id);
+		  
+		  Pmsg(MSG_WRITE,0xffff0000L | msg.pid,&msg);
+		  break;
 			
 		case SRV_APPL_WRITE:
 			msg.spec.appl_write->retval = srv_appl_write(
@@ -4556,12 +4570,12 @@ void                   /*                                                   */
 Srv_exit_module(void)  /*                                                   */
 /****************************************************************************/
 {
-	PMSG msg;
-	
-	DB_printf("Server we have to quit now! Bye!");
-	
-	msg.call = SRV_SHUTDOWN;
-	Pmsg(MSG_READWRITE,SRVBOX,&msg);
+  PMSG msg;
+  
+  DB_printf("Server we have to quit now! Bye!");
+  
+  msg.call = SRV_SHUTDOWN;
+  Pmsg(MSG_READWRITE,SRVBOX,&msg);
 }
 
 void Srv_shake(void) {

@@ -23,144 +23,148 @@
 #include	<sysvars.h>
 
 void init_aes(WORD physical) {
-  printf("Initializing:\r\n");
+  fprintf(stderr,"Initializing:\r\n");
   
   init_global(physical);
 
-  printf("Server\r\n");
+  fprintf(stderr,"Server\r\n");
   Srv_init_module();
   
-  printf("AES trap vector\r\n");
+  fprintf(stderr,"AES trap vector\r\n");
   Supexec(link_in);
   
-  printf("Object calls\r\n");
+  fprintf(stderr,"Object calls\r\n");
   init_objc();
   
-  printf("Menu calls\r\n");
+  fprintf(stderr,"Menu calls\r\n");
   Menu_init_module();
   
-  printf("Graf calls\r\n");
+  fprintf(stderr,"Graf calls\r\n");
   Graf_init_module();
   
-  printf("Mouse device\r\n");
+  fprintf(stderr,"Mouse device\r\n");
   Moudev_init_module();
   
-  printf("Event handler\r\n");
+  fprintf(stderr,"Event handler\r\n");
   Evhd_init_module();
   
-  printf("Done.\r\n");
+  fprintf(stderr,"Done.\r\n");
 }
 
-void	exit_aes(void) {
-	printf("Exiting:\r\n");
+void exit_aes(void) {
+  fprintf(stderr,"Exiting:\r\n");
+  
+  fprintf(stderr,"Event handler\r\n");
+  
+  Evhd_exit_module();
+  
+  fprintf(stderr,"Menu calls\r\n");
 
-	printf("Event handler\r\n");
-
-	Evhd_exit_module();
-		
-	printf("Menu calls\r\n");
-
-	Menu_exit_module();
-
-	printf("Mouse device\r\n");
-
-	Moudev_exit_module();
-	
-	printf("Aes trap vector\r\n");
-
-	Supexec(link_remove);
-
-	printf("Object calls\r\n");
-
-	exit_objc();
-
-	printf("Global\r\n");
-
-	exit_global();
-
-	printf("Server\r\n");
-	Srv_exit_module();
-	
-	printf("Done.\r\n");
+  Menu_exit_module();
+  
+  fprintf(stderr,"Mouse device\r\n");
+  
+  Moudev_exit_module();
+  
+  fprintf(stderr,"Aes trap vector\r\n");
+  
+  Supexec(link_remove);
+  
+  fprintf(stderr,"Object calls\r\n");
+  
+  exit_objc();
+  
+  fprintf(stderr,"Global\r\n");
+  
+  exit_global();
+  
+  fprintf(stderr,"Server\r\n");
+  Srv_exit_module();
+  
+  fprintf(stderr,"Done.\r\n");
 }
 
 
 int main(int argc,BYTE *argv[],BYTE *envp[]) {
-	WORD physical = 0;
-	WORD i;
-	LONG mintval;
-
-
-	if(!Misc_get_cookie(0x4d694e54L /*'MiNT'*/,&mintval)) {
-		fprintf(stderr,"oAESis requires MiNT to work. Start MiNT and try again!\r\n");
-		
-		return -1;
-	};
-
-	printf("Starting oAESis version %s.\r\n",VERSIONTEXT);
-	printf("Compiled on %s at %s with ",__DATE__,__TIME__);
-
+  WORD physical = 0;
+  WORD i;
+  LONG mintval;
+  
+  
+  if(!Misc_get_cookie(0x4d694e54L /*'MiNT'*/,&mintval)) {
+    fprintf(stderr,"oAESis requires MiNT to work. Start MiNT and try again!\r\n");
+    
+    return -1;
+  };
+  
+  fprintf(stderr,"Starting oAESis version %s.\r\n",VERSIONTEXT);
+  fprintf(stderr,"Compiled on %s at %s with ",__DATE__,__TIME__);
+  
 #ifdef __TURBOC__
-	printf("Pure C / Turbo C %x.%x.\r\n",__TURBOC__ >> 8,__TURBOC__ & 0xff);
+  fprintf(stderr,"Pure C / Turbo C %x.%x.\r\n",__TURBOC__ >> 8,__TURBOC__ & 0xff);
 #endif
-
-
-	printf("The following options were used:\r\n");
-
+  
+#ifdef __GNUC__
+  fprintf(stderr,"Gnu C %x.%x\r\n",__GNUC__,__GNUC_MINOR__);
+#endif
+  
+  
+  fprintf(stderr,"The following options were used:\r\n");
+  
 #ifdef __68020__
-	printf("- Main processor 68020.\r\n");
+  fprintf(stderr,"- Main processor 68020.\r\n");
 #endif
-
+  
 #ifdef __68881__
-	printf("- Math co-processor 68881.\r\n");
+  fprintf(stderr,"- Math co-processor 68881.\r\n");
 #endif
-
-	printf("\r\nMiNT version %ld.%02ld detected\r\n",mintval >> 8,mintval & 0xff);
-
-	globals.video = 0;
-	Misc_get_cookie(0x5f56444fL/*'_VDO'*/,&globals.video);
-
-	switch(globals.video >> 16) {
-	case 0x00:
-		printf("ST video shifter detected.\r\n");
-		break;
-		
-	case 0x01:
-		printf("STe video shifter detected.\r\n");
-		break;
-		
-	case 0x02:
-		printf("TT video shifter detected.\r\n");
-		break;
-		
-	case 0x03:
-		printf("Falcon video shifter detected.\r\n");
-		break;
-		
-	default:
-		printf("Unknown video shifter!\r\n");
-	}
-
-	printf("argc=%d\n",argc);
-
-	for(i = 1; i < argc; i++) {
-		if(!strcmp("--physical",argv[i])) {
-			physical = 1;
-		}
-		else {
-			fprintf(stderr,"Unknown option %s\r\n",argv[i]);
-		};
-	};
-
-	init_aes(physical);
-
-	Misc_setpath("u:\\");
-
-	Menu_handler(envp);
-	
-	exit_aes();
-
-	return 0;
+  
+  fprintf(stderr,"\r\nMiNT version %ld.%02ld detected\r\n",mintval >> 8,mintval & 0xff);
+  
+  globals.video = 0;
+  Misc_get_cookie(0x5f56444fL/*'_VDO'*/,&globals.video);
+  
+  switch(globals.video >> 16) {
+  case 0x00:
+    fprintf(stderr,"ST video shifter detected.\r\n");
+    break;
+    
+  case 0x01:
+    fprintf(stderr,"STe video shifter detected.\r\n");
+    break;
+    
+  case 0x02:
+    fprintf(stderr,"TT video shifter detected.\r\n");
+    break;
+    
+  case 0x03:
+    fprintf(stderr,"Falcon video shifter detected.\r\n");
+    break;
+    
+  default:
+    fprintf(stderr,"Unknown video shifter!\r\n");
+  }
+  
+  fprintf(stderr,"argc=%d\n",argc);
+  
+  for(i = 1; i < argc; i++) {
+    if(!strcmp("--physical",argv[i])) {
+      physical = 1;
+    }
+    else {
+      fprintf(stderr,"Unknown option %s\r\n",argv[i]);
+    };
+  };
+  
+  init_aes(physical);
+  
+  Misc_setpath("u:\\");
+  
+  Menu_handler(envp);
+  
+  exit_aes();
+  
+  return 0;
 }
 
 
