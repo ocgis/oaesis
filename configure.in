@@ -220,6 +220,7 @@ src/server/Makefile
 src/server/srv_get.c
 src/startup/Makefile
 test/Makefile
+test/dr-gem/Makefile
 tools/Makefile
 oaesis.m4
 oaesis-config
