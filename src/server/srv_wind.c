@@ -382,7 +382,7 @@ setwinsize (WINSTRUCT * win,
 
   win->lastsize = win->totsize;
 	
-  win->totsize = * size;
+  win->totsize =  *size;
 	
   dx = size->x - win->lastsize.x;
   dy = size->y - win->lastsize.y;
@@ -393,57 +393,6 @@ setwinsize (WINSTRUCT * win,
   win->worksize.y += dy;
   win->worksize.width += dw;
   win->worksize.height += dh;
-
-  /*
-  if(win->tree) {
-    win->tree[0].ob_x = win->totsize.x;
-    win->tree[0].ob_y = win->totsize.y;
-    win->tree[0].ob_width = win->totsize.width;
-    win->tree[0].ob_height = win->totsize.height;
-	
-    win->tree[WMOVER].ob_width += dw;
-		
-    win->tree[WFULLER].ob_x += dw;
-
-    win->tree[WSMALLER].ob_x += dw;
-	
-    win->tree[WDOWN].ob_x += dw;
-    win->tree[WDOWN].ob_y += dh;	
-	
-    win->tree[WSIZER].ob_x += dw;
-    win->tree[WSIZER].ob_y += dh;	
-	
-    win->tree[WRIGHT].ob_x += dw;
-    win->tree[WRIGHT].ob_y += dh;	
-	
-    win->tree[WLEFT].ob_y += dh;	
-	
-    win->tree[WVSB].ob_x += dw;
-    win->tree[WVSB].ob_height += dh;	
-	
-    win->tree[WHSB].ob_y += dh;
-    win->tree[WHSB].ob_width += dw;	
-	
-    win->tree[WINFO].ob_width += dw;
-		
-    win->tree[WUP].ob_x += dw;
-		
-    win->tree[TFILLOUT].ob_width += dw;
-	
-    win->tree[RFILLOUT].ob_height += dh;
-    win->tree[RFILLOUT].ob_x += dw;
-	
-    win->tree[BFILLOUT].ob_width += dw;
-    win->tree[BFILLOUT].ob_y += dy;
-	
-    win->tree[SFILLOUT].ob_x += dw;
-    win->tree[SFILLOUT].ob_y += dh;
-
-    win->tree[WAPP].ob_width = win->tree[WMOVER].ob_width;
-		
-    changeslider(win,0,HSLIDE | VSLIDE,-1,-1);
-  }
-  */
 }
 
 
@@ -535,10 +484,9 @@ send_redraw_message(int sender,
 */
 static
 WORD
-changewinsize (WINSTRUCT * win,
-               RECT *      size,
-               WORD        vid,
-               WORD        drawall) {	
+changewinsize(WINSTRUCT * win,
+              RECT *      size)
+{	
   WORD dx = size->x - win->totsize.x;
   WORD dy = size->y - win->totsize.y;
   WORD dw = size->width - win->totsize.width;
@@ -548,14 +496,42 @@ changewinsize (WINSTRUCT * win,
   
   setwinsize(win,size);
   
-  if (win->status & WIN_OPEN) {
+  if(win->status & WIN_OPEN)
+  {
+    /* Update parts that were covered by widgets */
+    if(oldworksize.width < win->worksize.width)
+    {
+      send_redraw_message(0,
+                          win->id,
+                          win->owner,
+                          win->worksize.x + oldworksize.width,
+                          win->worksize.y,
+                          win->worksize.width - oldworksize.width,
+                          oldworksize.height,
+                          WM_AREDRAW);
+    }
+
+    if(oldworksize.height < win->worksize.height)
+    {
+      send_redraw_message(0,
+                          win->id,
+                          win->owner,
+                          win->worksize.x,
+                          win->worksize.y + oldworksize.height,
+                          oldworksize.width,
+                          win->worksize.height - oldworksize.height,
+                          WM_AREDRAW);
+    }
+
     if(dx || dy) { /* pos (and maybe size) is to be changed */
       REDRAWSTRUCT	m;
       
       WINLIST	*wl = win_vis;
       
-      while(wl) {
-        if(wl->win == win) {
+      while(wl)
+      {
+        if(wl->win == win)
+        {
           wl = wl->next;
           break;
         }
@@ -563,7 +539,8 @@ changewinsize (WINSTRUCT * win,
         wl = wl->next;
       }
       
-      if(wl) {
+      if(wl)
+      {
 	RLIST	*rlwalk;
 	RLIST	*rlournew = NULL;
 	RLIST	*rlourold = win->rlist;
@@ -578,7 +555,8 @@ changewinsize (WINSTRUCT * win,
 	
 	Rlist_rectinter(&rlournew,size,&rlourold);
 	
-	while(wlwalk) {
+	while(wlwalk)
+        {
 	  /*get the new rectangles we need*/
 	  
 	  Rlist_rectinter(&rlournew,size,&wlwalk->win->rlist);
@@ -588,194 +566,187 @@ changewinsize (WINSTRUCT * win,
 	
 	Rlist_insert(&win->rlist,&rlournew);
 	
-	if(drawall)
+        /* figure out which rectangles that are moveable*/
+        if(dw || dh)
         {
-	  C_APPL_WRITE c_appl_write;
-	  R_APPL_WRITE r_appl_write;
+          Rlist_rectinter (&rlmove1, &win->worksize, &win->rlist);
+        }
+        else
+        {
+          rlmove1 = win->rlist;
+          win->rlist = NULL;
+        }
+	  
+        rlwalk = old_rlist;
+        
+        while(rlwalk)
+        {
+          rlwalk->r.x += dx;
+          rlwalk->r.y += dy;
           
-	  m.type = WM_REDRAW;
+          Rlist_rectinter(&rlmove,&rlwalk->r,&rlmove1);
+          
+          rlwalk = rlwalk->next;
+        }
 	  
-	  if (FALSE /*globals.realmove*/) {
-	    m.sid = -1;
-	  } else {
-	    m.sid = 0;
-	  }
-	  
-	  m.length = 0;
-	  m.wid = win->id;
-	  
-	  m.area = *size;
-	  
-          /* FIXME
-	  draw_wind_elements(win,&m.area,0);
-	  */
+        /* move the rectangles that are moveable */
+        Rlist_sort(&rlmove,dx,dy);
+        
+        rlwalk = rlmove;
+        
+        v_hide_c (globals.vid);
+        
+        /*
+        ** FIXME
+        ** All drawing should be done by the client. Implement a way of
+        ** returning which rectangles are moveable to the client.
+        */
+        while (rlwalk)
+        {
+          MFDB mfdbd, mfdbs;
+          int  koordl[8];
+          
+          mfdbd.fd_addr = 0L;
+          mfdbs.fd_addr = 0L;
+          
+          koordl[4] = rlwalk->r.x;
+          koordl[5] = rlwalk->r.y + rlwalk->r.height - 1;
+          koordl[6] = rlwalk->r.x + rlwalk->r.width - 1;
+          koordl[7] = rlwalk->r.y;
+          koordl[0] = koordl[4] - dx;
+          koordl[1] = koordl[5] - dy;
+          koordl[2] = koordl[6] - dx;
+          koordl[3] = koordl[7] - dy;
+          
+          vro_cpyfm(globals.vid, S_ONLY, koordl, &mfdbs, &mfdbd);
+          
+          rlwalk = rlwalk->next;
+        }
+        
+        v_show_c(globals.vid, 1);
 
-	  if (FALSE /*globals.realmove*/) { /* FIXME */
-	    m.area.x = 0;
-	    m.area.y = 0;
-	  }
-	  
-	  c_appl_write.addressee = win->owner;
-	  c_appl_write.length = MSG_LENGTH;
+        if(dw || dh)
+        {
+          /* Update the window elements */
+          send_redraw_message(0,
+                              win->id,
+                              win->owner,
+                              win->totsize.x,
+                              win->totsize.y,
+                              win->totsize.width,
+                              win->totsize.height,
+                              WM_EREDRAW);
+        }
+        
+        /* update rectangles that are not moveable */
+        
+        m.type = (dw || dh) ? WM_AREDRAW : WM_REDRAW;
+        
+        if(FALSE /*globals.realmove*/)  /* FIXME */
+        {
+          m.sid = -1;
+        }
+        else
+        {
+          m.sid = 0;
+        }
+        
+        m.length = 0;
+        m.wid = win->id;
+        
+        Rlist_insert(&win->rlist,&rlmove1);
+        
+        rlwalk = win->rlist;
+        
+        while (rlwalk)
+        {
+          C_APPL_WRITE c_appl_write;
+          R_APPL_WRITE r_appl_write;
+          
+          m.area.x = rlwalk->r.x;
+          m.area.y = rlwalk->r.y;
+          
+          m.area.width = rlwalk->r.width;
+          m.area.height = rlwalk->r.height;
+          
+          if(FALSE /*globals.realmove*/)  /* FIXME */
+          {
+            m.area.x -= size->x;
+            m.area.y -= size->y;
+          }
+          
+          c_appl_write.addressee = win->owner;
+          c_appl_write.length = MSG_LENGTH;
           c_appl_write.is_reference = TRUE;
-	  c_appl_write.msg.ref = &m;
-	  srv_appl_write (&c_appl_write, &r_appl_write);
-	} else {			
-	  /* figure out which rectangles that are moveable*/
-	  if(dw || dh) {
-	    Rlist_rectinter (&rlmove1, &win->worksize, &win->rlist);
-	  } else {
-	    rlmove1 = win->rlist;
-	    win->rlist = NULL;
-	  }
-	  
-	  rlwalk = old_rlist;
-	  
-	  while (rlwalk) {
-	    rlwalk->r.x += dx;
-	    rlwalk->r.y += dy;
-	    
-	    Rlist_rectinter(&rlmove,&rlwalk->r,&rlmove1);
-	    
-	    rlwalk = rlwalk->next;
-	  }
-	  
-	  /* move the rectangles that are moveable */
-	  Rlist_sort(&rlmove,dx,dy);
-	  
-	  rlwalk = rlmove;
-	  
-	  v_hide_c (vid);
-	  
-          /*
-          ** FIXME
-          ** All drawing should be done by the client. Implement a way of
-          ** returning which rectangles are moveable to the client.
-          */
-	  while (rlwalk) {
-	    MFDB mfdbd, mfdbs;
-	    int  koordl[8];
-	    
-	    mfdbd.fd_addr = 0L;
-	    mfdbs.fd_addr = 0L;
-	    
-	    koordl[4] = rlwalk->r.x;
-	    koordl[5] = rlwalk->r.y + rlwalk->r.height - 1;
-	    koordl[6] = rlwalk->r.x + rlwalk->r.width - 1;
-	    koordl[7] = rlwalk->r.y;
-	    koordl[0] = koordl[4] - dx;
-	    koordl[1] = koordl[5] - dy;
-	    koordl[2] = koordl[6] - dx;
-	    koordl[3] = koordl[7] - dy;
-	    
-	    vro_cpyfm (vid, S_ONLY, koordl, &mfdbs, &mfdbd);
-	    
-	    rlwalk = rlwalk->next;
-	  }
-	  
-	  v_show_c (vid, 1);
-	  
-	  /* update rectangles that are not moveable */
-	  
-	  m.type = WM_REDRAW;
-	  
-	  if (FALSE /*globals.realmove*/) { /* FIXME */
-	    m.sid = -1;
-	  } else {
-	    m.sid = 0;
-	  }
-	  
-	  m.length = 0;
-	  m.wid = win->id;
-	  
-	  Rlist_insert(&win->rlist,&rlmove1);
-	  
-	  rlwalk = win->rlist;
-	  
-	  while (rlwalk) {
-	    C_APPL_WRITE c_appl_write;
+          c_appl_write.msg.ref = &m;
+          srv_appl_write (&c_appl_write, &r_appl_write);
+          
+          rlwalk = rlwalk->next;
+        }
+        
+        Rlist_insert(&win->rlist,&rlmove);
+      
+        Rlist_erase (&old_rlist);
+        
+        wlwalk = wl;
+        
+        while (wlwalk)
+        {
+          RLIST	*rltheirnew = NULL;
+          
+          /*give away the rectangles we don't need*/
+          Rlist_rectinter(&rltheirnew,&wlwalk->win->totsize,&rlourold);
+        
+          /*update the new rectangles*/
+        
+          rlwalk = rltheirnew;
+          
+          if (rltheirnew)
+          {
+            C_APPL_WRITE c_appl_write;
             R_APPL_WRITE r_appl_write;
-
-	    m.area.x = rlwalk->r.x;
-	    m.area.y = rlwalk->r.y;
-	    
-	    m.area.width = rlwalk->r.width;
-	    m.area.height = rlwalk->r.height;
-	    
-            /* FIXME
-	    draw_wind_elemfast(win,&m.area,0);
-	    */
-
-	    if (FALSE /*globals.realmove*/) { /* FIXME */
-	      m.area.x -= size->x;
-	      m.area.y -= size->y;
-	    }
-	    
-	    c_appl_write.addressee = win->owner;
-	    c_appl_write.length = MSG_LENGTH;
+          
+            m.type = WM_REDRAW;
+          
+            if (FALSE /*globals.realmove*/) /* FIXME */
+            {
+              m.sid = -1;
+            }
+            else
+            {
+              m.sid = 0;
+            }
+          
+            m.length = 0;
+            m.wid = wlwalk->win->id;
+          
+            m.area = oldtotsize;
+          
+            if (FALSE /*globals.realmove*/) /* FIXME */
+            {
+              m.area.x -= wlwalk->win->totsize.x;
+              m.area.y -= wlwalk->win->totsize.y;
+            }
+          
+            c_appl_write.addressee = wlwalk->win->owner;
+            c_appl_write.length = MSG_LENGTH;
             c_appl_write.is_reference = TRUE;
-	    c_appl_write.msg.ref = &m;
-	    srv_appl_write (&c_appl_write, &r_appl_write);
-	    
-	    rlwalk = rlwalk->next;
-	  }
-	  
-	  Rlist_insert(&win->rlist,&rlmove);
-	}
-	
-	Rlist_erase (&old_rlist);
-	
-	wlwalk = wl;
-	
-	while (wlwalk) {
-	  RLIST	*rltheirnew = NULL;
-	  
-	  /*give away the rectangles we don't need*/
-	  Rlist_rectinter(&rltheirnew,&wlwalk->win->totsize,&rlourold);
-	  
-	  /*update the new rectangles*/
-	  
-	  rlwalk = rltheirnew;
-	  
-	  if (rltheirnew) {
-	    C_APPL_WRITE c_appl_write;
-            R_APPL_WRITE r_appl_write;
-
-	    m.type = WM_REDRAW;
-	    
-	    if (FALSE /*globals.realmove*/) { /* FIXME */
-	      m.sid = -1;
-	    } else {
-	      m.sid = 0;
-	    }
-	    
-	    m.length = 0;
-	    m.wid = wlwalk->win->id;
-	    
-	    m.area = oldtotsize;
-	    
-	    if (FALSE /*globals.realmove*/) { /* FIXME */
-	      m.area.x -= wlwalk->win->totsize.x;
-	      m.area.y -= wlwalk->win->totsize.y;
-	    }
-	    
-	    c_appl_write.addressee = wlwalk->win->owner;
-	    c_appl_write.length = MSG_LENGTH;
-            c_appl_write.is_reference = TRUE;
-	    c_appl_write.msg.ref = &m;
-	    srv_appl_write (&c_appl_write, &r_appl_write);
-	  }
-	  
-	  Rlist_insert(&wlwalk->win->rlist,&rltheirnew);
-	  
-	  wlwalk->win->rpos = wlwalk->win->rlist;
-	  
-	  wlwalk = wlwalk->next;
-	}
-	
-	win->rpos = win->rlist;
+            c_appl_write.msg.ref = &m;
+            srv_appl_write (&c_appl_write, &r_appl_write);
+          }
+        
+          Rlist_insert(&wlwalk->win->rlist,&rltheirnew);
+        
+          wlwalk->win->rpos = wlwalk->win->rlist;
+        
+          wlwalk = wlwalk->next;
+        }
+      
+        win->rpos = win->rlist;
       }
-    } else if (dw || dh) /*only size changed*/ {
+    }
+    else if (dw || dh) /*only size changed*/
+    {
       RECT	rt;
       RECT	dn;
       
@@ -790,9 +761,12 @@ changewinsize (WINSTRUCT * win,
       
       rt.x = size->x + size->width;
       
-      if(dw < 0) {
+      if(dw < 0)
+      {
 	rt.width = -dw;
-      } else {
+      }
+      else
+      {
 	rt.x -= dw;
 	rt.width = dw;
       }
@@ -802,10 +776,13 @@ changewinsize (WINSTRUCT * win,
       
       dn.y = size->y + size->height;
       
-      if(dh < 0) {
+      if(dh < 0)
+      {
 	dn.height = -dh;
 	dn.width = oldtotsize.width;
-      } else {
+      }
+      else
+      {
 	dn.y -= dh;
 	dn.height = dh;
 	dn.width = size->width;
@@ -813,18 +790,22 @@ changewinsize (WINSTRUCT * win,
       
       dn.x = size->x;
       
-      if(dw < 0) {
+      if(dw < 0)
+      {
 	Rlist_rectinter(&rl,&rt,&win->rlist);
       }
       
-      if(dh < 0) {
+      if(dh < 0)
+      {
 	Rlist_rectinter(&rl,&dn,&win->rlist);
       }
       
       /* Find our window */
       
-      while(wl) {
-	if(wl->win == win) {
+      while(wl)
+      {
+	if(wl->win == win)
+        {
 	  wl = wl->next;
 	  break;
 	}
@@ -832,18 +813,25 @@ changewinsize (WINSTRUCT * win,
 	wl = wl->next;
       }
       
-      while(wl) {
+      while(wl)
+      {
 	RLIST	*rd = 0;
 	
-	if(dw < 0) {
+	if(dw < 0)
+        {
 	  Rlist_rectinter(&rd,&wl->win->totsize,&rl);
-	} else if(dw > 0) {
+	}
+        else if(dw > 0)
+        {
 	  Rlist_rectinter(&rltop,&rt,&wl->win->rlist);
 	}
 	
-	if(dh < 0) {
+	if(dh < 0)
+        {
 	  Rlist_rectinter(&rd,&wl->win->totsize,&rl);
-	} else if(dh > 0) {
+	}
+        else if(dh > 0)
+        {
 	  Rlist_rectinter(&rltop,&dn,&wl->win->rlist);
 	}
 	
@@ -851,15 +839,19 @@ changewinsize (WINSTRUCT * win,
 	
 	m.type = WM_REDRAW;
 	
-	if(FALSE /*globals.realmove*/) { /* FIXME */
+	if(FALSE /*globals.realmove*/) /* FIXME */
+        {
 	  m.sid = -1;
-	} else {
+	}
+        else
+        {
 	  m.sid = 0;
 	}
 	
 	m.length = 0;
 
-	if (rd) {
+	if(rd)
+        {
 	  C_APPL_WRITE c_appl_write;
           R_APPL_WRITE r_appl_write;
           
@@ -867,7 +859,8 @@ changewinsize (WINSTRUCT * win,
 	  
 	  m.area = oldtotsize;
 	  
-	  if (FALSE /*globals.realmove*/) { /* FIXME */
+	  if (FALSE /*globals.realmove*/) /* FIXME */
+          {
 	    m.area.x -= wl->win->totsize.x;
 	    m.area.y -= wl->win->totsize.y;
 	  }
@@ -899,18 +892,35 @@ changewinsize (WINSTRUCT * win,
       
       Rlist_insert(&rltop,&rl2);
       
-      m.wid = win->id;
-      
       rl2 = rltop;
       
-      while (rl2) {
+      /*
+      ** Update the window that changed size:
+      ** first the widgets...
+      */
+      send_redraw_message(0,
+                          win->id,
+                          win->owner,
+                          win->totsize.x,
+                          win->totsize.y,
+                          win->totsize.width,
+                          win->totsize.height,
+                          WM_EREDRAW);
+
+      /* ... and then the content */
+      m.type = WM_AREDRAW;
+      m.wid = win->id;
+      
+      while (rl2)
+      {
 	C_APPL_WRITE c_appl_write;
         R_APPL_WRITE r_appl_write;
 
 	m.area.x = rl2->r.x;
 	m.area.y = rl2->r.y;
 	
-	if (FALSE /*globals.realmove*/) { /* FIXME */
+	if (FALSE /*globals.realmove*/) /* FIXME */
+        {
 	  m.area.x -= size->x;
 	  m.area.y -= size->y;
 	}
@@ -929,18 +939,8 @@ changewinsize (WINSTRUCT * win,
       
       Rlist_insert(&win->rlist,&rltop);
       
-      rl2 = win->rlist;
-      
-      while(rl2) {
-	/* FIXME
-        draw_wind_elemfast(win,&rl2->r,0);
-	*/
-
-	rl2 = rl2->next;
-      }
-      
       win->rpos = win->rlist;
-    }
+    } /* End of only size changed */
   }
   
   return 1;
@@ -2196,11 +2196,22 @@ srv_wind_set(C_WIND_SET * msg,
       retval = 0;
       break;
       
+    case WF_WORKXYWH:
+      /*
+      ** Just set the work size rectangle, nothing more.
+      ** In wind_set() this mode is not handled.
+      */
+      win->worksize.x = msg->parm1;
+      win->worksize.y = msg->parm2;
+      win->worksize.width = msg->parm3;
+      win->worksize.height = msg->parm4;
+
+      retval = 1;
+      break;
+
     case WF_CURRXYWH: /*0x0005*/
       retval = changewinsize (win,
-                              (RECT *)&msg->parm1,
-                              globals.vid,
-                              0);
+                              (RECT *)&msg->parm1);
       break;
 
     case WF_HSLIDE: /*0x08*/
@@ -2273,32 +2284,19 @@ srv_wind_set(C_WIND_SET * msg,
       retval = bottom_window(msg->handle);
       break;
 
-      /* case WF_ICONIFY: *//*0x1a*/
-      /* FIXME:       win->origsize = win->totsize;
-      set_win_elem(win->tree,IMOVER);
+    case WF_ICONIFY:
       win->status |= WIN_ICONIFIED;
-      calcworksize(IMOVER,&win->totsize,&win->worksize,WC_WORK);
-      retval = changewinsize(win,
-                                         (RECT *)&msg->parm1,
-                                         globals.vid,
-                                         1);
-      */
+      retval = changewinsize (win,
+                              (RECT *)&msg->parm1);
       break;
 
-      /* case WF_UNICONIFY: */ /*0x1b*/
-      /* FIXME:
-      set_win_elem(win->tree,win->elements);
+    case WF_UNICONIFY: /*0x1b*/
       win->status &= ~WIN_ICONIFIED;
-      calcworksize(win->elements,&win->totsize,&win->worksize,WC_WORK);
       retval = changewinsize (win,
-                                          (RECT *)&msg->parm1,
-                                          globals.vid,
-                                          1);
-      */
+                              (RECT *)&msg->parm1);
       break;
       
     case WF_KIND:
-    case WF_WORKXYWH:
     case WF_PREVXYWH:
     case WF_FULLXYWH:
     case WF_FIRSTXYWH:
@@ -2306,8 +2304,6 @@ srv_wind_set(C_WIND_SET * msg,
     case WF_RESVD:
     case WF_SCREEN:
     case WF_OWNER:
-    case WF_ICONIFY:
-    case WF_UNICONIFY:
     case WF_UNICONIFYXYWH:
     case WF_TOOLBAR:
     case WF_FTOOLBAR:

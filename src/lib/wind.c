@@ -410,73 +410,6 @@ Wind_set_size (int    apid,
     dw = size->width - ws->lastsize.width;
     dh = size->height - ws->lastsize.height;
 
-    /* Only need to redraw if window is open */
-    if(ws->status & WIN_OPEN)
-    {
-      /* Update areas where widget elements were placed */
-      if(dw > 0)
-      {
-        REDRAWSTRUCT m;
-        
-        m.type = WM_REDRAW;
-        m.sid = apid;
-        m.length = sizeof (REDRAWSTRUCT);
-        m.wid = id;
-        
-        m.area.x = ws->worksize.x + ws->worksize.width + dx;
-        m.area.y = ws->worksize.y + dy;
-        m.area.width = ws->totsize.x + ws->totsize.width - m.area.x;
-        
-        if(dw < m.area.width)
-        {
-          m.area.width = dw;
-        }
-        
-        m.area.height = ws->totsize.y + ws->totsize.height - ws->worksize.y;
-        
-        if(dh < 0)
-        {
-          m.area.height += dh;
-        }
-        
-        if((m.area.width > 0) && (m.area.height > 0))
-        {
-          Appl_do_write (apid, apid, m.length, &m);
-        }
-      }
-      
-      if(dh > 0)
-      {
-        REDRAWSTRUCT m;
-        
-        m.type = WM_REDRAW;
-        m.sid = apid;
-        m.length = sizeof (REDRAWSTRUCT);
-        m.wid = id;
-        
-        m.area.x = ws->worksize.x + dx;
-        m.area.y = ws->worksize.y + ws->worksize.height + dy;
-        m.area.width = ws->totsize.x + ws->totsize.width - ws->worksize.x;
-        
-        if(dw < 0)
-        {
-          m.area.width += dw;
-        }
-        
-        m.area.height = ws->totsize.y + ws->totsize.height - m.area.y;
-        
-        if(dh < m.area.height)
-        {
-          m.area.height = dh;
-        }
-        
-        if((m.area.width > 0) && (m.area.height > 0))
-        {
-          Appl_do_write (apid, apid, m.length, &m);
-        }
-      }
-    }
-
     ws->totsize = *size;
     
     ws->worksize.x += dx;
@@ -537,12 +470,6 @@ Wind_set_size (int    apid,
                        HSLIDE | VSLIDE,
                        -1,
                        -1);
-    }
-
-    /* If the window changed size we need to redraw the elements */
-    if((ws->status & WIN_OPEN) && ((dw != 0) || (dh != 0)))
-    {
-      Wind_redraw_elements (apid, id, size, 0);
     }
   }
 
@@ -727,7 +654,8 @@ packelem (OBJECT * tree,
 static
 void
 set_win_elem (OBJECT * tree,
-              WORD     elem) {
+              WORD     elem)
+{
   WORD bottomsize = 0;
   WORD rightsize = 0;
   WORD left = 0,right = 0,top = 0,bottom = 0;
@@ -963,8 +891,10 @@ set_win_elem (OBJECT * tree,
   DEBUG3("wind.c: set_win_elem: 18");
   if(IMOVER & elem)
   {
+    GLOBAL_COMMON * globals_common = get_global_common();
+
     OB_FLAGS_CLEAR(&tree[WMOVER], HIDETREE);
-    tree[WMOVER].ob_height = /*globals.csheight*/ + 2;
+    tree[WMOVER].ob_height = globals_common->csheight + 2;
     tree[WMOVER].ob_spec.tedinfo->te_font = SMALL;
     packelem(tree,WMOVER,0,0,0,-1);
 
@@ -978,66 +908,61 @@ set_win_elem (OBJECT * tree,
 }
 
 
+
+
 /*
 ** Description
-** Create the struct for a new window
-**
-** 1998-09-28 CG
+** Wind_set_size sets the size and position of window <win> to <size>
 */
 static
-void
-create_new_window_struct (WORD apid,
-                          WORD id,
-                          WORD status,
-                          WORD elements) {
+WORD
+Wind_set_iconify(int    apid,
+                 int    id,
+                 RECT * size)
+{
   WINDOW_STRUCT * ws;
 
-  if((status & WIN_DIALOG) || (status & WIN_MENU)) {
-    ws->tree = 0L;
-  } else {
-    WORD    i;
-    /*
-    AP_INFO *ai;
-    */
-    
-    ws->tree = allocate_window_elements ();
-    set_win_elem (ws->tree, elements);
-    ws->elements = elements;
+  ws = find_window_struct (apid, id);
 
-    /*
-    ai = internal_appl_info(msg->common.apid);
-                
-    if(ai) {
-      ws->tree[WAPP].ob_spec.tedinfo->te_ptext =
-        (char *)malloc(strlen(&ai->name[2]) + 1);
-      strcpy(ws->tree[WAPP].ob_spec.tedinfo->te_ptext,&ai->name[2]);
-      
-      if(globals->common->wind_appl == 0) {
-        ws->tree[WAPP].ob_spec.tedinfo->te_ptext[0] = 0;
-      };
-    };
-    */
-
-    ws->totsize.x = ws->tree[0].ob_x;
-    ws->totsize.y = ws->tree[0].ob_y;
-    ws->totsize.width = ws->tree[0].ob_width;
-    ws->totsize.height = ws->tree[0].ob_height;
-    
-    calcworksize (apid,
-                  elements,
-                  &ws->totsize,
-                  &ws->worksize,
-                  WC_WORK);
-                
-    /*
-    for(i = 0; i <= W_SMALLER; i++) {
-      ws->top_colour[i] = top_colour[i];
-      ws->untop_colour[i] = untop_colour[i];
+  if(ws != NULL)
+  {
+    if(ws->tree != NULL)
+    {
+      set_win_elem(ws->tree, IMOVER);
+      calcworksize(apid, IMOVER, &ws->totsize, &ws->worksize, WC_WORK);
+      return Wind_set_size(apid, id, size);
     }
-    
-    ws->own_colour = 0;
-    */
-  };
+  }
+
+  return 0; /* Not ok */
+}
+
+
+/*
+** Description
+** Wind_set_size sets the size and position of window <win> to <size>
+*/
+static
+WORD
+Wind_set_uniconify(int    apid,
+                   int    id,
+                   RECT * size)
+{
+  WINDOW_STRUCT * ws;
+
+  ws = find_window_struct (apid, id);
+
+  if(ws != NULL)
+  {
+    if(ws->tree != NULL)
+    {
+      set_win_elem(ws->tree, ws->elements);
+      calcworksize(apid, ws->elements, &ws->totsize, &ws->worksize, WC_WORK);
+      return Wind_set_size(apid, id, size);
+    }
+  }
+
+  return 0; /* Not ok */
 }
 
 
@@ -1188,10 +1113,8 @@ Wind_do_create (WORD   apid,
                 WORD   status) {
   C_WIND_CREATE   par;
   R_WIND_CREATE   ret;
-  int             count;
   WINDOW_STRUCT * ws;
   GLOBAL_APPL   * globals = get_globals (apid);
-  GLOBAL_COMMON * global_common = globals->common;
 
   PUT_C_ALL(WIND_CREATE,&par);
 
@@ -1247,7 +1170,26 @@ Wind_do_create (WORD   apid,
     ws->totsize.height = ws->tree[0].ob_height;
     
     calcworksize (apid, ws->elements, &ws->totsize, &ws->worksize, WC_WORK);
-                
+
+    /* Set total size in server */
+    Wind_do_set(apid,
+                ws->id,
+                WF_CURRXYWH,
+                ws->totsize.x,
+                ws->totsize.y,
+                ws->totsize.width,
+                ws->totsize.height);
+
+    /* Set work size in server */
+    Wind_do_set(apid,
+                ws->id,
+                WF_WORKXYWH,
+                ws->worksize.x,
+                ws->worksize.y,
+                ws->worksize.width,
+                ws->worksize.height);
+
+    /* Set widget colours */
     for(i = 0; i <= W_SMALLER; i++)
     {
       WORD elem = i;
@@ -1459,7 +1401,9 @@ Wind_do_get (WORD   apid,
         break;
 
       default:
+        /* This should be impossible */
         DEBUG1("Wind_do_get: Unhandled size mode %d", mode);
+        return 0;
       }
 
       *parm1 = size->x;
@@ -1792,6 +1736,12 @@ Wind_do_set(WORD apid,
     /* These are calls that should not be handled here */
     break;
 
+  case WF_ICONIFY:
+    return Wind_set_iconify(apid, handle, (RECT *)&par.parm1);
+
+  case WF_UNICONIFY:
+    return Wind_set_uniconify(apid, handle, (RECT *)&par.parm1);
+
   case WF_KIND:
   case WF_WORKXYWH:
   case WF_PREVXYWH:
@@ -1805,8 +1755,6 @@ Wind_do_set(WORD apid,
   case WF_OWNER:
   case WF_BEVENT:
   case WF_BOTTOM:
-  case WF_ICONIFY:
-  case WF_UNICONIFY:
   case WF_UNICONIFYXYWH:
   case WF_TOOLBAR:
   case WF_FTOOLBAR:

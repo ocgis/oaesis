@@ -1,44 +1,19 @@
-/****************************************************************************
-
- Module
-  evnthndl.c
-  
- Description
-  Event processing routines in oAESis.
-  
- Author(s)
-  cg (Christer Gustavsson <d2cg@dtek.chalmers.se>)
-  jps (Jan Paul Schmidt <Jan.P.Schmidt@mni.fh-giessen.de>)
-
- Revision history
- 
-  960101 cg
-   Added standard header.
-   Mouse_gain_mctrl() and Mouse_release_mctrl() added.
-
-  960129 cg
-   Changed name form mouse.c to evnthndl.c.
-   Public routines changed prefix from Mouse_ to Evhd_.
-   
-  960507 jps
-   mouse arrow changement while window movement, sizing and sliding
-   realtime slider.
-
-  960623 cg
-   Fixed mover grabbing bug; if the mouse was moved during click on
-   window mover the window was topped / bottomed instead of dragged.
-   
- Copyright notice
-  The copyright to the program code herein belongs to the authors. It may
-  be freely duplicated and distributed without fee, but not charged for.
- 
- ****************************************************************************/
+/*
+** evnthndl.c
+**
+** Copyright 1996 - 2000 Christer Gustavsson <cg@nocrew.org>
+** Copyright 1996 Jan Paul Schmidt <Jan.P.Schmidt@mni.fh-giessen.de>
+**
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+**  
+** Read the file COPYING for more information.
+*/
 
 #define DEBUGLEVEL 0
 
-/****************************************************************************
- * Used interfaces                                                          *
- ****************************************************************************/
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -90,17 +65,11 @@
 #include <sysvars.h>
 #endif
 
-/****************************************************************************
- * Macros                                                                   *
- ****************************************************************************/
 
 #define EVHD_WAITTIME 200
 
 #define EACCESS 36
 
-/****************************************************************************
- * Typedefs of module global interest                                       *
- ****************************************************************************/
 
 /* Menu actions */
 typedef enum {
@@ -1082,18 +1051,16 @@ Evhd_handle_button (WORD   apid,
       } else {
         COMMSG      m;
         
-        return handle_user_click (apid,
-				  mouse_button,
-				  bclicks,
-                                  bmask,
-                                  bstate,
-				  mc);
-
-#if 0
-        /* FIXME!! */
         if((status & WIN_ICONIFIED) &&
-           (Evnt_waitclicks(evntglbl.mousefd,LEFT_BUTTON,LEFT_BUTTON,1,
-                            LEFT_BUTTON) >= 1)) {
+           (Evnt_do_button(apid,
+                           1,
+                           LEFT_BUTTON,
+                           LEFT_BUTTON,
+                           &dummy,
+                           &dummy,
+                           &dummy,
+                           &dummy) >= 1))
+        {
           m.type = WM_UNICONIFY;
           m.sid = 0;
           m.length = 0;
@@ -1109,9 +1076,6 @@ Evhd_handle_button (WORD   apid,
           
           Appl_do_write (apid, owner,(WORD)sizeof(COMMSG),&m);
           
-          /*
-            Vdi_vq_mouse(globals.vid,&mouse_button,&mouse_x,&mouse_y);
-          */
           return 0;
         } else if(top != -1) {
           /*
@@ -1143,7 +1107,6 @@ Evhd_handle_button (WORD   apid,
                                     bstate,
 				    mc);
         }
-#endif
       }
     } else { /* Click on a window element */
       return handle_window_element_click (apid,
