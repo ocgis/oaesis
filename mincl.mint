@@ -1,10 +1,13 @@
-CC = gcc
-AS = gcc
-LD = gcc
-GLOBAL_INCLUDES = -I/usr/local/include/osis
+CROSS_COMPILE = m68k-mint-
+HOST_CC = gcc
+CC =     $(CROSS_COMPILE)gcc
+AS =     $(CROSS_COMPILE)gcc
+LD =     $(CROSS_COMPILE)gcc
+AR =     $(CROSS_COMPILE)ar
+RANLIB = $(CROSS_COMPILE)ranlib
+
+#GLOBAL_INCLUDES = -I/usr/local/include/osis
 GLOBAL_DEFINES = -DHAVE_CONFIG_H -Wall -Wmissing-prototypes -Wunused -O2
-AR = ar
-RANLIB = ranlib
 
 CFLAGS = $(INCLUDES) $(GLOBAL_INCLUDES) $(DEFINES) $(GLOBAL_DEFINES)
 
