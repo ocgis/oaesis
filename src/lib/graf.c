@@ -61,7 +61,6 @@ icon2mform(MFORM  *  mf,
   WORD * pmask;
   WORD * pdata;
 
-  DEBUG0("i2m: 1");
   /*convert resource icons to MFORM's*/
   
   mf->mf_xhot = 0;

@@ -1,7 +1,7 @@
 /*
 ** docalls.c
 **
-** Copyright 1996 - 2000 Christer Gustavsson <cg@nocrew.org>
+** Copyright 1996 - 2001 Christer Gustavsson <cg@nocrew.org>
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -37,8 +37,9 @@
 
 typedef void   (*AESCALL)(AES_PB *);
 
-typedef struct {
-	BYTE    *name;
+typedef struct
+{
+	BYTE  * name;
 	AESCALL func;
 }AESCB;
  
@@ -452,9 +453,10 @@ lib_aes_call(AESPB * apb)
 aes_call(AESPB * apb)
 #endif
 {
-  DEBUG2("Aes call %d (0x%x) apid %d pid %d",
+  DEBUG2("Aes call %d (0x%x) %s apid %d pid %d",
          apb->contrl[0],
          apb->contrl[0],
+         aescalls[apb->contrl[0]].name ? aescalls[apb->contrl[0]].name : "##",
          ((AES_PB *)apb)->global->apid,
          getpid());
   
@@ -526,6 +528,7 @@ aes_call_be32(AESPB * apb)
 
   if(native_apb.contrl[0] == 25) /* evnt_multi */
   {
+    DEBUG3("Fix evnt_multi");
     if(native_apb.addrin[0] != 0)
     {          
       FIX((WORD *)native_apb.addrin[0],
@@ -533,5 +536,6 @@ aes_call_be32(AESPB * apb)
           MSG_LENGTH + htons(((WORD *)native_apb.addrin[0])[2]),
           htons);
     }
+    DEBUG3("Fix evnt_multi finished");
   }
 }

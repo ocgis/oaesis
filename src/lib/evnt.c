@@ -1,7 +1,7 @@
 /*
 ** evnt.c
 **
-** Copyright 1996 - 2000 Christer Gustavsson <cg@nocrew.org>
+** Copyright 1996 - 2001 Christer Gustavsson <cg@nocrew.org>
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -231,16 +231,22 @@ Evnt_do_multi (WORD       apid,
   GLOBAL_APPL * globals = get_globals (apid);
   WORD          events_out = 0;
 
+  DEBUG3("Evnt_do_multi: 1");
   PUT_C_ALL(EVNT_MULTI,&par);
 
+  DEBUG3("Evnt_do_multi: 2");
   par.eventin = *eventin;
 
+  DEBUG3("Evnt_do_multi: 3");
   /* Handle internal menu events */
-  if (handle_menu_bar && (globals->menu != NULL)) {
+  if(handle_menu_bar && (globals->menu != NULL))
+  {
+    DEBUG3("Evnt_do_multi: 4");
     par.eventin.events |= MU_MENU_BAR;
     par.eventin.menu_bar = globals->menu_bar_rect;
   }
 
+  DEBUG3("Evnt_do_multi: 5");
   /* Loop until a user event has been found */
   while (events_out == 0)
   {
@@ -250,46 +256,62 @@ Evnt_do_multi (WORD       apid,
 		     &ret,
 		     sizeof (R_EVNT_MULTI));
     
+    DEBUG3("Evnt_do_multi: 6");
     /* Handle messages */
     if (ret.eventout.events & MU_MENU_BAR)
     {
+      DEBUG3("Evnt_do_multi: 7");
       Evhd_handle_menu (apid,
                         ret.eventout.mx,
                         ret.eventout.my);
     }
     
+    DEBUG3("Evnt_do_multi: 8");
     if (ret.eventout.events & MU_MESAG)
     {
+      DEBUG3("Evnt_do_multi: 9");
       if((ret.msg.type == WM_REDRAW) || (ret.msg.type == WM_EREDRAW))
       {
+        DEBUG3("Evnt_do_multi: 10");
         /* Redraw window borders */
         Graf_do_mouse (apid, M_OFF, NULL);
+        DEBUG3("Evnt_do_multi: 11");
         Wind_do_update (apid, BEG_UPDATE);
+        DEBUG3("Evnt_do_multi: 12");
         Wind_redraw_elements (apid, ret.msg.msg0, (RECT *)&ret.msg.msg1, 0);
+        DEBUG3("Evnt_do_multi: 13");
         Wind_do_update (apid, END_UPDATE);
+        DEBUG3("Evnt_do_multi: 14");
         Graf_do_mouse (apid, M_ON, NULL);
       }
       else if(ret.msg.type == WM_AREDRAW)
       {
+        DEBUG3("Evnt_do_multi: 15");
         /* Don't redraw elements, just window content */
         ret.msg.type = WM_REDRAW;
       }
       else if(ret.msg.type == WM_NEWTOP)
       {
+        DEBUG3("Evnt_do_multi: 16");
         Wind_newtop(apid, ret.msg.msg0, WIND_NEWTOP);
       }
       else if(ret.msg.type == WM_UNTOPPED)
       {
+        DEBUG3("Evnt_do_multi: 17");
         Wind_newtop(apid, ret.msg.msg0, WIND_UNTOPPED);
       }
 
+      DEBUG3("Evnt_do_multi: 18");
       if (eventin->events & MU_MESAG)
       {
+        DEBUG3("Evnt_do_multi: 19");
         *msg = ret.msg;
+        DEBUG3("Evnt_do_multi: 20");
         events_out |= MU_MESAG;
       }
     }
     
+    DEBUG3("Evnt_do_multi: 21");
     if (ret.eventout.events & MU_BUTTON)
     {
       DEBUG2 ("evnt.c: Evnt_do_multi: apid = %d bclicks = 0x%x bstate = 0x%x",
@@ -305,23 +327,30 @@ Evnt_do_multi (WORD       apid,
 					&ret.eventout.mc,
                                         !handle_menu_bar);
 
+      DEBUG3("Evnt_do_multi: 22");
     }
 
-    if (ret.eventout.events & (MU_KEYBD | MU_M1 | MU_M2 | MU_TIMER)) {
+    DEBUG3("Evnt_do_multi: 23");
+    if(ret.eventout.events & (MU_KEYBD | MU_M1 | MU_M2 | MU_TIMER))
+    {
+      DEBUG3("Evnt_do_multi: 23");
       events_out |=
         ret.eventout.events & (MU_KEYBD | MU_M1 | MU_M2 | MU_TIMER);
     }
+    DEBUG3("Evnt_do_multi: 24");
   } /* end while (events_out == 0) */
 
+  DEBUG3("Evnt_do_multi: 25");
   if (events_out & MU_KEYBD) {
     DEBUG2 ("Got key to apid %d 0x%x events = 0x%x",
 	    apid, ret.eventout.kc, events_out);
   }
 
+  DEBUG3("Evnt_do_multi: 26");
   *eventout = ret.eventout;
   eventout->events = events_out;
 
-  DEBUG3("Evnt_do_multi: events_ot = 0x%x", events_out);
+  DEBUG3("Evnt_do_multi: events_out = 0x%x", events_out);
 }
 
 

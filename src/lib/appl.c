@@ -1,44 +1,20 @@
-/****************************************************************************
+/*
+** appl.c
+**
+** Copyright 1995 - 2001 Christer Gustavsson <cg@nocrew.org>
+** Copyright 1996 Klaus Pedersen <kkp@gamma.dou.dk>
+**
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+**  
+** Read the file COPYING for more information.
+**
+*/
 
- Module
-  appl.c
-  
- Description
-  Application handling routines in oAESis.
-  
- Author(s)
- 	cg (Christer Gustavsson <d2cg@dtek.chalmers.se>)
- 	kkp (Klaus Pedersen) <kkp@gamma.dou.dk>)
-
- Revision history
- 
-  960101 cg
-   Added standard header.
-   Basic version of appl_getinfo implemented.
-
-  960102 cg
-   AES_WINDOW mode of appl_getinfo implemented.
-
-  960115 cg
-   Appl_get_vid() implemented.
-      
-  960228 kkp
-   Changed the behaviour of TOPAPPL
-
-  980622 cg
-   Added check for macros defined by autoconf.
-
- Copyright notice
-  The copyright to the program code herein belongs to the authors. It may
-  be freely duplicated and distributed without fee, but not charged for.
- 
- ****************************************************************************/
 
 #define DEBUGLEVEL 0
-
-/****************************************************************************
- * Used interfaces                                                          *
- ****************************************************************************/
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -420,8 +396,10 @@ Appl_do_init (GLOBAL_ARRAY * global) {
 
   WORD          apid = -1;
 
+  DEBUG3("Appl_do_init: 1");
   CHECK_APID(apid);
 
+  DEBUG3("Appl_do_init: 2");
   if(apid == -1)
   {
 #ifdef MINT_TARGET
@@ -434,14 +412,17 @@ Appl_do_init (GLOBAL_ARRAY * global) {
     if (Client_open () == -1) {
       return -1;
     }
+  DEBUG3("Appl_do_init: 3");
     
 #ifdef TUNNEL_VDI_CALLS
     /* Tunnel VDI calls through oaesis' connection with the server */
     vdi_handler = vdi_tunnel;
 #endif /* TUNNEL_VDI_CALLS */
     
+  DEBUG3("Appl_do_init: 4");
     PUT_C_ALL(APPL_INIT, &par);
     
+  DEBUG3("Appl_do_init: 5");
 #ifdef MINT_TARGET
     get_process_name (par.common.pid,
                       par.appl_name,
@@ -453,22 +434,29 @@ Appl_do_init (GLOBAL_ARRAY * global) {
              program_invocation_short_name,
              sizeof (par.appl_name) - 1);
 #endif
+  DEBUG3("Appl_do_init: 6");
     par.appl_name[sizeof (par.appl_name) - 1] = 0;
     
+  DEBUG3("Appl_do_init: 7");
     CLIENT_SEND_RECV(&par,
                      sizeof (C_APPL_INIT),
                      &ret,
                      sizeof (R_APPL_INIT));
     
+  DEBUG3("Appl_do_init: 8");
     global->apid = ret.apid;
 
+  DEBUG3("Appl_do_init: 9");
     if(global->apid >= 0)
     {
+  DEBUG3("Appl_do_init: 10");
       init_global_appl (global->apid, ret.physical_vdi_id, par.appl_name);
+  DEBUG3("Appl_do_init: 11");
 #ifndef MINT_TARGET
       {
         GLOBAL_APPL * globals_appl = get_globals (global->apid);
         
+  DEBUG3("Appl_do_init: 12");
         init_global (globals_appl->vid);
       }
 #endif
@@ -479,6 +467,7 @@ Appl_do_init (GLOBAL_ARRAY * global) {
     global->apid = apid;
   }
 
+  DEBUG3("Appl_do_init: 13");
   global->version = 0x0410;
   global->numapps = -1;
   global->appglobal = 0L;
