@@ -11,9 +11,7 @@
 ** Read the file COPYING for more information.
 */
 
-/*
-#define SRV_DEBUG
-*/
+#define DEBUGLEVEL 0
 
 /****************************************************************************
  * Used interfaces                                                          *
@@ -356,9 +354,12 @@ WORD                   /* Top application id.                               */
 update_appl_menu(void) /*                                                   */
 /****************************************************************************/
 {
-  AP_LIST *mwalk;	WORD    rwalk;
+  AP_LIST *mwalk;
+  WORD    rwalk;
   WORD    topappl;
 	
+  return 0;
+
   topappl = get_top_appl();
 
   mwalk = globals.applmenu;
@@ -1663,7 +1664,7 @@ top_appl (WORD apid) {
   OBJECT  *  deskbg = NULL;
   WORD       deskbgcount = 0;
   WORD       lasttop;
-  
+
   lasttop = ap_pri->ai->id;
   al = &ap_pri;
   
@@ -2096,100 +2097,117 @@ WORD start)          /* Start object.                                       */
   };
 }
 
-static WORD	changeslider(WINSTRUCT *win,WORD redraw,WORD which,
-				WORD position,WORD size) {	
-	WORD redraw2 = 0;
 
-	if(which & VSLIDE) {
-		WORD newheight,newy;
+/*
+** Description
+** Change window slider position and size
+**
+** 1999-03-28 CG
+*/
+static
+WORD
+changeslider (WINSTRUCT * win,
+              WORD        redraw,
+              WORD        which,
+              WORD        position,
+              WORD        size) {	
+  WORD redraw2 = 0;
+  
+  if(which & VSLIDE) {
+    WORD newheight,newy;
+    
+    if(position != -1) {
+      if(position > 1000) {
+        win->vslidepos = 1000;
+      } else if(position < 1) {
+        win->vslidepos = 1;
+      } else {
+        win->vslidepos = position;
+      }
+    }
 		
-		if(position != -1) {
-			if(position > 1000) {
-				win->vslidepos = 1000;
-			}
-			else if(position < 1) {
-				win->vslidepos = 1;
-			}
-			else {
-				win->vslidepos = position;
-			};
-		};
-		
-		if(size != -1) {
-			if(size > 1000) {
-				win->vslidesize = 1000;
-			}
-			else if(size < 1) {
-				win->vslidesize = 1;
-			}
-			else {
-				win->vslidesize = size;
-			};
-		};
+    if(size != -1) {
+      if(size > 1000) {
+        win->vslidesize = 1000;
+      } else if(size < 1) {
+        win->vslidesize = 1;
+      } else {
+        win->vslidesize = size;
+      }
+    }
 
-		newy = (WORD)(((LONG)win->vslidepos * (LONG)(win->tree[WVSB].ob_height - win->tree[WVSLIDER].ob_height)) / 1000L);
-		newheight = (WORD)(((LONG)win->vslidesize * (LONG)win->tree[WVSB].ob_height) / 1000L);
+    /*
+    newy = (WORD)(((LONG)win->vslidepos *
+                   (LONG)(win->tree[WVSB].ob_height -
+                          win->tree[WVSLIDER].ob_height)) / 1000L);
+    newheight = (WORD)(((LONG)win->vslidesize *
+                        (LONG)win->tree[WVSB].ob_height) / 1000L);
+    
+    if((win->tree[WVSLIDER].ob_y != newy) ||
+       (win->tree[WVSLIDER].ob_height != newheight)) {
+      win->tree[WVSLIDER].ob_y = newy;
+      win->tree[WVSLIDER].ob_height = newheight;
+      
+      redraw2 = 1;
+    }
+    */
+  }
+  
+  if(which & HSLIDE) {
+    WORD newx,newwidth;
+    
+    if(position != -1) {
+      if(position > 1000) {
+        win->hslidepos = 1000;
+      } else if (position < 1) {
+        win->hslidepos = 1;
+      } else {
+        win->hslidepos = position;
+      }
+    }
+    
+    if(size != -1) {
+      if(size > 1000) {
+        win->hslidesize = 1000;
+      } else if(size < 1) {
+        win->hslidesize = 1;
+      } else {
+        win->hslidesize = size;
+      }
+    }
+    
+    /*
+    newx = (WORD)(((LONG)win->hslidepos *
+                   (LONG)(win->tree[WHSB].ob_width -
+                          win->tree[WHSLIDER].ob_width)) / 1000L);
+    newwidth = (WORD)(((LONG)win->hslidesize *
+                       (LONG)win->tree[WHSB].ob_width) / 1000L);
 
-		if((win->tree[WVSLIDER].ob_y != newy) ||
-			(win->tree[WVSLIDER].ob_height != newheight)) {
-			win->tree[WVSLIDER].ob_y = newy;
-			win->tree[WVSLIDER].ob_height = newheight;
-			
-			redraw2 = 1;
-		};
-	}
-	
-	if(which & HSLIDE) {
-		WORD newx,newwidth;
-		
-		if(position != -1) {
-			if(position > 1000) {
-				win->hslidepos = 1000;
-			}
-			else if(position < 1) {
-				win->hslidepos = 1;
-			}
-			else {
-				win->hslidepos = position;
-			};
-		};
-		
-		if(size != -1) {
-			if(size > 1000) {
-				win->hslidesize = 1000;
-			}
-			else if(size < 1) {
-				win->hslidesize = 1;
-			}
-			else {
-				win->hslidesize = size;
-			};
-		};
-		
-		newx = (WORD)(((LONG)win->hslidepos * (LONG)(win->tree[WHSB].ob_width - win->tree[WHSLIDER].ob_width)) / 1000L);
-		newwidth = (WORD)(((LONG)win->hslidesize * (LONG)win->tree[WHSB].ob_width) / 1000L);
+    if((win->tree[WHSLIDER].ob_x != newx) ||
+       (win->tree[WHSLIDER].ob_width != newwidth)) {
+      win->tree[WHSLIDER].ob_x = newx;
+      win->tree[WHSLIDER].ob_width = newwidth;
+      
+      redraw2 = 1;
+    }
+    */
+  }
 
-		if((win->tree[WHSLIDER].ob_x != newx) ||
-			(win->tree[WHSLIDER].ob_width != newwidth)) {
-			win->tree[WHSLIDER].ob_x = newx;
-			win->tree[WHSLIDER].ob_width = newwidth;
-			
-			redraw2 = 1;
-		};
-	};
-
-	if(redraw && redraw2 && (win->status & WIN_OPEN)) {							
-		if(which & VSLIDE) {
-			draw_wind_elements(win,&globals.screen,WVSB);
-		};
-		
-		if(which & HSLIDE) {
-			draw_wind_elements(win,&globals.screen,WHSB);
-		};
-	};
-
-	return 1;
+  /*  
+  if(redraw && redraw2 && (win->status & WIN_OPEN)) {							
+    if(which & VSLIDE) {
+      draw_wind_elements(win,&globals.screen,WVSB);
+    }
+    
+    if(which & HSLIDE) {
+      draw_wind_elements(win,&globals.screen,WHSB);
+    }
+  }
+  */
+  
+  return 1;
 }
+
 
 /*
 ** Description
@@ -2855,7 +2873,16 @@ static WORD	bottom_window(WORD winid) {
   return 1;
 }
 
-static WORD top_window(WORD winid) { 
+
+/*
+** Description
+** Try to top window
+**
+** 1999-03-28 CG
+*/
+static
+WORD
+top_window (WORD winid) { 
   WORD         wastopped = 0;
   WINSTRUCT    *oldtop = NULL;
   REDRAWSTRUCT m;
@@ -2868,7 +2895,7 @@ static WORD top_window(WORD winid) {
   WINLIST      *ourwl;
   
   WORD	dx,dy;
-	
+
   if(winid == 0) {
     if(win_vis && (win_vis->win->status & WIN_TOPPED)) {
       win_vis->win->status &= ~WIN_TOPPED;
@@ -2886,18 +2913,18 @@ static WORD top_window(WORD winid) {
       draw_wind_elements(win_vis->win,&win_vis->win->totsize,0);
       */
     };
-  }
-  else {
+  } else {
     while(*wl) {
       if((*wl)->win->id == winid)
 	break;
       
       wl = &(*wl)->next;
-    };
+    }
     
-    if(!*wl)
+    if (*wl == NULL) {
       return 0;
-    
+    }
+
     wl2 = *wl;
     
     *wl = (*wl)->next;
@@ -2917,22 +2944,20 @@ static WORD top_window(WORD winid) {
 	  oldtop->status &= ~WIN_TOPPED;
 	  
 	  wastopped = 1;
-	};
-      };
-    }
-    else {	
+	}
+      }
+    } else {	
       wl2->next = 0L;
       win_vis = wl2;
-    };
+    }
     
     m.type = WM_REDRAW;
     
     if(globals.realmove) {
       m.sid = -1;
-    }
-    else {
+    } else {
       m.sid = 0;
-    };
+    }
     
     ourwl = wl2;
     
@@ -2955,8 +2980,7 @@ static WORD top_window(WORD winid) {
       wl2->win->rpos = wl2->win->rlist;
       
       wl2 = wl2->next;
-    };
-    
+    }
     
     Rlist_insert(&rl2,&rl);
     
@@ -2972,14 +2996,16 @@ static WORD top_window(WORD winid) {
       m.area.width = rl->r.width;
       m.area.height = rl->r.height;
       
+      /*
       if(!wastopped) {
 	draw_wind_elemfast(ourwl->win,&rl->r,0);
-      };
+      }
+      */
       
       if(globals.realmove) {
 	m.area.x -= dx;
 	m.area.y -= dy;
-      };
+      }
 
       c_appl_write.addressee = ourwl->win->owner;
       c_appl_write.length = MSG_LENGTH;
@@ -2988,7 +3014,7 @@ static WORD top_window(WORD winid) {
       srv_appl_write (&c_appl_write, &r_appl_write);
       
       rl = rl->next;
-    };
+    }
     
     Rlist_insert(&ourwl->win->rlist,&rl2);
     
@@ -3015,8 +3041,8 @@ static WORD top_window(WORD winid) {
       c_appl_control.apid = ourwl->win->owner;
       c_appl_control.mode = APC_TOP;
       srv_appl_control(&c_appl_control);
-    };
-  };
+    }
+  }
   
   return 1;
 }
@@ -3469,11 +3495,12 @@ srv_wind_set (C_WIND_SET * msg,
   win = find_wind_description(msg->handle);
   
   if(win) {
+    DEBUG2 ("srv.c: srv_wind_set: mode = %d (0x%x)", msg->mode, msg->mode);
     switch (msg->mode) {        
     case WF_NAME        :       /*0x0002*/
     case WF_INFO        :       /*0x0003*/
-      DB_printf ("srv.c: srv_wind_set: no support for mode %d in server",
-                 msg->mode);
+      DEBUG1 ("srv.c: srv_wind_set: no support for mode %d in server",
+              msg->mode);
       break;
       
     case WF_CURRXYWH: /*0x0005*/
@@ -3676,6 +3703,7 @@ C_PUT_EVENT *msg)
 ** 1998-12-25 CG
 ** 1999-01-03 CG
 ** 1999-01-09 CG
+** 1999-03-28 CG
 */
 static
 WORD
@@ -3770,15 +3798,19 @@ server (LONG arg) {
 #endif
 
     /* Wait for another call from a client */
-    /*DB_printf ("srv.c: Waiting for message from client");*/
+    DEBUG3 ("srv.c: Waiting for message from client");
     handle = Srv_get (&par, sizeof (C_SRV));
-    /*DB_printf ("srv.c: Got message from client (%p)", handle);*/
+    DEBUG3 ("srv.c: Got message from client (%p)", handle);
 
     if (handle == NULL) {
+      DEBUG3 ("srv.c: calling srv_handle_events");
       srv_handle_events ();
     } else {
-      /*DB_printf("Call: %d apid: %d", par.common.call, par.common.apid);*/
-      
+      if (par.common.apid != 0) {
+        DEBUG2 ("srv.c: Call: %d apid: %d handle %p",
+                par.common.call, par.common.apid, handle);
+      }
+
       switch (par.common.call) {
       case SRV_SHAKE:
         DB_printf ("I'm fine application %d (process %d)!", apid, client_pid);
@@ -3965,7 +3997,7 @@ server (LONG arg) {
       default:
         DB_printf("%s: Line %d:\r\n"
                   "Unknown call %d to server!",
-                  __FILE__, __LINE__, call);
+                  __FILE__, __LINE__, par.common.call);
         Srv_reply (handle, &par, -1);
       }
     }

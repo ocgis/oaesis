@@ -932,11 +932,11 @@ wind_calc (int   request,
   NO_ADDROUT = 0;
 
   aespb.intin[0] = request;
-  aespb.intin[0] = kind;
-  aespb.intin[0] = x1;
-  aespb.intin[0] = y1;
-  aespb.intin[0] = w1;
-  aespb.intin[0] = h1;
+  aespb.intin[1] = kind;
+  aespb.intin[2] = x1;
+  aespb.intin[3] = y1;
+  aespb.intin[4] = w1;
+  aespb.intin[5] = h1;
 
   aes_call (&aespb);
 

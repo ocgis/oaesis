@@ -14,12 +14,14 @@
 
 #define DEBUGPATH "u:\\dev\\null"
 
-static BYTE debugpath[128] = DEBUGPATH;
+static char debugpath[128] = DEBUGPATH;
 
-static void DEBUG(BYTE *s) {
+static
+void
+DEBUG (char * s) {
   FILE	*debug;
   _DTA  newdta,*olddta;
-  BYTE  searchpat[128];
+  char  searchpat[128];
   
   olddta = Fgetdta();
   Fsetdta(&newdta);
@@ -36,21 +38,31 @@ static void DEBUG(BYTE *s) {
   Fsetdta(olddta);
 }
 
-WORD DB_printf(BYTE *fmt, ...) {
+/*
+** Exported
+**
+** 1999-03-28 CG
+*/
+void
+DB_printf (char * fmt, ...) {
   va_list arguments;
-  BYTE    s[128];
-  WORD    r;
+  char    s[128];
   
   va_start(arguments, fmt);
-  r = vsprintf(s, fmt, arguments);
+  vsprintf(s, fmt, arguments);
   va_end(arguments);
 
   /*DEBUG(s);*/
   fprintf (stderr, "oaesis: %s\n", s);
-  
-  return r;
 }
 
-void DB_setpath(BYTE *path) {
-  strcpy(debugpath,path);
+
+/*
+** Exported
+**
+** 1999-03-28 CG
+*/
+void
+DB_setpath (char * path) {
+  strcpy (debugpath, path);
 }

@@ -23,6 +23,8 @@
  
  ****************************************************************************/
 
+#define DEBUGLEVEL 3
+
 /****************************************************************************
  * Used interfaces                                                          *
  ****************************************************************************/
@@ -92,6 +94,7 @@ static LONG waitforinput(LONG timeout,LONG *rhnd) {
   LONG fs;
   LONG rlhnd;
   
+  DEBUG3 ("Fselect in waitforinput");
   while(l) {
     rlhnd = *rhnd;
     
@@ -115,6 +118,7 @@ static LONG waitforinput(LONG timeout,LONG *rhnd) {
 LONG eventselect(WORD events,LONG time,LONG *fhl) {
   if(events & MU_TIMER) {
     if(time <= 0) {
+      DEBUG3 ("Fselect in eventselect");
       return Fselect(1,fhl,0L,0L);
     }
     else {	
@@ -122,6 +126,7 @@ LONG eventselect(WORD events,LONG time,LONG *fhl) {
     };
   }
   else {
+    DEBUG3 ("Fselect in eventselect");
     return Fselect(0,fhl,0L,0L);
   };			
 }

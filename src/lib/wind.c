@@ -28,6 +28,8 @@
  
  ****************************************************************************/
 
+#define DEBUGLEVEL 0
+
 /****************************************************************************
  * Used interfaces                                                          *
  ****************************************************************************/
@@ -150,6 +152,8 @@ calcworksize (WORD apid,
   WORD  topsize;
   GLOBAL_COMMON * globals_common = get_global_common ();
         
+  DEBUG3 ("wind.c: calcworksize: %d %d %d %d",
+          orig->x, orig->y, orig->width, orig->height);
   if((HSLIDE | LFARROW | RTARROW) & elem) {
     bottomsize = globals_common->windowtad[WLEFT].ob_height + (D3DSIZE << 1);
   };
@@ -196,6 +200,9 @@ calcworksize (WORD apid,
     new->width = orig->width + leftsize + rightsize;
     new->height = orig->height + headsize + bottomsize;
   }
+
+  DEBUG3 ("wind.c: calcworksize: new %d %d %d %d",
+          new->x, new->y, new->width, new->height);
 }
 
 /*
@@ -1088,6 +1095,7 @@ void Wind_delete(AES_PB *apb) {
 ** 1998-10-04 CG
 ** 1999-01-02 CG
 ** 1999-01-09 CG
+** 1999-03-30 CG
 */
 WORD
 Wind_do_get (WORD   apid,
@@ -1105,23 +1113,40 @@ Wind_do_get (WORD   apid,
   /*
   ** We can handle some calls without calling the server.
   */
-  if (mode == WF_WORKXYWH) {
+  switch (mode) {
+  case WF_WORKXYWH :
+  case WF_FULLXYWH :
+  {
     WINDOW_STRUCT * ws;
-
+    
     ws = find_window_struct (apid, handle);
     /*
     ** Return area if we have it. If not just do a server call the normal
     ** way.
     */
     if (ws != NULL) {
-      *parm1 = ws->worksize.x;
-      *parm2 = ws->worksize.y;
-      *parm3 = ws->worksize.width;
-      *parm4 = ws->worksize.height;
+      RECT * size;
+
+      switch (mode) {
+      case WF_WORKXYWH :
+        size = &ws->worksize;
+        break;
+
+      case WF_FULLXYWH :
+        size = &ws->maxsize;
+        break;
+      }
+
+      *parm1 = size->x;
+      *parm2 = size->y;
+      *parm3 = size->width;
+      *parm4 = size->height;
 
       /* OK */
       return 1;
     }
+  }
+  break;
   }
 
   if (in_workarea && ((mode == WF_FIRSTXYWH) || (mode == WF_NEXTXYWH))) {

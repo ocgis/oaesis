@@ -178,6 +178,7 @@ handle_signal (int s) {
 **
 ** 1999-01-09 CG
 ** 1999-01-16 CG
+** 1999-03-28 CG
 */
 void
 srv_init_global (WORD nocnf) {
@@ -193,6 +194,8 @@ srv_init_global (WORD nocnf) {
   signal (SIGFPE, handle_signal);
   signal (SIGSTKFLT, handle_signal);
   signal (SIGPIPE, handle_signal);
+  signal (SIGQUIT, handle_signal);
+  signal (SIGTERM, handle_signal);
 
   Vdi_v_opnwk (work_in, &globals.vid, work_out);
 

@@ -1078,8 +1078,10 @@ drawicon (WORD vid,
   else {
     color[0] = mask_colour;
   };
-	
+
+  /* FIXME
   Vdi_vrt_cpyfm(vid,MD_TRANS,xyarray,&s,&d,color);
+  */
 
   if(state & SELECTED) {
     color[0] = mask_colour;
@@ -1089,7 +1091,10 @@ drawicon (WORD vid,
   };
 	
   (LONG)s.fd_addr = (LONG)ib->ib_pdata;
+
+  /* FIXME
   Vdi_vrt_cpyfm(vid,MD_TRANS,xyarray,&s,&d,color);
+  */
 
   r.x = x + ib->ib_xtext;
   r.y = y + ib->ib_ytext;

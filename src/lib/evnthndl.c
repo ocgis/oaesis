@@ -34,6 +34,8 @@ v   Fixed mover grabbing bug; if the mouse was moved during click on
  
  ****************************************************************************/
 
+#define DEBUGLEVEL 3
+
 /****************************************************************************
  * Used interfaces                                                          *
  ****************************************************************************/
@@ -200,6 +202,7 @@ static LONG get_evntpacket(EVNTREC *er,WORD maxwait) {
   mrfds = 1L << (LONG)evntglbl.mousefd;
   rhndl = stdinrfds | mrfds;
   
+  DEBUG3 ("Fselect in get_evntpacket");
   if(Fselect(maxwait,&rhndl,NULL,0L) == 0) {
     return 0;
   };

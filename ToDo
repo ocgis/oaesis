@@ -1,3 +1,6 @@
 - Check mint emulation flag when loading resource files in rsrc.c and make
   sure that case insensitivity is used when it should.
 - Store the top menu apid in a module global variable in srv.c
+- Fix srv_wind_set in srv.c and on client side (changeslider, top_window)
+- Clean up menu and desktop background code
+- Move appliction menu code to the client side (update_appl_menu in srv.c)
