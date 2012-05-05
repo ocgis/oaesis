@@ -155,9 +155,9 @@ void
 OAESIS_CDECL
 handle_signal(int s)
 {
-  v_clswk (globals.vid);
-
   DEBUG0("srv_global.c: handle_signal: Got signal %d", s);
+
+  v_clswk (globals.vid);
 
   signal(s, SIG_DFL);
 }
@@ -286,6 +286,7 @@ srv_exit_global (void)
     own_appl_exit();
   }
 #else
+  DEBUG0("srv_exit_global");
   v_clswk (globals.vid);
 #endif
 }

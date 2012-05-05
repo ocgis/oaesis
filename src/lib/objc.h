@@ -43,7 +43,7 @@
 #define OB_FLAGS_SET(ob,flags)   (ob)->ob_flags |= HW_TO_CW(flags)
 #define OB_FLAGS_CLEAR(ob,flags) (ob)->ob_flags &= ~(HW_TO_CW(flags))
 
-#define OB_NEXT(ob)              CW_TO_HW((ob)->ob_next)
+#define OB_NEXT(ob)              ((WORD)CW_TO_HW((ob)->ob_next))
 #define OB_NEXT_PUT(ob,val)      (ob)->ob_next = HW_TO_CW(val)
 
 #define OB_HEAD(ob)              CW_TO_HW((ob)->ob_head)

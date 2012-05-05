@@ -1783,7 +1783,8 @@ Evhd_handle_menu (WORD apid,
       m.length = 0;
       m.title = hm_buffer.title;
       m.item = hm_buffer.item;
-      m.tree = hm_buffer.tree;
+      m.tree = ((((LONG)hm_buffer.tree >> 16) & 0xffff) |
+                (((LONG)hm_buffer.tree << 16) & 0xffff0000)); 
       m.parent = hm_buffer.parent;
       
       Appl_do_write (apid, apid, 16, &m);

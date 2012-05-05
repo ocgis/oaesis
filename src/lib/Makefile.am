@@ -1,5 +1,5 @@
 INCLUDES = -I../comm -I../common
-CFLAGS = -Wall @CFLAGS@
+AM_CFLAGS = -Wall @CFLAGS@
 # Make a shared library using libtool
 
 oaesisdir = @OSISINCLUDE@
@@ -23,6 +23,7 @@ lib_LTLIBRARIES = liboaesis.la
 
 liboaesis_la_SOURCES = \
 	$(BINDINGS_SRCS) $(LIB_SRCS)
+liboaesis_la_CFLAGS = $(AM_CFLAGS)
 
 # FIXME
 EXTRA_liboaesis_la_SOURCES = \
@@ -36,6 +37,7 @@ noinst_LIBRARIES = liboaesis_client.a
 
 liboaesis_a_SOURCES = \
 	$(BINDINGS_SRCS) $(TRAP_SRCS)
+liboaesis_a_CFLAGS = $(AM_CFLAGS)
 
 liboaesis_client_a_SOURCES = \
 	$(LIB_SRCS)

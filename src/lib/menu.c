@@ -14,7 +14,7 @@
 **
 */
 
-#define DEBUGLEVEL 3
+#define DEBUGLEVEL 0
 
 
 #ifdef HAVE_CONFIG_H

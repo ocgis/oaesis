@@ -1,11 +1,13 @@
 #ifndef __TYPES__
 #define __TYPES__
 
+#ifndef PACKED
 #ifdef __GNUC__
 #define PACKED __attribute__ ((packed))
 #else
 #define PACKED
 #endif
+#endif /* PACKED */
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"

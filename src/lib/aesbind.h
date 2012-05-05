@@ -15,11 +15,13 @@
 #ifndef _AESBIND_H_
 #define _AESBIND_H_
 
+#ifndef PACKED
 #ifdef __GNUC__
 #define PACKED __attribute__ ((packed))
 #else
 #define PACKED
 #endif
+#endif /* PACKED */
 
 #define NIL (-1)
 
@@ -94,10 +96,12 @@ typedef struct graphic_rectangle {
 #define RIGHT_BUTTON    0x0002
 #define MIDDLE_BUTTON   0x0004
 
+#ifndef K_RSHIFT
 #define K_RSHIFT        0x0001
 #define K_LSHIFT        0x0002
 #define K_CTRL          0x0004
 #define K_ALT           0x0008
+#endif /* K_RSHIFT */
 
                 /* evnt_dclick flags */
 #define EDC_INQUIRE     0

@@ -1101,14 +1101,14 @@ drawimage(WORD     vid,
   xyarray[6] = x + BI_X(bb) + (BI_WB(bb) << 3) - 1;
   xyarray[7] = y + BI_Y(bb) + BI_HL(bb) - 1;
 
-  (LONG)s.fd_addr = (LONG)BI_PDATA(bb);
+  s.fd_addr = (LONG)BI_PDATA(bb);
   s.fd_w = (BI_WB(bb) << 3);
   s.fd_h = BI_HL(bb);
   s.fd_wdwidth = (BI_WB(bb) >> 1);
   s.fd_stand = 0;
   s.fd_nplanes = 1;
 
-  (LONG)d.fd_addr = 0L;
+  d.fd_addr = 0L;
 
   colour[0] = BI_COLOR(bb);
 	
@@ -1167,14 +1167,14 @@ drawicon(WORD      vid,
   xyarray[5] = y + IB_YICON(ib);
   xyarray[6] = x + IB_XICON(ib) + IB_WICON(ib) - 1;
   xyarray[7] = y + IB_YICON(ib) + IB_HICON(ib) - 1;
-  (LONG)s.fd_addr = (LONG)IB_PMASK(ib);
+  s.fd_addr = (LONG)IB_PMASK(ib);
   s.fd_w = IB_WICON(ib);
   s.fd_h = IB_HICON(ib);
   s.fd_wdwidth = ((IB_WICON(ib) + 15) >> 4);
   s.fd_stand = 0;
   s.fd_nplanes = 1;
 
-  (LONG)d.fd_addr = 0L;
+  d.fd_addr = 0L;
 
   if(state & SELECTED)
   {
@@ -1196,7 +1196,7 @@ drawicon(WORD      vid,
     color[0] = icon_colour;
   }
 	
-  (LONG)s.fd_addr = (LONG)IB_PDATA(ib);
+  s.fd_addr = (LONG)IB_PDATA(ib);
 
   vrt_cpyfm(vid, MD_TRANS, xyarray, &s, &d, color);
 
@@ -1268,19 +1268,19 @@ drawcicon(WORD       vid,
     xyarray[6] = x + IB_XICON(&cib->monoblk) + IB_WICON(&cib->monoblk) - 1;
     xyarray[7] = y + IB_YICON(&cib->monoblk) + IB_HICON(&cib->monoblk) - 1;
 	
-    (LONG)s.fd_addr = (LONG)COL_MASK(best);
+    s.fd_addr = (LONG)COL_MASK(best);
     s.fd_w = IB_WICON(&cib->monoblk);
     s.fd_h = IB_HICON(&cib->monoblk);
     s.fd_wdwidth = ((IB_WICON(&cib->monoblk) + 15) >> 4);
     s.fd_stand = 0;
     s.fd_nplanes = 1;
 	
-    (LONG)d.fd_addr = 0L;
+    d.fd_addr = 0L;
 	
     vrt_cpyfm(vid, MD_TRANS, xyarray, &s, &d, color);
 
     s.fd_nplanes = NUM_PLANES(best);	
-    (LONG)s.fd_addr = (LONG)COL_DATA(best);
+    s.fd_addr = (LONG)COL_DATA(best);
 		
     vro_cpyfm(vid, S_OR_D, xyarray, &s, &d);
 	

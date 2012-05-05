@@ -261,6 +261,8 @@ srv_appl_find(C_APPL_FIND * msg,
     break;
 
   default:
+    fprintf(stderr, "srv_appl_find: default\n");
+#if 0
     /* FIXME: This mode needs to be overhauled */
     /* Now find the pid of process with the passed name */
     olddta = Fgetdta();
@@ -287,6 +289,7 @@ srv_appl_find(C_APPL_FIND * msg,
     } else {
       retval = -1;
     }
+#endif
   }
 
   PUT_R_ALL(APPL_FIND, ret, retval);

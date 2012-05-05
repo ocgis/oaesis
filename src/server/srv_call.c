@@ -323,12 +323,15 @@ srv_call(COMM_HANDLE handle,
     break;
     
   case SRV_MEMORY_ALLOC:
+    DEBUG0("SRV_MEMORY_ALLOC: size = 0x%x\n", par->memory_alloc.amount);
     ret.memory_alloc.address = (ULONG)malloc(par->memory_alloc.amount);
+    DEBUG0("SRV_MEMORY_ALLOC: addr = 0x%x\n", ret.memory_alloc.address);
     PUT_R_ALL(MEMORY_ALLOC, &ret, 0);
     SRV_REPLY(handle, &ret, sizeof (R_MEMORY_ALLOC));
     break;
     
   case SRV_MEMORY_FREE:
+    DEBUG0("SRV_MEMORY_FREE: addr = 0x%x\n", par->memory_free.address);    
     free((void *)par->memory_free.address);
     
     PUT_R_ALL(MEMORY_FREE, &ret, 0);

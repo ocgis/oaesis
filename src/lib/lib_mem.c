@@ -13,6 +13,7 @@
 
 #define DEBUGLEVEL 0
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 
@@ -161,8 +162,8 @@ Mem_set(void * dst,
                   (amount > MEMORY_BLOCK_SIZE) ? MEMORY_BLOCK_SIZE : amount);
 
     amount -= MEMORY_BLOCK_SIZE;
-    (BYTE *)src += MEMORY_BLOCK_SIZE;
-    (BYTE *)dst += MEMORY_BLOCK_SIZE;
+    src = (BYTE *)src + MEMORY_BLOCK_SIZE;
+    dst = (BYTE *)dst + MEMORY_BLOCK_SIZE;
   }
 }
 
@@ -184,8 +185,8 @@ Mem_get(void * dst,
                   (amount > MEMORY_BLOCK_SIZE) ? MEMORY_BLOCK_SIZE : amount);
 
     amount -= MEMORY_BLOCK_SIZE;
-    (BYTE *)src += MEMORY_BLOCK_SIZE;
-    (BYTE *)dst += MEMORY_BLOCK_SIZE;
+    src = (BYTE *)src + MEMORY_BLOCK_SIZE;
+    dst = (BYTE *)dst + MEMORY_BLOCK_SIZE;
   }
 }
 
@@ -224,7 +225,7 @@ Mem_unregister(MEMORY_HANDLE mem)
   Mem_get(mem->client_addr, mem->server_addr, mem->amount);
 
   Mem_free(mem->server_addr);
-  free(mem);
+  /*free(mem);*/
 }
 
 

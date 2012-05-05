@@ -1,6 +1,6 @@
 dnl Check for a named signal
 
-AC_DEFUN(OAESIS_CHECK_SIGNAL,
+AC_DEFUN([OAESIS_CHECK_SIGNAL],
 [AC_CACHE_CHECK([for signal $1], ac_v_oaesis_check_signal_$1,
 [
   AC_TRY_COMPILE(

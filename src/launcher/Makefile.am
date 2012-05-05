@@ -1,4 +1,4 @@
-CFLAGS = -Wall @CFLAGS@
+AM_CFLAGS = -Wall @CFLAGS@
 INCLUDES = -I../common -I../lib
 
 SRCS = \

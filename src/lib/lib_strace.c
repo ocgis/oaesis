@@ -224,7 +224,10 @@ aes_vfprintf(FILE *        f,
       if (cnt == 1 && extra_arg)
         struct_p = *(const char **)extra_arg, extra_arg = NULL;
       else
-        struct_p = *((const char **)oargp)++;
+      {
+        struct_p = *((const char **)oargp);
+        oargp++;
+      }
       
       struct_p = (const char *)(ULONG)struct_p;
       
@@ -253,7 +256,8 @@ aes_vfprintf(FILE *        f,
           unsigned short value;
           int            first = 1;
 
-          value = *((unsigned short *)args[arg_index])++;
+          value = *((unsigned short *)args[arg_index]);
+          args[arg_index]++;
 
           fprintf(stderr, "0x%x", value);
           for(i = 0, lit = struc->literals;
@@ -434,7 +438,8 @@ aes_single_arg(const char *  format,
   {
     unsigned date;
     
-    date = *((unsigned short *)(*oargpp))++;
+    date = *((unsigned short *)(*oargpp));
+    (*oargpp)++;
     
     fprintf(stderr, "%02d.%02d.%d",
             date & 0x1f, (date >> 5) & 0x0f,
@@ -444,7 +449,8 @@ aes_single_arg(const char *  format,
   {
     unsigned time;
     
-    time = CW_TO_HW(*((unsigned short *)(*oargpp))++);
+    time = CW_TO_HW(*((unsigned short *)(*oargpp)));
+    (*oargpp)++;
     
     fprintf(stderr, "%02d:%02d:%02d",
             (time >> 11) & 0x1f, (time >> 5) & 0x3f,
@@ -466,26 +472,33 @@ aes_single_arg(const char *  format,
     if (is_quart)
     {
       if (is_signed)
-        fprintf(stderr, "%c,", *((signed char *)*oargpp)++);
+        fprintf(stderr, "%c,", *((signed char *)*oargpp));
+
       else
-        fprintf(stderr, "%c,", *((unsigned char *)*oargpp)++);
+        fprintf(stderr, "%c,", *((unsigned char *)*oargpp));
+
+      (*oargpp)++;
     }
     
     if (is_short)
     {
       if (is_signed)
-        fprintf(stderr, format, *((signed short *)(*oargpp))++);
+        fprintf(stderr, format, *((signed short *)(*oargpp)));
       else
-        fprintf(stderr, format, *((unsigned short *)(*oargpp))++);
+        fprintf(stderr, format, *((unsigned short *)(*oargpp)));
+
+      (*oargpp)++;
     }
     else
     {
       if (is_signed)
         fprintf(stderr,
                 format,
-                (long)*((signed long *)(*oargpp))++);
+                (long)*((signed long *)(*oargpp)));
       else
-        fprintf(stderr, format, *((unsigned long *)(*oargpp))++);
+        fprintf(stderr, format, *((unsigned long *)(*oargpp)));
+
+      (*oargpp)++;
     }
   }
   

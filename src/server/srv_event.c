@@ -828,6 +828,7 @@ srv_graf_mouse(C_GRAF_MOUSE * par,
   case M_ON :
   case M_OFF :
   default:
+    ;
   }
 
   ret->cursor = current;

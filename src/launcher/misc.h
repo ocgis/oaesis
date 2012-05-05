@@ -15,7 +15,9 @@
 #include "config.h"
 #endif
 
+#ifndef WORD
 #define WORD short
+#endif /* WORD */
 #define LONG long
 
 #ifndef TRUE
