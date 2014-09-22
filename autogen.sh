@@ -53,6 +53,11 @@ then
     exit 1;
 fi
 
+echo -n "Running libtoolize... "
+libtoolize --force
+if test $? -ne 0; then echo; echo "libtoolize failed."; exit 1; fi
+echo "done"
+
 if test -d /usr/local/share/aclocal && test ! -h /usr/local/share/aclocal
 then
     ACLOCAL_FLAGS="$ACLOCAL_FLAGS -I /usr/local/share/aclocal"
@@ -61,11 +66,6 @@ fi
 echo -n "Running aclocal with options '$ACLOCAL_FLAGS'... "
 aclocal $ACLOCAL_FLAGS
 if test $? -ne 0; then echo; echo "aclocal failed."; exit 1; fi
-echo "done"
-
-echo -n "Running libtoolize... "
-libtoolize --force
-if test $? -ne 0; then echo; echo "libtoolize failed."; exit 1; fi
 echo "done"
 
 # optionally feature autoheader
